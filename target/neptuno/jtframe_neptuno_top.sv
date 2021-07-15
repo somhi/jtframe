@@ -24,6 +24,8 @@
     `define MC2_PINS
 `endif
 
+//`default_nettype none
+
 module neptuno_top(
     input           CLK50,
     output  [5:0]   VGA_R,

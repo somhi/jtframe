@@ -193,13 +193,15 @@ controls_o <= ( btn_tilt ) &
               ( btn_start2_mame ) &
               ( btn_start1_mame );
 
+
+-- output format MXYZ SACB UDLR 
 p1 <= ("0000" & (not segaf1_s)) or 
-      ("000" & btn_fireI & btn_fireH  &  btn_fireG  & btn_fireF  & btn_fireE  & btn_fireD  & btn_fireC  & btn_fireB  & btn_fireA  & btn_up  & btn_down  & btn_left  & btn_right);   
+      ("000" & btn_fireI & btn_fireH  &  btn_fireE  & btn_fireF  & btn_fireG  & btn_fireD  & btn_fireA  & btn_fireC  & btn_fireB  & btn_up  & btn_down  & btn_left  & btn_right);   
           --  when osd_enable_i = '0' else (others=>'0'); --ideally we should know when the OSD is open
 
 
 p2 <= ("0000" & (not segaf2_s)) or 
-      ("000" & btn_fire2I & btn_fire2H &  btn_fire2G & btn_fire2F & btn_fire2E & btn_fire2D & btn_fire2C & btn_fire2B & btn_fire2A & btn_up2 & btn_down2 & btn_left2 & btn_right2);
+      ("000" & btn_fire2I & btn_fire2H &  btn_fire2E & btn_fire2F & btn_fire2G & btn_fire2D & btn_fire2A & btn_fire2C & btn_fire2B & btn_up2 & btn_down2 & btn_left2 & btn_right2);
          --   when osd_enable_i = '0' else (others=>'0'); --ideally we should know when the OSD is open
 
 
@@ -308,9 +310,9 @@ begin
             if ps2_key_code_s = x"76" then btn_coin          <= not(IsReleased); end if; -- ESC
 
             if ps2_key_code_s = x"12" then btn_fireD         <= not(IsReleased); end if; -- l-shift
-            if ps2_key_code_s = x"14" then btn_fireC         <= not(IsReleased); end if; -- ctrl
+            if ps2_key_code_s = x"14" then btn_fireA         <= not(IsReleased); end if; -- ctrl
             if ps2_key_code_s = x"11" then btn_fireB         <= not(IsReleased); end if; -- alt
-            if ps2_key_code_s = x"29" then btn_fireA         <= not(IsReleased); end if; -- Space
+            if ps2_key_code_s = x"29" then btn_fireC         <= not(IsReleased); end if; -- Space
             if ps2_key_code_s = x"1A" then btn_fireE         <= not(IsReleased); end if; -- Z
             if ps2_key_code_s = x"22" then btn_fireF         <= not(IsReleased); end if; -- X
             if ps2_key_code_s = x"21" then btn_fireG         <= not(IsReleased); end if; -- C

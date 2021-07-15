@@ -29,8 +29,8 @@ module jtframe_inputs(
     input      [15:0] board_joy2,
     input      [15:0] board_joy3,
     input      [15:0] board_joy4,
-    input             board_coin,
-    input             board_start,
+    input       [3:0] board_coin,
+    input       [3:0] board_start,
 
     input       [9:0] key_joy1,
     input       [9:0] key_joy2,

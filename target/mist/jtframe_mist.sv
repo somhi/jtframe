@@ -159,7 +159,7 @@ wire [7:0]    scan2x_r, scan2x_g, scan2x_b;
 wire          scan2x_hs, scan2x_vs, scan2x_clk;
 wire          scan2x_enb;
 wire [6:0]    core_mod;
-wire          but_start, but_coin;
+wire [3:0]    but_start, but_coin;
 
 wire  [ 1:0]  rotate;
 wire          ioctl_cheat, sdram_init;

@@ -60,6 +60,7 @@ module jtframe_neptuno_io(
 
     output  [11:0] joystick1,
     output  [11:0] joystick2,
+    output  [ 8:0] controls,
     
     // Buttons for MC2(+)
     input   [ 3:0] BUTTON_n
@@ -176,6 +177,7 @@ jtframe_neptuno_joy u_joysticks(
     
     .joy1         ( joystick1[11:0] ),
     .joy2         ( joystick2[11:0] ),
+    .controls     ( controls      ),
   
     .osd          ( osd_s         ),
     .mc_reset     ( mc_reset      ),
