@@ -102,13 +102,10 @@ localparam [7:0] IDX_CHEAT = 8'h10,
 wire        ypbpr;
 wire [7:0]  ioctl_index;
 wire        ioctl_download;
-wire [8:0]  buttons;
 
 assign downloading = ioctl_download;
 assign ioctl_ram   = ioctl_index == IDX_NVRAM && ioctl_download;
 assign ioctl_cheat = ioctl_index == IDX_CHEAT && ioctl_download;
-assign but_coin    = buttons[7:4];
-assign but_start   = buttons[3:0];
 
 `ifndef SIMULATION
     `ifndef NOSOUND
@@ -178,6 +175,10 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
 );
 
 `ifndef NEPTUNO
+    wire [1:0]  buttons;
+    assign but_coin    = { 3'b0, buttons[0] };
+    assign but_start   = { 3'b0, buttons[1] };
+
     user_io #(.ROM_DIRECT_UPLOAD(`JTFRAME_MIST_DIRECT)) u_userio(
         .rst            ( rst       ),
         .clk_sys        ( clk_sys   ),
@@ -260,6 +261,10 @@ assign ypbpr = 1'b0;
     );
 `else
     // Neptuno
+    wire [8:0]  nept_controls;
+    assign but_coin    = nept_controls[7:4];
+    assign but_start   = nept_controls[3:0];
+
     jtframe_neptuno_io u_neptuno_io(
         .sdram_init     ( sdram_init    ),
         .clk_sys        ( clk_sys       ),
@@ -298,7 +303,7 @@ assign ypbpr = 1'b0;
 
         .joystick1      (joystick1[11:0]),
         .joystick2      (joystick2[11:0]),
-        .controls       ( buttons       )
+        .controls       ( nept_controls )
     );
 
     assign joystick1[31:12]=0;

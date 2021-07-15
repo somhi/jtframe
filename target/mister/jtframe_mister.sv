@@ -389,6 +389,8 @@ jtframe_board #(
     .board_joystick2( joystick2       ),
     .board_joystick3( joystick3       ),
     .board_joystick4( joystick4       ),
+    .board_start    ( 4'd0            ),
+    .board_coin     ( 4'd0            ),
     .game_joystick1 ( game_joystick1  ),
     .game_joystick2 ( game_joystick2  ),
     .game_joystick3 ( game_joystick3  ),
