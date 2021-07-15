@@ -41,7 +41,7 @@ always @(*) begin
     next2 = next-lim;
 end
 
-reg  half    = 1'b0;
+reg  half    = 0;
 wire over    = next>=lim;
 wire halfway = next >= (lim>>1)  && !half;
 
@@ -59,7 +59,7 @@ always @(posedge clk) begin
 
     if( cencnt >= absmax ) begin
         // something went wrong: restart
-        cencnt <= 11'd0;
+        cencnt <= 0;
     end else
     if( halfway ) begin
         half <= 1'b1;

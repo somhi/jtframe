@@ -125,6 +125,7 @@ end
 `else
 ////////////////////////////////////////////////////////
 // Load only PROMs directly from file in simulation
+/* verilator lint_off WIDTH */
 
 parameter [31:0] GAME_ROM_LEN = `GAME_ROM_LEN;
 
@@ -166,7 +167,7 @@ always @(posedge clk) begin
         prom_we <= 0;
     end
 end
-
+/* verilator lint_on WIDTH */
 `endif
 
 endmodule
