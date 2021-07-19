@@ -13,3 +13,13 @@ If JTFRAME_DEBUG is defined, keys + and - (in a Spanish keyboard layout) will in
 By default, debug_bus is increased (decreased) by 1. If SHIFT is pressed with +/-, then the step is 16 instead. This can be used to control different signals with each debug_bus nibble. However, the bus is always increased as a byte, so be aware of it.
 
 The game module must define the debug_bus input if JTFRAME_DEBUG is used.
+
+## Generic SDRAM Dump
+
+The SDRAM bank0 can be partially shadowed in BRAM and download as NVRAM via the NVRAM interface. This requires the macros JTFRAME_SHADOW and JTFRAME_SHADOW_LEN to be defined. The MRA file should also enable NVRAM with a statement such as:
+
+```
+<nvram index="2" size="1024"/>
+```
+
+It is not possible to use JTFRAME_SHADOW and JTFRAME_IOCTL_RD at the same time.
