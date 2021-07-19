@@ -131,7 +131,7 @@ module jtframe_board #(parameter
     // ROM downloading (cheat engine)
     input             cheat_prog,
     input             ioctl_wr,
-    input       [7:0] ioctl_data,
+    input       [7:0] ioctl_dout,
     input       [7:0] ioctl_addr,
 
     // scan doubler
@@ -450,7 +450,7 @@ wire [SDRAMW-1:0] bax_addr;
         .prog_en    ( cheat_prog),
         .prog_addr  ( ioctl_addr[7:0] ),
         .prog_wr    ( ioctl_wr  ),
-        .prog_data  ( ioctl_data)
+        .prog_data  ( ioctl_dout)
     );
     assign bax_rd = { ba_rd[3:1], cheat_rd };
     assign bax_wr = { ba_wr[3:1], cheat_wr };

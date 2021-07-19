@@ -68,8 +68,7 @@ wire          rst, rst_n, clk_sys, clk_rom, clk6, clk24, clk48, clk96;
 wire [63:0]   status;
 wire [31:0]   joystick1, joystick2;
 wire [24:0]   ioctl_addr;
-wire [ 7:0]   ioctl_data;
-wire [ 7:0]   ioctl_data2sd;
+wire [ 7:0]   ioctl_dout, ioctl_din;
 wire          ioctl_wr;
 wire          ioctl_ram;
 
@@ -266,8 +265,8 @@ u_frame(
 
     // ROM load
     .ioctl_addr     ( ioctl_addr     ),
-    .ioctl_data     ( ioctl_data     ),
-    .ioctl_data2sd  ( ioctl_data2sd  ),
+    .ioctl_dout     ( ioctl_dout     ),
+    .ioctl_din      ( ioctl_din      ),
     .ioctl_wr       ( ioctl_wr       ),
     .ioctl_ram      ( ioctl_ram      ),
 
@@ -406,11 +405,11 @@ u_game(
     .enable_psg  ( enable_psg     ),
     // PROM programming
     .ioctl_addr  ( ioctl_addr     ),
-    .ioctl_data  ( ioctl_data     ),
+    .ioctl_dout  ( ioctl_dout     ),
     .ioctl_wr    ( ioctl_wr       ),
-`ifdef CORE_NVRAM_SIZE
+`ifdef JTFRAME_IOCTL_RD
     .ioctl_ram   ( ioctl_ram      ),
-    .ioctl_data2sd(ioctl_data2sd  ),
+    .ioctl_din   ( ioctl_din      ),
 `endif
     // ROM load
     .downloading ( downloading    ),

@@ -474,7 +474,7 @@ jtframe_board #(
     .cheat          ( cheat           ),
     .cheat_prog     ( ioctl_cheat     ),
     .ioctl_wr       ( hps_wr          ),
-    .ioctl_data     ( ioctl_dout      ),
+    .ioctl_dout     ( ioctl_dout      ),
     .ioctl_addr     ( ioctl_addr[7:0] ),
     .st_addr        ( st_addr         ),
     .st_dout        ( st_dout         ),

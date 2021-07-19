@@ -87,8 +87,8 @@ module jtframe_mist_base #(parameter
         
     // ROM load from SPI
     output [24:0]   ioctl_addr,
-    output [ 7:0]   ioctl_data,
-    input  [ 7:0]   ioctl_data2sd,
+    output [ 7:0]   ioctl_dout,
+    input  [ 7:0]   ioctl_din,
     output          ioctl_wr,
     output          ioctl_ram,
     output          ioctl_cheat,
@@ -250,8 +250,8 @@ assign ypbpr = 1'b0;
         .clkref_n           ( 1'b0              ), // this is not a clock.
         .ioctl_download     ( ioctl_download    ),
         .ioctl_addr         ( ioctl_addr        ),
-        .ioctl_dout         ( ioctl_data        ),
-        .ioctl_din          ( ioctl_data2sd     ),
+        .ioctl_dout         ( ioctl_dout        ),
+        .ioctl_din          ( ioctl_din         ),
         .ioctl_wr           ( ioctl_wr          ),
         .ioctl_index        ( ioctl_index       ),
         // Unused:
@@ -284,7 +284,7 @@ assign ypbpr = 1'b0;
         .ioctl_index    ( ioctl_index   ),
         .ioctl_wr       ( ioctl_wr      ),
         .ioctl_addr     ( ioctl_addr    ),
-        .ioctl_dout     ( ioctl_data    ),
+        .ioctl_dout     ( ioctl_dout    ),
 
         .core_mod       ( core_mod      ),
         .status         ( status        ),

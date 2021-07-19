@@ -10,7 +10,7 @@ wire led;
 
 wire            downloading;
 wire    [24:0]  ioctl_addr;
-wire    [ 7:0]  ioctl_data;
+wire    [ 7:0]  ioctl_dout;
 wire clk27, rst;
 wire [21:0]  sdram_addr;
 wire [15:0]  data_read;
@@ -46,7 +46,7 @@ test_harness #(.sdram_instance(0),.GAME_ROMNAME(`GAME_ROM_PATH),
         // the downloading process can extend pass the downloading signal
         // because of SDRAM content conversion
     .ioctl_addr  ( ioctl_addr    ),
-    .ioctl_data  ( ioctl_data    ),
+    .ioctl_dout  ( ioctl_dout    ),
     .SPI_SCK     ( SPI_SCK       ),
     .SPI_SS2     ( SPI_SS2       ),
     .SPI_SS3     ( SPI_SS3       ),

@@ -31,7 +31,7 @@ module jtframe_dwnld(
     input                clk,
     input                downloading,
     input      [24:0]    ioctl_addr,
-    input      [ 7:0]    ioctl_data,
+    input      [ 7:0]    ioctl_dout,
     input                ioctl_wr,
     output reg [21:0]    prog_addr,
     output     [15:0]    prog_data,
@@ -113,7 +113,7 @@ always @(posedge clk) begin
             prog_ba   <= bank;
             `endif
         end
-        data_out  <= ioctl_data;
+        data_out  <= ioctl_dout;
         prog_mask <= (eff_addr[0]^SWAB[0]) ? 2'b10 : 2'b01;
     end
     else begin

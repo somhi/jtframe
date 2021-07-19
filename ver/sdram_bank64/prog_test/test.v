@@ -76,7 +76,7 @@ end
 
 reg         downloading;
 reg  [24:0] ioctl_addr;
-wire [ 7:0] ioctl_data;
+wire [ 7:0] ioctl_dout;
 wire        ioctl_wr;
 wire [21:0] prog_addr;
 wire [15:0] prog_data;
@@ -92,7 +92,7 @@ wire        sdram_ack;
 reg [28:0] lfsr;
 reg [ 4:0] timer;
 
-assign ioctl_data = lfsr[7:0];
+assign ioctl_dout = lfsr[7:0];
 assign ioctl_wr   = timer==0;
 
 always @(posedge clk, posedge rst) begin
@@ -176,7 +176,7 @@ jtframe_dwnld #(
     .clk        ( clk           ),
     .downloading( downloading   ),
     .ioctl_addr ( ioctl_addr    ),
-    .ioctl_data ( ioctl_data    ),
+    .ioctl_dout ( ioctl_dout    ),
     .ioctl_wr   ( ioctl_wr      ),
     .prog_addr  ( prog_addr     ),
     .prog_data  ( prog_data     ),

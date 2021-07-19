@@ -20,6 +20,7 @@ JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulati
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_INTERLACED       |         | Support for interlaced games
+JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interface. Set it to the number of bytes to save on MiST. Any value will work for MiSTer
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
 JTFRAME_MR_FASTIO        | MiSTer  | 16-bit ROM load in MiSTer. Set by default if CLK96 is set

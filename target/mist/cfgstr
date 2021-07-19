@@ -12,6 +12,6 @@
 {{ .SEPARATOR }}
 {{ if .JTFRAME_MRA_DIP }}           DIP; {{ end }}
 {{ .CORE_OSD }}
-{{ with .CORE_NVRAM_SIZE }}         R{{ . }},Save NVRAM;{{ end }}
+{{ with .JTFRAME_IOCTL_RD }}         R{{ . }},Save NVRAM;{{ end }}
 T0,RST;
 V,{{ .COMMIT }} - patreon.com/topapate
