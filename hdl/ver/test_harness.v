@@ -223,7 +223,7 @@ mt48lc16m16a2 #(.filename(GAME_ROMNAME)) u_sdram (
         localparam DWNLEN = 256;
     `endif
 `else
-    localparam DWNLEN = 0;
+    localparam DWNLEN = 32;
 `endif
 
 spitx #(.filename(GAME_ROMNAME), .TX_LEN(DWNLEN) )
