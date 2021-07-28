@@ -81,7 +81,7 @@ reg  [24:0] offset;
 reg  [24:0] eff_addr;
 
 always @(*) begin
-    header    = HEADER!=0 && ioctl_addr < HEADER;
+    header    = HEADER!=0 && ioctl_addr < HEADER && downloading;
     part_addr = ioctl_addr-HEADER;
 end
 
