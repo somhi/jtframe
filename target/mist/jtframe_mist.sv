@@ -133,8 +133,8 @@ module jtframe_mist #(parameter
     output   [3:0]  game_coin,
     output   [3:0]  game_start,
     output          game_service,
-    output  [15:0]  joystick_analog_0,
-    output  [15:0]  joystick_analog_1,
+    output  [15:0]  joyana1,
+    output  [15:0]  joyana2,
     // DIP and OSD settings
     output          enable_fm,
     output          enable_psg,
@@ -167,8 +167,8 @@ wire          ioctl_cheat, sdram_init;
 assign board_status = { {32-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
 
 jtframe_mist_base #(
-    .SIGNED_SND  (SIGNED_SND        ),
-    .COLORW      ( COLORW           )
+    .SIGNED_SND     ( SIGNED_SND    ),
+    .COLORW         ( COLORW        )
 ) u_base(
     .rst            ( rst           ),
     .sdram_init     ( sdram_init    ),
@@ -222,8 +222,8 @@ jtframe_mist_base #(
     .but_start      ( but_start     ),
     .but_coin       ( but_coin      ),
     // Analog joystick
-    .joystick_analog_0( joystick_analog_0   ),
-    .joystick_analog_1( joystick_analog_1   ),
+    .joystick_analog_0( joyana1     ),
+    .joystick_analog_1( joyana2     ),
     // Keyboard
     .ps2_kbd_clk    ( ps2_clk       ),
     .ps2_kbd_data   ( ps2_dout      ),

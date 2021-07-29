@@ -268,7 +268,7 @@ wire [ 9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [ 3:0] game_coin, game_start;
 wire [ 3:0] gfx_en;
 wire [ 7:0] debug_bus;
-wire [15:0] joystick_analog_0, joystick_analog_1;
+wire [15:0] joyana1, joyana2, joyana3, joyana4;
 
 wire        game_rst, game_service, rst, rst_n;
 wire        rst_req   = RESET | status[0] | buttons[1];
@@ -469,8 +469,10 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
-    .joystick_analog_0( joystick_analog_0 ),
-    .joystick_analog_1( joystick_analog_1 ),
+    .joyana1        ( joyana1        ),
+    .joyana2        ( joyana2        ),
+    .joyana3        ( joyana3        ),
+    .joyana4        ( joyana4        ),
     .LED            ( LED_USER       ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
@@ -570,8 +572,10 @@ end
     .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
     `ifdef JTFRAME_ANALOG
-    .joyana1      ( joystick_analog_0   ),
-    .joyana2      ( joystick_analog_1   ),
+    .joyana1        ( joyana1        ),
+    .joyana2        ( joyana2        ),
+    .joyana3        ( joyana3        ),
+    .joyana4        ( joyana4        ),
     `endif
     // Sound control
     .enable_fm    ( enable_fm        ),

@@ -147,7 +147,7 @@ wire [ 7:0]   ioctl_din;
 wire          ioctl_wr;
 wire          ioctl_ram;
 
-wire [15:0]   joystick_analog_0, joystick_analog_1;
+wire [15:0]   joyana1, joyana2;
 
 wire rst_req   = status[0];
 
@@ -405,8 +405,8 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
-    .joystick_analog_0( joystick_analog_0 ),
-    .joystick_analog_1( joystick_analog_1 ),
+    .joyana1        ( joyana1        ),
+    .joyana2        ( joyana2        ),
     .LED            ( LED            ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
@@ -495,14 +495,16 @@ u_game(
     .coin_input  ( game_coin[STARTW-1:0]       ),
     .joystick1   ( game_joy1[BUTTONS+3:0]      ),
     .joystick2   ( game_joy2[BUTTONS+3:0]      ),
-    `ifdef JTFRAME_4PLAYERS
+`ifdef JTFRAME_4PLAYERS
     .joystick3   ( game_joy3[BUTTONS+3:0]      ),
     .joystick4   ( game_joy4[BUTTONS+3:0]      ),
-    `endif
-    `ifdef JTFRAME_ANALOG
-    .joyana1     ( joystick_analog_0   ),
-    .joyana2     ( joystick_analog_1   ),
-    `endif
+`endif
+`ifdef JTFRAME_ANALOG
+    .joyana1     ( joyana1        ),
+    .joyana2     ( joyana2        ),
+    .joyana3     ( 16'h0          ),
+    .joyana4     ( 16'h0          ),
+`endif
 
     // Sound control
     .enable_fm   ( enable_fm      ),
