@@ -373,32 +373,42 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_file_ext  (                )
 );
 
-// scales base video horizontally
-jtframe_hsize #(.COLORW(COLORW)) u_hsize(
-    .clk        ( clk_sys   ),
-    .pxl_cen    ( pxl_cen   ),
-    .pxl2_cen   ( pxl2_cen  ),
+`ifndef DEBUG_NOHDMI
+    // scales base video horizontally
+    jtframe_hsize #(.COLORW(COLORW)) u_hsize(
+        .clk        ( clk_sys   ),
+        .pxl_cen    ( pxl_cen   ),
+        .pxl2_cen   ( pxl2_cen  ),
 
-    .scale      ( hsize_scale  ),
-    .offset     ( 5'd0         ),
-    .enable     ( hsize_enable ),
+        .scale      ( hsize_scale  ),
+        .offset     ( 5'd0         ),
+        .enable     ( hsize_enable ),
 
-    .r_in       ( game_r    ),
-    .g_in       ( game_g    ),
-    .b_in       ( game_b    ),
-    .HS_in      ( hs_resync ),
-    .VS_in      ( vs_resync ),
-    .HB_in      ( ~LHBL     ),
-    .VB_in      ( ~LVBL     ),
-    // filtered video
-    .HS_out     ( hsize_hs  ),
-    .VS_out     ( hsize_vs  ),
-    .HB_out     ( hsize_hb  ),
-    .VB_out     ( hsize_vb  ),
-    .r_out      ( hsize_r   ),
-    .g_out      ( hsize_g   ),
-    .b_out      ( hsize_b   )
-);
+        .r_in       ( game_r    ),
+        .g_in       ( game_g    ),
+        .b_in       ( game_b    ),
+        .HS_in      ( hs_resync ),
+        .VS_in      ( vs_resync ),
+        .HB_in      ( ~LHBL     ),
+        .VB_in      ( ~LVBL     ),
+        // filtered video
+        .HS_out     ( hsize_hs  ),
+        .VS_out     ( hsize_vs  ),
+        .HB_out     ( hsize_hb  ),
+        .VB_out     ( hsize_vb  ),
+        .r_out      ( hsize_r   ),
+        .g_out      ( hsize_g   ),
+        .b_out      ( hsize_b   )
+    );
+`else
+    assign hsize_hs = hs_resync;
+    assign hsize_vs = vs_resync;
+    assign hsize_hb = ~LHBL;
+    assign hsize_vb = ~LVBL;
+    assign hsize_r  = game_r;
+    assign hsize_g  = game_g;
+    assign hsize_b  = game_b;
+`endif
 
 jtframe_board #(
     .BUTTONS               ( BUTTONS              ),
