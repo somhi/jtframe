@@ -60,7 +60,11 @@ bit     |  meaning                | Enabled with macro
 10      | Test mode               | JTFRAME_OSD_TEST
 11      | Horizontal filter       | MiSTer only
 12      | Credits/Pause           | JTFRAME_OSD_NOCREDITS (disables it)
-14-15   | Aspect Ratio            | MiSTer only
+14-15   | Aspect Ratio            | MiSTer only, visibility masked
+19      | CRT H scaling enable    | MiSTer only
+20-23   | CRT H scaling factor    | MiSTer only, visibility masked
+24-27   | CRT H offset            | MiSTer only
+28-31   | CRT V offset            | MiSTer only
 
 
 If **JTFRAME_FLIP_RESET** is defined a change in dip_flip will reset the game.

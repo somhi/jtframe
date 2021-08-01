@@ -203,6 +203,12 @@ wire [ 6:0] core_mod;
 
 wire        hs_resync, vs_resync;
 
+// Horizontal scaling for CRT
+wire        hsize_enable;
+wire [3:0]  hsize_scale;
+wire        hsize_hs, hsize_vs, hsize_hb, hsize_vb;
+wire [COLORW-1:0] hsize_r, hsize_g, hsize_b;
+
 wire        hps_download, hps_wr, hps_wait;
 wire [15:0] hps_index;
 wire [26:0] hps_addr;
@@ -221,6 +227,8 @@ wire [28:0] ddrld_addr;
 wire        ddrld_rd, ddrld_busy;
 
 assign { voffset, hoffset } = status[31:24];
+assign hsize_enable = status[19];
+assign hsize_scale  = status[23:20];
 
 `ifdef JTFRAME_VERTICAL
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
@@ -241,7 +249,8 @@ jtframe_resync u_resync(
 
 wire [15:0] status_menumask;
 
-assign status_menumask[15:2] = 0,
+assign status_menumask[15:3] = 0,
+       status_menumask[2]    = ~hsize_enable,
        status_menumask[1]    = ~core_mod[0],
        status_menumask[0]    = direct_video;
 
@@ -364,6 +373,33 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_file_ext  (                )
 );
 
+// scales base video horizontally
+jtframe_hsize #(.COLORW(COLORW)) u_hsize(
+    .clk        ( clk_sys   ),
+    .pxl_cen    ( pxl_cen   ),
+    .pxl2_cen   ( pxl2_cen  ),
+
+    .scale      ( hsize_scale  ),
+    .offset     ( 5'd0         ),
+    .enable     ( hsize_enable ),
+
+    .r_in       ( game_r    ),
+    .g_in       ( game_g    ),
+    .b_in       ( game_b    ),
+    .HS_in      ( hs_resync ),
+    .VS_in      ( vs_resync ),
+    .HB_in      ( ~LHBL     ),
+    .VB_in      ( ~LVBL     ),
+    // filtered video
+    .HS_out     ( hsize_hs  ),
+    .VS_out     ( hsize_vs  ),
+    .HB_out     ( hsize_hb  ),
+    .VB_out     ( hsize_vb  ),
+    .r_out      ( hsize_r   ),
+    .g_out      ( hsize_g   ),
+    .b_out      ( hsize_b   )
+);
+
 jtframe_board #(
     .BUTTONS               ( BUTTONS              ),
     .GAME_INPUTS_ACTIVE_LOW(GAME_INPUTS_ACTIVE_LOW),
@@ -484,13 +520,13 @@ jtframe_board #(
     .st_dout        ( st_dout         ),
     // Base video
     .osd_rotate     ( rotate          ),
-    .game_r         ( game_r          ),
-    .game_g         ( game_g          ),
-    .game_b         ( game_b          ),
-    .LHBL           ( LHBL            ),
-    .LVBL           ( LVBL            ),
-    .hs             ( hs_resync       ),
-    .vs             ( vs_resync       ),
+    .game_r         ( hsize_r         ),
+    .game_g         ( hsize_g         ),
+    .game_b         ( hsize_b         ),
+    .LHBL           ( ~hsize_hb       ),
+    .LVBL           ( ~hsize_vb       ),
+    .hs             ( hsize_hs        ),
+    .vs             ( hsize_vs        ),
     .pxl_cen        ( pxl_cen         ),
     .pxl2_cen       ( pxl2_cen        ),
     // Debug

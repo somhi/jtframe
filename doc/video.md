@@ -30,3 +30,21 @@ JTFRAME_ARX |     4       | horizontal magnitude
 JTFRAME_ARY |     3       | vertical   magnitude
 
 Internally each value is converted to an eight bit signal.
+
+# CRT Adjustments
+
+The base video signal can be altered in two ways:
+
+1. H/V sync pulses can be delayed by a number of pixels or lines
+2. The image can be scaled horizontally
+
+These arrangements help fit the image on any CRT, as many don't have H/V potentiometers or don't tolerate well the overscan. However, these adjustments have their limitations and are only considered a small help. It may not be possible to get a perfect screen filling even with the help of these options.
+
+There are two modules used for this:
+
+1. jtframe_resync: moves H/V sync pulses
+2. jtframe_hsize: scales the horizontal video signal
+
+Note that the blanking period also gets scaled by the same factor. H/V sync adjustment occurs before the scaling.
+
+The OSD may not be visible for some combination of settings. Also, the monitor may completely lose sync for some settings. Note that this is a secondary feature, which I cannot fully test, and receives less development attention.
