@@ -47,4 +47,4 @@ There are two modules used for this:
 
 Note that the blanking period also gets scaled by the same factor. H/V sync adjustment occurs before the scaling.
 
-The OSD may not be visible for some combination of settings. Also, the monitor may completely lose sync for some settings. Note that this is a secondary feature, which I cannot fully test, and receives less development attention.
+The monitor may completely lose sync for some settings. Note that this is a secondary feature, which I cannot fully test, and receives less development attention.

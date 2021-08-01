@@ -94,7 +94,7 @@ always @(posedge clk) if(pxl_cen) begin
     HS_out <= HS_in;
     if( enable ) begin
         if(  HB_out && rdcnt==hb0 ) HB_out <= 0;
-        if( !HB_out && rdcnt==hb1 ) begin
+        if( !HB_out && (rdcnt==hb1 || (HS_in && !HSl) ) ) begin
             HB_out <= 1;
             if( enable ) VB_out <= VBll;
         end
