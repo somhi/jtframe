@@ -169,7 +169,8 @@ module hps_io #(parameter STRLEN=0, PS2DIV=0, WIDE=0, VDNUM=1, PS2WE=0)
 assign EXT_BUS[31:16] = HPS_BUS[31:16];
 assign EXT_BUS[35:33] = HPS_BUS[35:33];
 
-localparam MAX_W = $clog2((512 > (STRLEN+1)) ? 512 : (STRLEN+1))-1;
+// it needs to cope with 1kByte of config string in the BRAM
+localparam MAX_W = $clog2((1024 > (STRLEN+1)) ? 1024 : (STRLEN+1))-1;
 
 localparam DW = (WIDE) ? 15 : 7;
 localparam AW = (WIDE) ?  7 : 8;
