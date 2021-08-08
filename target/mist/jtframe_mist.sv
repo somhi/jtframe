@@ -349,8 +349,8 @@ jtframe_board #(
     .ioctl_wr   ( ioctl_wr      ),
     .ioctl_dout ( ioctl_dout    ),
     .ioctl_addr ( ioctl_addr[7:0]),
-    .st_addr    ( st_addr       ),
-    .st_dout    ( st_dout       ),
+    .st_addr    (               ),
+    .st_dout    ( 8'd0          ),
 
     // Base video
     .osd_rotate     ( rotate          ),
