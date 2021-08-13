@@ -29,11 +29,11 @@ module jtframe_jt49_filters(
     output signed [15:0] dout
 );
 
-localparam W=11;
+localparam W=11,WD=16-W;
 
 wire signed [W-1:0] dcrm_snd;
 reg         [W-1:0] base_snd;
-wire signed [ 15:0] dcrm16 = { dcrm_snd, {16-W{1'b0}} };
+wire signed [ 15:0] dcrm16 = { dcrm_snd, dcrm_snd[W-2:W-WD-1] };
 
 always @(posedge clk, posedge rst ) begin
     if( rst ) begin
