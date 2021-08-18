@@ -61,7 +61,9 @@ module jtframe_68kdtack
     input [W-1:0] den,  // denominator
 
     output reg    DTACKn,
-    output reg [15:0] fave // average cpu_cen frequency in kHz
+    output reg [15:0] fave, // average cpu_cen frequency in kHz
+    output reg [15:0] fworst, // average cpu_cen frequency in kHz
+    input             frst
 );
 
 localparam CW=W+WD;
@@ -121,6 +123,7 @@ end
 
 // Frequency reporting
 reg [15:0] freq_cnt=0, fout_cnt;
+initial fworst = 16'hffff;
 
 always @(posedge clk) begin
     freq_cnt <= freq_cnt + 1'd1;
@@ -129,7 +132,9 @@ always @(posedge clk) begin
         freq_cnt <= 0;
         fout_cnt <= 0;
         fave <= fout_cnt;
+        if( fworst > fout_cnt ) fworst <= fout_cnt;
     end
+    if( frst ) fworst <= 16'hffff;
 end
 
 endmodule
