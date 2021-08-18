@@ -27,13 +27,18 @@
     will not be recovered as it is identified as legitim wait
     in the original system
 
-    BUSn -and not just ASn- must be used so read-modify-write
+    DSn -and not just ASn- must be used so read-modify-write
     instructions have a second /DTACK signal generated for
     the write cycle
 
-    Note that if jtframe_ramrq is used, then BUSn must also
+    Note that if jtframe_ramrq is used, then DSn must also
     gate the SDRAM requests so you get a cs toggle in the
     middle of the read-modify-write cycles
+
+    DSn goes low one cycle after ASn under some conditions, so
+    if ASn | DSn is used to set DTACKn, it will take one more
+    cycle than expected on those occasions. Both CPS and S16
+    use only ASn to generate DTACKn.
 
 */
 
@@ -50,7 +55,8 @@ module jtframe_68kdtack
     input         bus_cs,
     input         bus_busy,
     input         bus_legit,
-    input         BUSn,   // BUSn = ASn | (LDSn & UDSn)
+    input         ASn,  // DTACKn set low at the next cpu_cen after ASn goes low
+    input [1:0]   DSn,  // If DSn goes high, DTACKn is reset high
     input [W-1:0] num,  // numerator
     input [W-1:0] den,  // denominator
 
@@ -63,13 +69,15 @@ localparam CW=W+WD;
 reg signed [CW-1:0] cencnt=0;
 reg wait1, halt;
 wire over = cencnt>(den-num)>>1 && !cencnt[CW-1];
+reg  DSnl;
+wire DSn_posedge = &DSn & ~DSnl;
 
 `ifdef SIMULATION
 real rnum = num;
 real rden = den;
 initial begin
     if( rnum/rden<=3 ) begin
-        $display("Error: den must be 3 or more, otherwise recovery won't work (%m)");
+        $display("Error: num/den must be 3 or more, otherwise recovery won't work (%m)");
         $finish;
     end
 end
@@ -81,11 +89,12 @@ always @(posedge clk, posedge rst) begin : dtack_gen
         wait1  <= 1;
         halt   <= 0;
     end else begin
-        if( BUSn ) begin // DSn is needed for read-modify-write cycles
+        DSnl <= &DSn;
+        if( ASn || DSn_posedge ) begin // DSn is needed for read-modify-write cycles
             DTACKn <= 1;
             wait1  <= 1;
             halt   <= 0;
-        end else if( !BUSn ) begin
+        end else if( !ASn ) begin
             if( cpu_cen  ) wait1 <= 0;
             if( !wait1 ) begin
                 if( !bus_cs || (bus_cs && !bus_busy) ) begin
