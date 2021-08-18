@@ -38,7 +38,10 @@
 */
 
 module jtframe_68kdtack
-#(parameter W=5, RECOVERY=1, WD=6
+#(parameter W=5,
+            RECOVERY=1,
+            WD=6,
+            MFREQ=48_000  // clk input frequency in kHz
 )(
     input         rst,
     input         clk,
@@ -51,7 +54,8 @@ module jtframe_68kdtack
     input [W-1:0] num,  // numerator
     input [W-1:0] den,  // denominator
 
-    output reg  DTACKn
+    output reg    DTACKn,
+    output reg [15:0] fave // average cpu_cen frequency in kHz
 );
 
 localparam CW=W+WD;
@@ -103,6 +107,19 @@ always @(posedge clk) begin
     end else begin
         cpu_cen <= over ? ~cpu_cen : 0;
         cpu_cenb<= cpu_cen;
+    end
+end
+
+// Frequency reporting
+reg [15:0] freq_cnt=0, fout_cnt;
+
+always @(posedge clk) begin
+    freq_cnt <= freq_cnt + 1'd1;
+    if(cpu_cen) fout_cnt<=fout_cnt+1'd1;
+    if( freq_cnt == MFREQ-1 ) begin
+        freq_cnt <= 0;
+        fout_cnt <= 0;
+        fave <= fout_cnt;
     end
 end
 
