@@ -38,7 +38,7 @@
 */
 
 module jtframe_68kdtack
-#(parameter W=5, RECOVERY=1
+#(parameter W=5, RECOVERY=1, WD=6
 )(
     input         rst,
     input         clk,
@@ -54,7 +54,7 @@ module jtframe_68kdtack
     output reg  DTACKn
 );
 
-localparam CW=W+6;
+localparam CW=W+WD;
 
 reg [CW-1:0] cencnt=0;
 reg wait1, halt;
