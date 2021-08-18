@@ -60,9 +60,9 @@ module jtframe_68kdtack
 
 localparam CW=W+WD;
 
-reg [CW-1:0] cencnt=0;
+reg signed [CW-1:0] cencnt=0;
 reg wait1, halt;
-wire over = cencnt>=den-1;
+wire over = cencnt>(den-num)>>1 && !cencnt[CW-1];
 
 `ifdef SIMULATION
 real rnum = num;
