@@ -38,7 +38,7 @@
 */
 
 module jtframe_68kdtack
-#(parameter W=5
+#(parameter W=5, RECOVERY=1
 )(
     input         rst,
     input         clk,
@@ -96,7 +96,7 @@ always @(posedge clk, posedge rst) begin : dtack_gen
 end
 
 always @(posedge clk) begin
-    cencnt  <= (over && !cpu_cen && !halt) ? (cencnt+num-den) : (cencnt+num);
+    cencnt  <= (over && !cpu_cen && (!halt || RECOVERY==0)) ? (cencnt+num-den) : (cencnt+num);
     if( halt ) begin
         cpu_cen  <= 0;
         cpu_cenb <= 0;
