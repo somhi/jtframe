@@ -129,7 +129,8 @@ module jtframe_board #(parameter
     input             direct_video,
 
     // ROM downloading (cheat engine)
-    input             cheat_prog,
+    input             prog_cheat,
+    input             prog_lock,
     input             ioctl_wr,
     input       [7:0] ioctl_dout,
     input       [7:0] ioctl_addr,
@@ -447,7 +448,8 @@ wire [SDRAMW-1:0] bax_addr;
         .vram_ctrl  ( vram_ctrl ),
 
         // Program
-        .prog_en    ( cheat_prog),
+        .prog_en    ( prog_cheat),
+        .prog_lock  ( prog_lock ),
         .prog_addr  ( ioctl_addr[7:0] ),
         .prog_wr    ( ioctl_wr  ),
         .prog_data  ( ioctl_dout)

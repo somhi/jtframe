@@ -345,7 +345,8 @@ jtframe_board #(
 
     // Cheat!
     .cheat      ( status[63:32] ),
-    .cheat_prog ( ioctl_cheat   ),
+    .prog_cheat ( ioctl_cheat   ),
+    .prog_lock  ( 1'b0          ),  // locking is not needed on MiST
     .ioctl_wr   ( ioctl_wr      ),
     .ioctl_dout ( ioctl_dout    ),
     .ioctl_addr ( ioctl_addr[7:0]),

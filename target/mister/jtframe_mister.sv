@@ -193,7 +193,7 @@ wire [ 7:0] ioctl_index;
 
 wire [ 3:0] hoffset, voffset;
 wire [31:0] cheat;
-wire        ioctl_cheat;
+wire        ioctl_cheat, ioctl_lock;
 
 wire [15:0] joystick1, joystick2, joystick3, joystick4;
 wire        ps2_kbd_clk, ps2_kbd_data;
@@ -275,6 +275,7 @@ jtframe_mister_dwnld u_dwnld(
     .ioctl_dout     ( ioctl_dout     ),
     .ioctl_ram      ( ioctl_ram      ),
     .ioctl_cheat    ( ioctl_cheat    ),
+    .ioctl_lock     ( ioctl_lock     ),
 
     // Configuration
     .core_mod       ( core_mod       ),
@@ -522,7 +523,8 @@ jtframe_board #(
 
     // Cheat!
     .cheat          ( cheat           ),
-    .cheat_prog     ( ioctl_cheat     ),
+    .prog_cheat     ( ioctl_cheat     ),
+    .prog_lock      ( ioctl_lock      ),
     .ioctl_wr       ( hps_wr          ),
     .ioctl_dout     ( ioctl_dout      ),
     .ioctl_addr     ( ioctl_addr[7:0] ),

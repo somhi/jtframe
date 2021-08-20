@@ -68,9 +68,9 @@ module jtframe_68kdtack
 
 localparam CW=W+WD;
 
-reg signed [CW-1:0] cencnt=0;
+reg [CW-1:0] cencnt=0;
 reg wait1, halt, aux;
-wire over = cencnt>(den-num)>>1 && !cencnt[CW-1]
+wire over = (cencnt>den-num)
             && !cpu_cen && !aux && (!halt || RECOVERY==0);
 reg  DSnl;
 wire DSn_posedge = &DSn & ~DSnl;

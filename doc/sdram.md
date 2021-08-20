@@ -8,6 +8,7 @@ For I/O (SDRAM download, etc.) the following indexes are used
  JTFRAME options  |   1    |    1
  NVRAM            | 255    |    2
  Cheat ROM        |  16    |   16
+ Beta keys        |  N/A   |   17
  DIP switches     |  N/A   |  254
  Cheat switches   |  N/A   |  255
 
