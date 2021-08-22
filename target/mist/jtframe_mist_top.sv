@@ -124,9 +124,14 @@ assign snd_right = snd_left;
 `endif
 
 `ifndef JTFRAME_SDRAM_BANKS
-assign prog_data = {2{prog_data8}};
-assign ba_rd[3:1] = 0;
-assign ba_wr      = 0;
+    assign prog_data = {2{prog_data8}};
+    assign ba_rd[3:1] = 0;
+    assign ba_wr      = 0;
+    assign prog_ba    = 0;
+    // tie down unused bank signals
+    assign ba1_addr   = 0;
+    assign ba2_addr   = 0;
+    assign ba3_addr   = 0;
 `endif
 
 jtframe_mist_clocks u_clocks(
@@ -480,16 +485,6 @@ u_game(
     ,.debug_bus   ( debug_bus      )
     `endif
 );
-
-`ifndef JTFRAME_SDRAM_BANKS
-    assign ba_wr     = 1'b0;
-    assign prog_ba   = 2'd0;
-    // tie down unused bank signals
-    assign ba_rd[3:1] = 0;
-    assign ba1_addr = 22'd0;
-    assign ba2_addr = 22'd0;
-    assign ba3_addr = 22'd0;
-`endif
 
 `ifdef SIMULATION
 integer fsnd;
