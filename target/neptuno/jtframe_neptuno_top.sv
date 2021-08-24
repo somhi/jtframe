@@ -251,7 +251,6 @@ jtframe_mist_clocks u_clocks(
 assign clk_pico = clk48;
 
 
-wire [7:0] dipsw_a, dipsw_b;
 wire [7:0] debug_bus;
 wire [1:0] dip_fxlevel, game_led;
 wire       enable_fm, enable_psg;
