@@ -69,10 +69,6 @@ always @(posedge clk) if(cen) begin
     p3_s     <= p3_i;
 end
 
-reg [11:0] rom_acen;
-
-always @(posedge clk) if( cen ) rom_acen <= rom_addr[11:0];
-
 // You need to clock gate for reading or the MCU won't work
 jtframe_dual_ram_cen #(.aw(12),.simfile(ROMBIN)) u_prom(
     .clk0   ( clk_rom   ),
