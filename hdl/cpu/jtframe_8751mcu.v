@@ -49,7 +49,8 @@ module jtframe_8751mcu(
     input         prom_we
 );
 
-parameter ROMBIN="";
+parameter ROMBIN="",
+          SINC_XDATA = 0;
 
 wire [ 7:0] rom_data, ram_data, ram_q;
 wire [15:0] rom_addr;
@@ -113,7 +114,7 @@ mc8051_core u_mcu(
     .ram_wr_o   ( ram_we    ),
     .ram_en_o   (           ),
     // external memory: connected to main CPU
-    .datax_i    ( x_din     ),
+    .datax_i    ( SINC_XDATA ? xin_sync : x_din ),
     .datax_o    ( x_dout    ),
     .adrx_o     ( x_addr    ),
     .wrx_o      ( x_wr      ),
