@@ -388,13 +388,21 @@ always@(posedge spi_sck or posedge SPI_SS_IO) begin
 	end
 end
 
+// Synchronizers
+reg spi_receiver_strobe, spi_transfer_end;
+
+always @(posedge clk_sys) begin
+	reg spi_receiver_strobeD, spi_transfer_endD;
+	//synchronize between SPI and sys clock domains
+	spi_receiver_strobeD <= spi_receiver_strobe_r;
+	spi_receiver_strobe  <= spi_receiver_strobeD;
+	spi_transfer_endD	 <= spi_transfer_end_r;
+	spi_transfer_end	 <= spi_transfer_endD;
+end
+
 // Process bytes from SPI at the clk_sys domain
 always @(posedge clk_sys) begin
 
-	reg       spi_receiver_strobe;
-	reg       spi_transfer_end;
-	reg       spi_receiver_strobeD;
-	reg       spi_transfer_endD;
 	reg [7:0] acmd;
 	reg [7:0] abyte_cnt;   // counts bytes
 
@@ -407,11 +415,6 @@ always @(posedge clk_sys) begin
 	if( rst ) begin
 		core_mod <= 7'b01; // see readme file for documentation on each bit
 	end else begin
-		//synchronize between SPI and sys clock domains
-		spi_receiver_strobeD <= spi_receiver_strobe_r;
-		spi_receiver_strobe <= spi_receiver_strobeD;
-		spi_transfer_endD	<= spi_transfer_end_r;
-		spi_transfer_end	<= spi_transfer_endD;
 
 		key_strobe <= 0;
 		mouse_strobe <= 0;
