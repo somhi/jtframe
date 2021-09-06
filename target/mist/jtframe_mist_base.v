@@ -249,7 +249,6 @@ assign ypbpr = 1'b0;
         .SPI_DO             ( SPI_DO            ),
 
         .clk_sys            ( clk_rom           ),
-        .clkref_n           ( 1'b0              ), // this is not a clock.
         .ioctl_download     ( ioctl_download    ),
         .ioctl_addr         ( ioctl_addr        ),
         .ioctl_dout         ( ioctl_dout        ),
