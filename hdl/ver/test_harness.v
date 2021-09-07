@@ -240,7 +240,6 @@ spitx #(.filename(GAME_ROMNAME), .TX_LEN(DWNLEN) )
 );
 
 data_io datain (
-    .clkref_n       ( 1'b0        ),
     .SPI_SCK        (SPI_SCK      ),
     .SPI_SS2        (SPI_SS2      ),
     .SPI_SS4        (1'b1         ),
