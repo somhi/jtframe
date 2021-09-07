@@ -190,6 +190,7 @@ wire [15:0] snd_left, snd_right;
 wire [9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [3:0] game_coin, game_start;
 wire       game_rst, game_service;
+wire       rst96, rst48, rst24, rst6;
 wire [3:0] gfx_en;
 // SDRAM
 wire data_rdy, sdram_ack;
@@ -245,7 +246,14 @@ jtframe_mist_clocks u_clocks(
     // System clocks
     .clk_sys    ( clk_sys        ),
     .clk_rom    ( clk_rom        ),
-    .SDRAM_CLK  ( SDRAM_CLK      )
+    .SDRAM_CLK  ( SDRAM_CLK      ),
+
+    // reset signals
+    .game_rst   ( game_rst       ),
+    .rst96      ( rst96          ),
+    .rst48      ( rst48          ),
+    .rst24      ( rst24          ),
+    .rst6       ( rst6           )
 );
 
 assign clk_pico = clk48;
@@ -467,15 +475,19 @@ u_game(
     .clk         ( clk_rom        ),
     `ifdef JTFRAME_CLK96
     .clk96       ( clk96          ),
+    .rst96       ( rst96          ),
     `endif
     `ifdef JTFRAME_CLK48
     .clk48       ( clk48          ),
+    .rst48       ( rst48          ),
     `endif
     `ifdef JTFRAME_CLK24
     .clk24       ( clk24          ),
+    .rst24       ( rst24          ),
     `endif
     `ifdef JTFRAME_CLK6
     .clk6        ( clk6           ),
+    .rst6        ( rst6           ),
     `endif
     // Video
     .pxl2_cen    ( pxl2_cen       ),

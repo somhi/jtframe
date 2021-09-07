@@ -29,7 +29,14 @@ module jtframe_mist_clocks(
     // System clocks
     output  clk_sys,
     output  clk_rom,
-    output  SDRAM_CLK
+    output  SDRAM_CLK,
+
+    // reset signals
+    input   game_rst,
+    output  rst96,
+    output  rst48,
+    output  rst24,
+    output  rst6
 );
 
 `ifndef JTFRAME_PLL
@@ -78,5 +85,30 @@ assign pll_locked = pll0_lock & pll1_lock;
 `else
     assign clk_sys   = clk_rom;
 `endif
+
+jtframe_rst_sync u_reset96(
+    .rst        ( game_rst  ),
+    .clk        ( clk96     ),
+    .rst_sync   ( rst96     )
+);
+
+jtframe_rst_sync u_reset48(
+    .rst        ( game_rst  ),
+    .clk        ( clk48     ),
+    .rst_sync   ( rst48     )
+);
+
+jtframe_rst_sync u_reset24(
+    .rst        ( game_rst  ),
+    .clk        ( clk24     ),
+    .rst_sync   ( rst24     )
+);
+
+jtframe_rst_sync u_reset6(
+    .rst        ( game_rst ),
+    .clk        ( clk6     ),
+    .rst_sync   ( rst6     )
+);
+
 
 endmodule
