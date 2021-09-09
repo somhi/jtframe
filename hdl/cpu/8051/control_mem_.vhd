@@ -174,6 +174,7 @@ entity control_mem is
         adrx_o     : out std_logic_vector(15 downto 0);  -- ext. RAM
         datax_o    : out std_logic_vector(7 downto 0);   -- ext. RAM
         wrx_o      : out std_logic;  	-- ext. RAM
+        memx_o     : out std_logic;
 
         datax_i      : in std_logic_vector(7 downto 0);  -- ext. RAM
         pc_inc_en_i  : in std_logic_vector (3 downto 0);

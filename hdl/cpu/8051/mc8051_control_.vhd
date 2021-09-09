@@ -103,6 +103,7 @@ entity mc8051_control is
         datax_o : out std_logic_vector (7 downto 0);   -- ext. RAM
         adrx_o  : out std_logic_vector (15 downto 0);  -- ext. RAM
         wrx_o   : out std_logic;  		       -- ext. RAM
+        memx_o  : out std_logic;             -- ext. RAM
 
         p0_i : in std_logic_vector(7 downto 0);  -- IO-port0
         p1_i : in std_logic_vector(7 downto 0);  -- IO-port1

@@ -41,6 +41,7 @@ module jtframe_8751mcu(
     output reg [ 7:0] x_dout,
     output reg [15:0] x_addr,
     output reg        x_wr,
+    output reg        x_acc,
 
     // ROM programming
     input         clk_rom,
@@ -95,12 +96,13 @@ jtframe_ram #(.aw(7),.cen_rd(1)) u_ramu(
 
 wire [ 7:0] pre_dout;
 wire [15:0] pre_addr, pre_rom;
-wire        pre_wr;
+wire        pre_wr, pre_acc;
 
 always @(posedge clk) begin
     x_addr   <= pre_addr;
     x_wr     <= pre_wr;
     x_dout   <= pre_dout;
+    x_acc    <= pre_acc;
     rom_addr <= pre_rom;
 end
 
@@ -122,6 +124,7 @@ mc8051_core u_mcu(
     .datax_o    ( pre_dout  ),
     .adrx_o     ( pre_addr  ),
     .wrx_o      ( pre_wr    ),
+    .memx_o     ( pre_acc   ),
     // interrupts
     .int0_i     ( int0n     ),
     .int1_i     ( int1n     ),

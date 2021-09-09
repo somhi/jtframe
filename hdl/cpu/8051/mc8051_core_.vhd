@@ -115,6 +115,7 @@ entity mc8051_core is
         datax_i : in  std_logic_vector (7 downto 0);   -- ext. RAM data input
         datax_o : out std_logic_vector (7 downto 0);   -- ext. RAM data output
         adrx_o  : out std_logic_vector (15 downto 0);  -- ext. RAM address
+        memx_o  : out std_logic;                       -- ext. RAM access
         wrx_o   : out std_logic);                      -- ext. RAM write enable
 
 end mc8051_core;

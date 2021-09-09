@@ -675,6 +675,7 @@ package mc8051_p is
           ip_o           : out std_logic_vector(7 downto 0);
           adrx_o         : out std_logic_vector(15 downto 0);
           datax_o        : out std_logic_vector(7 downto 0);
+          memx_o         : out std_logic;
           wrx_o          : out std_logic;
           datax_i        : in  std_logic_vector(7 downto 0);
           pc_inc_en_i    : in  std_logic_vector (3 downto 0);
@@ -730,6 +731,7 @@ package mc8051_p is
           datax_i        : in  std_logic_vector (7 downto 0);
           datax_o        : out std_logic_vector (7 downto 0);
           adrx_o         : out std_logic_vector (15 downto 0);
+          memx_o         : out std_logic;
           wrx_o          : out std_logic;
           p0_i           : in  std_logic_vector(7 downto 0);
           p1_i           : in  std_logic_vector(7 downto 0);
@@ -791,6 +793,7 @@ package mc8051_p is
           datax_i     : in  std_logic_vector (7 downto 0);
           datax_o     : out std_logic_vector (7 downto 0);
           adrx_o      : out std_logic_vector (15 downto 0);
+          memx_o      : out std_logic;
           wrx_o       : out std_logic);
 
   end component;

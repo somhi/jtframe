@@ -696,14 +696,16 @@ for_siu_edge:
     end case;
 
     case s_adrx_mux is
-      when "00" => adrx_o <= (others => '0');
+      --when "00" => adrx_o <= (others => '0');
       when "01" => 
         adrx_o(15 downto 8) <= std_logic_vector(dph); 
         adrx_o(7 downto 0) <= std_logic_vector(dpl); 
+        memx_o <= '1';
       when "10" => 
         adrx_o(15 downto 8) <= (others => '0'); 
         adrx_o(7 downto 0) <= std_logic_vector(s_ri_data); 
-      when others => adrx_o <= (others => '0');
+        memx_o <= '1';
+      when others => adrx_o <= (others => '0'); memx_o <= '0';
     end case;
           
     case s_ri_adr is

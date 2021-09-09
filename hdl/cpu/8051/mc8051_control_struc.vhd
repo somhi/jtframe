@@ -117,7 +117,7 @@ architecture struc of mc8051_control is
 begin                 -- architecture structural
 
   acc_o <= acc;
-    
+
   i_control_fsm : control_fsm
     port map(state_i    => state,
              help_i     => s_help,
@@ -237,6 +237,7 @@ begin                 -- architecture structural
              adrx_o     => adrx_o,
              datax_o    => datax_o,
              wrx_o      => wrx_o,
+             memx_o     => memx_o,
 
              datax_i      => datax_i,
              pc_inc_en_i  => s_pc_inc_en,
