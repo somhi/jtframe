@@ -106,8 +106,6 @@ architecture struc of mc8051_core is
    
 begin                 -- architecture structural
 
-  memx_o <= '0';
-    
   i_mc8051_control : mc8051_control
     port map(pc_o           => rom_adr_o,
              rom_data_i     => rom_data_i,
@@ -159,7 +157,7 @@ begin                 -- architecture structural
              adrx_o         => adrx_o,
              datax_o        => datax_o,
              wrx_o          => wrx_o,
---             memx_o         => memx_o,
+             memx_o         => memx_o,
              datax_i        => datax_i);
   
     
