@@ -51,15 +51,18 @@ module jtframe_8751mcu(
 );
 
 parameter ROMBIN="",
-          SINC_XDATA = 0;
+          SYNC_XDATA = 0,
+          SYNC_INT = 0,
+          DIVCEN = 0; // Divide the input cen by 12
 
 wire [ 7:0] rom_data, ram_data, ram_q;
 reg  [15:0] rom_addr;
 wire [ 6:0] ram_addr;
 wire        ram_we;
 reg  [ 7:0] xin_sync, p0_s, p1_s, p2_s, p3_s;   // input data must be sampled with cen
+wire        cen_eff;
 
-always @(posedge clk) if(cen) begin
+always @(posedge clk) if(cen_eff) begin
     xin_sync <= x_din;
     p0_s     <= p0_i;
     p1_s     <= p1_i;
@@ -67,12 +70,35 @@ always @(posedge clk) if(cen) begin
     p3_s     <= p3_i;
 end
 
+// Optional clock-enable divider by 12
+// as Oregano's MCU seem to be about
+// 12x faster
+reg [3:0] divcencnt=0;
+reg       cen0;
+assign    cen_eff = cen0;
+
+always @(posedge clk) begin
+    if(cen)
+        divcencnt <= divcencnt==11 ? 0 : divcencnt+1'd1;
+    cen0 <= divcencnt==1 && cen==1;
+end
+
+assign cen_eff = DIVCEN ? cen0 : cen;
+
+wire int0n_s, int1n_s;
+
+jtframe_sync #(.W(2)) u_sync(
+    .clk    (   clk               ),
+    .raw    ( {int1n, int0n }     ),
+    .sync   ( {int1n_s, int0n_s } )
+);
+
 // You need to clock gate for reading or the MCU won't work
 jtframe_dual_ram_cen #(.aw(12),.simfile(ROMBIN)) u_prom(
     .clk0   ( clk_rom   ),
     .cen0   ( 1'b1      ),
     .clk1   ( clk       ),
-    .cen1   ( cen       ),
+    .cen1   ( cen_eff   ),
     // Port 0
     .data0  ( prom_din  ),
     .addr0  ( prog_addr ),
@@ -87,7 +113,7 @@ jtframe_dual_ram_cen #(.aw(12),.simfile(ROMBIN)) u_prom(
 
 jtframe_ram #(.aw(7),.cen_rd(1)) u_ramu(
     .clk        ( clk               ),
-    .cen        ( cen               ),
+    .cen        ( cen_eff           ),
     .addr       ( ram_addr          ),
     .data       ( ram_data          ),
     .we         ( ram_we            ),
@@ -109,7 +135,7 @@ end
 mc8051_core u_mcu(
     .reset      ( rst       ),
     .clk        ( clk       ),
-    .cen        ( cen       ),
+    .cen        ( cen_eff   ),
     // code ROM
     .rom_data_i ( rom_data  ),
     .rom_adr_o  ( pre_rom   ),
@@ -120,14 +146,14 @@ mc8051_core u_mcu(
     .ram_wr_o   ( ram_we    ),
     .ram_en_o   (           ),
     // external memory: connected to main CPU
-    .datax_i    ( SINC_XDATA ? xin_sync : x_din ),
+    .datax_i    ( SYNC_XDATA ? xin_sync : x_din ),
     .datax_o    ( pre_dout  ),
     .adrx_o     ( pre_addr  ),
     .wrx_o      ( pre_wr    ),
     .memx_o     ( pre_acc   ),
     // interrupts
-    .int0_i     ( int0n     ),
-    .int1_i     ( int1n     ),
+    .int0_i     ( SYNC_INT ? int0n_s : int0n ),
+    .int1_i     ( SYNC_INT ? int1n_s : int1n ),
     // counters
     .all_t0_i   ( 1'b0      ),
     .all_t1_i   ( 1'b0      ),
