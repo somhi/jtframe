@@ -46,11 +46,11 @@ wire over    = next>=lim;
 wire halfway = next >= (lim>>1)  && !half;
 
 reg  [W-1:0] edgecnt = 0;
-wire [W-1:0] next_edgecnt = edgecnt + 1;
+wire [W-1:0] next_edgecnt = edgecnt + 1'd1;
 wire [W-1:0] toggle = next_edgecnt & ~edgecnt;
 
 reg  [W-1:0] edgecnt_b = 0;
-wire [W-1:0] next_edgecnt_b = edgecnt_b + 1;
+wire [W-1:0] next_edgecnt_b = edgecnt_b + 1'd1;
 wire [W-1:0] toggle_b = next_edgecnt_b & ~edgecnt_b;
 
 always @(posedge clk) begin

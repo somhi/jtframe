@@ -164,6 +164,7 @@ mc8051_core u_mcu(
     // serial interface
     .all_rxd_i  ( 1'b0      ),
     .all_rxd_o  (           ),
+    .all_rxdwr_o(           ),
     // Ports
     .p0_i       ( SYNC_P0 ? p0_s : p0_i ),
     .p0_o       ( p0_o      ),

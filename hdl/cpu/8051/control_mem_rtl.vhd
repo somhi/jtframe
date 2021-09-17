@@ -612,7 +612,7 @@ for_siu_edge:
           s_intpre <= '0'; 
         end if; 
       end if; 
-    else                          -- no interrupt must be carry out 
+    else                          -- no interrupt must be carried out
       s_intpre <= '0'; 
     end if;     
   end process intpre; 
