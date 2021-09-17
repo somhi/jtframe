@@ -53,6 +53,10 @@ module jtframe_8751mcu(
 parameter ROMBIN="",
           SYNC_XDATA = 0,
           SYNC_INT = 0,
+          SYNC_P0 = 0,
+          SYNC_P1 = 0,
+          SYNC_P2 = 0,
+          SYNC_P3 = 0,
           DIVCEN = 0; // Divide the input cen by 12
 
 wire [ 7:0] rom_data, ram_data, ram_q;
@@ -161,16 +165,16 @@ mc8051_core u_mcu(
     .all_rxd_i  ( 1'b0      ),
     .all_rxd_o  (           ),
     // Ports
-    .p0_i       ( p0_i      ),
+    .p0_i       ( SYNC_P0 ? p0_s : p0_i ),
     .p0_o       ( p0_o      ),
 
-    .p1_i       ( p1_i      ),
+    .p1_i       ( SYNC_P1 ? p1_s : p1_i ),
     .p1_o       ( p1_o      ),
 
-    .p2_i       ( p2_i      ),
+    .p2_i       ( SYNC_P2 ? p2_s : p2_i ),
     .p2_o       ( p2_o      ),
 
-    .p3_i       ( p3_i      ),
+    .p3_i       ( SYNC_P3 ? p3_s : p3_i ),
     .p3_o       ( p3_o      )
 );
 
