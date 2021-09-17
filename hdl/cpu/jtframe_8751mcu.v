@@ -79,7 +79,6 @@ end
 // 12x faster
 reg [3:0] divcencnt=0;
 reg       cen0;
-assign    cen_eff = cen0;
 
 always @(posedge clk) begin
     if(cen)
