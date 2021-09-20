@@ -86,9 +86,9 @@ initial begin
 end
 `endif
 
-always @(posedge clk, posedge rst) begin : dtack_gen
+always @(posedge clk) begin : dtack_gen
     if( rst ) begin
-        DTACKn <= 1'b1;
+        DTACKn <= 1;
         wait1  <= 1;
         halt   <= 0;
     end else begin
