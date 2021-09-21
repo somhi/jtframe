@@ -3,8 +3,8 @@
 // 96 MHz PLL
 module jtframe_pll96(
     input        inclk0,
-    output   reg c0,     // 48
-    output   reg c1,     // 96
+    output   reg c0,     // 96
+    output   reg c1,     // 48
     output       c2,     // 96 (shifted by -2.5ns)
     output   reg c3,     // 24
     output   reg c4,     // 6
@@ -23,11 +23,11 @@ initial begin
     c0  = 1'b0;
     c1  = 1'b0;
     c3n = 1'b0;
-    forever c1 = #(base_clk/2.0) ~c1;
+    forever c0 = #(base_clk/2.0) ~c0;
 end
 
-always @(posedge c1) begin
-    { c3n, c0 } <= { c3n, c0 } + 2'd1; // 48 and 24
+always @(posedge c0) begin
+    { c3n, c1 } <= { c3n, c1 } + 2'd1; // 48 and 24
     c3 <= c3n;
 end
 
@@ -53,7 +53,7 @@ initial $display("INFO: SDRAM_CLK delay set to 1 ns");
 assign #1 c2 = c1;
 `endif
 */
-assign c2=c1;
+assign c2=c0;
 
 endmodule // jtgng_pll0
 
