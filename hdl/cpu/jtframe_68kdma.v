@@ -41,7 +41,7 @@ always @(posedge clk)
                     cpu_BRn <= 1'b0;                    
                 end
             2'b10: begin // bus granted
-                if( cpu_ASn /*&& cpu_DTACKn*/ ) cpu_BGACKn <= 1'b0;
+                if( cpu_ASn && cpu_DTACKn ) cpu_BGACKn <= 1'b0;
             end
             2'b0?: begin // bus held by the device
                 cpu_BRn  <= 1'b1;
