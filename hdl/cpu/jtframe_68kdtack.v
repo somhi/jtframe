@@ -57,7 +57,7 @@ module jtframe_68kdtack
     input         bus_legit,
     input         ASn,  // DTACKn set low at the next cpu_cen after ASn goes low
     input [1:0]   DSn,  // If DSn goes high, DTACKn is reset high
-    input [W-1:0] num,  // numerator
+    input [W-2:0] num,  // numerator
     input [W-1:0] den,  // denominator
 
     output reg    DTACKn,
@@ -69,18 +69,20 @@ module jtframe_68kdtack
 localparam CW=W+WD;
 
 reg [CW-1:0] cencnt=0;
-reg wait1, halt, aux;
-wire over = (cencnt>den-num)
-            && !cpu_cen && !aux && (!halt || RECOVERY==0);
+reg wait1, halt=0, aux=0;
+wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
+wire over = (cencnt>den-num2)
+            && !cpu_cen /*&& !aux*/ && (!halt || RECOVERY==0);
 reg  DSnl;
+reg  cen_act=0, risefall=0;
 wire DSn_posedge = &DSn & ~DSnl;
 
 `ifdef SIMULATION
-real rnum = num;
+real rnum = num2;
 real rden = den;
 initial begin
     if( rnum/rden<=4 ) begin
-        $display("Error: num/den must be 4 or more, otherwise recovery won't work (%m)");
+        $display("Error: num2/den must be 4 or more, otherwise recovery won't work (%m)");
         $finish;
     end
 end
@@ -112,15 +114,18 @@ always @(posedge clk) begin : dtack_gen
 end
 
 always @(posedge clk) begin
-    cencnt  <= over ? (cencnt+num-den) : (cencnt+num);
-    if( halt ) begin
+    cencnt  <= over ? (cencnt+num2-den) : (cencnt+num2);
+    if( over && !halt) begin
+        cpu_cen  <= risefall;
+        cpu_cenb <= ~risefall;
+        risefall <= ~risefall;
+    end else begin
         cpu_cen  <= 0;
         cpu_cenb <= 0;
-    end else begin
-        cpu_cen <= over ? ~cpu_cen : 0;
-        aux <= cpu_cen;
-        cpu_cenb<= aux;
     end
+    aux <= cpu_cen; // forces a blank after cpu_cen,
+    // so the shortest sequence is cpu_cen, blank, cpu_cenb
+    // note that cpu_cen can follow cpu_cenb without a blank
 end
 
 // Frequency reporting
