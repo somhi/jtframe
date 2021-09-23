@@ -5,7 +5,6 @@
 // http://code.google.com/p/mist-board/
 //
 // Copyright (c) 2014 Till Harbaum <till@harbaum.org>
-// Modified by Jose Tejada (c) 2021 for better clock synchronization
 //
 // This source file is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published
@@ -22,7 +21,6 @@
 //
 ///////////////////////////////////////////////////////////////////////
 
-
 module data_io
 (
 	input             clk_sys,
@@ -31,6 +29,8 @@ module data_io
 	input             SPI_SS4,
 	input             SPI_DI,
 	inout             SPI_DO,
+
+	input             clkref_n, // assert ioctl_wr one cycle after clkref stobe (negative active)
 
 	// ARM -> FPGA download
 	output reg        ioctl_download = 0, // signal indicating an active download
@@ -198,30 +198,24 @@ end
 end
 endgenerate
 
-wire addr_rst_sys, rclk_sys, rclk2_sys, dwn_sys;
-wire [7:0] data_w_sys, data_w2_sys;
-
-jtframe_sync #(.W(4+8*2)) u_sync_sys(
-	.clk	( clk_sys 				),
-	.raw	( { downloading_reg, addr_reset, rclk, rclk2, data_w, data_w2 } ),
-	.sync	( { dwn_sys, addr_rst_sys, rclk_sys, rclk2_sys, data_w_sys, data_w2_sys } )
-);
-
 always@(posedge clk_sys) begin : DATA_OUT
 	// synchronisers
-	reg rclk_l, rclk2_l, addr_rst_l;
+	reg rclkD, rclkD2;
+	reg rclk2D, rclk2D2;
+	reg addr_resetD, addr_resetD2;
 
 	reg wr_int, wr_int_direct, rd_int;
 	reg [24:0] addr;
 	reg [31:0] filepos;
 
-	rclk_l		<= rclk_sys;
-	rclk2_l		<= rclk2_sys;
-	addr_rst_l	<= addr_rst_sys;
+	// bring flags from spi clock domain into core clock domain
+	{ rclkD, rclkD2 } <= { rclk, rclkD };
+	{ rclk2D ,rclk2D2 } <= { rclk2, rclk2D };
+	{ addr_resetD, addr_resetD2 } <= { addr_reset, addr_resetD };
 
 	ioctl_wr <= 0;
 
-	if (!dwn_sys) begin
+	if (!downloading_reg) begin
 		ioctl_download <= 0;
 		wr_int <= 0;
 		wr_int_direct <= 0;
@@ -232,35 +226,37 @@ always@(posedge clk_sys) begin : DATA_OUT
 		rd_int <= 0;
 	end
 
-	rd_int <= 0;
-	wr_int <= 0;
-	wr_int_direct <= 0;
-	if (wr_int || wr_int_direct) begin
-		ioctl_dout <= wr_int ? data_w_sys : data_w2_sys;
-		ioctl_wr <= 1;
-		addr <= addr + 1'd1;
-		ioctl_addr <= addr;
-	end
-	if (rd_int) begin
-		ioctl_addr <= ioctl_addr + 1'd1;
+	if (~clkref_n) begin
+		rd_int <= 0;
+		wr_int <= 0;
+		wr_int_direct <= 0;
+		if (wr_int || wr_int_direct) begin
+			ioctl_dout <= wr_int ? data_w : data_w2;
+			ioctl_wr <= 1;
+			addr <= addr + 1'd1;
+			ioctl_addr <= addr;
+		end
+		if (rd_int) begin
+			ioctl_addr <= ioctl_addr + 1'd1;
+		end
 	end
 
 	// detect transfer start from the SPI receiver
-	if(addr_rst_sys ^ addr_rst_l) begin
+	if(addr_resetD ^ addr_resetD2) begin
 		addr <= START_ADDR;
 		ioctl_addr <= START_ADDR;
 		filepos <= 0;
-		ioctl_download <= dwn_sys;
+		ioctl_download <= downloading_reg;
 		ioctl_upload <= uploading_reg;
 	end
 
 	// detect new byte from the SPI receiver
-	if (rclk_l ^ rclk_sys ) begin
-		wr_int <= dwn_sys;
+	if (rclkD ^ rclkD2) begin
+		wr_int <= downloading_reg;
 		rd_int <= uploading_reg;
 	end
 	// direct transfer receiver
-	if (rclk2_sys ^ rclk2_l && filepos != ioctl_filesize) begin
+	if (rclk2D ^ rclk2D2 && filepos != ioctl_filesize) begin
 		filepos <= filepos + 1'd1;
 		wr_int_direct <= 1;
 	end
