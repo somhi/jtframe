@@ -4,6 +4,7 @@
 
 module MC6502ProcessorStatusRegister(
     clk,
+    cen,
     rst_x,
     i_c,
     i_set_c,
@@ -22,6 +23,7 @@ module MC6502ProcessorStatusRegister(
     o_psr);
 
   input        clk;
+  input        cen;
   input        rst_x;
   input        i_c;
   input        i_set_c;
@@ -58,7 +60,7 @@ module MC6502ProcessorStatusRegister(
       r_i <= 1'b0;
       r_z <= 1'b0;
       r_c <= 1'b0;
-    end else begin
+    end else if(cen) begin
       if (i_set_c) begin
         r_c <= i_c;
       end

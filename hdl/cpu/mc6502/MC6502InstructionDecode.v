@@ -4,6 +4,7 @@
 
 module MC6502InstructionDecode(
     clk,
+    cen,
     rst_x,
     // MemoryController interfaces
     mc2id_data,
@@ -35,6 +36,7 @@ module MC6502InstructionDecode(
     id2ec_data,
     id2ec_reg);
   input         clk;
+  input         cen;
   input         rst_x;
   input  [ 7:0] mc2id_data;
   input         mc2id_valid;
@@ -331,7 +333,7 @@ module MC6502InstructionDecode(
       r_reg     <= 2'b00;
       r_opcode  <= 3'b000;
       r_opx     <= 2'b00;
-    end else begin
+    end else if(cen) begin
       r_sync    <= ec2id_done | (r_sync & !mc2id_valid);
       if (w_fetch_valid) begin
         r_load    <= w_ldx | w_ldy | w_t | w_indexy |

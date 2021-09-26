@@ -7,6 +7,7 @@
 // with the core sequencer.
 module MC6502InterruptLogic(
     clk,
+    cen,
     rst_x,
     i_irq_x,
     i_nmi_x,
@@ -28,6 +29,7 @@ module MC6502InterruptLogic(
     il2rf_set_pch,
     il2rf_pushed);
   input         clk;
+  input         cen;
   input         rst_x;
   input         i_irq_x;
   input         i_nmi_x;
@@ -92,7 +94,7 @@ module MC6502InterruptLogic(
     if (!rst_x) begin
       r_res_state  <= S_RES_LOAD_PCL;
       r_vector     <= VECTOR_RES;
-    end else begin
+    end else if(cen) begin
       case (r_res_state)
         S_RES_IDLE: begin
           if (!i_irq_x | (r_int_state == S_INT_PUSH_PSR)) begin
@@ -117,7 +119,7 @@ module MC6502InterruptLogic(
   always @ (posedge clk or negedge rst_x) begin
     if (!rst_x) begin
       r_int_state <= S_INT_IDLE;
-    end else begin
+    end else if(cen) begin
       case (r_int_state)
         S_INT_IDLE: begin
           if (mc2il_brk) begin

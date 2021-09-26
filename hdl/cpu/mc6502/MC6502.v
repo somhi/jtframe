@@ -2,8 +2,14 @@
 // All rights reserved.  Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Modifications by Jose Tejada 2021
+// * Remove high-Z port
+// * Remove clk1 clk2 outputs
+// * Added clock enable signal
+
 module MC6502(
     clk,
+    cen,
     rst_x,
     i_rdy,
     i_irq_x,
@@ -11,20 +17,17 @@ module MC6502(
     i_db,
     o_db,
 
-    o_clk1,
-    o_clk2,
     o_sync,
     o_rw,
     o_ab);
   input         clk;
+  input         cen;
   input         rst_x;
   input         i_rdy;
   input         i_irq_x;
   input         i_nmi_x;
   input  [ 7:0] i_db;
   output [ 7:0] o_db;
-  output        o_clk1;
-  output        o_clk2;
   output        o_sync;
   output        o_rw;
   output [15:0] o_ab;
@@ -129,11 +132,9 @@ module MC6502(
   wire   [ 7:0] w_ec2mc_data;
   wire          w_ec2mc_store;
 
-  assign o_clk1  = clk;
-  assign o_clk2  = !clk;
-
   MC6502MemoryController mc(
       .clk          (clk            ),
+      .cen          (cen            ),
       .rst_x        (rst_x          ),
       .i_rdy        (i_rdy          ),
       .i_db         (i_db           ),
@@ -178,6 +179,7 @@ module MC6502(
 
   MC6502InterruptLogic il(
       .clk          (clk            ),
+      .cen          (cen            ),
       .rst_x        (rst_x          ),
       .i_irq_x      (i_irq_x        ),
       .i_nmi_x      (i_nmi_x        ),
@@ -199,6 +201,7 @@ module MC6502(
 
   MC6502RegisterFile rf(
       .clk          (clk            ),
+      .cen          (cen            ),
       .rst_x        (rst_x          ),
       .il2rf_set_i  (w_il2rf_set_i  ),
       .il2rf_set_b  (w_il2rf_set_b  ),
@@ -254,6 +257,7 @@ module MC6502(
 
   MC6502InstructionDecode id(
       .clk          (clk            ),
+      .cen          (cen            ),
       .rst_x        (rst_x          ),
       .mc2id_data   (w_mc2id_data   ),
       .mc2id_valid  (w_mc2id_valid  ),
@@ -285,6 +289,7 @@ module MC6502(
 
   MC6502ExecutionController ec(
       .clk          (clk            ),
+      .cen          (cen            ),
       .rst_x        (rst_x          ),
       .id2ec_reset_c(w_id2ec_reset_c),
       .id2ec_set_c  (w_id2ec_set_c  ),

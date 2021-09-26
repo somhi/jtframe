@@ -4,6 +4,7 @@
 
 module MC6502MemoryController(
     clk,
+    cen,
     rst_x,
     i_rdy,
     i_db,
@@ -50,6 +51,7 @@ module MC6502MemoryController(
     ec2mc_data,
     ec2mc_store);
   input         clk;
+  input         cen;
   input         rst_x;
   input         i_rdy;
   input  [ 7:0] i_db;
@@ -331,38 +333,40 @@ module MC6502MemoryController(
       r_push    <= 1'b0;
       r_pop     <= 1'b0;
       r_jump    <= 1'b0;
-    end else if (id2mc_operand) begin
-      r_operand <= w_1t_mode ? 3'b001 :
-                   w_2t_mode ? 3'b010 :
-                   w_3t_mode ? 3'b011 :
-                   w_4t_mode ? 3'b100 :
-                   w_5t_mode ? 3'b101 :
-                   w_6t_mode ? 3'b110 : 3'bxxx;
-      r_modex   <= id2mc_modex;
-      r_mode    <= id2mc_mode;
-      r_reg     <= (id2mc_push | id2mc_pop) ? { 1'b0, id2mc_p_reg } : id2mc_reg;
-      r_store   <= id2mc_store;
-      r_push    <= id2mc_push;
-      r_pop     <= id2mc_pop;
-      r_jump    <= id2mc_jump;
-    end else if (r_operand != 3'b000) begin
-      if ((w_abs_idx | w_indirect_y) & w_adder_sum[8] & !r_carry) begin
-        r_carry   <= 1'b1;
-      end else begin
-        r_operand <= r_operand - 3'b001;
-        r_carry   <= 1'b0;
-      end
-      if (r_carry) begin
-        r_data    <= { w_adder_sum[7:0], r_data[7:0] };
-      end else if (w_adder_valid) begin
-        r_data    <= { i_db, w_adder_sum[7:0] };
-      end else if (w_jsr & ((r_operand == 3'b011) |
-                            (r_operand == 3'b010))) begin
-        r_data    <= r_data;
-      end else if (r_operand == 3'b001) begin
-        r_data    <= o_ab;
-      end else begin
-        r_data    <= { i_db, r_data[15:8] };
+    end else if(cen) begin
+      if (id2mc_operand) begin
+        r_operand <= w_1t_mode ? 3'b001 :
+                     w_2t_mode ? 3'b010 :
+                     w_3t_mode ? 3'b011 :
+                     w_4t_mode ? 3'b100 :
+                     w_5t_mode ? 3'b101 :
+                     w_6t_mode ? 3'b110 : 3'bxxx;
+        r_modex   <= id2mc_modex;
+        r_mode    <= id2mc_mode;
+        r_reg     <= (id2mc_push | id2mc_pop) ? { 1'b0, id2mc_p_reg } : id2mc_reg;
+        r_store   <= id2mc_store;
+        r_push    <= id2mc_push;
+        r_pop     <= id2mc_pop;
+        r_jump    <= id2mc_jump;
+      end else if (r_operand != 3'b000) begin
+        if ((w_abs_idx | w_indirect_y) & w_adder_sum[8] & !r_carry) begin
+          r_carry   <= 1'b1;
+        end else begin
+          r_operand <= r_operand - 3'b001;
+          r_carry   <= 1'b0;
+        end
+        if (r_carry) begin
+          r_data    <= { w_adder_sum[7:0], r_data[7:0] };
+        end else if (w_adder_valid) begin
+          r_data    <= { i_db, w_adder_sum[7:0] };
+        end else if (w_jsr & ((r_operand == 3'b011) |
+                              (r_operand == 3'b010))) begin
+          r_data    <= r_data;
+        end else if (r_operand == 3'b001) begin
+          r_data    <= o_ab;
+        end else begin
+          r_data    <= { i_db, r_data[15:8] };
+        end
       end
     end
   end

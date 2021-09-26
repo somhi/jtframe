@@ -4,6 +4,7 @@
 
 module MC6502RegisterFile(
     clk,
+    cen,
     rst_x,
     // InterruptLogic interfaces
     il2rf_set_i,
@@ -60,6 +61,7 @@ module MC6502RegisterFile(
     rf2ec_v,
     rf2ec_z);
   input         clk;
+  input         cen;
   input         rst_x;
 
   input         il2rf_set_i;
@@ -190,7 +192,7 @@ module MC6502RegisterFile(
       r_x   <= 8'h00;
       r_y   <= 8'h00;
       r_sp  <= 8'h00;
-    end else begin
+    end else if(cen) begin
       if (w_load_pc) begin
         if (il2rf_set_pcl) begin
           r_pcl <= il2rf_data;
@@ -232,6 +234,7 @@ module MC6502RegisterFile(
 
   MC6502ProcessorStatusRegister ps(
       .clk    (clk    ),
+      .cen    (cen    ),
       .rst_x  (rst_x  ),
       .i_c    (w_c    ),
       .i_set_c(w_set_c),

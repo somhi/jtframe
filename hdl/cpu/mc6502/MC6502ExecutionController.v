@@ -4,6 +4,7 @@
 
 module MC6502ExecutionController(
     clk,
+    cen,
     rst_x,
     // InstructionDecode interfaces
     id2ec_reset_c,
@@ -54,6 +55,7 @@ module MC6502ExecutionController(
     ec2mc_data,
     ec2mc_store);
   input        clk;
+  input        cen;
   input        rst_x;
 
   input        id2ec_reset_c;
@@ -304,7 +306,7 @@ module MC6502ExecutionController(
       r_inc     <= 1'b0;
       r_data    <= 0;
       r_m2m_cnt <= 2'b00;
-    end else begin
+    end else if(cen) begin
       r_done    <= w_update_flag;
       r_branch  <= w_b_carry;
       if (id2ec_ops) begin
