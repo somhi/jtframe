@@ -5,7 +5,7 @@
 module MC6502InstructionDecode(
     clk,
     cen,
-    rst_x,
+    rstn,
     // MemoryController interfaces
     mc2id_data,
     mc2id_valid,
@@ -37,7 +37,7 @@ module MC6502InstructionDecode(
     id2ec_reg);
   input         clk;
   input         cen;
-  input         rst_x;
+  input         rstn;
   input  [ 7:0] mc2id_data;
   input         mc2id_valid;
   output        id2mc_fetch;
@@ -324,8 +324,8 @@ module MC6502InstructionDecode(
                                  (mc2id_data[5] | w_index) ? REG_X :
                                  mc2id_data[4] ? REG_S : REG_A;
 
-  always @ (posedge clk or negedge rst_x) begin
-    if (!rst_x) begin
+  always @ (posedge clk or negedge rstn) begin
+    if (!rstn) begin
       r_sync    <= 1'b1;
       r_load    <= 1'b0;
       r_ops     <= 1'b0;

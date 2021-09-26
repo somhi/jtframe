@@ -5,7 +5,7 @@
 module MC6502ExecutionController(
     clk,
     cen,
-    rst_x,
+    rstn,
     // InstructionDecode interfaces
     id2ec_reset_c,
     id2ec_set_c,
@@ -56,7 +56,7 @@ module MC6502ExecutionController(
     ec2mc_store);
   input        clk;
   input        cen;
-  input        rst_x;
+  input        rstn;
 
   input        id2ec_reset_c;
   input        id2ec_set_c;
@@ -298,8 +298,8 @@ module MC6502ExecutionController(
   assign w_bit_n         = w_bit_out[7];
   assign w_bit_v         = w_bit_out[0];
 
-  always @ (posedge clk or negedge rst_x) begin
-    if (!rst_x) begin
+  always @ (posedge clk or negedge rstn) begin
+    if (!rstn) begin
       r_done    <= 1'b0;
       r_branch  <= 1'b0;
       r_shift   <= 1'b0;

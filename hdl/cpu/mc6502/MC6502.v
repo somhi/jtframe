@@ -10,10 +10,10 @@
 module MC6502(
     clk,
     cen,
-    rst_x,
+    rstn,
     i_rdy,
-    i_irq_x,
-    i_nmi_x,
+    i_irqn,
+    i_nmin,
     i_db,
     o_db,
 
@@ -22,10 +22,10 @@ module MC6502(
     o_ab);
   input         clk;
   input         cen;
-  input         rst_x;
+  input         rstn;
   input         i_rdy;
-  input         i_irq_x;
-  input         i_nmi_x;
+  input         i_irqn;
+  input         i_nmin;
   input  [ 7:0] i_db;
   output [ 7:0] o_db;
   output        o_sync;
@@ -135,7 +135,7 @@ module MC6502(
   MC6502MemoryController mc(
       .clk          (clk            ),
       .cen          (cen            ),
-      .rst_x        (rst_x          ),
+      .rstn         (rstn           ),
       .i_rdy        (i_rdy          ),
       .i_db         (i_db           ),
       .o_db         (o_db           ),
@@ -180,9 +180,9 @@ module MC6502(
   MC6502InterruptLogic il(
       .clk          (clk            ),
       .cen          (cen            ),
-      .rst_x        (rst_x          ),
-      .i_irq_x      (i_irq_x        ),
-      .i_nmi_x      (i_nmi_x        ),
+      .rstn         (rstn           ),
+      .i_irqn       (i_irqn         ),
+      .i_nmin       (i_nmin         ),
       .mc2il_data   (w_mc2il_data   ),
       .mc2il_brk    (w_mc2il_brk    ),
       .il2mc_addr   (w_il2mc_addr   ),
@@ -202,7 +202,7 @@ module MC6502(
   MC6502RegisterFile rf(
       .clk          (clk            ),
       .cen          (cen            ),
-      .rst_x        (rst_x          ),
+      .rstn         (rstn           ),
       .il2rf_set_i  (w_il2rf_set_i  ),
       .il2rf_set_b  (w_il2rf_set_b  ),
       .il2rf_data   (w_il2rf_data   ),
@@ -258,7 +258,7 @@ module MC6502(
   MC6502InstructionDecode id(
       .clk          (clk            ),
       .cen          (cen            ),
-      .rst_x        (rst_x          ),
+      .rstn         (rstn           ),
       .mc2id_data   (w_mc2id_data   ),
       .mc2id_valid  (w_mc2id_valid  ),
       .id2mc_fetch  (w_id2mc_fetch  ),
@@ -290,7 +290,7 @@ module MC6502(
   MC6502ExecutionController ec(
       .clk          (clk            ),
       .cen          (cen            ),
-      .rst_x        (rst_x          ),
+      .rstn         (rstn           ),
       .id2ec_reset_c(w_id2ec_reset_c),
       .id2ec_set_c  (w_id2ec_set_c  ),
       .id2ec_reset_i(w_id2ec_reset_i),

@@ -5,7 +5,7 @@
 module MC6502MemoryController(
     clk,
     cen,
-    rst_x,
+    rstn,
     i_rdy,
     i_db,
     o_db,
@@ -52,7 +52,7 @@ module MC6502MemoryController(
     ec2mc_store);
   input         clk;
   input         cen;
-  input         rst_x;
+  input         rstn;
   input         i_rdy;
   input  [ 7:0] i_db;
   output [ 7:0] o_db;
@@ -321,8 +321,8 @@ module MC6502MemoryController(
   assign w_rts            = r_jump & r_pop & !r_reg[0];
   assign w_rti            = r_jump & r_pop & r_reg[0];
 
-  always @ (posedge clk or negedge rst_x) begin
-    if (!rst_x) begin
+  always @ (posedge clk or negedge rstn) begin
+    if (!rstn) begin
       r_operand <= 3'b000;
       r_modex   <= 1'b0;
       r_mode    <= 3'b000;

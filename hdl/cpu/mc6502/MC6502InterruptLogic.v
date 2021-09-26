@@ -8,9 +8,9 @@
 module MC6502InterruptLogic(
     clk,
     cen,
-    rst_x,
-    i_irq_x,
-    i_nmi_x,
+    rstn,
+    i_irqn,
+    i_nmin,
     // MemoryController interfaces.
     mc2il_data,
     mc2il_brk,
@@ -30,9 +30,9 @@ module MC6502InterruptLogic(
     il2rf_pushed);
   input         clk;
   input         cen;
-  input         rst_x;
-  input         i_irq_x;
-  input         i_nmi_x;
+  input         rstn;
+  input         i_irqn;
+  input         i_nmin;
 
   input  [ 7:0] mc2il_data;
   input         mc2il_brk;
@@ -80,7 +80,7 @@ module MC6502InterruptLogic(
                          (r_int_state == S_INT_PUSH_PCL) ? rf2il_pc[7:0] :
                          (r_int_state == S_INT_PUSH_PSR) ? rf2il_psr :
                           8'hxx;
-  assign il2rf_set_i   = (r_int_state == S_INT_PUSH_PSR) | !i_irq_x | !i_nmi_x;
+  assign il2rf_set_i   = (r_int_state == S_INT_PUSH_PSR) | !i_irqn | !i_nmin;
   assign il2rf_set_b   = r_int_state == S_INT_PUSH_PSR;
   assign il2rf_data    = mc2il_data;
   assign il2rf_set_pcl = w_read_pcl;
@@ -90,17 +90,17 @@ module MC6502InterruptLogic(
   assign w_read_pcl    = r_res_state == S_RES_LOAD_PCL;
   assign w_read_pch    = r_res_state == S_RES_LOAD_PCH;
 
-  always @ (posedge clk or negedge rst_x) begin
-    if (!rst_x) begin
+  always @ (posedge clk or negedge rstn) begin
+    if (!rstn) begin
       r_res_state  <= S_RES_LOAD_PCL;
       r_vector     <= VECTOR_RES;
     end else if(cen) begin
       case (r_res_state)
         S_RES_IDLE: begin
-          if (!i_irq_x | (r_int_state == S_INT_PUSH_PSR)) begin
+          if (!i_irqn | (r_int_state == S_INT_PUSH_PSR)) begin
             r_res_state  <= S_RES_LOAD_PCL;
             r_vector     <= VECTOR_IRQ;
-          end else if (!i_nmi_x) begin
+          end else if (!i_nmin) begin
             r_res_state  <= S_RES_LOAD_PCL;
             r_vector     <= VECTOR_NMI;
           end
@@ -114,10 +114,10 @@ module MC6502InterruptLogic(
         default:;
       endcase  // r_res_state
     end
-  end  // always @ (posedge clk or negedge rst_x)
+  end  // always @ (posedge clk or negedge rstn)
 
-  always @ (posedge clk or negedge rst_x) begin
-    if (!rst_x) begin
+  always @ (posedge clk or negedge rstn) begin
+    if (!rstn) begin
       r_int_state <= S_INT_IDLE;
     end else if(cen) begin
       case (r_int_state)
@@ -135,5 +135,5 @@ module MC6502InterruptLogic(
         default:;
       endcase  // r_int_state
     end
-  end  // always @ (posedge clk or negedge rst_x)
+  end  // always @ (posedge clk or negedge rstn)
 endmodule  // MC6502InterruptLogic
