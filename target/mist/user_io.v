@@ -388,20 +388,13 @@ always@(posedge spi_sck or posedge SPI_SS_IO) begin
 	end
 end
 
-wire       spi_rx_str_sys, spi_tx_end_sys;
-wire [7:0] spi_byte_sys;
-
-jtframe_sync #(.W(10)) u_sync_sys(
-	.clk	( clk_sys 				),
-	.raw	( { spi_receiver_strobe_r, spi_transfer_end_r, spi_byte_in  } ),
-	.sync	( { spi_rx_str_sys,        spi_tx_end_sys, spi_byte_sys     } )
-);
-
 // Process bytes from SPI at the clk_sys domain
 always @(posedge clk_sys) begin
 
-	reg       spi_rx_str_l;
-	reg       spi_tx_end_l;
+	reg       spi_receiver_strobe;
+	reg       spi_transfer_end;
+	reg       spi_receiver_strobeD;
+	reg       spi_transfer_endD;
 	reg [7:0] acmd;
 	reg [7:0] abyte_cnt;   // counts bytes
 
@@ -415,57 +408,59 @@ always @(posedge clk_sys) begin
 		core_mod <= 7'b01; // see readme file for documentation on each bit
 	end else begin
 		//synchronize between SPI and sys clock domains
-		spi_rx_str_l <= spi_rx_str_sys;
-		spi_tx_end_l <= spi_tx_end_sys;
+		spi_receiver_strobeD <= spi_receiver_strobe_r;
+		spi_receiver_strobe <= spi_receiver_strobeD;
+		spi_transfer_endD	<= spi_transfer_end_r;
+		spi_transfer_end	<= spi_transfer_endD;
 
 		key_strobe <= 0;
 		mouse_strobe <= 0;
-		if (~spi_tx_end_l & spi_tx_end_sys) begin
+		if (~spi_transfer_endD & spi_transfer_end) begin
 			abyte_cnt <= 8'd0;
-		end else if (spi_rx_str_l ^ spi_rx_str_sys) begin
+		end else if (spi_receiver_strobeD ^ spi_receiver_strobe) begin
 
 			if(~&abyte_cnt)
 				abyte_cnt <= abyte_cnt + 8'd1;
 
 			if(abyte_cnt == 0) begin
-				acmd <= spi_byte_sys;
+				acmd <= spi_byte_in;
 			end else begin
 				case(acmd)
 					// buttons and switches
-					8'h01: but_sw <= spi_byte_sys;
-					8'h60: if (abyte_cnt < 5) joystick_0[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
-					8'h61: if (abyte_cnt < 5) joystick_1[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
-					8'h62: if (abyte_cnt < 5) joystick_2[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
-					8'h63: if (abyte_cnt < 5) joystick_3[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
-					8'h64: if (abyte_cnt < 5) joystick_4[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
+					8'h01: but_sw <= spi_byte_in;
+					8'h60: if (abyte_cnt < 5) joystick_0[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
+					8'h61: if (abyte_cnt < 5) joystick_1[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
+					8'h62: if (abyte_cnt < 5) joystick_2[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
+					8'h63: if (abyte_cnt < 5) joystick_3[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
+					8'h64: if (abyte_cnt < 5) joystick_4[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
 					8'h04: begin
 						// store incoming ps2 mouse bytes
-						ps2_mouse_fifo[ps2_mouse_wptr] <= spi_byte_sys;
+						ps2_mouse_fifo[ps2_mouse_wptr] <= spi_byte_in;
 						ps2_mouse_wptr <= ps2_mouse_wptr + 1'd1;
-						if (abyte_cnt == 1) mouse_flags_r <= spi_byte_sys;
-						else if (abyte_cnt == 2) mouse_x_r <= spi_byte_sys;
+						if (abyte_cnt == 1) mouse_flags_r <= spi_byte_in;
+						else if (abyte_cnt == 2) mouse_x_r <= spi_byte_in;
 						else if (abyte_cnt == 3) begin
 							// flags: YOvfl, XOvfl, dy8, dx8, 1, mbtn, rbtn, lbtn
 							mouse_flags <= mouse_flags_r;
 							mouse_x <= { mouse_flags_r[4], mouse_x_r };
-							mouse_y <= { mouse_flags_r[5], spi_byte_sys };
+							mouse_y <= { mouse_flags_r[5], spi_byte_in };
 							mouse_strobe <= 1;
 						end
 					end
 					8'h05: begin
 						// store incoming ps2 keyboard bytes
-						ps2_kbd_fifo[ps2_kbd_wptr] <= spi_byte_sys;
+						ps2_kbd_fifo[ps2_kbd_wptr] <= spi_byte_in;
 						ps2_kbd_wptr <= ps2_kbd_wptr + 1'd1;
 						if (abyte_cnt == 1) begin
 							key_extended_r <= 0;
 							key_pressed_r <= 1;
 						end
-						if (spi_byte_sys == 8'he0) key_extended_r <= 1'b1;
-						else if (spi_byte_sys == 8'hf0) key_pressed_r <= 1'b0;
+						if (spi_byte_in == 8'he0) key_extended_r <= 1'b1;
+						else if (spi_byte_in == 8'hf0) key_pressed_r <= 1'b0;
 						else begin
 							key_extended <= key_extended_r;
 							key_pressed <= key_pressed_r || abyte_cnt == 1;
-							key_code <= spi_byte_sys;
+							key_code <= spi_byte_in;
 							key_strobe <= 1'b1;
 						end
 					end
@@ -474,29 +469,29 @@ always @(posedge clk_sys) begin
 					8'h1a: begin
 						// first byte is joystick index
 						if(abyte_cnt == 1)
-							stick_idx <= spi_byte_sys[2:0];
+							stick_idx <= spi_byte_in[2:0];
 						else if(abyte_cnt == 2) begin
 							// second byte is x axis
 							if(stick_idx == 0)
-								joystick_analog_0[15:8] <= spi_byte_sys;
+								joystick_analog_0[15:8] <= spi_byte_in;
 							else if(stick_idx == 1)
-								joystick_analog_1[15:8] <= spi_byte_sys;
+								joystick_analog_1[15:8] <= spi_byte_in;
 						end else if(abyte_cnt == 3) begin
 							// third byte is y axis
 							if(stick_idx == 0)
-								joystick_analog_0[7:0] <= spi_byte_sys;
+								joystick_analog_0[7:0] <= spi_byte_in;
 							else if(stick_idx == 1)
-								joystick_analog_1[7:0] <= spi_byte_sys;
+								joystick_analog_1[7:0] <= spi_byte_in;
 						end
 					end
 
-					8'h15: status <= spi_byte_sys;
+					8'h15: status <= spi_byte_in;
 
 					// status, 64bit version
-					8'h1e: if(abyte_cnt<9) status[(abyte_cnt-1)<<3 +:8] <= spi_byte_sys;
+					8'h1e: if(abyte_cnt<9) status[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
 
 					// core variant
-					8'h21: core_mod <= spi_byte_sys[6:0];
+					8'h21: core_mod <= spi_byte_in[6:0];
 
 				endcase
 			end
@@ -504,27 +499,22 @@ always @(posedge clk_sys) begin
 	end
 end
 
-wire       spi_rx_str_sd, spi_tx_end_sd;
-wire [7:0] spi_byte_sd;
-
-jtframe_sync #(.W(10)) u_sync_sd(
-	.clk	( clk_sys 				),
-	.raw	( { spi_receiver_strobe_r, spi_transfer_end_r, spi_byte_in } ),
-	.sync	( { spi_rx_str_sd,         spi_tx_end_sd,      spi_byte_sd } )
-);
-
 // Process SD-card related bytes from SPI at the clk_sd domain
 always @(posedge clk_sd) begin
 
-	reg       spi_rx_str_l;
-	reg       spi_tx_end_l;
+	reg       spi_receiver_strobe;
+	reg       spi_transfer_end;
+	reg       spi_receiver_strobeD;
+	reg       spi_transfer_endD;
 	reg       sd_wrD;
 	reg [7:0] acmd;
 	reg [7:0] abyte_cnt;   // counts bytes
 
 	//synchronize between SPI and sd clock domains
-	spi_rx_str_l <= spi_rx_str_sd;
-	spi_tx_end_l <= spi_tx_end_sd;
+	spi_receiver_strobeD <= spi_receiver_strobe_r;
+	spi_receiver_strobe <= spi_receiver_strobeD;
+	spi_transfer_endD	<= spi_transfer_end_r;
+	spi_transfer_end	<= spi_transfer_endD;
 
 	if(sd_dout_strobe) begin
 		sd_dout_strobe<= 0;
@@ -541,27 +531,27 @@ always @(posedge clk_sd) begin
 
 	img_mounted <= 0;
 
-	if (~spi_tx_end_l & spi_tx_end_sd) begin
+	if (~spi_transfer_endD & spi_transfer_end) begin
 		abyte_cnt <= 8'd0;
 		sd_ack <= 1'b0;
 		sd_ack_conf <= 1'b0;
 		sd_dout_strobe <= 1'b0;
 		sd_din_strobe <= 1'b0;
 		sd_buff_addr <= 0;
-	end else if (spi_rx_str_l ^ spi_rx_str_sd) begin
+	end else if (spi_receiver_strobeD ^ spi_receiver_strobe) begin
 
 		if(~&abyte_cnt)
 			abyte_cnt <= abyte_cnt + 8'd1;
 
 		if(abyte_cnt == 0) begin
-			acmd <= spi_byte_sd;
+			acmd <= spi_byte_in;
 
-			if(spi_byte_sd == 8'h18) begin
+			if(spi_byte_in == 8'h18) begin
 				sd_din_strobe <= 1'b1;
 				if(~&sd_buff_addr) sd_buff_addr <= sd_buff_addr + 1'b1;
 			end
 
-			if((spi_byte_sd == 8'h17) || (spi_byte_sd == 8'h18))
+			if((spi_byte_in == 8'h17) || (spi_byte_in == 8'h18))
 				sd_ack <= 1'b1;
 
 		end else begin
@@ -571,7 +561,7 @@ always @(posedge clk_sd) begin
 				8'h17: begin
 					// flag that download begins
 					sd_dout_strobe <= 1'b1;
-					sd_dout <= spi_byte_sd;
+					sd_dout <= spi_byte_in;
 				end
 
 				// send sector FPGA -> IO
@@ -587,13 +577,13 @@ always @(posedge clk_sd) begin
 					// flag that download begins
 					sd_dout_strobe <= 1'b1;
 					sd_ack_conf <= 1'b1;
-					sd_dout <= spi_byte_sd;
+					sd_dout <= spi_byte_in;
 				end
 
 				8'h1c: img_mounted <= 1;
 
 				// send image info
-				8'h1d: if(abyte_cnt<5) img_size[(abyte_cnt-1)<<3 +:8] <= spi_byte_sd;
+				8'h1d: if(abyte_cnt<5) img_size[(abyte_cnt-1)<<3 +:8] <= spi_byte_in;
 			endcase
 		end
 	end

@@ -29,6 +29,8 @@ module jtframe_6809wait(
     output reg      cen_E,
     output reg      cen_Q
 );
+    parameter RECOVERY=1;
+
     // cen generation
     wire        gate;
     reg         last_EQ;
@@ -40,7 +42,7 @@ module jtframe_6809wait(
 
     assign cpu_cen = cen_Q;
     assign EQ      = cen_E | cen_Q;
-    assign catchup = misses>0;
+    assign catchup = RECOVERY && misses>0;
 
     always @(posedge clk) if(cen) begin
         last_EQ   <= EQ;
@@ -116,7 +118,8 @@ module jtframe_sys6809(
 );
 
     // RAM
-    parameter RAM_AW=12;
+    parameter RAM_AW=12, RECOVERY=1;
+
     wire    ram_we = ram_cs & ~RnW;
     wire    cen_E, cen_Q;
     wire    BA, BS, AVMA;
@@ -130,7 +133,7 @@ module jtframe_sys6809(
             if( cen_E ) VMA <= AVMA;
     end
 
-    jtframe_6809wait u_wait(
+    jtframe_6809wait #(.RECOVERY(RECOVERY)) u_wait(
         .rstn       ( rstn      ),
         .clk        ( clk       ),
         .cen        ( cen       ),
