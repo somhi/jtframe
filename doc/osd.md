@@ -65,6 +65,9 @@ bit     |  meaning                | Enabled with macro
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only
 28-31   | CRT V offset            | MiSTer only
+56-63   | Reserved for forks      | JTFRAME forks can use these bits%
+
+% JTFRAME will not expand to use bits 56 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
 
 
 If **JTFRAME_FLIP_RESET** is defined a change in dip_flip will reset the game.
