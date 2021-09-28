@@ -48,6 +48,19 @@ JTFRAME_STATUS           |         | Game module will receive an 8-bit address a
 JTFRAME_SUPPORT_4WAY     |         | Enables support for 4-way joysticks if the MRA sets it
 JTFRAME_VERTICAL         |         | Enables support for vertical games
 
+# Core-specific OSD Items
+
+Macro                    | Target  |  Usage
+-------------------------|---------|----------------------
+CORE_OSD                 |         | Adds an option to the OSD
+
+Example from the JTCPS core:
+
+`CORE_OSD=O5,Turbo,Off,On;`
+
+Follow the character coding documented in [osd.md](osd.md)
+
+
 # Device Selection
 
 The wrappers jtframe_m68k and jtframe_z80 offer an uniform interface for
