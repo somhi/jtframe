@@ -19,6 +19,8 @@ Bit    |  Use
 0      | High for vertical games
 1      | 4-way joysticks
 
+If JTFRAME_VERTICAL is defined, bit 0 is set during power up. The contents of core_mod can be set by defining a index=1 rom in the MRA file.
+
 ## Automatic SDRAM Dump
 
 A fraction of bank zero's SDRAM contents can be dumped to the SDRAM on MiSTer using the NVRAM interface. You have to define two macros:

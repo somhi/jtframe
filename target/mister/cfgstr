@@ -17,7 +17,7 @@ H0OEF,Aspect Ratio,Original,Full screen,[ARC1],[ARC2];
 {{ if .CORE_OSD }}
     {{ .CORE_OSD }}
 {{ end }}
-{{ if not .JTFRAME_OSD_NOCREDITS }} OC,Credits,Off,On; {{ end }}
+{{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
 R0,Reset;
 {{ if (.JTFRAME_MRA_DIP) or (.JTFRAME_CHEAT) }}
     {{ .SEPARATOR }}

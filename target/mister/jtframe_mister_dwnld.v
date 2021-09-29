@@ -88,7 +88,11 @@ end
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
-        core_mod <= 7'b01; // see readme file for documentation on each bit
+        `ifdef JTFRAME_VERTICAL
+            core_mod <= 7'b01; // see doc/sdram.md file for documentation on each bit
+        `else
+            core_mod <= 7'b00;
+        `endif
     end else begin
         // The hps_addr[0]==1'b0 condition is needed in case JTFRAME_MR_FASTIO is enabled
         // as it always creates two write events and the second would delete the data of the first

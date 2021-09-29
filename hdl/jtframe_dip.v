@@ -114,7 +114,11 @@ end
 `endif
 
 `ifndef JTFRAME_OSD_NOCREDITS
-    assign osd_pause   = status[12];
+    `ifndef MISTER // Only MiST and derivatives can pause via the OSD
+        assign osd_pause   = status[12];
+    `else
+        assign osd_pause   = 1'b0;  // MiSTer relies on the keyboard/gamepad for pause
+    `endif
 `else
     assign osd_pause   = 1'b0;
 `endif
