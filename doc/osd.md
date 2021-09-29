@@ -60,6 +60,7 @@ bit     |  meaning                | Enabled with macro
 10      | Test mode               | JTFRAME_OSD_TEST
 11      | Horizontal filter       | MiSTer only
 12      | Credits/Pause           | JTFRAME_OSD_NOCREDITS (disables it)
+12      | Credits/Pause           | JTFRAME_OSD_HIDECREDITS (disables it)
 13      | Reserved for core use   | CORE_OSD
 14-15   | Aspect Ratio            | MiSTer only, visibility masked
 19      | CRT H scaling enable    | MiSTer only
