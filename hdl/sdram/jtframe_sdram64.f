@@ -12,5 +12,6 @@ jtframe_ram_5slots.v
 jtframe_rom_1slot.v
 jtframe_rom_2slots.v
 jtframe_rom_3slots.v
+jtframe_rom_4slots.v
 jtframe_rom_sync.v
 jtframe_sdram_stats.v
