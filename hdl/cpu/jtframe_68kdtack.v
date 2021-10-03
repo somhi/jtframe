@@ -65,6 +65,7 @@ module jtframe_68kdtack
     output reg [15:0] fworst, // average cpu_cen frequency in kHz
     input             frst
 );
+/* verilator lint_off WIDTH */
 
 localparam CW=W+WD;
 
@@ -127,6 +128,7 @@ always @(posedge clk) begin
     // so the shortest sequence is cpu_cen, blank, cpu_cenb
     // note that cpu_cen can follow cpu_cenb without a blank
 end
+/* verilator lint_on WIDTH */
 
 // Frequency reporting
 reg [15:0] freq_cnt=0, fout_cnt;

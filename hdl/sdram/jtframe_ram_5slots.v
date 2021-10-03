@@ -211,7 +211,7 @@ always @(posedge clk) begin
         end
 
         // accept a new request
-        if( !slot_sel || data_rdy ) begin
+        if( slot_sel==0 || data_rdy ) begin
             sdram_rd     <= |active;
             slot_sel     <= 0;
             sdram_wrmask <= 2'b11;
