@@ -242,6 +242,7 @@ assign ypbpr = 1'b0;
 
 `ifndef NEPTUNO
     data_io #(.ROM_DIRECT_UPLOAD(1'b1)) u_datain (
+        .clkref_n           ( 1'b0              ),
         .SPI_SCK            ( SPI_SCK           ),
         .SPI_SS2            ( SPI_SS2           ),
         .SPI_SS4            ( SPI_SS4           ),
