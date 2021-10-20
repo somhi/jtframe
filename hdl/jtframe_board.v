@@ -227,6 +227,13 @@ wire   [3:0] key_start, key_coin;
 wire   [3:0] key_gfx;
 wire         key_service;
 wire         lock;
+wire         autofire0;
+
+`ifdef JTFRAME_AUTOFIRE0
+    assign autofire0=status[16];
+`else
+    assign autofire0=0;
+`endif
 
 jtframe_reset u_reset(
     .clk_sys    ( clk_sys       ),
@@ -320,8 +327,10 @@ jtframe_inputs #(
 ) u_inputs(
     .rst            ( rst             ),
     .clk            ( clk_sys         ),
+    .LVBL           ( LVBL            ),
     .downloading    ( downloading     ),
     .dip_flip       ( dip_flip        ),
+    .autofire0      ( autofire0       ),
 
     .soft_rst       ( soft_rst        ),
 
@@ -355,8 +364,7 @@ jtframe_inputs #(
     .lock           ( lock            ),
 
     // Simulation helpers
-    .game_pause     ( game_pause      ),
-    .LVBL           ( LVBL            )
+    .game_pause     ( game_pause      )
 );
 
 jtframe_dip u_dip(

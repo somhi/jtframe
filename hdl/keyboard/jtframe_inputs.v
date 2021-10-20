@@ -19,8 +19,10 @@
 module jtframe_inputs(
     input             rst,
     input             clk,
+    input             LVBL,
 
     input             dip_flip,
+    input             autofire0,
 
     output reg        soft_rst,
     output reg        game_pause,
@@ -56,8 +58,7 @@ module jtframe_inputs(
     input             lock, // disable joystick inputs
 
     // For simulation only
-    input             downloading,
-    input             LVBL
+    input             downloading
 );
 
 parameter BUTTONS    = 2,
@@ -115,8 +116,22 @@ localparam START_BIT  = 6+(BUTTONS-2);
 localparam COIN_BIT   = 7+(BUTTONS-2);
 localparam PAUSE_BIT  = 8+(BUTTONS-2);
 
-reg last_pause, last_osd_pause, last_joypause, last_reset;
+reg  last_pause, last_osd_pause, last_joypause, last_reset;
 wire joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT];
+reg  autofire, LVBLl;
+
+reg [2:0] firecnt;
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        firecnt  <= 0;
+        autofire <= 1;
+    end else begin
+        LVBLl <= LVBL;
+        if( !LVBL && LVBLl ) firecnt <= firecnt+1'd1;
+        autofire <= !autofire0 || firecnt>5;
+    end
+end
 
 function [9:0] apply_rotation;
     input [9:0] joy_in;
@@ -124,10 +139,10 @@ function [9:0] apply_rotation;
     input       flip;
     begin
     apply_rotation = {10{ACTIVE_LOW[0]}} ^
-        (!rot ? joy_in :
+        (!rot ? joy_in & { 5'h1f, autofire, 4'hf } :
         flip ?
-         { joy_in[9:4], joy_in[1], joy_in[0], joy_in[2], joy_in[3] } :
-         { joy_in[9:4], joy_in[0], joy_in[1], joy_in[3], joy_in[2] });
+         { joy_in[9:5],joy_in[4]&autofire, joy_in[1], joy_in[0], joy_in[2], joy_in[3] } :
+         { joy_in[9:5],joy_in[4]&autofire, joy_in[0], joy_in[1], joy_in[3], joy_in[2] });
     end
 endfunction
 
@@ -165,23 +180,22 @@ always @(posedge clk) begin
         // as indicated in the instance parameter
 
         `ifdef SIM_INPUTS
-        game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
-        game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
-        game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 4'd0, sim_inputs[frame_cnt][9:4]};
+            game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
+            game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
+            game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 4'd0, sim_inputs[frame_cnt][9:4]};
         `else
         game_joy1 <= apply_rotation(joy1_sync | key_joy1, rot_control, ~dip_flip );
-        game_coin      <= {4{ACTIVE_LOW[0]}} ^
+        game_coin <= {4{ACTIVE_LOW[0]}} ^
             ({  joy4_sync[COIN_BIT],joy3_sync[COIN_BIT],
                 joy2_sync[COIN_BIT],joy1_sync[COIN_BIT]} | key_coin | board_coin );
 
-        game_start     <= {4{ACTIVE_LOW[0]}} ^
+        game_start <= {4{ACTIVE_LOW[0]}} ^
             ({  joy4_sync[START_BIT],joy3_sync[START_BIT],
                 joy2_sync[START_BIT],joy1_sync[START_BIT]} | key_start | board_start );
         `endif
         game_joy2 <= apply_rotation(joy2_sync | key_joy2, rot_control, ~dip_flip );
         game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip );
         game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip );
-
 
         soft_rst <= key_reset && !last_reset;
 

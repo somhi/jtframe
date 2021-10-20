@@ -8,6 +8,7 @@ JTFRAME_ANALOG           |         | Enables analog sticks
 JTFRAME_ANALOG_DUAL      |         | Enables second analog stick, requires JTFRAME_ANALOG too
 JTFRAME_ARX              | MiSTer  | Defines aspect ratio
 JTFRAME_ARY              | MiSTer  | Defines aspect ratio
+JTFRAME_AUTOFIRE0        | MiSTer  | Button 0 will autofire when pressed ([OSD](osd.md) option)
 JTFRAME_AVATARS          |         | Enables avatars on credits screen
 JTFRAME_BUTTONS          |         | Sets the number of action buttons used (2 by default)
 JTFRAME_CLK24            |         | Adds an additional clock input

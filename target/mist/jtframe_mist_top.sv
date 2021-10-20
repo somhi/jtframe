@@ -199,10 +199,10 @@ jtframe_mist #(
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         )
     `ifdef VIDEO_WIDTH
-    ,.VIDEO_WIDTH   ( `VIDEO_WIDTH   )
+    ,.VIDEO_WIDTH ( `VIDEO_WIDTH   )
     `endif
     `ifdef VIDEO_HEIGHT
-    ,.VIDEO_HEIGHT  ( `VIDEO_HEIGHT  )
+    ,.VIDEO_HEIGHT( `VIDEO_HEIGHT  )
     `endif
 )
 u_frame(

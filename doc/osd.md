@@ -62,6 +62,7 @@ bit     |  meaning                | Enabled with macro
 12      | Credits/Pause           | JTFRAME_OSD_NOCREDITS (disables it)
 13      | Reserved for core use   | CORE_OSD
 14-15   | Aspect Ratio            | MiSTer only, visibility masked
+16      | Autofire button 0       | JTFRAME_AUTOFIRE0
 19      | CRT H scaling enable    | MiSTer only
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only
