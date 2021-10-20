@@ -8,6 +8,7 @@ JTFRAME_ANALOG           |         | Enables analog sticks
 JTFRAME_ARX              | MiSTer  | Defines aspect ratio
 JTFRAME_ARY              | MiSTer  | Defines aspect ratio
 JTFRAME_AVATARS          |         | Enables avatars on credits screen
+JTFRAME_BUTTONS          |         | Sets the number of action buttons used (2 by default)
 JTFRAME_CLK24            |         | Adds an additional clock input
 JTFRAME_CLK48            |         | Adds an additional clock input
 JTFRAME_CLK6             |         | Adds an additional clock input

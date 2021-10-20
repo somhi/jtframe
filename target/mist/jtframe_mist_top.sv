@@ -72,7 +72,8 @@ wire [ 7:0]   ioctl_dout, ioctl_din;
 wire          ioctl_wr;
 wire          ioctl_ram;
 
-wire [15:0]   joyana1, joyana2;
+wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
+            joyana_r1, joyana_r2, joyana_r3, joyana_r4;
 
 wire rst_req   = status[0];
 
@@ -177,8 +178,8 @@ assign sim_hb = ~LHBL;
 `define SIGNED_SND 1'b1
 `endif
 
-`ifndef BUTTONS
-`define BUTTONS 2
+`ifndef JTFRAME_BUTTONS
+`define JTFRAME_BUTTONS 2
 `endif
 
 `ifdef JTFRAME_MIST_DIPBASE
@@ -189,12 +190,12 @@ localparam DIPBASE=16;
 
 assign game_led[1] = 1'b0; // Let system LED info go through too
 
-localparam BUTTONS=`BUTTONS;
+localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
 
 jtframe_mist #(
     .SDRAMW       ( SDRAMW         ),
     .SIGNED_SND   ( `SIGNED_SND    ),
-    .BUTTONS      ( BUTTONS        ),
+    .BUTTONS      ( GAME_BUTTONS   ),
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         )
     `ifdef VIDEO_WIDTH
@@ -306,8 +307,14 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
-    .joyana1        ( joyana1        ),
-    .joyana2        ( joyana2        ),
+    .joyana_l1      ( joyana_l1      ),
+    .joyana_l2      ( joyana_l2      ),
+    .joyana_l3      ( joyana_l3      ),
+    .joyana_l4      ( joyana_l4      ),
+    .joyana_r1      ( joyana_r1      ),
+    .joyana_r2      ( joyana_r2      ),
+    .joyana_r3      ( joyana_r3      ),
+    .joyana_r4      ( joyana_r4      ),
     .LED            ( LED            ),
     // Unused in MiST
     .BUTTON_n       ( 4'hf           ),
@@ -405,17 +412,25 @@ u_game(
 
     .start_button( game_start[STARTW-1:0] ),
     .coin_input  ( game_coin[STARTW-1:0]  ),
-    .joystick1   ( game_joy1[BUTTONS+3:0] ),
-    .joystick2   ( game_joy2[BUTTONS+3:0] ),
+    // Joysticks
+    .joystick1    ( game_joy1[GAME_BUTTONS+3:0]   ),
+    .joystick2    ( game_joy2[GAME_BUTTONS+3:0]   ),
     `ifdef JTFRAME_4PLAYERS
-    .joystick3   ( game_joy3[BUTTONS+3:0] ),
-    .joystick4   ( game_joy4[BUTTONS+3:0] ),
+    .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
+    .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
+
     `ifdef JTFRAME_ANALOG
-    .joyana1     ( joyana1        ),
-    .joyana2     ( joyana2        ),
-    .joyana3     ( 16'h0          ),
-    .joyana4     ( 16'h0          ),
+    .joyana_l1    ( joyana_l1        ),
+    .joyana_l2    ( joyana_l2        ),
+    .joyana_r1    ( joyana_r1        ),
+    .joyana_r2    ( joyana_r2        ),
+    `ifdef JTFRAME_4PLAYERS
+        .joyana_l3( joyana_l3        ),
+        .joyana_l4( joyana_l4        ),
+        .joyana_r3( joyana_r3        ),
+        .joyana_r4( joyana_r4        ),
+    `endif
     `endif
 
     // Sound control

@@ -294,7 +294,8 @@ wire [ 9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [ 3:0] game_coin, game_start;
 wire [ 3:0] gfx_en;
 wire [ 7:0] debug_bus;
-wire [15:0] joyana1, joyana2, joyana3, joyana4;
+wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
+            joyana_r1, joyana_r2, joyana_r3, joyana_r4;
 
 wire        rst_req   = RESET | status[0] | buttons[1];
 
@@ -337,12 +338,12 @@ wire [7:0] st_addr, st_dout;
 `define COLORW 4
 `endif
 
-`ifndef BUTTONS
-`define BUTTONS 2
+`ifndef JTFRAME_BUTTONS
+`define JTFRAME_BUTTONS 2
 `endif
 
 localparam COLORW=`COLORW;
-localparam GAME_BUTTONS=`BUTTONS;
+localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
 
 wire [COLORW-1:0] game_r, game_g, game_b;
 wire              LHBL, LVBL;
@@ -494,10 +495,14 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
-    .joyana1        ( joyana1        ),
-    .joyana2        ( joyana2        ),
-    .joyana3        ( joyana3        ),
-    .joyana4        ( joyana4        ),
+    .joyana_l1      ( joyana_l1      ),
+    .joyana_l2      ( joyana_l2      ),
+    .joyana_l3      ( joyana_l3      ),
+    .joyana_l4      ( joyana_l4      ),
+    .joyana_r1      ( joyana_r1      ),
+    .joyana_r2      ( joyana_r2      ),
+    .joyana_r3      ( joyana_r3      ),
+    .joyana_r4      ( joyana_r4      ),
     .LED            ( LED_USER       ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
@@ -594,17 +599,25 @@ end
 
     .start_button ( game_start       ),
     .coin_input   ( game_coin        ),
+    // Joysticks
     .joystick1    ( game_joy1[GAME_BUTTONS+3:0]   ),
     .joystick2    ( game_joy2[GAME_BUTTONS+3:0]   ),
     `ifdef JTFRAME_4PLAYERS
     .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
     .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
+
     `ifdef JTFRAME_ANALOG
-    .joyana1        ( joyana1        ),
-    .joyana2        ( joyana2        ),
-    .joyana3        ( joyana3        ),
-    .joyana4        ( joyana4        ),
+    .joyana_l1    ( joyana_l1        ),
+    .joyana_l2    ( joyana_l2        ),
+    .joyana_r1    ( joyana_r1        ),
+    .joyana_r2    ( joyana_r2        ),
+    `ifdef JTFRAME_4PLAYERS
+        .joyana_l3( joyana_l3        ),
+        .joyana_l4( joyana_l4        ),
+        .joyana_r3( joyana_r3        ),
+        .joyana_r4( joyana_r4        ),
+    `endif
     `endif
     // Sound control
     .enable_fm    ( enable_fm        ),

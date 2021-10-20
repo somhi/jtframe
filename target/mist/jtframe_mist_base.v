@@ -64,8 +64,15 @@ module jtframe_mist_base #(parameter
     output [31:0]   joystick2,
     output [31:0]   joystick3,
     output [31:0]   joystick4,
-    output [15:0]   joystick_analog_0,
-    output [15:0]   joystick_analog_1,
+    output [15:0]   joyana_l1,
+    output [15:0]   joyana_r1,
+    output [15:0]   joyana_l2,
+    output [15:0]   joyana_r2,
+    output [15:0]   joyana_l3,
+    output [15:0]   joyana_r3,
+    output [15:0]   joyana_l4,
+    output [15:0]   joyana_r4,
+
     output [ 3:0]   but_coin,   // buttons, active high
     output [ 3:0]   but_start,
     // PS2 pins are outputs if NEPTUNO isn't defined
@@ -106,6 +113,14 @@ wire        ioctl_download;
 assign downloading = ioctl_download;
 assign ioctl_ram   = ioctl_index == IDX_NVRAM && ioctl_download;
 assign ioctl_cheat = ioctl_index == IDX_CHEAT && ioctl_download;
+
+// unsupported by the firmware
+assign joyana_l2 = 0;
+assign joyana_r2 = 0;
+assign joyana_l3 = 0;
+assign joyana_r3 = 0;
+assign joyana_l4 = 0;
+assign joyana_r4 = 0;
 
 `ifndef SIMULATION
     `ifndef NOSOUND
@@ -198,8 +213,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .joystick_4     ( joystick4 ),
         .buttons        ( buttons   ),
         // Analog joysticks
-        .joystick_analog_0  ( joystick_analog_0 ),
-        .joystick_analog_1  ( joystick_analog_1 ),
+        .joystick_analog_0(joyana_l1),
+        .joystick_analog_1(joyana_r1),
 
         .status         ( status    ),
         .ypbpr          ( ypbpr     ),
