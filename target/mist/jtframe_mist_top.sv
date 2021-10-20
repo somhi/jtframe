@@ -423,13 +423,17 @@ u_game(
     `ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ),
     .joyana_l2    ( joyana_l2        ),
-    .joyana_r1    ( joyana_r1        ),
-    .joyana_r2    ( joyana_r2        ),
+    `ifdef JTFRAME_ANALOG_DUAL
+        .joyana_r1    ( joyana_r1        ),
+        .joyana_r2    ( joyana_r2        ),
+    `endif
     `ifdef JTFRAME_4PLAYERS
         .joyana_l3( joyana_l3        ),
         .joyana_l4( joyana_l4        ),
-        .joyana_r3( joyana_r3        ),
-        .joyana_r4( joyana_r4        ),
+        `ifdef JTFRAME_ANALOG_DUAL
+            .joyana_r3( joyana_r3        ),
+            .joyana_r4( joyana_r4        ),
+        `endif
     `endif
     `endif
 

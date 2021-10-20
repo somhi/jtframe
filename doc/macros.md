@@ -5,6 +5,7 @@ Macro                    | Target  |  Usage
 JTFRAME_180SHIFT         | MiSTer  | Use DDIO cell instead of PLL to create the SDRAM phase shift
 JTFRAME_4PLAYERS         |         | Extra inputs for 4 players
 JTFRAME_ANALOG           |         | Enables analog sticks
+JTFRAME_ANALOG_DUAL      |         | Enables second analog stick, requires JTFRAME_ANALOG too
 JTFRAME_ARX              | MiSTer  | Defines aspect ratio
 JTFRAME_ARY              | MiSTer  | Defines aspect ratio
 JTFRAME_AVATARS          |         | Enables avatars on credits screen

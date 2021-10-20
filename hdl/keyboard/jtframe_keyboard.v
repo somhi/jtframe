@@ -18,6 +18,12 @@
 
 // Based on MiST tutorials
 
+`ifdef MISTER
+`ifdef JTFRAME_RELEASE
+    `define JTFRAME_LITE_KEYBOARD
+`endif
+`endif
+
 module jtframe_keyboard(
     input clk,
     input rst,
@@ -88,6 +94,7 @@ always @(posedge clk) begin
                 key_released <= 1'b0;
 
                 case({key_extended, ps2byte})
+                    `ifndef JTFRAME_LITE_KEYBOARD
                     // first joystick
                     9'h0_22: key_joy1[9] <= !key_released;   // Button 6 (X)
                     9'h0_1a: key_joy1[8] <= !key_released;   // Button 5 (Z)
@@ -130,6 +137,7 @@ always @(posedge clk) begin
                     9'h1e: key_start[1] <= !key_released; // 2P start (2)
                     9'h26: key_start[2] <= !key_released; // 3P start (3)
                     9'h25: key_start[3] <= !key_released; // 4P start (4)
+                    `endif
                     // system control
                     9'h4d: key_pause   <= !key_released; //  P
                     9'h06: key_test    <= !key_released; // F2
