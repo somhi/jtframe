@@ -54,7 +54,7 @@ bit     |  meaning                | Enabled with macro
 2       | Rotate screen           | JTFRAME_VERTICAL (MiSTer)
 3-4     | Scan lines              | Scan-line mode (MiST only)
 3-5     | Scandoubler Fx          | Scan line mode and HQ2X enable (MiSTer only)
-6-7     | FX Volume               | JTFRAME_OSD_VOL
+6-7     | FX Volume (00=lowest)   | JTFRAME_OSD_VOL
 8       | FX enable/disable       | JTFRAME_OSD_SND_EN
 9       | FM enable/disable       | JTFRAME_OSD_SND_EN
 10      | Test mode               | JTFRAME_OSD_TEST
@@ -73,6 +73,14 @@ Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets
 
 % JTFRAME will not expand to use bits 56 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
 
+If **JTFRAME_OSD_VOL** is set, the dip_fxlevel inputs to the game module will vary according to the following table:
+
+OSD display | dip_fxlevel | Remarks
+------------|-------------|---------
+very low    |   0         |
+low         |   1         |
+high        |   2         | Default
+very high   |   3         |
 
 If **JTFRAME_FLIP_RESET** is defined a change in dip_flip will reset the game.
 
