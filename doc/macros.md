@@ -22,6 +22,7 @@ JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
 JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
+JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
 JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interface. Set it to the number of bytes to save on MiST. Any value will work for MiSTer
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
@@ -41,15 +42,17 @@ JTFRAME_OSD_TEST         |         | Test option on OSD
 JTFRAME_OSD_VOL          |         | Show FX volume control on OSD
 JTFRAME_OSDCOLOR         |         | Sets the OSD colour
 JTFRAME_PLL              |         | PLL module name to be used. Defaults to jtframe_pll0
-JTFRAME_RELEASE          |         | Disables gfx_en control via keyboard
+JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending
 JTFRAME_SDRAM96          |         | SDRAM is clocked at 96MHz and the clk input of game is 96MHz
 JTFRAME_SDRAM_BANKS      |         | Game module ports will support interleaved bank access
 JTFRAME_SHADOW           | MiSTer  | Start address for SDRAM shadowing and dump as NVRAM
 JTFRAME_SHADOW_LEN       | MiSTer  | Length in bits of the shadowing. See [sdram.md](sdram.md)
+JTFRAME_SIGNED_SND       | MiSTer  | Set to 0 if the game only uses unsigned sound sources
 JTFRAME_STATUS           |         | Game module will receive an 8-bit address and can output 8-bit data in response
 JTFRAME_SUPPORT_4WAY     |         | Enables support for 4-way joysticks if the MRA sets it
 JTFRAME_VERTICAL         |         | Enables support for vertical games
+JTFRAME_WIDTH            |         | Sets the video width
 
 # Core-specific OSD Items
 
