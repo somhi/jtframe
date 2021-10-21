@@ -18,12 +18,6 @@
 
 // Based on MiST tutorials
 
-`ifdef MISTER
-`ifdef JTFRAME_RELEASE
-    `define JTFRAME_LITE_KEYBOARD
-`endif
-`endif
-
 module jtframe_keyboard(
     input clk,
     input rst,
