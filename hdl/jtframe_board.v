@@ -90,6 +90,10 @@ module jtframe_board #(parameter
     input     [15:0]  board_joystick2,
     input     [15:0]  board_joystick3,
     input     [15:0]  board_joystick4,
+    input     [15:0]  joyana_l1,
+    input     [15:0]  joyana_r1,
+    input     [15:0]  joyana_l2,
+    input     [15:0]  joyana_r2,
     input      [3:0]  board_start,
     input      [3:0]  board_coin,
     output     [9:0]  game_joystick1,
@@ -412,6 +416,7 @@ wire [SDRAMW-1:0] bax_addr;
         .clk_rom    ( clk_rom   ),
 
         .LVBL       ( LVBL      ),
+        .status     ( status    ),
 
         // From/to game
         .game_addr  ( ba0_addr  ),
@@ -435,7 +440,13 @@ wire [SDRAMW-1:0] bax_addr;
         .data_read  ( sdram_dout),
 
         .flags      ( cheat     ),
-        .joy0       ( game_joystick1[7:0] ),
+        .joy1       ( game_joystick1[7:0] ),
+        .joy2       ( game_joystick2[7:0] ),
+        .joyana_l1  ( joyana_l1 ),
+        .joyana_r1  ( joyana_r1 ),
+        .joyana_l2  ( joyana_l2 ),
+        .joyana_r2  ( joyana_r2 ),
+
         .led        ( cheat_led ),
         .lock       ( lock      ),
         .timestamp  ( timestamp ),

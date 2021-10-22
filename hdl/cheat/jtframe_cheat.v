@@ -17,11 +17,12 @@
     Date: 1-6-2021 */
 
 module jtframe_cheat #(parameter AW=22)(
-    input   rst,
-    input   clk_rom,
-    input   clk_pico, // always 48 MHz
+    input           rst,
+    input           clk_rom,
+    input           clk_pico, // always 48 MHz
 
-    input   LVBL,
+    input           LVBL,
+    input  [31:0]   status,
 
     // From/to game
     input  [AW-1:0] game_addr,
@@ -46,7 +47,14 @@ module jtframe_cheat #(parameter AW=22)(
 
     // control
     input    [31:0] flags,
-    input    [ 7:0] joy0,
+    input    [ 7:0] joy1,
+    input    [15:0] joyana_l1,
+    input    [15:0] joyana_r1,
+
+    input    [ 7:0] joy2,
+    input    [15:0] joyana_l2,
+    input    [15:0] joyana_r2,
+
     output reg      led,
     input    [31:0] timestamp,
     input           pause_in,
@@ -265,13 +273,32 @@ always @(posedge clk) begin
             8'h0a: pin <= vram_din;
             8'h0d: pin <= st_dout;
             8'h0f: pin <= debug_bus;
+
             // Flags
             8'h10: pin <= flags[ 7: 0];
             8'h11: pin <= flags[15: 8];
             8'h12: pin <= flags[23:16];
             8'h13: pin <= flags[31:24];
+
+            // Board status
+            8'h14: pin <= status[ 7: 0];
+            8'h15: pin <= status[15: 8];
+            8'h16: pin <= status[23:16];
+            8'h17: pin <= status[31:24];
+
             // Joystick
-            8'h18: pin <= joy0;
+            8'h18: pin <= joy1;
+            8'h1a: pin <= joyana_l1[ 7:0];
+            8'h1b: pin <= joyana_l1[15:8];
+            8'h1c: pin <= joyana_r1[ 7:0];
+            8'h1d: pin <= joyana_r1[15:8];
+            8'h48: pin <= joy2;
+            8'h4a: pin <= joyana_l2[ 7:0];
+            8'h4b: pin <= joyana_l2[15:8];
+            8'h4c: pin <= joyana_r2[ 7:0];
+            8'h4d: pin <= joyana_r2[15:8];
+
+
             8'h2?: pin <= timemux; // Time
             // Lock keys
             8'h3?: pin <= lock_key[ paddr[1:0] ];

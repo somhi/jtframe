@@ -10,6 +10,8 @@ input   [15:0]  joyana1,
 input   [15:0]  joyana2,
 ```
 
+Analogue sticks uses 2-complement bytes to signal information: right and bottom are possitive (127 is the maximum). Left and top are negative (FFh minimum, 80h maximum)
+
 Support for 4-way joysticks (instead of 8-way joysticks) is enabled by setting high bit 1 of core_mod. See MOD BYTE.
 
 ## Autofire

@@ -51,8 +51,21 @@ Port (hex) | I/O    |  Usage
 5          | O      | SDRAM write data mask, only bits 1,0. Active low
 7,6        | I      | data read from SDRAM
 6          | O      | bit 0 = board LED
+8-B        | I/O    | VRAM control (see below)
+C-F        | I/O    | Game module communication (see below)
 10-13      | I      | cheat flags (meaning defined in MRA file)
+14-17      | I      | board status 32-bit word (17=MSB)
 18         | I      | 1P joystick
+1A         | I      | 1P joystick left  analogue stick X
+1B         | I      | 1P joystick left  analogue stick Y
+1C         | I      | 1P joystick right analogue stick X
+1D         | I      | 1P joystick right analogue stick Y
+20-2C      | I      | Time information (see below)
+48         | I      | 2P joystick
+4A         | I      | 2P joystick left  analogue stick X
+4B         | I      | 2P joystick left  analogue stick Y
+4C         | I      | 2P joystick right analogue stick X
+4D         | I      | 2P joystick right analogue stick Y
 30-33      | O      | Lock key
 40         | O      | Resets the watchdog
 80         | O      | Starts SDRAM read
@@ -105,6 +118,32 @@ Bit   |  Meaning
 4:2   | Reserved
 1     | Beta period has expired
 0     | System is locked
+
+The following constant can be used in the assembler code for the ports:
+
+```
+constant LED,      6
+constant VRAM_COL, 8
+constant VRAM_ROW, 9
+constant VRAM_DATA,A
+constant VRAM_CTRL,B
+constant ST_ADDR,  C
+constant ST_DATA,  D
+constant DEBUG_BUS,F
+constant FLAGS,    10
+constant BOARD_ST0,14
+constant BOARD_ST1,15
+constant BOARD_ST2,16
+constant BOARD_ST3,17
+constant ANA1RX,   1C
+constant ANA1RY,   1D
+constant FRAMECNT, 2c
+constant KEYS,     30
+constant WATCHDOG, 40
+constant ANA2RX,   4C
+constant ANA2RY,   4D
+constant STATUS,   80
+```
 
 ## Future Features
 
