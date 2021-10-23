@@ -1,36 +1,38 @@
 J{{.CORENAME}};;
-OJ,CRT scale enable,Off,On;
-H2OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
-OOR,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
-OSV,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
-o13,Shadow Mask,None,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
-o0,Rotate Mask,No,Yes;
-o4,Double Mask Size,No,Yes;
 {{ if not .JTFRAME_OSD_NOLOAD }}    F,rom; {{ end }}
-H0OEF,Aspect Ratio,Original,Full screen,[ARC1],[ARC2];
-{{ if .JTFRAME_VERTICAL }}
-    {{ if .JTFRAME_OSD_FLIP }}      O1,Flip screen,Off,On; {{ end }}
-                                    H1O2,Rotate screen,Yes,No;{{ end }}
-                                    OB,Old TV,No,Yes;
-{{ if .JTFRAME_NOHQ2X }}            O35,Scandoubler Fx,None,N/A,CRT 25%,CRT 50%,CRT 75%;
-        {{ else }}                  O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
-{{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
-{{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
-{{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
-{{ if .JTFRAME_AUTOFIRE0}}          OG,Autofire button 0,Off,On; {{ end }}
-{{ if .CORE_OSD }}
-    {{ .CORE_OSD }}
-{{ end }}
-{{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
-R0,Reset;
-{{ if (.JTFRAME_MRA_DIP) or (.JTFRAME_CHEAT) }}
-    {{ .SEPARATOR }}
-{{ end }}
 {{ if .JTFRAME_MRA_DIP }}
     DIP;
+{{ else }}
+    R0,Reset;
 {{ end }}
 {{ if .JTFRAME_CHEAT }}
     CHEAT;
 {{ end }}
+{{ if .CORE_OSD }}
+    {{ .CORE_OSD }}
+{{ end }}
+{{ if (.JTFRAME_MRA_DIP) or (.JTFRAME_CHEAT) }}
+    {{ .SEPARATOR }}
+{{ end }}
+OOR,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+OSV,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+OJ,CRT scale enable,Off,On;
+H2OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+{{ .SEPARATOR }}
+{{ if .JTFRAME_NOHQ2X }}            O35,Scandoubler Fx,None,N/A,CRT 25%,CRT 50%,CRT 75%;
+        {{ else }}                  O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
+H0OEF,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
+{{ if .JTFRAME_VERTICAL }}
+    {{ if .JTFRAME_OSD_FLIP }}      O1,Flip screen,Off,On; {{ end }}
+                                    H1O2,Rotate screen,Yes,No;{{ end }}
+{{ .SEPARATOR }}
+o02,Shadow mask,Off,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
+H3o3,Double mask size,No,Yes;
+                                    OB,Old TV,No,Yes;
+{{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
+{{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
+{{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
+{{ if .JTFRAME_AUTOFIRE0}}          OG,Autofire button 0,Off,On; {{ end }}
+{{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

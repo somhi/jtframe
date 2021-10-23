@@ -59,7 +59,7 @@ bit     |  meaning                | Enabled with macro
 0       | Reset in MiST           |
 1       | Flip screen             | JTFRAME_VERTICAL && JTFRAME_OSD_FLIP
 2       | Rotate controls         | JTFRAME_VERTICAL (MiST)
-2       | Rotate screen           | JTFRAME_VERTICAL (MiSTer)
+2       | Rotate screen           | JTFRAME_VERTICAL, visibiliy masked (MiSTer)
 3-4     | Scan lines              | Scan-line mode (MiST only)
 3-5     | Scandoubler Fx          | Scan line mode and HQ2X enable (MiSTer only)
 6-7     | FX Volume (00=lowest)   | JTFRAME_OSD_VOL
@@ -81,6 +81,8 @@ bit     |  meaning                | Enabled with macro
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.
 
 % JTFRAME will not expand to use bits 56 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
+
+Option visibility in MiSTer is controlled in [jtframe_mister.sv](../target/mister/jtframe_mister.sv) using the `status_menumask` variable.
 
 If **JTFRAME_OSD_VOL** is set, the dip_fxlevel inputs to the game module will vary according to the following table:
 

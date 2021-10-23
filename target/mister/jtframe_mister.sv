@@ -44,6 +44,10 @@ module jtframe_mister #(parameter
     input           vs,
     input           pxl_cen,
     input           pxl2_cen,
+    // Shadowmask
+    output  [2:0]   shadowmask,
+    output          shadowmask_2x,
+    output          shadowmask_rot,
     // SDRAM interface
     inout  [15:0]   SDRAM_DQ,       // SDRAM Data bus 16 Bits
     output [12:0]   SDRAM_A,        // SDRAM Address bus 13 Bits
@@ -243,6 +247,16 @@ assign hsize_scale  = status[23:20];
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 `endif
 
+// HDMI Shadowmask Overlay
+assign shadowmask     = status[34:32];
+assign shadowmask_2x  = status[35];
+assign shadowmask_rot = core_mod[0];
+
+
+// assign SHADOWMASK = status[35:33];
+// assign MASK_ROTATE = status[32];
+// assign MASK_2X = status[36];
+
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
     .pxl_cen    ( pxl_cen       ),
@@ -256,11 +270,12 @@ jtframe_resync u_resync(
     .vs_out     ( vs_resync     )
 );
 
-wire [15:0] status_menumask;
+wire [15:0] status_menumask; // a high value hides the menu item
 
-assign status_menumask[15:3] = 0,
-       status_menumask[2]    = ~hsize_enable,
-       status_menumask[1]    = ~core_mod[0],
+assign status_menumask[15:4] = 0,
+       status_menumask[3]    = shadowmask==0,    // shadow mask filter
+       status_menumask[2]    = ~hsize_enable,    // horizontal scaling
+       status_menumask[1]    = ~core_mod[0],     // vertical game
        status_menumask[0]    = direct_video;
 
 jtframe_mister_dwnld u_dwnld(

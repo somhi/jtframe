@@ -403,6 +403,11 @@ u_frame(
     .pxl_cen        ( pxl1_cen       ),
     .pxl2_cen       ( pxl2_cen       ),
 
+    // Shadowmask
+    .shadowmask     ( SHADOWMASK     ),
+    .shadowmask_2x  ( MASK_2X        ),
+    .shadowmask_rot ( MASK_ROTATE    ),
+
     `ifdef JTFRAME_VERTICAL
     // Screen rotation
     .FB_EN          ( FB_EN          ),
@@ -722,10 +727,5 @@ always @(posedge sample) begin
     $fwrite(fsnd,"%u", {AUDIO_L, AUDIO_R});
 end
 `endif
-
-// HDMI Shadowmask Overlay
-    assign SHADOWMASK = status[35:33];
-    assign MASK_ROTATE = status[32];
-    assign MASK_2X = status[36];
 
 endmodule
