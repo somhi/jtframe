@@ -29,7 +29,7 @@ module jtframe_mister #(parameter
     input           clk_pico,
     input           pll_locked,
     // interface with microcontroller
-    output [31:0]   status,
+    output [63:0]   status,
     inout  [45:0]   HPS_BUS,
     output [ 1:0]   buttons,
     // LED
@@ -232,7 +232,10 @@ wire [ 7:0] ddrld_burstcnt;
 wire [28:0] ddrld_addr;
 wire        ddrld_rd, ddrld_busy;
 
+// H-Pos & V-Pos for CRT
 assign { voffset, hoffset } = status[31:24];
+
+// Horizontal scaling for CRT
 assign hsize_enable = status[19];
 assign hsize_scale  = status[23:20];
 

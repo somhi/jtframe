@@ -55,6 +55,9 @@ module emu
     output        VGA_DE,    // = ~(VBlank | HBlank)
     output        VGA_F1,
     output  [1:0] VGA_SL,
+    output  [2:0] SHADOWMASK, //Type of HDMI shadowmask overlay
+    output        MASK_ROTATE,
+    output        MASK_2X,
     output        VGA_SCALER,
 
     //Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
@@ -278,7 +281,7 @@ assign clk_pico = clk48;
 
 ///////////////////////////////////////////////////
 
-wire [31:0] status;
+wire [63:0] status;
 wire [ 1:0] buttons, game_led;
 
 wire [ 1:0] dip_fxlevel;
@@ -720,5 +723,9 @@ always @(posedge sample) begin
 end
 `endif
 
+// HDMI Shadowmask Overlay
+    assign SHADOWMASK = status[35:33];
+    assign MASK_ROTATE = status[32];
+    assign MASK_2X = status[36];
 
 endmodule

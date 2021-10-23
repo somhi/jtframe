@@ -3,6 +3,9 @@ OJ,CRT scale enable,Off,On;
 H2OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
 OOR,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
 OSV,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+o13,Shadow Mask,None,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
+o0,Rotate Mask,No,Yes;
+o4,Double Mask Size,No,Yes;
 {{ if not .JTFRAME_OSD_NOLOAD }}    F,rom; {{ end }}
 H0OEF,Aspect Ratio,Original,Full screen,[ARC1],[ARC2];
 {{ if .JTFRAME_VERTICAL }}

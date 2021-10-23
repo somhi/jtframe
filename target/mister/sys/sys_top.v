@@ -1039,6 +1039,26 @@ scanlines #(1) HDMI_scanlines
 	.de_out(hdmi_de_sl)
 );
 
+wire [23:0] hdmi_data_mask;
+wire        hdmi_de_mask, hdmi_vs_mask, hdmi_hs_mask;
+shadowmask HDMI_shadowmask
+(
+	.clk(clk_hdmi),
+
+	.shadowmask_type(shadowmask_type),
+	.mask_2x(mask_2x),
+	.mask_rotate(mask_rotate),
+	.din(hdmi_data_sl),
+	.hs_in(hdmi_hs_sl),
+	.vs_in(hdmi_vs_sl),
+	.de_in(hdmi_de_sl),
+
+	.dout(hdmi_data_mask),
+	.hs_out(hdmi_hs_mask),
+	.vs_out(hdmi_vs_mask),
+	.de_out(hdmi_de_mask)
+);
+
 wire [23:0] hdmi_data_osd;
 wire        hdmi_de_osd, hdmi_vs_osd, hdmi_hs_osd;
 
@@ -1051,10 +1071,10 @@ osd hdmi_osd
 	.io_din(io_din),
 
 	.clk_video(clk_hdmi),
-	.din(hdmi_data_sl),
-	.hs_in(hdmi_hs_sl),
-	.vs_in(hdmi_vs_sl),
-	.de_in(hdmi_de_sl),
+	.din(hdmi_data_mask),
+	.hs_in(hdmi_hs_mask),
+	.vs_in(hdmi_vs_mask),
+	.de_in(hdmi_de_mask),
 
 	.dout(hdmi_data_osd),
 	.hs_out(hdmi_hs_osd),
@@ -1375,6 +1395,8 @@ wire [15:0] audio_l, audio_r;
 wire        audio_s;
 wire  [1:0] audio_mix;
 wire  [1:0] scanlines;
+wire  [2:0] shadowmask_type;
+wire        mask_rotate, mask_2x;
 wire  [7:0] r_out, g_out, b_out, hr_out, hg_out, hb_out;
 wire        vs_fix, hs_fix, de_emu, vs_emu, hs_emu, f1;
 wire        hvs_fix, hhs_fix, hde_emu;
@@ -1472,6 +1494,9 @@ emu emu
 	.CLK_VIDEO(clk_vid),
 	.CE_PIXEL(ce_pix),
 	.VGA_SL(scanlines),
+	.SHADOWMASK(shadowmask_type),
+	.MASK_ROTATE(mask_rotate),
+	.MASK_2X(mask_2x),
 	.VIDEO_ARX(ARX),
 	.VIDEO_ARY(ARY),
 

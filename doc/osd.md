@@ -41,6 +41,14 @@ bit          00000000001111111112222222222233
 status char: 0123456789ABCDEFGHIJKLMNOPQRSTUV
 ```
 
+Status bits currently configured in JTFRAME:
+```
+              Upper                          Lower                
+ 0         1         2         3          4         5         6   
+ 01234567890123456789012345678901 23456789012345678901234567890123
+ 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789abcdefghijklmnopqrstuv
+ XXXXXXXXXX XXXXX        XXXXXXXX XXXXX                           
+ ```
 
 ## Values used in the status word by JTFRAME
 
@@ -67,6 +75,7 @@ bit     |  meaning                | Enabled with macro
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only
 28-31   | CRT V offset            | MiSTer only
+32-36   | HDMI Shadowmask Overlay | MiSTer only
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.
