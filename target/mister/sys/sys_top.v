@@ -1371,10 +1371,14 @@ alsa alsa
 
 ////////////////  User I/O (USB 3.0 connector) /////////////////////////
 wire  [6:0] user_out, user_in;
+wire		db15_en;
 
-assign USER_IO[0] =            user_out[0];           //!user_out[0]  ? 1'b0 : 1'bZ;
-assign USER_IO[1] =            user_out[1];           //!user_out[1]  ? 1'b0 : 1'bZ;
-assign USER_IO[2] = !(SW[1] ? HDMI_I2S   : user_out[2]) ? 1'b0 : 1'bZ;
+// db15_en will force a high voltage on pins 0/1, rather than
+// leaving it as high impedance. Otherwise, the outputs are
+// used as an open drain connection
+assign USER_IO[0] = db15_en ? user_out[0] : !user_out[0]  ? 1'b0 : 1'bZ;
+assign USER_IO[1] = db15_en ? user_out[1] : !user_out[1]  ? 1'b0 : 1'bZ;
+assign USER_IO[2] = !(SW[1] ? HDMI_I2S    : user_out[2]) ? 1'b0 : 1'bZ;
 assign USER_IO[3] =                       !user_out[3]  ? 1'b0 : 1'bZ;
 assign USER_IO[4] = !(SW[1] ? HDMI_SCLK  : user_out[4]) ? 1'b0 : 1'bZ;
 assign USER_IO[5] = !(SW[1] ? HDMI_LRCLK : user_out[5]) ? 1'b0 : 1'bZ;
@@ -1591,8 +1595,9 @@ emu emu
 	.UART_DSR(uart_dtr),
 `endif
 
-	.USER_OUT(user_out),
-	.USER_IN(user_in)
+	.USER_OUT(user_out  ),
+	.USER_IN (user_in   ),
+	.db15_en ( db15_en	)
 );
 
 endmodule

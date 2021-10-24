@@ -132,7 +132,8 @@ module emu
     // 2..6 - USR2..USR6
     // Set USER_OUT to 1 to read from USER_IN.
     input   [6:0] USER_IN,
-    output  [6:0] USER_OUT
+    output  [6:0] USER_OUT,
+    output        db15_en
     `ifdef SIMULATION
     ,output       sim_pxl_cen,
     output        sim_pxl_clk,
@@ -393,6 +394,7 @@ u_frame(
     // Extension port (fake USB3)
     .USER_OUT       ( USER_OUT       ),
     .USER_IN        ( USER_IN        ),
+    .db15_en        ( db15_en        ),
     // Base video
     .game_r         ( game_r         ),
     .game_g         ( game_g         ),

@@ -37,6 +37,7 @@ module jtframe_mister #(parameter
     // Extension port (fake USB3)
     input  [ 6:0]   USER_IN,
     output [ 6:0]   USER_OUT,
+    output          db15_en,
     // Base video
     input [COLORW-1:0] game_r,
     input [COLORW-1:0] game_g,
@@ -320,8 +321,9 @@ jtframe_mister_dwnld u_dwnld(
 );
 
 wire [7:0] hps_din;
-wire       db15_en = status[36];
 wire [15:0] joyusb_1, joyusb_2;
+
+assign db15_en = status[36];
 
 jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .rst        ( rst       ),
