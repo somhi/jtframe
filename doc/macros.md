@@ -34,6 +34,8 @@ JTFRAME_MR_DDR           | MiSTer  | Defined internally. Do not define manually.
 JTFRAME_MRA_DIP          |         | DIPs are in an MRA file
 JTFRAME_NOHOLDBUS        |         | Reduces bus noise (non-interleaved SDRAM controller)
 JTFRAME_NOHQ2X           | MiSTer  | Disables HQ2X filter in MiSTer
+JTFRAME_NO_DB15          | MiSTer  | Disables DB15 controller modules
+JTFRAME_NO_DB15_OSD      | MiSTer  | Disables OSD control via DB15 controller
 JTFRAME_OSD_FLIP         |         | flip option on OSD
 JTFRAME_OSD_NOCREDITS    |         | No credits option on OSD
 JTFRAME_OSD_NOLOAD       |         | No load option on OSD

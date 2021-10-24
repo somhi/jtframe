@@ -133,7 +133,8 @@ module emu
     // Set USER_OUT to 1 to read from USER_IN.
     input   [6:0] USER_IN,
     output  [6:0] USER_OUT,
-    output        db15_en
+    output        db15_en,
+    output        show_osd
     `ifdef SIMULATION
     ,output       sim_pxl_cen,
     output        sim_pxl_clk,
@@ -395,6 +396,7 @@ u_frame(
     .USER_OUT       ( USER_OUT       ),
     .USER_IN        ( USER_IN        ),
     .db15_en        ( db15_en        ),
+    .show_osd       ( show_osd       ),
     // Base video
     .game_r         ( game_r         ),
     .game_g         ( game_g         ),

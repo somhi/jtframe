@@ -16,7 +16,9 @@ Support for 4-way joysticks (instead of 8-way joysticks) is enabled by setting h
 
 ## DB15 Support
 
-The DB15 hardware from Antonio Villena can be enabled in the OSD. It will replace USB input to the game for players 1P and 2P. Controlling the OSD with the DB15 input is not supported.
+The DB15 hardware from Antonio Villena can be enabled in the OSD. It will replace USB input to the game for players 1P and 2P. Controlling the OSD with the DB15 input is possible and uses the command byte *0xF*. If future MiSTer versions used that value, the file *hps_io.v* will need to be edited to support it. Declaring the macro **JTFRAME_NO_DB15_OSD** will disable OSD control.
+
+The macro **JTFRAME_NO_DB15** disables DB15 support.
 
 ## Autofire
 

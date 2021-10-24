@@ -19,6 +19,7 @@
 module jtframe_joymux(
     input             rst,
     input             clk,
+    output reg        show_osd,
 
     // MiSTer pins
     input      [ 6:0] USER_IN,
@@ -62,6 +63,7 @@ endfunction
 always @(posedge clk) begin
     joymux_1 <= assign_joy( joydb15_1, joyusb_1 );
     joymux_2 <= assign_joy( joydb15_2, joyusb_2 );
+    show_osd <= db15_en & ((joydb15_1[10] & joydb15_1[6]) | (joydb15_2[10]&joydb15_2[6]));
 end
 
 joy_db15 u_db15

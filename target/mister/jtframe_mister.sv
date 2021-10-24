@@ -38,6 +38,7 @@ module jtframe_mister #(parameter
     input  [ 6:0]   USER_IN,
     output [ 6:0]   USER_OUT,
     output          db15_en,
+    output          show_osd,
     // Base video
     input [COLORW-1:0] game_r,
     input [COLORW-1:0] game_g,
@@ -323,11 +324,13 @@ jtframe_mister_dwnld u_dwnld(
 wire [7:0] hps_din;
 wire [15:0] joyusb_1, joyusb_2;
 
-assign db15_en = status[36];
 
+`ifndef JTFRAME_NO_DB15
+assign db15_en  = status[36];
 jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .rst        ( rst       ),
     .clk        ( clk_sys   ),
+    .show_osd   ( show_osd  ),
 
     // MiSTer pins
     .USER_IN    ( USER_IN   ),
@@ -340,6 +343,12 @@ jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .joymux_1   ( joystick1 ),
     .joymux_2   ( joystick2 ),
 );
+`else
+assign db15_en   = 0;
+assign show_osd  = 0;
+assign joystick1 = joyusb_1;
+assign joystick2 = joyusb_2;
+`endif
 
 `ifdef JTFRAME_SHADOW
     jtframe_shadow #(
@@ -402,6 +411,7 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_upload    (                ), // no need
     .ioctl_rd        (                ), // no need
 
+    .joy_raw         ( joystick1[5:0] | joystick2[5:0] ), // DB15 control
     .joystick_0      ( joyusb_1       ),
     .joystick_1      ( joyusb_2       ),
     .joystick_2      ( joystick3      ),

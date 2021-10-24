@@ -213,8 +213,9 @@ mcp23009 mcp23009
 	.sda(IO_SDA)
 );
 
+wire show_osd;
+reg  btn_user, btn_osd;
 
-reg btn_user, btn_osd;
 always @(posedge FPGA_CLK2_50) begin
 	integer div;
 	reg [7:0] deb_user;
@@ -228,7 +229,7 @@ always @(posedge FPGA_CLK2_50) begin
 		if(&deb_user) btn_user <= 1;
 		if(!deb_user) btn_user <= 0;
 
-		deb_osd <= {deb_osd[6:0], btn_o | ~KEY[0]};
+		deb_osd <= {deb_osd[6:0], btn_o | show_osd | ~KEY[0]};
 		if(&deb_osd) btn_osd <= 1;
 		if(!deb_osd) btn_osd <= 0;
 	end
@@ -1597,7 +1598,8 @@ emu emu
 
 	.USER_OUT(user_out  ),
 	.USER_IN (user_in   ),
-	.db15_en ( db15_en	)
+	.db15_en ( db15_en	),
+	.show_osd( show_osd	)
 );
 
 endmodule

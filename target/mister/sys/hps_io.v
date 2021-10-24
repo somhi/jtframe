@@ -42,6 +42,7 @@ module hps_io #(parameter STRLEN=0, PS2DIV=0, WIDE=0, VDNUM=1, PS2WE=0)
 	input  [7:0] cfg_dout,
 
 	// buttons up to 32
+	input      [15:0] joy_raw,		// DB15 joystick
 	output reg [31:0] joystick_0,
 	output reg [31:0] joystick_1,
 	output reg [31:0] joystick_2,
@@ -333,6 +334,12 @@ always@(posedge clk_sys) begin : uio_block
 		end else begin
 
 			case(cmd)
+				`ifndef JTFRAME_NO_DB15
+				`ifndef JTFRAME_NO_DB15_OSD
+				// Reading user_io raw joy
+				'h0f: io_dout <= joy_raw;
+				`endif
+				`endif
 				// buttons and switches
 				'h01: cfg <= io_din;
 				'h02: if(byte_cnt==1) joystick_0[15:0] <= io_din; else joystick_0[31:16] <= io_din;
