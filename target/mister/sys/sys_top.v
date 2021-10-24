@@ -1370,9 +1370,10 @@ alsa alsa
 );
 
 ////////////////  User I/O (USB 3.0 connector) /////////////////////////
+wire  [6:0] user_out, user_in;
 
-assign USER_IO[0] =                       !user_out[0]  ? 1'b0 : 1'bZ;
-assign USER_IO[1] =                       !user_out[1]  ? 1'b0 : 1'bZ;
+assign USER_IO[0] =            user_out[0];           //!user_out[0]  ? 1'b0 : 1'bZ;
+assign USER_IO[1] =            user_out[1];           //!user_out[1]  ? 1'b0 : 1'bZ;
 assign USER_IO[2] = !(SW[1] ? HDMI_I2S   : user_out[2]) ? 1'b0 : 1'bZ;
 assign USER_IO[3] =                       !user_out[3]  ? 1'b0 : 1'bZ;
 assign USER_IO[4] = !(SW[1] ? HDMI_SCLK  : user_out[4]) ? 1'b0 : 1'bZ;
@@ -1423,8 +1424,6 @@ wire  [1:0] btn;
 
 sync_fix sync_v(clk_vid, vs_emu, vs_fix);
 sync_fix sync_h(clk_vid, hs_emu, hs_fix);
-
-wire  [6:0] user_out, user_in;
 
 `ifndef USE_SDRAM
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = {39'bZ};

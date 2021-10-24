@@ -14,6 +14,10 @@ Analogue sticks uses 2-complement bytes to signal information: right and bottom 
 
 Support for 4-way joysticks (instead of 8-way joysticks) is enabled by setting high bit 1 of core_mod. See MOD BYTE.
 
+## DB15 Support
+
+The DB15 hardware from Antonio Villena can be enabled in the OSD. It will replace USB input to the game for players 1P and 2P. Controlling the OSD with the DB15 input is not supported.
+
 ## Autofire
 
 It is not encouraged to provide a generic autofire option as it alters the gameplay. But, for some games that used a spinner (like Heavy Barrel), it helps controlling the character. By defining **JTFRAME_AUTOFIRE0** an option will appear on the OSD to enable autofire only for the first button (joystick bit 4). The autofire is triggered every 8 frames.

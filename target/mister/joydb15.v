@@ -13,7 +13,7 @@ module joy_db15
 //Gestion de Joystick
 reg [15:0] JCLOCKS;
 always @(posedge clk) begin 
-   JCLOCKS <= JCLOCKS +8'd1;
+   JCLOCKS <= JCLOCKS + 1'd1;
 end
 
 reg [15:0] joy1  = 16'hFFFF, joy2  = 16'hFFFF;
@@ -60,6 +60,7 @@ always @(posedge JOY_CLK) begin
         5'd23 : joy2[6]  <= JOY_DATA;  //  P2 C
         5'd24 : joy2[5]  <= JOY_DATA;  //  P2 B
         5'd25 : joy2[4]  <= JOY_DATA;  //  P2 A
+        default:;
     endcase              
 end
 //----LS FEDCBAUDLR

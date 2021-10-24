@@ -33,6 +33,7 @@ H3o3,Double mask size,No,Yes;
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OG,Autofire button 0,Off,On; {{ end }}
+o4,User IO DB15 Joystick,Off,On;
 {{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

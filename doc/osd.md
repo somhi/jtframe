@@ -36,18 +36,35 @@ JTFRAME_OSD_NOSND    | Do not display sound options
 Status bits in the configuration string are indicated with characters. This is the reference of the position for each character:
 
 ```
+Bits 0-31 (upper case)
 bit          00000000001111111112222222222233
   number   : 01234567890123456789012345678901
 status char: 0123456789ABCDEFGHIJKLMNOPQRSTUV
+
+Bits 32-63 (lower case)
+bit          33333333444444444455555555556666
+  number   : 23456789012345678901234567890123
+status char: 0123456789ABCDEFGHIJKLMNOPQRSTUV
+
 ```
+
+The status words are defined in the *cfgstr* files for each target. With the following encoding:
+
+1st char | Meaning
+---------|---------
+Omn      | option for bits 0-31. m character sets LSB, n sets MSB
+o (lower)| same as `O` but for bits 32-63
+HnOm     | Option code m, which can be hidden by hide bit n
+J        | Joystick definition
+R        | Reset
+V        | Core version
+
 
 Status bits currently configured in JTFRAME:
 ```
-              Upper                          Lower                
  0         1         2         3          4         5         6   
  01234567890123456789012345678901 23456789012345678901234567890123
- 0123456789ABCDEFGHIJKLMNOPQRSTUV 0123456789abcdefghijklmnopqrstuv
- XXXXXXXXXX XXXXX        XXXXXXXX XXXXX                           
+ XXXXXXXXXX XXXXX        XXXXXXXX XXXXXX                  --FORKS-
  ```
 
 ## Values used in the status word by JTFRAME
@@ -75,7 +92,8 @@ bit     |  meaning                | Enabled with macro
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only
 28-31   | CRT V offset            | MiSTer only
-32-36   | HDMI Shadowmask Overlay | MiSTer only
+32-35   | HDMI Shadowmask Overlay | MiSTer only
+36      | Villena's DB15 (MiSTer) |
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.

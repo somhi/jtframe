@@ -33,7 +33,10 @@ module jtframe_mister #(parameter
     inout  [45:0]   HPS_BUS,
     output [ 1:0]   buttons,
     // LED
-    input        [1:0] game_led,
+    input  [ 1:0]   game_led,
+    // Extension port (fake USB3)
+    input  [ 6:0]   USER_IN,
+    output [ 6:0]   USER_OUT,
     // Base video
     input [COLORW-1:0] game_r,
     input [COLORW-1:0] game_g,
@@ -317,6 +320,24 @@ jtframe_mister_dwnld u_dwnld(
 );
 
 wire [7:0] hps_din;
+wire       db15_en = status[36];
+wire [15:0] joyusb_1, joyusb_2;
+
+jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
+    .rst        ( rst       ),
+    .clk        ( clk_sys   ),
+
+    // MiSTer pins
+    .USER_IN    ( USER_IN   ),
+    .USER_OUT   ( USER_OUT  ),
+
+    // joystick mux
+    .db15_en    ( db15_en   ),
+    .joyusb_1   ( joyusb_1  ),
+    .joyusb_2   ( joyusb_2  ),
+    .joymux_1   ( joystick1 ),
+    .joymux_2   ( joystick2 ),
+);
 
 `ifdef JTFRAME_SHADOW
     jtframe_shadow #(
@@ -379,8 +400,8 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_upload    (                ), // no need
     .ioctl_rd        (                ), // no need
 
-    .joystick_0      ( joystick1      ),
-    .joystick_1      ( joystick2      ),
+    .joystick_0      ( joyusb_1       ),
+    .joystick_1      ( joyusb_2       ),
     .joystick_2      ( joystick3      ),
     .joystick_3      ( joystick4      ),
     .joystick_l_analog_0( joyana_l1   ),

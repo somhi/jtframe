@@ -155,8 +155,6 @@ assign VGA_F1=field;
 `endif
 
 assign VGA_SCALER = 0;
-assign USER_OUT   = '1;
-// assign BUTTONS    = 2'd0; // MiSTer board button emulation from core
 
 wire [3:0] hoffset, voffset;
 
@@ -392,6 +390,9 @@ u_frame(
     .buttons        ( buttons        ),
     // LED
     .game_led       ( game_led       ),
+    // Extension port (fake USB3)
+    .USER_OUT       ( USER_OUT       ),
+    .USER_IN        ( USER_IN        ),
     // Base video
     .game_r         ( game_r         ),
     .game_g         ( game_g         ),

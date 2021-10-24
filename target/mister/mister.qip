@@ -4,10 +4,10 @@ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) j
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) jtframe_mister.sv           ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) jtframe_mister_dwnld.v      ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) jtframe_mr_ddrmux.v         ]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) jtframe_joymux.v            ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../hdl/sdram/jtframe_shadow.v ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../hdl/video/jtframe_hsize.v  ]
-# set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) joydb15.v                 ]
-set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../hdl/clocking/jtframe_rst_sync.v     ]
+set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../hdl/clocking/jtframe_rst_sync.v ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../hdl/clocking/jtframe_sync.v     ]
 
 # Sys (MiSTer framework)
@@ -20,3 +20,6 @@ set_global_assignment -name QIP_FILE           [file join $::quartus(qip_path) s
 set_global_assignment -name QIP_FILE [ file join $::quartus(qip_path) sys/pll.qip             ]
 set_global_assignment -name QIP_FILE [ file join $::quartus(qip_path) plls16/plls16_0002.qip  ]
 set_global_assignment -name QIP_FILE [ file join $::quartus(qip_path) plls16/plls16.qip       ]
+
+# DB15 support (Antonio Villena's MiSTer)
+set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) joydb15.v                   ]
