@@ -311,18 +311,21 @@ jtframe_keyboard u_keyboard(
         assign debug_bus =  0;
     `endif
 `else
-assign key_joy3    = 10'h0;
-assign key_joy2    = 10'h0;
-assign key_joy1    = 10'h0;
-assign key_start   = 2'd0;
-assign key_coin    = 2'd0;
-assign key_reset   = 1'b0;
-assign key_pause   = 1'b0;
-assign key_service = 1'b0;
-assign key_test    = 1'b0;
-assign gfx_en      = 4'hf;
-assign debug_bus   = 0;
-assign key_gfx     = 0;
+    `ifndef JTFRAME_SIM_GFXEN
+    `define JTFRAME_SIM_GFXEN 4'hf
+    `endif
+    assign key_joy3    = 10'h0;
+    assign key_joy2    = 10'h0;
+    assign key_joy1    = 10'h0;
+    assign key_start   = 2'd0;
+    assign key_coin    = 2'd0;
+    assign key_reset   = 1'b0;
+    assign key_pause   = 1'b0;
+    assign key_service = 1'b0;
+    assign key_test    = 1'b0;
+    assign gfx_en      = `JTFRAME_SIM_GFXEN;
+    assign debug_bus   = 0;
+    assign key_gfx     = 0;
 `endif
 
 jtframe_inputs #(
