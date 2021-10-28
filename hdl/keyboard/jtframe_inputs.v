@@ -118,9 +118,13 @@ localparam PAUSE_BIT  = 8+(BUTTONS-2);
 
 reg  last_pause, last_osd_pause, last_joypause, last_reset;
 wire joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT];
-reg  autofire, LVBLl;
+wire vbl_in, vbl_out;
+reg  autofire, LVBLl, service_l, pause_frame;
 
 reg [2:0] firecnt;
+
+assign vbl_in  = !LVBL &&  LVBLl;
+assign vbl_out =  LVBL && !LVBLl;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -128,7 +132,7 @@ always @(posedge clk, posedge rst) begin
         autofire <= 1;
     end else begin
         LVBLl <= LVBL;
-        if( !LVBL && LVBLl ) firecnt <= firecnt+1'd1;
+        if( vbl_in ) firecnt <= firecnt+1'd1;
         autofire <= !autofire0 || firecnt>5;
     end
 end
@@ -165,12 +169,14 @@ endfunction
     assign game_test = key_test;
 `endif
 
-always @(posedge clk) begin
-    if(rst ) begin
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
         game_pause   <= 0;
         game_service <= 1'b0 ^ ACTIVE_LOW[0];
         soft_rst     <= 0;
+        service_l    <= 0;
     end else begin
+        service_l      <= game_service;
         last_pause     <= key_pause;
         last_osd_pause <= osd_pause;
         last_reset     <= key_reset;
@@ -207,6 +213,16 @@ always @(posedge clk) begin
             if( (key_pause && !last_pause) || (joy_pause && !last_joypause) )
                 game_pause   <= ~game_pause;
             if (last_osd_pause ^ osd_pause) game_pause <= osd_pause;
+            if( game_pause ) begin
+                if( game_service && !service_l ) begin
+                    pause_frame <= 1;
+                    game_pause <= 0;
+                end
+            end
+            if( vbl_out && pause_frame ) begin
+                game_pause <= ~game_pause;
+                if(!game_pause) pause_frame <= 0;
+            end
         end
         `else
         game_pause <= 1'b1;
