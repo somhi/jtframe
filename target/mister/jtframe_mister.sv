@@ -255,7 +255,7 @@ assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 // HDMI Shadowmask Overlay
 assign shadowmask     = status[34:32];
 assign shadowmask_2x  = status[35];
-assign shadowmask_rot = core_mod[0];
+assign shadowmask_rot = core_mod[0] & rotate[0];
 
 
 // assign SHADOWMASK = status[35:33];
