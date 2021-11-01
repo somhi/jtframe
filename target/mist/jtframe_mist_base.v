@@ -238,21 +238,23 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     assign ypbpr = 0;
 `endif
 
-`else
-assign joystick1 = 32'd0;
-assign joystick2 = 32'd0;
-assign joystick3 = 32'd0;
-assign joystick4 = 32'd0;
-assign status    = 64'd0;
-assign but_coin  = 0;
-assign but_start = 0;
-`ifndef SCANDOUBLER_DISABLE
-    `define SCANDOUBLER_DISABLE 1'b1
-    initial $display("INFO: Use -d SCANDOUBLER_DISABLE=0 if you want video output.");
-`endif
-initial $display("INFO:SCANDOUBLER_DISABLE=%d",`SCANDOUBLER_DISABLE);
-assign scan2x_enb = `SCANDOUBLER_DISABLE;
-assign ypbpr = 1'b0;
+`else // these inputs are not used in simulation:
+    assign joystick1 = 32'd0;
+    assign joystick2 = 32'd0;
+    assign joystick3 = 32'd0;
+    assign joystick4 = 32'd0;
+    assign joyana_l1 = 0;
+    assign joyana_r1 = 0;
+    assign status    = 64'd0;
+    assign but_coin  = 0;
+    assign but_start = 0;
+    `ifndef SCANDOUBLER_DISABLE
+        `define SCANDOUBLER_DISABLE 1'b1
+        initial $display("INFO: Use -d SCANDOUBLER_DISABLE=0 if you want video output.");
+    `endif
+    initial $display("INFO:SCANDOUBLER_DISABLE=%d",`SCANDOUBLER_DISABLE);
+    assign scan2x_enb = `SCANDOUBLER_DISABLE;
+    assign ypbpr = 1'b0;
 `endif
 
 `ifndef NEPTUNO
