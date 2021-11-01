@@ -161,6 +161,7 @@ end
 // the header output is set to 1 if HEADER is defined,
 // so these data can be read externally if checked for ioctrl_wr/ioctrl_data
 reg start_ok=0;
+initial prog_we=0;
 
 always @(posedge clk) begin
     if( downloading ) start_ok<=1;
