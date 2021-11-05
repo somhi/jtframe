@@ -28,12 +28,13 @@ H0OEF,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
 {{ .SEPARATOR }}
 o02,Shadow mask,Off,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
 H3o3,Double mask size,No,Yes;
+H3o4,Rotate mask,No,Yes;
                                     OB,Old TV,No,Yes;
 {{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OG,Autofire button 0,Off,On; {{ end }}
-{{ if .JTFRAME_NO_DB15 }} {{ else }}o4,User IO DB15 Joystick,Off,On; {{ end }}
+{{ if .JTFRAME_NO_DB15 }} {{ else }}o5,User IO DB15 Joystick,Off,On; {{ end }}
 {{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

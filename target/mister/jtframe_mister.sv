@@ -255,12 +255,7 @@ assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 // HDMI Shadowmask Overlay
 assign shadowmask     = status[34:32];
 assign shadowmask_2x  = status[35];
-assign shadowmask_rot = core_mod[0] & rotate[0];
-
-
-// assign SHADOWMASK = status[35:33];
-// assign MASK_ROTATE = status[32];
-// assign MASK_2X = status[36];
+assign shadowmask_rot = (core_mod[0] & rotate[0]) ^ status[36];
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
@@ -326,7 +321,7 @@ wire [15:0] joyusb_1, joyusb_2;
 
 
 `ifndef JTFRAME_NO_DB15
-assign db15_en  = status[36];
+assign db15_en  = status[37];
 jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .rst        ( rst       ),
     .clk        ( clk_sys   ),
