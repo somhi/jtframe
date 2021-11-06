@@ -8,3 +8,13 @@ Many CPUs have convenient wrappers that add cycle recovery functionality, or
 that allow the selection between different modules for the same CPU.
 
 CPU selection is done via verilog [macros](macros.md).
+
+Resource utilization based on MiST
+
+Processor   | Logic Cells  |  BRAM |  Remarks
+------------|--------------|-------|-----------------
+M68000      |  5171        |    6  |  fx68k
+i8751       |  4019        |    5  |  jtframe_8751mcu
+M6809       |  2992        |    0  |  mc6809i
+Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
+6502        |   832        |    0  |  T65
