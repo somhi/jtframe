@@ -39,7 +39,7 @@ module jtframe_wirebw #(parameter WIN=4, WOUT=5) (
 
 wire [3:0] dly;
 
-jtframe_sh #(.width(4), .stages(1)) u_sh(
+jtframe_sh #(.width(4), .stages(4)) u_sh(
     .clk    ( clk              ),
     .clk_en ( spl_in           ),
     .din    ( {HS_in,  VS_in,  HB_in,  VB_in  } ),
