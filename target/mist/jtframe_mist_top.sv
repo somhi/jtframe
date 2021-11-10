@@ -108,6 +108,7 @@ wire [COLORW-1:0] blue;
 
 wire LHBL, LVBL, hs, vs;
 wire [15:0] snd_left, snd_right;
+wire        sample;
 
 wire [9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [3:0] game_coin, game_start;
@@ -297,6 +298,7 @@ u_frame(
     // Sound
     .snd_left       ( snd_left       ),
     .snd_right      ( snd_right      ),
+    .snd_sample     ( sample         ),
     .AUDIO_L        ( AUDIO_L        ),
     .AUDIO_R        ( AUDIO_R        ),
     // joystick
@@ -354,8 +356,6 @@ u_frame(
     assign sim_hb = hs;
 `endif
 `endif
-
-wire sample;
 
 `ifdef JTFRAME_4PLAYERS
 localparam STARTW=4;

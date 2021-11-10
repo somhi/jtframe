@@ -24,6 +24,7 @@ JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
+JTFRAME_INTERPOL2        |         | Enables a x2 FIR interpolation filter for audio. The game 'sample' output must be well defined
 JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interface. Set it to the number of bytes to save on MiST. Any value will work for MiSTer
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches

@@ -123,6 +123,7 @@ module jtframe_mist #(parameter
     // Sound
     input   [15:0]  snd_left,
     input   [15:0]  snd_right,
+    input           snd_sample,
     output          AUDIO_L,
     output          AUDIO_R,
     // joystick
@@ -169,6 +170,8 @@ wire [3:0]    but_start, but_coin;
 
 wire  [ 1:0]  rotate;
 wire          ioctl_cheat, sdram_init;
+
+wire  [15:0]  board_left, board_right;
 
 assign board_status = { {32-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
 
@@ -247,8 +250,8 @@ jtframe_mist_base #(
     .BUTTON_n       ( BUTTON_n      ),
     // audio
     .clk_dac        ( clk_sys       ),
-    .snd_left       ( snd_left      ),
-    .snd_right      ( snd_right     ),
+    .snd_left       ( board_left    ),
+    .snd_right      ( board_right   ),
     .snd_pwm_left   ( AUDIO_L       ),
     .snd_pwm_right  ( AUDIO_R       ),
     // ROM load from SPI
@@ -283,6 +286,12 @@ jtframe_board #(
     .clk_rom        ( clk_rom         ),
     .clk_pico       ( clk_pico        ),
     .core_mod       ( core_mod        ),
+    // Sound
+    .snd_lin        ( snd_left        ),
+    .snd_rin        ( snd_right       ),
+    .snd_lout       ( board_left      ),
+    .snd_rout       ( board_right     ),
+    .snd_sample     ( snd_sample      ),
     // joystick
     .ps2_kbd_clk    ( ps2_clk         ),
     .ps2_kbd_data   ( ps2_dout        ),

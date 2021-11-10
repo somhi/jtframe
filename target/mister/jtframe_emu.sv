@@ -301,6 +301,7 @@ wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
             joyana_r1, joyana_r2, joyana_r3, joyana_r4;
 
 wire        rst_req   = RESET | status[0] | buttons[1];
+wire [15:0] snd_left, snd_right;
 
 assign LED_DISK  = 2'b0;
 assign LED_POWER = 2'b0;
@@ -412,6 +413,13 @@ u_frame(
     .shadowmask     ( SHADOWMASK     ),
     .shadowmask_2x  ( MASK_2X        ),
     .shadowmask_rot ( MASK_ROTATE    ),
+
+    // Audio
+    .snd_lin        ( snd_left       ),
+    .snd_rin        ( snd_right      ),
+    .snd_sample     ( sample         ),
+    .snd_rout       ( AUDIO_R        ),
+    .snd_lout       ( AUDIO_L        ),
 
     `ifdef JTFRAME_VERTICAL
     // Screen rotation
@@ -561,11 +569,6 @@ assign sim_pxl_cen = pxl_cen;
 assign sim_pxl_clk = clk_sys;
 assign sim_pxl_cen = pxl_cen;
 `endif
-
-wire [15:0] snd_left, snd_right;
-
-assign AUDIO_L = snd_left;
-assign AUDIO_R = snd_right;
 
 `GAMETOP u_game
 (

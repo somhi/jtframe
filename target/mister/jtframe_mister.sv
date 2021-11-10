@@ -53,6 +53,12 @@ module jtframe_mister #(parameter
     output  [2:0]   shadowmask,
     output          shadowmask_2x,
     output          shadowmask_rot,
+    // Audio
+    input  signed [15:0] snd_lin,
+    input  signed [15:0] snd_rin,
+    output signed [15:0] snd_lout,
+    output signed [15:0] snd_rout,
+    input                snd_sample,
     // SDRAM interface
     inout  [15:0]   SDRAM_DQ,       // SDRAM Data bus 16 Bits
     output [12:0]   SDRAM_A,        // SDRAM Address bus 13 Bits
@@ -489,6 +495,12 @@ jtframe_board #(
     .clk_pico       ( clk_pico        ),
 
     .core_mod       ( core_mod        ),
+    // Sound
+    .snd_lin        ( snd_lin         ),
+    .snd_rin        ( snd_rin         ),
+    .snd_lout       ( snd_lout        ),
+    .snd_rout       ( snd_rout        ),
+    .snd_sample     ( snd_sample      ),
     // joystick
     .ps2_kbd_clk    ( ps2_kbd_clk     ),
     .ps2_kbd_data   ( ps2_kbd_data    ),

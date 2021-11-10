@@ -44,6 +44,12 @@ module jtframe_board #(parameter
     input               osd_shown,
     input        [ 1:0] game_led,
     output              led,
+    // Audio
+    input  signed [15:0] snd_lin,
+    input  signed [15:0] snd_rin,
+    output signed [15:0] snd_lout,
+    output signed [15:0] snd_rout,
+    input                snd_sample,
     // ROM access from game
     input  [SDRAMW-1:0] ba0_addr,
     input  [SDRAMW-1:0] ba1_addr,
@@ -495,6 +501,24 @@ wire [SDRAMW-1:0] bax_addr;
     assign cheat_led = 0;
     assign dip_pause = pre_pause;
     assign st_addr   = 0;
+`endif
+
+// Audio
+`ifndef JTFRAME_INTERPOL2
+    // bypass the sound signals if the interpolator is not used
+    assign snd_rout = snd_rin;
+    assign snd_lout = snd_lin;
+`else
+    jtframe_uprate2_fir u_uprate2(
+        .rst        ( rst       ),
+        .clk        ( clk_sys   ),
+        .sample     ( snd_sample),
+        .upsample   (           ),
+        .l_in       ( snd_lin   ),
+        .r_in       ( snd_rin   ),
+        .l_out      ( snd_lout  ),
+        .r_out      ( snd_rout  )
+    );
 `endif
 
 // support for 48MHz
