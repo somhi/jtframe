@@ -563,14 +563,9 @@ assign sim_pxl_cen = pxl_cen;
 `endif
 
 wire [15:0] snd_left, snd_right;
-reg  [15:0] snd_lsync, snd_rsync;
 
-always @(posedge CLK_AUDIO) begin
-    snd_lsync <= snd_left;
-    snd_rsync <= snd_right;
-    AUDIO_L   <= snd_lsync;
-    AUDIO_R   <= snd_rsync;
-end
+assign AUDIO_L = snd_left;
+assign AUDIO_R = snd_right;
 
 `GAMETOP u_game
 (
