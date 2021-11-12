@@ -340,7 +340,7 @@ jtframe_inputs #(
 ) u_inputs(
     .rst            ( rst             ),
     .clk            ( clk_sys         ),
-    .LVBL           ( LVBL            ),
+    .vs             ( vs              ),
     .downloading    ( downloading     ),
     .dip_flip       ( dip_flip        ),
     .autofire0      ( autofire0       ),

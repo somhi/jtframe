@@ -135,11 +135,13 @@ constant BOARD_ST0,14
 constant BOARD_ST1,15
 constant BOARD_ST2,16
 constant BOARD_ST3,17
+constant JOY1,     18
 constant ANA1RX,   1C
 constant ANA1RY,   1D
 constant FRAMECNT, 2c
 constant KEYS,     30
 constant WATCHDOG, 40
+constant JOY2,     48
 constant ANA2RX,   4C
 constant ANA2RY,   4D
 constant STATUS,   80

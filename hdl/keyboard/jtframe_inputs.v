@@ -19,7 +19,7 @@
 module jtframe_inputs(
     input             rst,
     input             clk,
-    input             LVBL,
+    input             vs,
 
     input             dip_flip,
     input             autofire0,
@@ -119,19 +119,19 @@ localparam PAUSE_BIT  = 8+(BUTTONS-2);
 reg  last_pause, last_osd_pause, last_joypause, last_reset;
 wire joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT];
 wire vbl_in, vbl_out;
-reg  autofire, LVBLl, service_l, pause_frame;
+reg  autofire, vsl, service_l, pause_frame;
 
 reg [2:0] firecnt;
 
-assign vbl_in  = !LVBL &&  LVBLl;
-assign vbl_out =  LVBL && !LVBLl;
+assign vbl_in  = vs && !vsl;
+assign vbl_out =!vs &&  vsl;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         firecnt  <= 0;
         autofire <= 1;
     end else begin
-        LVBLl <= LVBL;
+        vsl <= vs;
         if( vbl_in ) firecnt <= firecnt+1'd1;
         autofire <= !autofire0 || firecnt>5;
     end
@@ -159,7 +159,7 @@ endfunction
         $display("INFO: input simulation enabled");
         $readmemh( "sim_inputs.hex", sim_inputs );
     end
-    always @(negedge LVBL, posedge rst) begin
+    always @(negedge vs, posedge rst) begin
         if( rst )
             frame_cnt <= 0;
         else frame_cnt <= frame_cnt+1;
