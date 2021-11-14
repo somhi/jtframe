@@ -145,14 +145,20 @@ module jtframe_sys6809(
         .cen_Q      ( cen_Q     )
     );
 
-    jtframe_ram #(.aw(RAM_AW)) u_ram(
-        .clk    ( clk         ),
-        .cen    ( cen_Q       ), // using cpu_cen instead of cen_Q creates a wrong sprite on the screen
-        .data   ( cpu_dout    ),
-        .addr   ( A[RAM_AW-1:0]),
-        .we     ( ram_we      ),
-        .q      ( ram_dout    )
-    );
+    generate
+        if( RAM_AW != 0 ) begin
+            jtframe_ram #(.aw(RAM_AW)) u_ram(
+                .clk    ( clk         ),
+                .cen    ( cen_Q       ), // using cpu_cen instead of cen_Q creates a wrong sprite on the screen
+                .data   ( cpu_dout    ),
+                .addr   ( A[RAM_AW-1:0]),
+                .we     ( ram_we      ),
+                .q      ( ram_dout    )
+            );
+        end else begin
+            assign ram_dout = 0;
+        end
+    endgenerate
 
     // cycle accurate core
     wire [111:0] RegData;

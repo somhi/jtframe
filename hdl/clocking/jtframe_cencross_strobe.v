@@ -18,6 +18,7 @@
 
 // Converts an input strobe (stin) defined in some clock gating domain
 // to a strobe in the specified cen input domain
+// both clock-enable signals belong to the same clock domain
 
 module jtframe_cencross_strobe(
     input       rst,
