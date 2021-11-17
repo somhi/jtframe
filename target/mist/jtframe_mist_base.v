@@ -82,7 +82,6 @@ module jtframe_mist_base #(parameter
     input           clk_dac,
     input   [15:0]  snd_left,
     input   [15:0]  snd_right,
-    input           snd_sample,
     output          snd_pwm_left,
     output          snd_pwm_right,
     // Direct joystick connection (Neptuno / MC)
