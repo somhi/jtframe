@@ -36,10 +36,12 @@ module jtframe_obj_buffer #(parameter
     ALPHAW=4,
     ALPHA=4'HF,
     BLANK={8{ALPHA}},
-    BLANK_DLY=2
+    BLANK_DLY=2,
+    FLIP_OFFSET=0
 )(
     input   clk,
     input   LHBL,
+    input   flip,
     // New data writes
     input   [DW-1:0] wr_data,
     input   [AW-1:0] wr_addr,
@@ -79,12 +81,14 @@ always @(posedge clk) begin
     if( delete_we ) rd_data <= dump_data;
 end
 
+wire [AW-1:0] wr_af = flip ? ~wr_addr + FLIP_OFFSET : wr_addr;
+
 jtframe_dual_ram #(.aw(AW+1),.dw(DW)) u_line(
     .clk0   ( clk           ),
     .clk1   ( clk           ),
     // Port 0
     .data0  ( wr_data       ),
-    .addr0  ( {line,wr_addr}),
+    .addr0  ( {line,wr_af}  ),
     .we0    ( new_we        ),
     .q0     (               ),
     // Port 1
