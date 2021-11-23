@@ -94,6 +94,7 @@ bit     |  meaning                | Enabled with macro
 28-31   | CRT V offset            | MiSTer only
 32-36   | HDMI Shadowmask Overlay | MiSTer only
 37      | Villena's DB15 (MiSTer) |
+38-39   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.
@@ -101,6 +102,7 @@ Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets
 % JTFRAME will not expand to use bits 56 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
 
 Option visibility in MiSTer is controlled in [jtframe_mister.sv](../target/mister/jtframe_mister.sv) using the `status_menumask` variable.
+
 
 If **JTFRAME_OSD_VOL** is set, the dip_fxlevel inputs to the game module will vary according to the following table:
 
@@ -120,17 +122,26 @@ CORE_OSD="OD,Turbo,Off,On;",
 ```
 Only one CORE_OSD can be defined, but it an contain multiple values separated by colon.
 
-## DIP switch information extraction from MAME
+### Screen Rotation
 
-First you need to get the xml with all the information:
+Screen rotation features require **JTFRAME_VERTICAL** to work. Remember to enable it first in the **.def** file. Screen rotation is done clockwise unless **JTFRAME_MR_ROTCCW** is defined.
 
-```
-mame -listxml > mame.xml
-```
+Most arcade games have a flip setting among the DIP switches. This is the preferred method to enable it. When that is not possible, using the JTFRAME_OSD_FLIP will add the option to the OSD. The option will appear outside the *DIP Switches* submenu in the OSD.
 
-The file *mamefilter.cc* is an example of how to extract a subset of machine definitions from the file.
+The current *flip* setting is kept in the **dip_flip** IO signal of the game module. This signal is an input or an output to the **game** module depending on whether JTFRAME_OSD_FLIP is set or unset:
 
-The files *mamegame.hpp* and *mamegame.cc* contain some classes and a function to process the MAME XML into easy-to-use C++ objects. An example of this in use can be seen in JTCPS1 core.
+JTFRAME_OSD_FLIP  |  dip_flip type
+------------------|----------------
+set               | input
+unset             | output
+
+Keep it simply defined as *inout* to avoid problems and assign a value to it when you don't use JTFRAME_OSD_FLIP.
+
+JTFRAME_OSD_FLIP helps with the case when the original game did not have a DIP switch for flipping but it is still possible to design the graphics circuitry to have it. However, depending on how the original hardware operated, this may not be possible. An example of this is SEGA System 16. The sprite definition in that system is made in a way that makes very hard to flip the sprites without the game software intervention.
+
+In cases where hardware flip at the base video signal is not possible, you can still flip the image directly in MiSTer by using the frame buffer. To enable this feature use the macro JTFRAME_ROTATE. This will add more options to the *Rotate screen* menu item in the OSD. These options will apply directly to MiSTer's frame buffer.
+
+It is discouraged to use JTFRAME_ROTATE if the game already provides a flip setting through the DIP switches. Doing so can be confusing to the user. JTFRAME_OSD_FLIP is ignored if JTFRAME_ROTATE is defined.
 
 ## MOD BYTE
 

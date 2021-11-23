@@ -18,7 +18,7 @@
 
 module jtframe_dip(
     input              clk,
-    input      [31:0]  status,
+    input      [63:0]  status,
     input      [ 6:0]  core_mod,
     input              game_pause,
 
@@ -26,7 +26,7 @@ module jtframe_dip(
     output reg [11:0]  hdmi_arx,
     output reg [11:0]  hdmi_ary,
     output reg [ 1:0]  rotate,
-    output             rot_control,
+    output             rot_control, // rotate player control inputs
     output reg         en_mixing,
     output reg [ 2:0]  scanlines,
     output reg         bw_en,
@@ -123,13 +123,19 @@ end
     assign osd_pause   = 1'b0;
 `endif
 
+// Screen or control rotation
 `ifdef JTFRAME_VERTICAL
     // core_mod[0] = 0 horizontal game
     //             = 1 vertical game
     // status[13]  = 0 Rotate screen
     //             = 1 no rotation
     `ifdef MISTER
-        wire   tate   = ~status[2] & core_mod[0]; // 1 if screen is vertical (tate in Japanese)
+        `ifdef JTFRAME_ROTATE
+            wire status_roten= status[39:38]==0;
+        `else
+            wire status_roten= ~status[2];
+        `endif
+        wire tate = status_roten & core_mod[0]; // 1 if screen is vertical (tate in Japanese)
         assign rot_control = 1'b0;
     `else
         wire   tate   = 1'b1 & core_mod[0];      // MiST is always vertical

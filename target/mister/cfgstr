@@ -23,8 +23,12 @@ H2OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
         {{ else }}                  O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
 H0OEF,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
 {{ if .JTFRAME_VERTICAL }}
-    {{ if .JTFRAME_OSD_FLIP }}      O1,Flip screen,Off,On; {{ end }}
-                                    H1O2,Rotate screen,Yes,No;{{ end }}
+    {{ if .JTFRAME_ROTATE }}        H4o67,Rotate screen,Yes,No (original),No (flip);
+    {{ else }}
+        {{ if .JTFRAME_OSD_FLIP }}  O1,Flip screen,Off,On; {{ end }}
+                                    H1O2,Rotate screen,Yes,No;
+    {{ end }}
+{{ end }}
 {{ .SEPARATOR }}
 o02,Shadow mask,Off,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
 H3o3,Double mask size,No,Yes;

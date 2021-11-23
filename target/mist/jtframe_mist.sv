@@ -158,7 +158,8 @@ module jtframe_mist #(parameter
 );
 
 // control
-wire [31:0]   joystick1, joystick2, joystick3, joystick4, board_status;
+wire [31:0]   joystick1, joystick2, joystick3, joystick4;
+wire [63:0] board_status;
 wire          ps2_kbd_clk, ps2_kbd_data;
 wire          osd_shown;
 
@@ -173,7 +174,7 @@ wire          ioctl_cheat, sdram_init;
 
 wire  [15:0]  board_left, board_right;
 
-assign board_status = { {32-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
+assign board_status = { {64-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
 
 jtframe_mist_base #(
     .SIGNED_SND     ( SIGNED_SND    ),
