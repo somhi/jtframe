@@ -18,3 +18,4 @@ i8751       |  4019        |    5  |  jtframe_8751mcu
 M6809       |  2992        |    0  |  mc6809i
 Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65
+PicoBlaze   |   950        |    0  |  PauloBlaze
