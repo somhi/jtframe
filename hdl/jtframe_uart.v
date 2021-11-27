@@ -14,25 +14,22 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 24-4-2019
+    Date: 24-11-2021
 
-    Originally based on a file from:
-        Milkymist VJ SoC, Sebastien Bourdeauducq and Das Labor
 */
 
 module jtframe_uart(
-    input            rst_n,
+    input            rst,
     input            clk,
-    input            cen,
     // serial wires
     input            uart_rx,
     output reg       uart_tx, // serial signal to transmit. High when idle
     // Rx interface
     output reg [7:0] rx_data,
-    output reg       rx_done,
     output reg       rx_error,
+    output reg       rx_rdy,
+    input            rx_clr,    // clear the rx_rdy flag
     // Tx interface
-    output reg       tx_done,
     output reg       tx_busy,
     input      [7:0] tx_data,
     input            tx_wr      // write strobe
@@ -40,15 +37,12 @@ module jtframe_uart(
 
 /* Division of the system clock
         For a 50MHz system clock use:
-            clk_div = 28, uart_div = 30 ->  57kbps, 0.01% timing error
-            clk_div = 14, uart_div = 30 -> 115kbps, 0.01% timing error
-            clk_div =  7, uart_div = 30 -> 230kbps, 0.01% timing error
+            CLK_DIVIDER = 28, UART_DIVIDER = 30 ->  57kbps, 0.01% timing error
+            CLK_DIVIDER = 14, UART_DIVIDER = 30 -> 115kbps, 0.01% timing error
+            CLK_DIVIDER =  7, UART_DIVIDER = 30 -> 230kbps, 0.01% timing error
     */
-parameter CLK_DIVIDER  = 5'd28;
-parameter UART_DIVIDER = 5'd30; // number of divisions of the UART bit period
-
-wire [4:0] clk_div  = CLK_DIVIDER;
-wire [4:0] uart_div = UART_DIVIDER;
+parameter [4:0] CLK_DIVIDER  = 28,
+                UART_DIVIDER = CLK_DIVIDER; // number of divisions of the UART bit period
 
 //-----------------------------------------------------------------
 // zero generator... this is actually a 32-module counter
@@ -56,15 +50,15 @@ wire [4:0] uart_div = UART_DIVIDER;
 reg  [4:0] clk_cnt;
 reg zero;
 
-always @(posedge clk or negedge rst_n) begin : clock_divider
-    if(!rst_n) begin
-        clk_cnt <= clk_div - 5'b1;
+always @(posedge clk or posedge rst) begin : clock_divider
+    if(rst) begin
+        clk_cnt <= CLK_DIVIDER - 5'b1;
         zero    <= 1'b0;
-    end else if(cen) begin
+    end else begin
         clk_cnt <= clk_cnt - 5'd1;
         zero <= clk_cnt==5'd1;
         if(zero)
-            clk_cnt <= clk_div - 5'b1;  // reload the divider value
+            clk_cnt <= CLK_DIVIDER - 5'b1;  // reload the divider value
     end
 end
 
@@ -79,103 +73,81 @@ always @(posedge clk) begin : synchronizer
     uart_rx2 <= uart_rx1;
 end
 
-//-----------------------------------------------------------------
-// UART RX Logic
-//-----------------------------------------------------------------
+// Reception
 reg rx_busy;
 reg [4:0] rx_divcnt;
 reg [3:0] rx_bitcnt;
 reg [7:0] rx_reg;
 
-always @(posedge clk or negedge rst_n) begin : rx_logic
-    if(!rst_n) begin
-        rx_done      <= 1'b0;
-        rx_busy      <= 1'b0;
-        rx_divcnt    <= 5'd0;
-        rx_bitcnt    <= 4'd0;
-        rx_data      <= 8'd0;
-        rx_reg       <= 8'd0;
-        rx_error     <= 1'b0;
-    end else if(cen) begin
-        rx_done      <= 1'b0;
+always @(posedge clk or posedge rst) begin : rx_logic
+    if(rst) begin
+        rx_rdy    <= 0;     // output data is valid
+        rx_busy   <= 0;
+        rx_divcnt <= 0;
+        rx_bitcnt <= 0;
+        rx_data   <= 0;
+        rx_reg    <= 0;
+        rx_error  <= 0;
+    end else begin
+        if( rx_clr ) begin
+            rx_rdy   <= 0;
+            rx_error <= 0;
+        end
 
-        if(zero) begin
-            if(!rx_busy) begin // look for start bit
-                if(!uart_rx2) begin // start bit found
-                    rx_busy    <= 1'b1;
-                    rx_divcnt  <= { 1'b0, uart_div[4:1] }; // middle bit period
-                    rx_bitcnt  <= 4'd0;
-                    rx_reg     <= 8'h0;
-                end
-            end else begin
-                if( !rx_divcnt ) begin // sample
+        if( zero ) begin
+            if(!rx_busy && !uart_rx2) begin // look for start bit
+                rx_busy    <= 1;
+                rx_divcnt  <= UART_DIVIDER>>1; // wait middle period
+                rx_bitcnt  <= 0;
+                rx_reg     <= 0;
+            end else if( rx_busy ) begin
+                rx_divcnt <= rx_divcnt==0 ? UART_DIVIDER : rx_divcnt - 1'b1;
+                if( rx_divcnt==0 ) begin // sample
                     rx_bitcnt  <= rx_bitcnt + 4'd1;
-                    rx_divcnt  <= uart_div;    // start to count down from top again
-                    rx_error   <= 1'b0;
-                    case( rx_bitcnt )
-                        4'd0: // verify startbit
-                            if(uart_rx2)
-                                rx_busy <= 1'b0;
-                        4'd9: begin // stop bit
-                            rx_busy <= 1'b0;
-                            if(uart_rx2) begin // stop bit ok
-                                rx_data <= rx_reg;
-                                rx_done <= 1'b1;
-                            end else begin // RX error
-                                rx_done  <= 1'b1;
-                                rx_error <= 1'b1;
-                                end
-                            end
-                            default: // shift data in
-                                rx_reg <= {uart_rx2, rx_reg[7:1]};
-                    endcase
+                    if( rx_bitcnt<9 ) begin // stop bit
+                        rx_reg <= {uart_rx2, rx_reg[7:1]}; // shift data in
+                    end else begin
+                        rx_busy  <= 0;
+                        rx_rdy   <= 1;
+                        rx_data  <= rx_reg;
+                        rx_error <= !uart_rx2; // check stop bit
+                    end
                 end
-                else rx_divcnt <= rx_divcnt - 1'b1;
             end
         end
     end
 end
 
-//-----------------------------------------------------------------
-// UART TX Logic
-//-----------------------------------------------------------------
+// Transmission
 reg [3:0] tx_bitcnt;
 reg [4:0] tx_divcnt;
 reg [7:0] tx_reg;
 
-always @(posedge clk or negedge rst_n) begin :tx_logic
-    if(!rst_n) begin
-        tx_done   <= 'b0;
-        tx_busy   <= 'b0;
-        uart_tx   <= 'b1;
-        tx_divcnt <= 'b0;
-        tx_reg    <= 'b0;
-    end else if(cen) begin
-        tx_done <= 1'b0;
-        if(tx_wr) begin
+always @(posedge clk or posedge rst) begin :tx_logic
+    if(rst) begin
+        tx_busy   <= 0;
+        uart_tx   <= 1;
+        tx_divcnt <= 0;
+        tx_reg    <= 0;
+    end else begin
+        if( tx_wr && !tx_busy ) begin
             tx_reg    <= tx_data;
-            tx_bitcnt <= 4'd0;
-            tx_divcnt <= uart_div;
-            tx_busy   <= 1'b1;
-            uart_tx   <= 1'b0;
+            tx_bitcnt <= 0;
+            tx_divcnt <= UART_DIVIDER;
+            tx_busy   <= 1;
+            uart_tx   <= 0; // start bit
         end else if(zero && tx_busy) begin
-
-            if( !tx_divcnt ) begin
+            tx_divcnt <= tx_divcnt==0 ? UART_DIVIDER : tx_divcnt-1'd1;
+            if( tx_divcnt==0 ) begin
                 tx_bitcnt <= tx_bitcnt + 4'd1;
-                tx_divcnt <= uart_div;    // start to count down from top again
-                if( tx_bitcnt < 4'd8 ) begin
-                        uart_tx <= tx_reg[0];
-                        tx_reg  <= {1'b0, tx_reg[7:1]};
-                        end
-                else begin
-                    uart_tx <= 1'b1; // 8 bits sent, now 1 or more stop bits
-                    if( tx_bitcnt==4'd10 ) begin
-                        tx_busy <= 1'b0;
-                        tx_done <= 1'b1;
-                    end
+                if( tx_bitcnt < 8 ) begin
+                    uart_tx <= tx_reg[0];
+                    tx_reg  <= tx_reg>>1;
+                end else begin
+                    uart_tx <= 1; // 8 bits sent, now 1 or more stop bits
+                    if(tx_bitcnt==9) tx_busy <= 0;
                 end
             end
-            else tx_divcnt  <= tx_divcnt - 1'b1;
         end
     end
 end

@@ -93,8 +93,8 @@ bit     |  meaning                | Enabled with macro
 24-27   | CRT H offset            | MiSTer only
 28-31   | CRT V offset            | MiSTer only
 32-36   | HDMI Shadowmask Overlay | MiSTer only
-37      | Villena's DB15 (MiSTer) |
-38-39   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
+37-38   | User output options     | MiSTer, selects DB15, UART, etc.
+39-40   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.
@@ -142,6 +142,15 @@ JTFRAME_OSD_FLIP helps with the case when the original game did not have a DIP s
 In cases where hardware flip at the base video signal is not possible, you can still flip the image directly in MiSTer by using the frame buffer. To enable this feature use the macro JTFRAME_ROTATE. This will add more options to the *Rotate screen* menu item in the OSD. These options will apply directly to MiSTer's frame buffer.
 
 It is discouraged to use JTFRAME_ROTATE if the game already provides a flip setting through the DIP switches. Doing so can be confusing to the user. JTFRAME_OSD_FLIP is ignored if JTFRAME_ROTATE is defined.
+
+### User Port
+
+The user port supports:
+
+-DB15 joysticks using Villena's interface, support removed with **JTFRAME_NO_DB15**
+-A simple UART, which can connect to the cheat engine (**JTFRAME_CHEAT**) or to the core **JTFRAME_UART**)
+
+Depending on the three macros above are set or unset, the OSD menu will show different options in MiSTer.
 
 ## MOD BYTE
 

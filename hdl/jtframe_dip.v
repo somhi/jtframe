@@ -131,7 +131,7 @@ end
     //             = 1 no rotation
     `ifdef MISTER
         `ifdef JTFRAME_ROTATE
-            wire status_roten= status[39:38]==0;
+            wire status_roten= status[40:39]==0;
         `else
             wire status_roten= ~status[2];
         `endif

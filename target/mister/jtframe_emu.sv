@@ -134,6 +134,7 @@ module emu
     input   [6:0] USER_IN,
     output  [6:0] USER_OUT,
     output        db15_en,
+    output        uart_en,
     output        show_osd
     `ifdef SIMULATION
     ,output       sim_pxl_cen,
@@ -353,8 +354,13 @@ wire [COLORW-1:0] game_r, game_g, game_b;
 wire              LHBL, LVBL;
 wire              hs, vs, sample;
 wire              ioctl_ram;
+wire              game_rx, game_tx;
 
 assign game_led[1] = 1'b1;
+
+`ifndef JTFRAME_UART
+    assign game_tx = 1;
+`endif
 
 `ifndef SIGNED_SND
 assign AUDIO_S = 1'b1; // Assume signed by default
@@ -397,6 +403,9 @@ u_frame(
     .USER_OUT       ( USER_OUT       ),
     .USER_IN        ( USER_IN        ),
     .db15_en        ( db15_en        ),
+    .uart_en        ( uart_en        ),
+    .game_rx        ( game_rx        ), // core-specific UART
+    .game_tx        ( game_tx        ),
     .show_osd       ( show_osd       ),
     // Base video
     .game_r         ( game_r         ),
@@ -618,7 +627,7 @@ assign sim_pxl_cen = pxl_cen;
     .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
 
-    `ifdef JTFRAME_ANALOG
+`ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ),
     .joyana_l2    ( joyana_l2        ),
     `ifdef JTFRAME_ANALOG_DUAL
@@ -633,7 +642,7 @@ assign sim_pxl_cen = pxl_cen;
             .joyana_r4( joyana_r4        ),
         `endif
     `endif
-    `endif
+`endif
     // Sound control
     .enable_fm    ( enable_fm        ),
     .enable_psg   ( enable_psg       ),
@@ -697,6 +706,11 @@ assign sim_pxl_cen = pxl_cen;
     .dip_fxlevel  ( dip_fxlevel      ),
 `ifdef JTFRAME_MRA_DIP
     .dipsw        ( dipsw            ),
+`endif
+
+`ifdef JTFRAME_UART
+    .uart_tx      ( game_tx          ),
+    .uart_rx      ( game_rx          ),
 `endif
 
 `ifdef STEREO_GAME

@@ -91,6 +91,9 @@ module jtframe_board #(parameter
     // keyboard
     input             ps2_kbd_clk,
     input             ps2_kbd_data,
+    // UART
+    input             uart_rx,
+    output            uart_tx,
     // joystick
     input     [15:0]  board_joystick1,
     input     [15:0]  board_joystick2,
@@ -468,6 +471,10 @@ wire [SDRAMW-1:0] bax_addr;
         .st_dout    ( st_dout   ),
         .debug_bus  ( debug_bus ),
 
+        // UART
+        .uart_rx    ( uart_rx   ),
+        .uart_tx    ( uart_tx   ),
+
         // Video
         .vram_addr  ( vram_addr ),
         .vram_din   ( vram_din  ),
@@ -498,6 +505,7 @@ wire [SDRAMW-1:0] bax_addr;
     assign ba_ack    = bax_ack;
     assign ba_rdy    = bax_rdy;
     assign ba_dst    = bax_dst;
+    assign uart_tx   = 1; // no signal out
     assign cheat_led = 0;
     assign dip_pause = pre_pause;
     assign st_addr   = 0;

@@ -75,6 +75,9 @@ module jtframe_mist #(parameter
     input        [15:0] ba0_din,
     input        [ 1:0] ba0_din_m,  // write mask
     output       [15:0] sdram_dout,
+    // UART
+    input           uart_rx,
+    output          uart_tx,
     // SDRAM interface
     inout    [15:0] SDRAM_DQ,       // SDRAM Data bus 16 Bits
     output   [12:0] SDRAM_A,        // SDRAM Address bus 13 Bits
@@ -328,6 +331,9 @@ jtframe_board #(
     .osd_shown      ( osd_shown       ),
     .game_led       ( game_led        ),
     .led            ( LED             ),
+    // UART
+    .uart_rx        ( uart_rx         ),
+    .uart_tx        ( uart_tx         ),
     // SDRAM interface
     // Bank 0: allows R/W
     .ba0_addr   ( ba0_addr      ),

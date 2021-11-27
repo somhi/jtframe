@@ -35,9 +35,12 @@ module jtframe_mister #(parameter
     // LED
     input  [ 1:0]   game_led,
     // Extension port (fake USB3)
-    input  [ 6:0]   USER_IN,
-    output [ 6:0]   USER_OUT,
+    input      [6:0] USER_IN,
+    output reg [6:0] USER_OUT,
     output          db15_en,
+    output          uart_en,
+    input           game_tx,
+    output          game_rx,
     output          show_osd,
     // Base video
     input [COLORW-1:0] game_r,
@@ -247,6 +250,10 @@ wire [ 7:0] ddrld_burstcnt;
 wire [28:0] ddrld_addr;
 wire        ddrld_rd, ddrld_busy;
 
+// UART
+wire        uart_rx, uart_tx;
+wire [6:0]  joy_in, joy_out;
+
 // H-Pos & V-Pos for CRT
 assign { voffset, hoffset } = status[31:24];
 
@@ -262,6 +269,22 @@ assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 assign shadowmask     = status[34:32];
 assign shadowmask_2x  = status[35];
 assign shadowmask_rot = (core_mod[0] & rotate[0]) ^ status[36];
+
+// UART
+// The core and cheat UARTs are connected in parallel
+// If JTFRAME_UART is not defined, the core side is disabled
+// If JTFRAME_CHEAT is not defined, the cheat side is disabled
+// Otherwise, both can listen and talk
+always @(posedge clk_sys) begin
+    USER_OUT <= db15_en ? joy_out :
+        uart_en ? {~6'h0, uart_tx&game_tx } :
+        7'h7f;
+end
+
+assign uart_rx  = uart_en ? USER_IN[1] : 1'b1;
+assign game_rx  = uart_rx;
+assign joy_in   = USER_IN;
+assign uart_en  = status[38]; // It can be used by the cheat engine or the game
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
@@ -346,8 +369,8 @@ jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .show_osd   ( show_osd  ),
 
     // MiSTer pins
-    .USER_IN    ( USER_IN   ),
-    .USER_OUT   ( USER_OUT  ),
+    .USER_IN    ( joy_in    ),
+    .USER_OUT   ( joy_out   ),
 
     // joystick mux
     .db15_en    ( db15_en   ),
@@ -552,6 +575,9 @@ jtframe_board #(
     .osd_shown      ( 1'b0            ),
     .game_led       ( game_led        ),
     .led            ( LED             ),
+    // UART
+    .uart_rx        ( uart_rx         ),
+    .uart_tx        ( uart_tx         ),
     // Scan doubler output
     .scan2x_r       ( scan2x_r        ),
     .scan2x_g       ( scan2x_g        ),

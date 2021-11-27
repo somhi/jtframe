@@ -23,7 +23,7 @@ H2OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
         {{ else }}                  O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
 H0OEF,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
 {{ if .JTFRAME_VERTICAL }}
-    {{ if .JTFRAME_ROTATE }}        H4o67,Rotate screen,Yes,No (original),No (flip);
+    {{ if .JTFRAME_ROTATE }}        H4o78,Rotate screen,Yes,No (original),No (flip);
     {{ else }}
         {{ if .JTFRAME_OSD_FLIP }}  O1,Flip screen,Off,On; {{ end }}
                                     H1O2,Rotate screen,Yes,No;
@@ -38,7 +38,10 @@ H3o4,Rotate mask,No,Yes;
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OG,Autofire button 0,Off,On; {{ end }}
-{{ if .JTFRAME_NO_DB15 }} {{ else }}o5,User IO DB15 Joystick,Off,On; {{ end }}
+{{ if (.JTFRAME_CHEAT) or (.JTFRAME_UART) }}
+    {{ if .JTFRAME_NO_DB15 }}       o6,User port,Off,UART; {{ else }}
+                                    o56,User port,Off,DB15 Joystick,UART; {{ end }}
+    {{ else }}                      o5,User port,Off,DB15 Joystick; {{ end }}
 {{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

@@ -73,6 +73,10 @@ module jtframe_cheat #(parameter AW=22)(
     output reg       vram_we,
     output reg [2:0] vram_ctrl,
 
+    // UART
+    input            uart_rx,
+    output           uart_tx,
+
     // PBlaze Program
     input           prog_en,      // resets the address counter
     input           prog_wr,      // strobe for new data
@@ -85,6 +89,9 @@ localparam CHEATW=10;  // 12=>9kB (8 BRAM)
                        // 10=>2.25kB (2 BRAM), 9=>1.12kB (1 BRAM)
 
 localparam [31:0] BUILDTIME = `JTFRAME_TIMESTAMP; // Build time
+
+// UART works at 57.6 kbps for 48MHz, 115.2 for 96MHz
+localparam [4:0] UART_DIV=29;
 
 wire clk = clk_pico;
 
@@ -106,11 +113,17 @@ reg  [ 5:0] frame_cnt=0;
 reg  [23:0] sec_cnt=0;   // count up to 194 days
 wire [31:0] cur_time = timestamp + {8'd0, sec_cnt};
 
+// UART
+wire [ 7:0] uart_dout;
+reg         uart_clr;
+wire        uart_wr, uart_busy, uart_rdy, uart_error;
 
-reg  [3:0]  watchdog;
+reg  [ 3:0] watchdog;
 reg         prst=0;
 
 assign pause_out = pause_in;
+// UART
+assign uart_wr = pwr && paddr==8'h34;
 
 always @(posedge clk) begin
     prst <= watchdog[3] | rst;
@@ -263,48 +276,58 @@ end
 always @(posedge clk) begin
     if(prst) begin
         pin <= 0;
-    end else if(prd) begin
-        casez( paddr[7:0] )
-            0,1,2,3,4,5:
-                   pin <= ports[ paddr[2:0] ];
-            6: pin <= sdram_lsb;
-            7: pin <= sdram_msb;
-            // VRAM or status
-            8'h0a: pin <= vram_din;
-            8'h0d: pin <= st_dout;
-            8'h0f: pin <= debug_bus;
+        uart_clr <= 0;
+    end else begin
+        uart_clr <= 0;
+        if(prd) begin
+            casez( paddr[7:0] )
+                0,1,2,3,4,5:
+                       pin <= ports[ paddr[2:0] ];
+                6: pin <= sdram_lsb;
+                7: pin <= sdram_msb;
+                // VRAM or status
+                8'h0a: pin <= vram_din;
+                8'h0d: pin <= st_dout;
+                8'h0f: pin <= debug_bus;
 
-            // Flags
-            8'h10: pin <= flags[ 7: 0];
-            8'h11: pin <= flags[15: 8];
-            8'h12: pin <= flags[23:16];
-            8'h13: pin <= flags[31:24];
+                // Flags
+                8'h10: pin <= flags[ 7: 0];
+                8'h11: pin <= flags[15: 8];
+                8'h12: pin <= flags[23:16];
+                8'h13: pin <= flags[31:24];
 
-            // Board status
-            8'h14: pin <= status[ 7: 0];
-            8'h15: pin <= status[15: 8];
-            8'h16: pin <= status[23:16];
-            8'h17: pin <= status[31:24];
+                // Board status
+                8'h14: pin <= status[ 7: 0];
+                8'h15: pin <= status[15: 8];
+                8'h16: pin <= status[23:16];
+                8'h17: pin <= status[31:24];
 
-            // Joystick
-            8'h18: pin <= joy1;
-            8'h1a: pin <= joyana_l1[ 7:0];
-            8'h1b: pin <= joyana_l1[15:8];
-            8'h1c: pin <= joyana_r1[ 7:0];
-            8'h1d: pin <= joyana_r1[15:8];
-            8'h48: pin <= joy2;
-            8'h4a: pin <= joyana_l2[ 7:0];
-            8'h4b: pin <= joyana_l2[15:8];
-            8'h4c: pin <= joyana_r2[ 7:0];
-            8'h4d: pin <= joyana_r2[15:8];
+                // Joystick
+                8'h18: pin <= joy1;
+                8'h1a: pin <= joyana_l1[ 7:0];
+                8'h1b: pin <= joyana_l1[15:8];
+                8'h1c: pin <= joyana_r1[ 7:0];
+                8'h1d: pin <= joyana_r1[15:8];
+                8'h48: pin <= joy2;
+                8'h4a: pin <= joyana_l2[ 7:0];
+                8'h4b: pin <= joyana_l2[15:8];
+                8'h4c: pin <= joyana_r2[ 7:0];
+                8'h4d: pin <= joyana_r2[15:8];
 
 
-            8'h2?: pin <= timemux; // Time
-            // Lock keys
-            8'h3?: pin <= lock_key[ paddr[1:0] ];
-            8'h80: pin <= { owner, pico_busy, LVBL, 3'b0, expired, locked }; // 8'hc0 means that the SDRAM data is ready
-            default: pin <= 0;
-        endcase
+                8'h2?: pin <= timemux; // Time
+                // Lock keys
+                8'h30,8'h31,8'h32,8'h33: pin <= lock_key[ paddr[1:0] ];
+                // UART
+                8'h34: begin
+                    pin <= uart_dout;
+                    uart_clr <= 1;
+                end
+                8'h35: pin <= { 3'b0, uart_error, 2'b0, uart_busy, uart_rdy };
+                8'h80: pin <= { owner, pico_busy, LVBL, 3'b0, expired, locked }; // 8'hc0 means that the SDRAM data is ready
+                default: pin <= 0;
+            endcase
+        end
     end
 end
 
@@ -373,6 +396,25 @@ pauloBlaze u_blaze(
     //.interrupt      ( irq       ),
     .interrupt      ( 1'b0      ), // The interrupt in pauloBlaze is buggy
     .interrupt_ack  ( iack      )
+);
+
+jtframe_uart #(
+    .CLK_DIVIDER( UART_DIV  )
+) u_uart(
+    .rst        ( rst       ),
+    .clk        ( clk       ),
+    // serial wires
+    .uart_rx    ( uart_rx   ),
+    .uart_tx    ( uart_tx   ), // serial signal to transmit. High when idle
+    // Rx interface
+    .rx_data    ( uart_dout ),
+    .rx_error   ( uart_error),
+    .rx_rdy     ( uart_rdy  ),
+    .rx_clr     ( uart_clr  ),    // clear the rx_rdy flag
+    // Tx interface
+    .tx_busy    ( uart_busy ),
+    .tx_data    ( pout      ),
+    .tx_wr      ( uart_wr   )      // write strobe
 );
 
 jtframe_cheat_rom #(.AW(CHEATW)) u_rom(
