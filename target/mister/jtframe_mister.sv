@@ -447,7 +447,7 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_upload    (                ), // no need
     .ioctl_rd        (                ), // no need
 
-    .joy_raw         ( joystick1[5:0] | joystick2[5:0] ), // DB15 control
+    .joy_raw         ( joystick1[5:0] ), // DB15 control
     .joystick_0      ( joyusb_1       ),
     .joystick_1      ( joyusb_2       ),
     .joystick_2      ( joystick3      ),
