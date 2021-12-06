@@ -180,15 +180,15 @@ assign EXT_BUS[35:33] = HPS_BUS[35:33];
 // it needs to cope with 1kByte of config string in the BRAM
 localparam MAX_W = $clog2((1024 > (STRLEN+1)) ? 1024 : (STRLEN+1))-1;
 
-localparam DW = (WIDE) ? 15 : 7;
-localparam AW = (WIDE) ?  7 : 8;
+localparam DW = WIDE ? 15 : 7;
+localparam AW = WIDE ?  7 : 8;
 localparam VD = VDNUM-1;
 localparam DWNLD_W=23;
 
 wire        io_strobe= HPS_BUS[33];
 wire        io_enable= HPS_BUS[34];
 wire        fp_enable= HPS_BUS[35];
-wire        io_wide  = (WIDE) ? 1'b1 : 1'b0;
+wire        io_wide  = WIDE ? 1'b1 : 1'b0;
 wire [15:0] io_din   = HPS_BUS[31:16];
 reg  [15:0] io_dout;
 
@@ -641,7 +641,7 @@ always@(posedge clk_sys) begin : fio_block
 	// upload data bit width conversion
 	if( ioctl_upload ) begin
 		if( ioctl_rd ) begin
-			wide_upld   <= WIDE;
+			wide_upld   <= WIDE[0];
 			dwnld_st[0] <= 1;
 		end
 		if( dwnld_st[3] ) begin
