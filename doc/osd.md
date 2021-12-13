@@ -85,9 +85,9 @@ bit     |  meaning                | Enabled with macro
 10      | Test mode               | JTFRAME_OSD_TEST
 11      | Horizontal filter       | MiSTer only
 12      | Credits/Pause           | JTFRAME_OSD_NOCREDITS (disables it)
-13      | Reserved for core use   | CORE_OSD
-14-15   | Aspect Ratio            | MiSTer only, visibility masked
-16      | Autofire button 0       | JTFRAME_AUTOFIRE0
+13-15   | Reserved for core use   | CORE_OSD (option char: D,E,F)
+16-17   | Aspect Ratio            | MiSTer only, visibility masked
+18      | Autofire button 0       | JTFRAME_AUTOFIRE0
 19      | CRT H scaling enable    | MiSTer only
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only

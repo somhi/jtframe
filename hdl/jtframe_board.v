@@ -243,7 +243,7 @@ wire         lock;
 wire         autofire0;
 
 `ifdef JTFRAME_AUTOFIRE0
-    assign autofire0=status[16];
+    assign autofire0=status[18];
 `else
     assign autofire0=0;
 `endif

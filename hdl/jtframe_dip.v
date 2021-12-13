@@ -95,7 +95,7 @@ assign dip_flip    = ~status[1]^MISTER[0];
 assign dip_test = ~game_test;
 `endif
 
-wire [1:0] ar = status[15:14];    // only MiSTer
+wire [1:0] ar = status[17:16];    // only MiSTer
 `ifdef MISTER
 always @(*) begin
     scanlines = status[5:3];
