@@ -95,6 +95,7 @@ always @(*) begin
         2'd1: offset = BA1_START;
         2'd2: offset = BA2_START;
         2'd3: offset = BA3_START;
+        default: offset = 0;
     endcase // bank
     eff_addr = part_addr-offset;
 end
