@@ -69,8 +69,8 @@ architecture Behavioral of ALU is
 	signal zero_c : std_logic;
 	signal zero_o : std_logic;
 
-	signal debug_opA_value : unsigned(7 downto 0);
-	signal debug_opB_value : unsigned(7 downto 0);
+	-- signal debug_opA_value : unsigned(7 downto 0);
+	-- signal debug_opB_value : unsigned(7 downto 0);
 
 begin
 
@@ -102,8 +102,8 @@ begin
 
 		if (debug) then
 			padding := '0'; --looks better during simulation
-			debug_opA_value <= opA_value;
-			debug_opB_value <= opB_value;
+			-- debug_opA_value <= opA_value;
+			-- debug_opB_value <= opB_value;
 		else
 			padding := '-';
 		end if;
