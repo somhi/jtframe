@@ -34,8 +34,8 @@ module jtframe_obj_buffer #(parameter
     DW=8,
     AW=9,
     ALPHAW=4,
-    ALPHA=4'HF,
-    BLANK={8{ALPHA}},
+    ALPHA=32'HF,
+    BLANK=ALPHA,
     BLANK_DLY=2,
     FLIP_OFFSET=0
 )(
