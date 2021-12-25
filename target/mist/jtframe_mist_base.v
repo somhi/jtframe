@@ -106,7 +106,7 @@ module jtframe_mist_base #(parameter
 localparam [7:0] IDX_CHEAT = 8'h10,
                  IDX_NVRAM = 8'hFF;
 
-wire        ypbpr;
+wire        ypbpr, no_csync;
 wire [7:0]  ioctl_index;
 wire        ioctl_download;
 
@@ -218,6 +218,7 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
 
         .status         ( status    ),
         .ypbpr          ( ypbpr     ),
+        .no_csync       ( no_csync  ),
         .scandoubler_disable ( scan2x_enb ),
         // keyboard
         .ps2_kbd_clk    ( ps2_kbd_clk  ),
@@ -236,6 +237,7 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     );
 `else
     assign ypbpr = 0;
+    assign no_csync = 1;
 `endif
 
 `else // these inputs are not used in simulation:
@@ -418,8 +420,8 @@ assign VIDEO_G  = ypbpr? Y:osd_g_o;
 assign VIDEO_B  = ypbpr?Pb:osd_b_o;
 // a minimig vga->scart cable expects a composite sync signal on the VIDEO_HS output.
 // and VCC on VIDEO_VS (to switch into rgb mode)
-assign VIDEO_HS = (scan2x_enb | ypbpr) ? CSync_osd : HSync_osd;
-assign VIDEO_VS = (scan2x_enb | ypbpr) ? 1'b1 : VSync_osd;
+assign VIDEO_HS = ( (~no_csync & scan2x_enb) | ypbpr) ? CSync_osd : HSync_osd;
+assign VIDEO_VS = ( (~no_csync & scan2x_enb) | ypbpr) ? 1'b1 : VSync_osd;
 `else
 // for simulation only:
 assign VIDEO_R  = game_r;
