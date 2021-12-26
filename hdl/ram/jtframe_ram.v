@@ -44,7 +44,7 @@ module jtframe_ram #(parameter dw=8, aw=10,
 `ifdef SIMULATION
 integer f, readcnt;
 initial
-if( simfile != "" ) begin
+if( simfile != 0 ) begin
     f=$fopen(simfile,"rb");
     if( f != 0 ) begin
         readcnt=$fread( mem, f );
@@ -55,11 +55,11 @@ if( simfile != "" ) begin
     end
     end
 else begin
-    if( simhexfile != "" ) begin
+    if( simhexfile != 0 ) begin
         $readmemh(simhexfile,mem);
         $display("INFO: Read %14s (hex) for %m", simhexfile);
     end else begin
-        if( synfile!= "" ) begin
+        if( synfile != 0 ) begin
             $readmemh(synfile,mem);
             $display("INFO: Read %14s for %m", synfile);
         end else
@@ -69,10 +69,8 @@ else begin
 end
 `else
 // file for synthesis:
-/* verilator lint_off WIDTH */
-initial if(synfile!="" )$readmemh(synfile,mem);
-initial if(synbinfile!="" )$readmemb(synbinfile,mem);
-/* verilator lint_on WIDTH */
+initial if(synfile!=0 )$readmemh(synfile,mem);
+initial if(synbinfile!=0 )$readmemb(synbinfile,mem);
 `endif
 
 always @(posedge clk) begin

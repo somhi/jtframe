@@ -163,9 +163,9 @@ wire [SW-1:0] active = ~slot_sel & req;
 
 always @(posedge clk, posedge rst)
 if( rst ) begin
-    sdram_addr <= {SDRAMW{1'b0}};
+    sdram_addr <= 0;
     sdram_req  <= 0;
-    slot_sel   <= {SW{1'b0}};
+    slot_sel   <= 0;
 end else begin
     if( sdram_ack ) sdram_req <= 0;
     // accept a new request
