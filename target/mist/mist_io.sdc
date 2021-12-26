@@ -17,7 +17,6 @@ set_time_format -unit ns -decimal_places 3
 
 create_clock -name {CLOCK_27[0]} -period 37.037 -waveform { 0.000 18.518 } [get_ports {CLOCK_27[0]}]
 create_clock -name {SPI_SCK}  -period 41.666 -waveform { 20.8 41.666 } [get_ports {SPI_SCK}]
-# create_clock -name {u_frame|u_board|u_scandoubler|vga_hsync} -period 31777.000 -waveform { 0.000 15888.500 }
 
 
 #**************************************************************
@@ -80,7 +79,6 @@ set_output_delay -clock  SDRAM_CLK -min -0.8 \
 #**************************************************************
 
 set_clock_groups -asynchronous -group [get_clocks {SPI_SCK}] -group [get_clocks {*|altpll_component|auto_generated|pll1|clk[*]}]
-set_clock_groups -asynchronous -group [get_clocks {u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -group [get_clocks {u_pll_vga|altpll_component|auto_generated|pll1|clk[0]}]
 
 #**************************************************************
 # Set False Path
@@ -102,9 +100,9 @@ set_false_path -from [get_keepers {jtframe_mist:u_frame|jtframe_board:u_board|jt
 # Set Multicycle Path
 #**************************************************************
 
-#set_multicycle_path -from [get_clocks {u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -to [get_clocks {u_pll_game|altpll_component|auto_generated|pll1|clk[2]}] -end 2
+set_multicycle_path -setup -end -from [get_keepers {SDRAM_DQ[*]}] -to [get_keepers {jtframe_mist:u_frame|jtframe_board:u_board|jtframe_sdram64:u_sdram|dout[*]}] 2
 
-#set_multicycle_path -from [get_clocks {u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -to [get_clocks {u_pll_game|altpll_component|auto_generated|pll1|clk[2]}] -start 2
+#set_multicycle_path -from [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -to [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[2]}] -start 2
 
 #**************************************************************
 # Set Maximum Delay
