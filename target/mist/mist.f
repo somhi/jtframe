@@ -21,5 +21,5 @@ data_io.v
 ../mister/sys/video_cleaner.sv
 ../mister/sys/scandoubler.v
 ../mister/hq2x_dummy.sv
--sv rgb2ypbpr.sv
+-sv rgb2ypbpr.v
 osd.sv

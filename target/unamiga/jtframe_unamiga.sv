@@ -134,7 +134,7 @@ wire          ps2_kbd_clk, ps2_kbd_data;
 wire          osd_shown;
 
 wire [7:0]    scan2x_r, scan2x_g, scan2x_b;
-wire          scan2x_hs, scan2x_vs;
+wire          scan2x_hs, scan2x_vs, scan2x_clk;
 wire          scan2x_enb;
 wire [3:0]    vgactrl_en;
 
@@ -173,6 +173,7 @@ jtframe_unamiga_base #(
     .scan2x_hs      ( scan2x_hs     ),
     .scan2x_vs      ( scan2x_vs     ),
     .scan2x_enb     ( scan2x_enb    ),
+    .scan2x_clk     ( scan2x_clk    ),
 	.vgactrl_en     ( vgactrl_en    ),	
     // MiST VGA pins (includes OSD)
     .VIDEO_R        ( VGA_R         ),
@@ -284,6 +285,7 @@ jtframe_board #(
     .scan2x_hs      ( scan2x_hs       ),
     .scan2x_vs      ( scan2x_vs       ),
     .scan2x_enb     ( scan2x_enb      ),
+    .scan2x_clk     ( scan2x_clk      ),
 	.vgactrl_en     ( vgactrl_en      ),
     // Debug
     .gfx_en         ( gfx_en          ),

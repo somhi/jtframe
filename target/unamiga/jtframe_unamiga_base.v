@@ -48,6 +48,7 @@ module jtframe_unamiga_base #(parameter
     input           scan2x_hs,
     input           scan2x_vs,
     output          scan2x_enb, // scan doubler enable bar = scan doubler disable.
+    input           scan2x_clk,
 	input wire [3:0]   vgactrl_en,	
     // Final video: VGA+OSD or base+OSD depending on configuration
     output  [5:0]   VIDEO_R,
@@ -203,24 +204,29 @@ wire [5:0] game_r6 = extend_color( game_r );
 wire [5:0] game_g6 = extend_color( game_g );
 wire [5:0] game_b6 = extend_color( game_b );
 
-wire [5:0] Y, Pb, Pr;
+wire       HSync_out, VSync_out, CSync_out;
 
-rgb2ypbpr u_rgb2ypbpr
+RGBtoYPbPr #(6) u_rgb2ypbpr
 (
-    .red   ( scan2x_enb ? game_r6 : scan2x_r ),
-    .green ( scan2x_enb ? game_g6 : scan2x_g ),
-    .blue  ( scan2x_enb ? game_b6 : scan2x_b ),
-    .y     ( Y       ),
-    .pb    ( Pb      ),
-    .pr    ( Pr      )
+    .clk       ( scan2x_enb ? clk_sys : scan2x_clk ),
+    .ena       ( ypbpr     ),
+    .red_in    ( scan2x_enb ? game_r6 : scan2x_r ),
+    .green_in  ( scan2x_enb ? game_g6 : scan2x_g ),
+    .blue_in   ( scan2x_enb ? game_b6 : scan2x_b ),
+    .hs_in     ( HSync     ),
+    .vs_in     ( VSync     ),
+    .cs_in     ( CSync     ),
+    .red_out   ( VIDEO_R   ),
+    .green_out ( VIDEO_G   ),
+    .blue_out  ( VIDEO_B   ),
+    .hs_out    ( HSync_out ),
+    .vs_out    ( VSync_out ),
+    .cs_out    ( CSync_out )
 );
 
-assign VIDEO_R  = ypbpr? Pr : scan2x_enb ? game_r6 : scan2x_r;
-assign VIDEO_G  = ypbpr? Y  : scan2x_enb ? game_g6 : scan2x_g;
-assign VIDEO_B  = ypbpr? Pb : scan2x_enb ? game_b6 : scan2x_b;
 // a minimig vga->scart cable expects a composite sync signal on the VIDEO_HS output.
 // and VCC on VIDEO_VS (to switch into rgb mode)
-assign VIDEO_HS = (scan2x_enb | ypbpr) ? CSync : HSync;
-assign VIDEO_VS = (scan2x_enb | ypbpr) ? 1'b1  : VSync;
+assign VIDEO_HS = (scan2x_enb | ypbpr) ? CSync_out : HSync_out;
+assign VIDEO_VS = (scan2x_enb | ypbpr) ? 1'b1  : VSync_out;
 
 endmodule // jtgng_mist_base
