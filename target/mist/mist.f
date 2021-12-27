@@ -1,6 +1,7 @@
 jtframe_mist.sv
 jtframe_mist_base.v
 jtframe_mist_clocks.v
+../../hdl/jtframe_sh.v
 ../../hdl/jtframe_board.v
 ../../hdl/jtframe_led.v
 ../../hdl/jtframe_reset.v
@@ -10,9 +11,6 @@ jtframe_mist_clocks.v
 ../../hdl/sound/hybrid_pwm_sd.v
 ../../hdl/keyboard/jtframe_4wayjoy.v
 ../../hdl/keyboard/jtframe_inputs.v
-../../hdl/ver/spitx.v
-../../hdl/ver/video_dump.v
-../../hdl/ver/jtframe_romrq_rdy_check.v
 ../../hdl/video/jtframe_scan2x.v
 ../../hdl/sdram/jtframe_sdram_stats.v
 -sv user_io.v

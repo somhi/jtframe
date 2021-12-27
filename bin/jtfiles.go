@@ -37,12 +37,15 @@ type JTFiles struct {
     	JT [] JTModule `yaml:"jt"`
 	    Other [] FileList `yaml:"other"`
     } `yaml:"modules"`
+    Here [] FileList `yaml:"here"`
 }
 
 type Args struct {
 	Corename string
 	Rel bool
+	SkipVHDL bool
 	Format string
+	Target string
 }
 
 var parsed []string
@@ -56,7 +59,9 @@ func parse_args( args *Args ) {
 	}
 	flag.StringVar(&args.Corename,"core","","core name")
 	flag.StringVar(&args.Format,"f","qip","Output format. Valid values: qip, sim")
+	flag.StringVar(&args.Target,"target","","Target platform: mist or mister")
 	flag.BoolVar(&args.Rel,"rel",false,"Output relative paths")
+	flag.BoolVar(&args.SkipVHDL,"novhdl",false,"Skip VHDL files")
 	flag.Parse()
 	if len(args.Corename)==0 {
 		log.Fatal("JTFILES: You must specify the core name with argument -core")
@@ -118,8 +123,8 @@ func parse_yaml( filename string, files *JTFiles ) {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		if parsed==nil {
-			log.Printf("Cannot open file %s. YAML processing ignored.",filename)
-			os.Exit(0)
+			log.Printf("Warning: cannot open file %s. YAML processing still used for JTFRAME board.",filename)
+			return
 		} else {
 			log.Fatalf("cannot open referenced file %s",filename)
 		}
@@ -252,6 +257,29 @@ func dump_qip( all []string, rel bool ) {
 	}
 }
 
+func dump_sim( all []string, args Args ) {
+	fout, err := os.Create("game.f")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fout.Close()
+	for _,each := range(all) {
+		dump := true
+		switch( filepath.Ext(each) ) {
+			case ".sv": dump = true
+			case ".vhd": dump = !args.SkipVHDL
+			case ".v": dump = true
+			case ".qip": dump = false
+			default: {
+				log.Fatalf("Unsupported file extension %s in file %s", filepath.Ext(each), each)
+			}
+		}
+		if dump {
+			fmt.Fprintln( fout, each )
+		}
+	}
+}
+
 func main() {
 	var args Args
 	parse_args(&args)
@@ -259,10 +287,14 @@ func main() {
 
 	var files JTFiles
 	parse_yaml( get_filename(args), &files )
+	parse_yaml( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", &files )
+//	if len(args.Target)>0 {
+//
+//	}
 	all := collect_files(files, args.Rel)
-	dump_qip(all, args.Rel)
-	//switch( args.Format ) {
-	//	case "qip": dump_qip(all)
-	//	default: dump_sim(all)
-	//}
+
+	switch( args.Format ) {
+		case "qip": dump_qip(all, args.Rel )
+		default: dump_sim(all, args )
+	}
 }

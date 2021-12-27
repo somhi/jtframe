@@ -1,5 +1,4 @@
 # Common files to MiST, SiDi and NeptUNO
-set_global_assignment -name QIP_FILE           [file join $::quartus(qip_path) ../../hdl/jtframe.qip                 ]
 
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) jtframe_mist_base.v            ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) jtframe_mist_clocks.v          ]
