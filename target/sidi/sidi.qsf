@@ -190,6 +190,7 @@ set_global_assignment -name FORCE_SYNCH_CLEAR ON
 
 set_global_assignment -name QIP_FILE ${MODULES}/jtframe/target/mist/mist.qip
 set_global_assignment -name QIP_FILE ${PRJPATH}/hdl/jt${CORENAME}.qip
+set_global_assignment -name QIP_FILE game.qip
 
 set_global_assignment -name VERILOG_MACRO "MIST=1"
 set_global_assignment -name VERILOG_MACRO "SIDI=1"

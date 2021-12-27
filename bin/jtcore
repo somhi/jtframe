@@ -332,6 +332,8 @@ if [ $SKIP_COMPILE = FALSE ]; then
     copy_templates
     echo -e "\nset_global_assignment -name seed $SEED" >> jt$PRJ.qsf
     if [ $SIM = FALSE ]; then
+        # Create the QIP file
+        go run $JTFRAME/bin/jtfiles.go -core $PRJ
         # Compilation
         quartus_sh --flow compile jt$PRJ > "$LOG"
         if ! grep "Full Compilation was successful" "$LOG"; then

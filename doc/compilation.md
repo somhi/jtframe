@@ -92,3 +92,59 @@ JTFRAME_CHEAT
 Will include the file *common.def*, then define several macros and concatenate more values to those already present in CORE_OSD. Then, only for MiSTer, it will define some extra options
 
 Macros are evaluated by [jtcfgstr](https://github.com/jotego/jtbin/blob/master/bin/jtcfgstr)
+
+## Folder and file locations
+
+JTFRAME expects a specific environment. The following folders should exist:
+
+Folder | Path       | Use
+-------|------------|-----
+cores  | root       | container for each core folder
+foo    | cores      | container for core xxx
+hdl    | cores/foo  | HDL files for core xxx
+ver    | cores/foo  | verification files. A folder for each test bench
+doc    | root       | documentation
+rom    | root       | ROM files used for simulation. MRA scripts
+mra    | rom/mra    | MRA files
+
+Each core can list the files that uses with a file called `jtcore.qip` (like jtgng.qip for the GnG core) or with a YAML file called `game.yaml`
+
+### YAML files
+
+As QIP files are cumbersome and specific to Quartus only, it is possible to bypass them and use a YAML format, like this:
+
+```
+game:
+  - from: cps1
+    get:
+      - jtcps1_game.v
+      - jtcps1_main.v
+      - jtcps1_sound.v
+      - common.yaml
+jtframe:
+  - from: sound
+    get:
+      - jtframe_uprate2_fir.qip
+      - jtframe_pole.v
+modules:
+  jt:
+    - name: jt51
+    - name: jt6295
+  other:
+    - from: jteeprom/hdl
+      get:
+      - jt9346.v
+```
+
+Each `from` key represents the location to gather the files from and it is combined with the upper key to make the full folder. For instance:
+
+```
+game:
+  - from: cps1
+    get:
+    - jtcps1_game.v
+```
+
+will get the files `$CORES/cps1/hdl/jtcps1_game.v`
+
+Files from the key `jtframe` are based in folder `$JTFRAME/HDL`. Files from `jt` modules will look directly for a file in `$MODULES/name/hdl/name.qip`. And files from `other` are based in `$MODULES`
