@@ -117,7 +117,12 @@ func append_filelist( dest *[]FileList, src []FileList, other *[]string, origin 
 func parse_yaml( filename string, files *JTFiles ) {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("cannot open file %s",filename)
+		if parsed==nil {
+			log.Printf("Cannot open file %s. YAML processing ignored.",filename)
+			os.Exit(0)
+		} else {
+			log.Fatalf("cannot open referenced file %s",filename)
+		}
 	}
 	if parsed == nil {
 		parsed = make( []string, 0 )

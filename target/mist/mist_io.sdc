@@ -100,9 +100,11 @@ set_false_path -from [get_keepers {jtframe_mist:u_frame|jtframe_board:u_board|jt
 # Set Multicycle Path
 #**************************************************************
 
+set_multicycle_path -hold -end -from  [get_clocks {SDRAM_CLK}]  -to  [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] 2
+
 set_multicycle_path -setup -end -from [get_keepers {SDRAM_DQ[*]}] -to [get_keepers {jtframe_mist:u_frame|jtframe_board:u_board|jtframe_sdram64:u_sdram|dout[*]}] 2
 
-#set_multicycle_path -from [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -to [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[2]}] -start 2
+# set_multicycle_path -from [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[1]}] -to [get_clocks {u_clocks|u_pll_game|altpll_component|auto_generated|pll1|clk[2]}] -start 2
 
 #**************************************************************
 # Set Maximum Delay
