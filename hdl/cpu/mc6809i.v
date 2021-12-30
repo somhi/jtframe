@@ -37,6 +37,9 @@
 //           attempt to fetch and run an exception 1 byte later.
 //
 
+/* verilator lint_off CASEX */
+/* verilator lint_off UNOPTFLAT */
+
 module mc6809i
 #(
     parameter ILLEGAL_INSTRUCTIONS="GHOST"
@@ -501,7 +504,7 @@ end
 endfunction
 
 wire IsIllegalInstruction;
-
+/* verilator lint_off WIDTH */
 generate
 if (ILLEGAL_INSTRUCTIONS=="GHOST")
 begin : never_illegal
@@ -528,7 +531,7 @@ begin
     assign IllegalInstructionState = 7'd0;
 end
 endgenerate
-
+/* verilator lint_on WIDTH */
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -687,7 +690,7 @@ begin
         indirect   =  postbyte[4];
     end
     if ((mode != IDX_MODE_8BIT_OFFSET_PC) && (mode != IDX_MODE_16BIT_OFFSET_PC))
-        regnum[2:0]    =  postbyte[6:5];
+        regnum[2:0]    =  {1'b0,postbyte[6:5]};
     else
         regnum[2:0]    =  IDX_REG_PC;
 
@@ -1205,7 +1208,7 @@ begin
 
         ALUOP_ADC:
         begin
-            {cc_out[CC_C_BIT], ALUFn[7:0]} =  {1'b0, a_arg} + {1'b0, b_arg} + cc_arg[CC_C_BIT];
+            {cc_out[CC_C_BIT], ALUFn[7:0]} =  {1'b0, a_arg} + {1'b0, b_arg} + {8'd0,cc_arg[CC_C_BIT]};
             cc_out[CC_V_BIT]   =  (a_arg[7] & b_arg[7] & ~ALUFn[7]) | (~a_arg[7] & ~b_arg[7] & ALUFn[7]);
             cc_out[CC_H_BIT]   =  a_arg[4] ^ b_arg[4] ^ ALUFn[4];
         end
@@ -1243,7 +1246,7 @@ begin
 
         ALUOP_SBC:
         begin
-            {cc_out[CC_C_BIT], ALUFn[7:0]} = {1'b0, a_arg} - {1'b0, b_arg} - cc_arg[CC_C_BIT];
+            {cc_out[CC_C_BIT], ALUFn[7:0]} = {1'b0, a_arg} - {1'b0, b_arg} - {8'd0,cc_arg[CC_C_BIT]};
             cc_out[CC_V_BIT]   =   (a_arg[7] & ~b_arg[7] & ~ALUFn[7]) | (~a_arg[7] & b_arg[7] & ALUFn[7]);
         end
 
@@ -1976,7 +1979,7 @@ begin
                         end
                     else if (Inst1 == OPCODE_INH_ABX)
                     begin
-                        x_nxt  =  x + b;
+                        x_nxt  =  x + {8'd0,b};
                         rAVMA = 1'b0;
                         CpuState_nxt   =  CPUSTATE_ABX_DONTCARE;
                     end
@@ -2612,7 +2615,7 @@ begin
 
             ALU16_OP       =  ALUOP16_LD;   // LD and ST have the same CC characteristics
             ALU16_CC       =  cc;
-            ALU16_A        =  8'H00;
+            ALU16_A        =  0;
 
             case (StoreRegisterNum)
                 ST16_REG_X:
@@ -2798,7 +2801,7 @@ begin
 
         ALU16_OP       =    ALU16Opcode;
         ALU16_CC       =    cc;
-        ALU16_A        =    8'H00;
+        ALU16_A        =    0;
         ALU16_B[7:0]   =    D[7:0];
         cc_nxt         =    ALU16[23:16];
 
@@ -4153,3 +4156,5 @@ end
 
 endmodule
 
+/* verilator lint_on CASEX */
+/* verilator lint_on UNOPTFLAT */
