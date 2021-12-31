@@ -38,6 +38,8 @@
 `endif
 `endif
 
+/* verilator tracing_off */
+
 module jtframe_sysz80(
     input         rst_n,
     input         clk,
@@ -65,12 +67,14 @@ module jtframe_sysz80(
 );
 
 `ifdef SIMULATION
+`ifndef VERILATOR
 always @(negedge rst_n ) begin
     if( busrq_n === 1'bz ) begin
         $display("ERROR: assertion failed at %m.\n\tBus request signal is floating");
         $finish;
     end
 end
+`endif
 `endif
 
     parameter RAM_AW=12;
@@ -213,8 +217,6 @@ module jtframe_z80 (
     input  [7:0]  din,
     output [7:0]  dout
 );
-
-/* verilator tracing_off */
 
 `ifdef VHDLZ80
 T80s u_cpu(

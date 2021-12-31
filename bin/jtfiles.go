@@ -37,7 +37,7 @@ type JTFiles struct {
     	JT [] JTModule `yaml:"jt"`
 	    Other [] FileList `yaml:"other"`
     } `yaml:"modules"`
-    Here [] FileList `yaml:"here"`
+    Here [] string `yaml:"here"`
 }
 
 type Args struct {
@@ -148,7 +148,15 @@ func parse_yaml( filename string, files *JTFiles ) {
 		files.Modules.JT = make( []JTModule, 0 )
 	}
 	for _,each := range(aux.Modules.JT) {
-		files.Modules.JT = append( files.Modules.JT, each )
+		// Parse the YAML file if it exists
+		fname := filepath.Join( os.Getenv("MODULES"),each.Name,"hdl",each.Name+".yaml" )
+		f, err := os.Open(fname)
+		if err== nil {
+			f.Close()
+			parse_yaml( fname, files )
+		} else  {
+			files.Modules.JT = append( files.Modules.JT, each )
+		}
 	}
 	for _,each := range(other) {
 		found := false
@@ -161,6 +169,14 @@ func parse_yaml( filename string, files *JTFiles ) {
 		if !found {
 			parse_yaml( each, files, )
 		}
+	}
+	// "here" files
+	if files.Here == nil {
+		files.Here = make( []string, 0 )
+	}
+	dir := filepath.Dir( filename )
+	for _,each := range(aux.Here) {
+		files.Here = append( files.Here, filepath.Join(dir,each) )
 	}
 }
 
@@ -215,6 +231,12 @@ func collect_files( files JTFiles, rel bool ) []string {
 	dump_filelist( files.JTFrame, &all, FRAME, rel )
 	dump_jtmodules( files.Modules.JT, &all, rel )
 	dump_filelist( files.Modules.Other, &all, MODULE, rel )
+	for _,each := range(files.Here) {
+		if rel {
+			each,_ = filepath.Rel(CWD,each)
+		}
+		all = append(all,each)
+	}
 	sort.Strings(all)
 	if len(all)>0 {
 		// Remove duplicated files
