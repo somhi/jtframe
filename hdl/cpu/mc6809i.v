@@ -64,6 +64,7 @@ module mc6809i
     input   nHALT,
     input   nRESET,
     input   nDMABREQ,
+    output reg OP,  // high when accessing an OP code
     output  [111:0] RegData
 );
 
@@ -91,7 +92,6 @@ assign BUSY = rBUSY;
 //
 
 assign RnW = RnWOut;
-
 
 /////////////////////////////////////////////////
 // Vectors
@@ -397,7 +397,14 @@ begin
 end
 endgenerate
 
-
+always @(posedge clk, negedge nRESET) begin
+    if( !nRESET ) begin
+        OP <= 0;
+    end else if(cen_E) begin
+        OP <= CpuState_nxt==CPUSTATE_FETCH_I1 ||
+              CpuState_nxt==CPUSTATE_FETCH_I1V2;
+    end
+end
 
 ///////////////////////////////////////////////////////////////////////
 

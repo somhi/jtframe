@@ -120,11 +120,13 @@ module jtframe_sys6809(
 );
 
     // RAM
-    parameter RAM_AW=12, RECOVERY=1;
+    parameter RAM_AW=12, RECOVERY=1, KONAMI1=0;
 
     wire    ram_we = ram_cs & ~RnW;
     wire    cen_E, cen_Q;
     wire    BA, BS, AVMA;
+    wire    OP;
+    wire [7:0] din_dec;
 
     assign  irq_ack = {BA,BS}==2'b01;
 
@@ -162,11 +164,13 @@ module jtframe_sys6809(
         end
     endgenerate
 
+    assign din_dec = !(KONAMI1 && OP) ? cpu_din :
+        cpu_din ^ {A[1], 1'b0, ~A[1], 1'b0, A[3], 1'b0, ~A[3], 1'b0};
     // cycle accurate core
     wire [111:0] RegData;
 
     mc6809i u_cpu(
-        .D       ( cpu_din ),
+        .D       ( din_dec ),
         .DOut    ( cpu_dout),
         .ADDR    ( A       ),
         .RnW     ( RnW     ),
@@ -184,6 +188,7 @@ module jtframe_sys6809(
         .nDMABREQ( 1'b1    ),
         .nHALT   ( 1'b1    ),
         .nRESET  ( rstn    ),
+        .OP      ( OP      ),
         .RegData ( RegData )
     );
 
