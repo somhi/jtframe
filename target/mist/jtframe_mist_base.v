@@ -405,8 +405,7 @@ osd #(0,0,6'b01_11_01) osd (
 
 wire       HSync_out, VSync_out, CSync_out;
 
-RGBtoYPbPr #(6) u_rgb2ypbpr
-(
+RGBtoYPbPr #(6) u_rgb2ypbpr(
     .clk       ( scan2x_enb ? clk_sys : scan2x_clk ),
     .ena       ( ypbpr     ),
     .red_in    ( osd_r_o   ),

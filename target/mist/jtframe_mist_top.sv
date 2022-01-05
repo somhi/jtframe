@@ -527,9 +527,13 @@ u_game(
     `endif
     .sample      ( sample         ),
     // Debug
+`ifdef JTFRAME_STATUS
+    .st_addr     ( 8'd0           ),
+    .st_dout     (                ),
+`endif
     .gfx_en      ( gfx_en         )
 `ifdef JTFRAME_DEBUG
-    ,.debug_bus   ( debug_bus      )
+   ,.debug_bus   ( debug_bus      )
 `endif
 );
 

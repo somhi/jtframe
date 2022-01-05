@@ -76,9 +76,9 @@ test_harness #(.sdram_instance(0),.GAME_ROMNAME(`GAME_ROM_PATH),
     .H0          ( 1'bz      ),
     .autorefresh ( 1'bz      ),
     .sdram_addr  ( 22'bz     ),
-    .data_read   (),
-    .loop_rst    (),
-    .ioctl_wr    ()
+    .data_read   (           ),
+    .loop_rst    (           ),
+    .ioctl_wr    (           )
 );
 
 `ifdef SIM_UART
@@ -127,7 +127,9 @@ mist_top UUT(
     .sim_pxl_cen( pxl_cen   ),
     .sim_pxl_clk( pxl_clk   ),
     .sim_vb     ( pxl_vb    ),
-    .sim_hb     ( pxl_hb    )
+    .sim_hb     ( pxl_hb    ),
+    .UART_TX    (           ),
+    .UART_RX    ( 1'b1      )
 );
 
 
