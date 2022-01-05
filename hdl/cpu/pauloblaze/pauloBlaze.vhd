@@ -161,7 +161,7 @@ begin
 		);
 
 	-- alu
-	alu_inst : entity work.ALU
+	alu_inst : entity work.pauloALU
 		generic map(
 			hwbuild	=> hwbuild, 
 			debug 	=> debug

@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.all;
 use work.op_codes.all;
 
-entity ALU is
+entity pauloALU is
 	generic (
 		debug : boolean := false;
 		hwbuild : unsigned(7 downto 0) := X"41"
@@ -53,9 +53,9 @@ entity ALU is
 		reg_reg0        : in unsigned (7 downto 0);
 		reg_reg1        : in unsigned (7 downto 0)
 	);
-end ALU;
+end pauloALU;
 
-architecture Behavioral of ALU is
+architecture Behavioral of pauloALU is
 
 
 	signal result : unsigned(7 downto 0);
