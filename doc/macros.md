@@ -121,6 +121,7 @@ JTFRAME_SIM_SCAN2X       |         | Enables scan doubler simulation
 JTFRAME_SIM_GFXEN        |         | Sets the gfx_en value (4 bits). See [debug.md](debug.md)
 SIMULATION               |         | Enables simulation features
 VIDEO_START              |         | First frame for which video output is provided use it to prevent a split first frame
+DUMP_6809                |         | Generates a m6809.log during simulation with register dumps
 
 # ROM Downloading
 

@@ -204,17 +204,19 @@ module jtframe_sys6809(
     wire [15:0] reg_pc = RegData[111:96];
     reg [95:0] last_regdata;
 
-    integer fout;
-    initial begin
-        fout = $fopen("m6809.log","w");
-    end
-    always @(posedge rom_cs) begin
-        last_regdata <= RegData[95:0];
-        if( last_regdata != RegData[95:0] ) begin
-            $fwrite(fout,"%X, X %X, Y %X, A %X, B %X\n",
-                reg_pc, reg_x, reg_y, reg_a, reg_b);
+        `ifdef DUMP_6809
+        integer fout;
+        initial begin
+            fout = $fopen("m6809.log","w");
         end
-    end
+        always @(posedge rom_cs) begin
+            last_regdata <= RegData[95:0];
+            if( last_regdata != RegData[95:0] ) begin
+                $fwrite(fout,"%X, X %X, Y %X, A %X, B %X\n",
+                    reg_pc, reg_x, reg_y, reg_a, reg_b);
+            end
+        end
+        `endif
     `endif
 
 endmodule
