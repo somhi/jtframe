@@ -229,7 +229,7 @@ wire  [ 2:0] scanlines;
 wire         bw_en, blend_en;
 wire         en_mixing;
 wire         osd_pause;
-wire         debug_plus, debug_minus, key_shift;
+wire         debug_plus, debug_minus, key_shift, key_ctrl;
 
 wire         key_reset, key_pause, key_test, rot_control;
 wire         game_pause, soft_rst, game_test;
@@ -275,6 +275,7 @@ jtframe_led u_led(
     .gfx_en     ( gfx_en        ),
     .game_led   ( game_led      ),
     .cheat_led  ( cheat_led     ),
+    .debug_bus  ( debug_bus     ),
     .led        ( led           )
 );
 
@@ -297,6 +298,7 @@ jtframe_keyboard u_keyboard(
     .key_service ( key_service   ),
 
     .shift       ( key_shift     ),
+    .ctrl        ( key_ctrl      ),
     .key_gfx     ( key_gfx       ),
     .debug_plus  ( debug_plus    ),
     .debug_minus ( debug_minus   )
@@ -308,6 +310,7 @@ jtframe_keyboard u_keyboard(
             .rst         ( rst           ),
 
             .shift       ( key_shift     ),
+            .ctrl        ( key_ctrl      ),
             .key_gfx     ( key_gfx       ),
             .debug_plus  ( debug_plus    ),
             .debug_minus ( debug_minus   ),

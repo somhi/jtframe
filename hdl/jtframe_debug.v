@@ -20,9 +20,11 @@ module jtframe_debug(
     input clk,
     input rst,
 
-    input            shift,
+    input            shift,         // count step 16, instead of 1
+    input            ctrl,          // reset debug_bus
     input            debug_plus,
     input            debug_minus,
+    input            debug_rst,
     input      [3:0] key_gfx,
     // debug features
     output reg [7:0] debug_bus,
@@ -44,10 +46,15 @@ always @(posedge clk, posedge rst) begin
         last_m   <= debug_minus;
         last_gfx <= key_gfx;
 
-        if( debug_plus & ~last_p ) begin
-            debug_bus <= debug_bus + step;
-        end else if( debug_minus & ~last_m ) begin
-            debug_bus <= debug_bus - step;
+
+        if( ctrl && (debug_plus||debug_minus) ) begin
+            debug_bus <= 0;
+        end else begin
+            if( debug_plus & ~last_p ) begin
+                debug_bus <= debug_bus + step;
+            end else if( debug_minus & ~last_m ) begin
+                debug_bus <= debug_bus - step;
+            end
         end
         for(cnt=0; cnt<4; cnt=cnt+1)
             if( key_gfx[cnt] && !last_gfx[cnt] ) gfx_en[cnt] <= ~gfx_en[cnt];

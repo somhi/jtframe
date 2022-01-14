@@ -38,6 +38,7 @@ module jtframe_keyboard(
     output reg key_service,
 
     output     shift,
+    output     ctrl,
     // debug features
     output reg [3:0] key_gfx,
     output reg       debug_plus,
@@ -57,6 +58,7 @@ reg [7:0] ps2byte;
    z 1a, x 22, c 21 */
 
 assign shift = key_joy1[7] | key_joy3[5];
+assign ctrl  = key_joy1[4] | key_joy3[4];
 
 always @(posedge clk) begin
     if(rst) begin
@@ -95,7 +97,7 @@ always @(posedge clk) begin
                     9'h0_12: key_joy1[7] <= !key_released;   // Button 4 (L shift)
                     9'h0_29: key_joy1[6] <= !key_released;   // Button 3
                     9'h0_11: key_joy1[5] <= !key_released;   // Button 2
-                    9'h0_14: key_joy1[4] <= !key_released;   // Button 1
+                    9'h0_14: key_joy1[4] <= !key_released;   // Button 1 (L ctrl)
                     9'h1_75: key_joy1[3] <= !key_released;   // Up
                     9'h1_72: key_joy1[2] <= !key_released;   // Down
                     9'h1_6b: key_joy1[1] <= !key_released;   // Left
