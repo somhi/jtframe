@@ -16,7 +16,9 @@
     Version: 1.0
     Date: 8-5-2021 */
 
-module jtframe_debug(
+module jtframe_debug #(
+    parameter COLORW=4
+) (
     input clk,
     input rst,
 
@@ -26,6 +28,18 @@ module jtframe_debug(
     input            debug_minus,
     input            debug_rst,
     input      [3:0] key_gfx,
+    // overlay the value on video
+    input              pxl_cen,
+    input [COLORW-1:0] rin,
+    input [COLORW-1:0] gin,
+    input [COLORW-1:0] bin,
+    input              lhbl,
+    input              lvbl,
+
+    // combinational output
+    output reg [COLORW-1:0] rout,
+    output reg [COLORW-1:0] gout,
+    output reg [COLORW-1:0] bout,
     // debug features
     output reg [7:0] debug_bus,
     output reg [3:0] gfx_en
@@ -58,6 +72,34 @@ always @(posedge clk, posedge rst) begin
         end
         for(cnt=0; cnt<4; cnt=cnt+1)
             if( key_gfx[cnt] && !last_gfx[cnt] ) gfx_en[cnt] <= ~gfx_en[cnt];
+    end
+end
+
+// Video overlay
+reg [8:0] vcnt,hcnt;
+reg       lvbl_l, lhbl_l, osd_on;
+
+always @(posedge clk) if(pxl_cen) begin
+    lvbl_l <= lvbl;
+    lhbl_l <= lhbl;
+    if (!lvbl)
+        vcnt <= 0;
+    else if( lhbl && !lhbl_l )
+        vcnt <= vcnt + 9'd1;
+    if(!lhbl)
+        hcnt <= 0;
+    else hcnt <= hcnt + 9'd1;
+    osd_on <= debug_bus != 0 && vcnt[8:3]==6'b100 && hcnt[8:6] == 3'b010;
+end
+
+always @* begin
+    rout = rin;
+    gout = gin;
+    bout = bin;
+    if( osd_on && hcnt[2:0]!=0 ) begin
+        rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+        gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+        bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
     end
 end
 

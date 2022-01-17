@@ -242,6 +242,10 @@ wire         key_service;
 wire         lock;
 wire         autofire0;
 
+wire [COLORW-1:0] pre2x_r, pre2x_g, pre2x_b,
+                  dbg_r, dbg_g, dbg_b;
+wire              pre2x_LHBL, pre2x_LVBL;
+
 `ifdef JTFRAME_AUTOFIRE0
     assign autofire0=status[18];
 `else
@@ -305,7 +309,7 @@ jtframe_keyboard u_keyboard(
 );
 
     `ifndef JTFRAME_RELEASE
-        jtframe_debug u_debug(
+        jtframe_debug #(.COLORW(COLORW)) u_debug(
             .clk         ( clk_sys       ),
             .rst         ( rst           ),
 
@@ -315,12 +319,26 @@ jtframe_keyboard u_keyboard(
             .debug_plus  ( debug_plus    ),
             .debug_minus ( debug_minus   ),
 
+            // overlay the value on video
+            .pxl_cen     ( pxl_cen       ),
+            .rin         ( pre2x_r       ),
+            .gin         ( pre2x_g       ),
+            .bin         ( pre2x_b       ),
+            .lhbl        ( pre2x_LHBL    ),
+            .lvbl        ( pre2x_LVBL    ),
+            .rout        ( dbg_r         ),
+            .gout        ( dbg_g         ),
+            .bout        ( dbg_b         ),
+
             .gfx_en      ( gfx_en        ),
             .debug_bus   ( debug_bus     )
         );
     `else
         assign gfx_en    = ~0;
         assign debug_bus =  0;
+        assign dbg_r = pre2x_r;
+        assign dbg_g = pre2x_g;
+        assign dbg_b = pre2x_b;
     `endif
 `else
     `ifndef JTFRAME_SIM_GFXEN
@@ -414,6 +432,7 @@ wire [15:0] bax_din;
 wire [ 1:0] bax_din_m;
 wire [ 3:0] bax_rdy, bax_dst;
 wire [SDRAMW-1:0] bax_addr;
+
 
 `ifdef JTFRAME_CHEAT
     wire       cheat_rd, cheat_ack, cheat_dst, cheat_rdy, cheat_wr;
@@ -632,9 +651,6 @@ jtframe_sdram64 #(
     `endif
 `endif
 
-wire [COLORW-1:0] pre2x_r, pre2x_g, pre2x_b;
-wire              pre2x_LHBL, pre2x_LVBL;
-
 `ifdef JTFRAME_CREDITS
     `ifndef JTFRAME_CREDITS_PAGES
     `define JTFRAME_CREDITS_PAGES 3
@@ -739,9 +755,9 @@ wire               pxl_ana;
 jtframe_wirebw #(.WIN(COLORW), .WOUT(CLROUTW)) u_wirebw(
     .clk        ( clk_sys   ),
     .spl_in     ( pxl_cen   ),
-    .r_in       ( pre2x_r   ),
-    .g_in       ( pre2x_g   ),
-    .b_in       ( pre2x_b   ),
+    .r_in       ( dbg_r     ),
+    .g_in       ( dbg_g     ),
+    .b_in       ( dbg_b     ),
     .HS_in      ( hs        ),
     .VS_in      ( vs        ),
     .HB_in      ( pre2x_LHBL),
