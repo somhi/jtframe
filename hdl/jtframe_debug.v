@@ -28,6 +28,7 @@ module jtframe_debug #(
     input            debug_minus,
     input            debug_rst,
     input      [3:0] key_gfx,
+    input      [7:0] key_digit,
     // overlay the value on video
     input              pxl_cen,
     input [COLORW-1:0] rin,
@@ -48,6 +49,7 @@ module jtframe_debug #(
 reg        last_p, last_m;
 integer    cnt;
 reg  [3:0] last_gfx;
+reg        last_digit;
 
 wire [7:0] step = shift ? 16 : 1;
 
@@ -55,10 +57,12 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         debug_bus <= 0;
         gfx_en    <= 4'hf;
+        last_digit <= 0;
     end else begin
         last_p   <= debug_plus;
         last_m   <= debug_minus;
         last_gfx <= key_gfx;
+        last_digit <= |key_digit;
 
 
         if( ctrl && (debug_plus||debug_minus) ) begin
@@ -68,6 +72,16 @@ always @(posedge clk, posedge rst) begin
                 debug_bus <= debug_bus + step;
             end else if( debug_minus & ~last_m ) begin
                 debug_bus <= debug_bus - step;
+            end
+            if( shift && key_digit!=0 && !last_digit ) begin
+                debug_bus <= debug_bus ^ { key_digit[0],
+                    key_digit[1],
+                    key_digit[2],
+                    key_digit[3],
+                    key_digit[4],
+                    key_digit[5],
+                    key_digit[6],
+                    key_digit[7] };
             end
         end
         for(cnt=0; cnt<4; cnt=cnt+1)

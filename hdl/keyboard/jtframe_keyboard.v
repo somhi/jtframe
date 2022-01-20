@@ -32,6 +32,7 @@ module jtframe_keyboard(
     output reg [9:0] key_joy3,
     output reg [3:0] key_start,
     output reg [3:0] key_coin,
+    output     [7:0] key_digit,
     output reg key_reset,
     output reg key_pause,
     output reg key_test,
@@ -59,6 +60,8 @@ reg [7:0] ps2byte;
 
 assign shift = key_joy1[7] | key_joy3[5];
 assign ctrl  = key_joy1[4] | key_joy3[4];
+
+assign key_digit = { key_coin, key_start };
 
 always @(posedge clk) begin
     if(rst) begin

@@ -236,6 +236,7 @@ wire         game_pause, soft_rst, game_test;
 wire         cheat_led, pre_pause;
 
 wire   [9:0] key_joy1, key_joy2, key_joy3;
+wire   [7:0] key_digit;
 wire   [3:0] key_start, key_coin;
 wire   [3:0] key_gfx;
 wire         key_service;
@@ -300,6 +301,7 @@ jtframe_keyboard u_keyboard(
     .key_test    ( key_test      ),
     .key_pause   ( key_pause     ),
     .key_service ( key_service   ),
+    .key_digit   ( key_digit     ),
 
     .shift       ( key_shift     ),
     .ctrl        ( key_ctrl      ),
@@ -316,6 +318,7 @@ jtframe_keyboard u_keyboard(
             .shift       ( key_shift     ),
             .ctrl        ( key_ctrl      ),
             .key_gfx     ( key_gfx       ),
+            .key_digit   ( key_digit     ),
             .debug_plus  ( debug_plus    ),
             .debug_minus ( debug_minus   ),
 
