@@ -30,7 +30,7 @@ module jtframe_mister #(parameter
     input           pll_locked,
     // interface with microcontroller
     output [63:0]   status,
-    inout  [45:0]   HPS_BUS,
+    inout  [47:0]   HPS_BUS,
     output [ 1:0]   buttons,
     // LED
     input  [ 1:0]   game_led,
@@ -52,10 +52,6 @@ module jtframe_mister #(parameter
     input           vs,
     input           pxl_cen,
     input           pxl2_cen,
-    // Shadowmask
-    output  [2:0]   shadowmask,
-    output          shadowmask_2x,
-    output          shadowmask_rot,
     // Audio
     input  signed [15:0] snd_lin,
     input  signed [15:0] snd_rin,
@@ -169,8 +165,8 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_start,
     output          game_service,
     // DIP and OSD settings
-    output  [11:0]  hdmi_arx,
-    output  [11:0]  hdmi_ary,
+    output  [12:0]  hdmi_arx,
+    output  [12:0]  hdmi_ary,
     output  [ 1:0]  rotate,
 
     output          enable_fm,
@@ -265,11 +261,6 @@ assign hsize_scale  = status[23:20];
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 `endif
 
-// HDMI Shadowmask Overlay
-assign shadowmask     = status[34:32];
-assign shadowmask_2x  = status[35];
-assign shadowmask_rot = (core_mod[0] & rotate[0]) ^ status[36];
-
 // UART
 // The core and cheat UARTs are connected in parallel
 // If JTFRAME_UART is not defined, the core side is disabled
@@ -310,7 +301,6 @@ assign status_menumask[15:5] = 0,
        status_menumask[4]    = 1,   // hidden
        status_menumask[1]    = ~core_mod[0],  // shown for vertical games
 `endif
-       status_menumask[3]    = shadowmask==0,    // shadow mask filter
        status_menumask[2]    = ~hsize_enable,    // horizontal scaling
        status_menumask[0]    = direct_video;
 

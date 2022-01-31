@@ -30,9 +30,6 @@ H0OGH,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
     {{ end }}
 {{ end }}
 {{ .SEPARATOR }}
-o02,Shadow mask,Off,Shadow 1,Shadow 2,RGB Stripe,MG Stripe,Mono Stripe,RYCB Stripe;
-H3o3,Double mask size,No,Yes;
-H3o4,Rotate mask,No,Yes;
                                     OB,Old TV,No,Yes;
 {{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}

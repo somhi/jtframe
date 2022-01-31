@@ -11,7 +11,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019, @topapate
                     NOSOUND             the core is compiled without sound (faster)
                     MISTER_VIDEO_MIXER  uses the Mr video modules
                     JTFRAME_SCAN2X      uses simple scan doubler from JTFRAME
-                    DEBUG_NOHDMI        skips MiSTer HDMI related logic. Speeds up compilation.
+                    MISTER_DEBUG_NOHDMI skips MiSTer HDMI related logic. Speeds up compilation.
     Target options
     -mister     compiles the MiSTer version
     -mist       compiles the MiST version. This is the default

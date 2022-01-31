@@ -145,11 +145,11 @@ always @(posedge clk) begin
 	reg [15:0] cl1,cl2;
 	reg [15:0] cr1,cr2;
 
-	cl1 <= core_l;
-	cl  <= cl1;
+	cl1 <= core_l; cl2 <= cl1;
+	if(cl2 == cl1) cl <= cl2;
 
-	cr1 <= core_r;
-	cr  <= cr1;
+	cr1 <= core_r; cr2 <= cr1;
+	if(cr2 == cr1) cr <= cr2;
 end
 
 reg a_en1 = 0, a_en2 = 0;

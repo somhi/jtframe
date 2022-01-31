@@ -2,7 +2,7 @@
 // scandoubler.v
 // 
 // Copyright (c) 2015 Till Harbaum <till@harbaum.org> 
-// Copyright (c) 2017-2019 Sorgelig
+// Copyright (c) 2017-2021 Alexey Melnikov
 // 
 // This source file is free software: you can redistribute it and/or modify 
 // it under the terms of the GNU General Public License as published 
@@ -19,32 +19,24 @@
 
 // TODO: Delay vsync one line
 
-module scandoubler #(
-        parameter LENGTH=256, 
-        parameter HALF_DEPTH=1,
-        // Do not modify DWIDTH:
-        parameter DWIDTH = HALF_DEPTH ? 3 : 7
-)
+module scandoubler #(parameter LENGTH, parameter HALF_DEPTH)
 (
 	// system interface
 	input             clk_vid,
-	input             ce_pix,
-	output            ce_pix_out,
-
 	input             hq2x,
 
 	// shifter video interface
+	input             ce_pix,
 	input             hs_in,
 	input             vs_in,
 	input             hb_in,
 	input             vb_in,
-
 	input  [DWIDTH:0] r_in,
 	input  [DWIDTH:0] g_in,
 	input  [DWIDTH:0] b_in,
-	input             mono,
 
 	// output interface
+	output            ce_pix_out,
 	output reg        hs_out,
 	output            vs_out,
 	output            hb_out,
@@ -54,6 +46,8 @@ module scandoubler #(
 	output [DWIDTH:0] b_out
 );
 
+localparam DWIDTH = HALF_DEPTH ? 3 : 7;
+
 reg  [7:0] pix_len = 0;
 wire [7:0] pl = pix_len + 1'b1;
 
@@ -62,7 +56,7 @@ wire [7:0] pc_in = pix_in_cnt + 1'b1;
 reg  [7:0] pixsz, pixsz2, pixsz4 = 0;
 
 reg ce_x4i, ce_x1i;
-always @(posedge clk_vid) begin : block1
+always @(posedge clk_vid) begin
 	reg old_ce, valid, hs;
 
 	if(~&pix_len) pix_len <= pl;
@@ -106,33 +100,27 @@ always @(posedge clk_vid) begin
 	end
 end
 
-reg ce_x4o, ce_x2o;
-reg [1:0] sd_line;
-reg [3:0] vbo;
-reg [3:0] vso;
-reg [8:0] hbo;
-
 Hq2x #(.LENGTH(LENGTH), .HALF_DEPTH(HALF_DEPTH)) Hq2x
 (
-	.clk         ( clk_vid             ),
+	.clk(clk_vid),
 
-	.ce_in       ( ce_x4i              ),
-	.inputpixel  ( {b_d,g_d,r_d}       ),
-	.mono        ( mono                ),
-    .disable_hq2x( ~hq2x               ),
-	.reset_frame ( vb_in               ),
-	.reset_line  ( req_line_reset      ),
+	.ce_in(ce_x4i),
+	.inputpixel({b_d,g_d,r_d}),
+	.disable_hq2x(~hq2x),
+	.reset_frame(vb_in),
+	.reset_line(req_line_reset),
 
-	.ce_out      ( ce_x4o              ),
-	.read_y      ( sd_line             ),
-	.hblank      ( hbo[0]&hbo[8]       ),
-	.outpixel    ( {b_out,g_out,r_out} )
+	.ce_out(ce_x4o),
+	.read_y(sd_line),
+	.hblank(hbo[0]&hbo[8]),
+	.outpixel({b_out,g_out,r_out})
 );
 
 reg  [7:0] pix_out_cnt = 0;
 wire [7:0] pc_out = pix_out_cnt + 1'b1;
 
-always @(posedge clk_vid) begin : block2
+reg ce_x4o, ce_x2o;
+always @(posedge clk_vid) begin
 	reg hs;
 
 	if(~&pix_out_cnt) pix_out_cnt <= pc_out;
@@ -152,7 +140,11 @@ always @(posedge clk_vid) begin : block2
 	end
 end
 
-always @(posedge clk_vid) begin : block0
+reg [1:0] sd_line;
+reg [3:0] vbo;
+reg [3:0] vso;
+reg [8:0] hbo;
+always @(posedge clk_vid) begin
 
 	reg [31:0] hcnt;
 	reg [30:0] sd_hcnt;

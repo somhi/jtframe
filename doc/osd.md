@@ -92,7 +92,6 @@ bit     |  meaning                | Enabled with macro
 20-23   | CRT H scaling factor    | MiSTer only, visibility masked
 24-27   | CRT H offset            | MiSTer only
 28-31   | CRT V offset            | MiSTer only
-32-36   | HDMI Shadowmask Overlay | MiSTer only
 37-38   | User output options     | MiSTer, selects DB15, UART, etc.
 39-40   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%

@@ -34,7 +34,7 @@
 module hps_io #(parameter STRLEN=0, PS2DIV=0, WIDE=0, VDNUM=1, PS2WE=0)
 (
 	input             clk_sys,
-	inout      [45:0] HPS_BUS,
+	inout      [47:0] HPS_BUS,
 
 	// parameter STRLEN and the actual length of conf_str have to match
 	input [(8*STRLEN)-1:0] conf_str,
@@ -322,18 +322,19 @@ always@(posedge clk_sys) begin : uio_block
 				'h17,
 				'h18: sd_ack <= 1;
 				'h29: io_dout <= {4'hA, stflg};
-				'h2B: io_dout <= 1;
+				'h2B: io_dout <= {HPS_BUS[47:46],4'b0010};
 				'h2F: io_dout <= 1;
 				'h32: io_dout <= gamma_bus[21];
 				'h36: begin io_dout <= info_n; info_n <= 0; end
 				'h39: io_dout <= 1;
+				'h3E: io_dout <= 1; // shadow mask
 			endcase
 
 			sd_buff_addr <= 0;
 			if(io_din == 5) ps2_key_raw <= 0;
 		end else begin
 
-			case(cmd)
+			casez(cmd)
 				`ifndef JTFRAME_NO_DB15
 				`ifndef JTFRAME_NO_DB15_OSD
 				// Reading user_io raw joy
@@ -402,13 +403,13 @@ always@(posedge clk_sys) begin : uio_block
 				'h19,
 				// send sector IO -> FPGA
 				// flag that download begins
-				'h17: begin
+				'h0?17: begin
 							sd_buff_dout <= io_din[DW:0];
 							b_wr <= 1;
 						end
 
 				// reading sd card write data
-				'h18: begin
+				'h0?18: begin
 							if(~&sd_buff_addr) sd_buff_addr <= sd_buff_addr + 1'b1;
 							io_dout <= sd_buff_din;
 						end

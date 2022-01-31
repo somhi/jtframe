@@ -106,22 +106,18 @@ generate
 	end
 endgenerate
 
+assign VGA_SL  = sl[1:0];
 wire [2:0] sl = fx ? fx - 1'd1 : 3'd0;
 wire scandoubler = fx || forced_scandoubler;
-assign VGA_SL  = sl[1:0];
 
 video_mixer #(.LINE_LENGTH(WIDTH+4), .HALF_DEPTH(DW!=24), .GAMMA(GAMMA)) video_mixer
 (
-	.clk_vid(CLK_VIDEO),
+	.CLK_VIDEO(CLK_VIDEO),
 	.ce_pix(CE),
-	.ce_pix_out(CE_PIXEL),
+	.CE_PIXEL(CE_PIXEL),
 
 	.scandoubler(scandoubler),
-	`ifdef JTFRAME_NOHQ2X
-		.hq2x(1'b0),	// HQ2X is slow to compile, compromises STA and nobody likes it
-	`else
-		.hq2x(fx==1),
-	`endif
+	.hq2x(fx==1),
 	.gamma_bus(gamma_bus),
 
 	.R((DW!=24) ? R[7:4] : R),

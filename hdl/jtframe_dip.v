@@ -23,8 +23,8 @@ module jtframe_dip(
     input              game_pause,
 
     //Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
-    output reg [11:0]  hdmi_arx,
-    output reg [11:0]  hdmi_ary,
+    output reg [12:0]  hdmi_arx,
+    output reg [12:0]  hdmi_ary,
     output reg [ 1:0]  rotate,
     output             rot_control, // rotate player control inputs
     output reg         en_mixing,
@@ -66,15 +66,15 @@ localparam MISTER=0;
 `endif
 
 `ifdef JTFRAME_ARX
-localparam [11:0] ARX = `JTFRAME_ARX;
+localparam [12:0] ARX = `JTFRAME_ARX;
 `else
-localparam [11:0] ARX = 12'd4;
+localparam [12:0] ARX = 13'd4;
 `endif
 
 `ifdef JTFRAME_ARY
-localparam [11:0] ARY = `JTFRAME_ARY;
+localparam [12:0] ARY = `JTFRAME_ARY;
 `else
-localparam [11:0] ARY = 12'd3;
+localparam [12:0] ARY = 13'd3;
 `endif
 
 `ifdef JTFRAME_OSD_FLIP
@@ -162,7 +162,7 @@ always @(posedge clk) begin
     `endif
     // only for MiSTer
     hdmi_arx    <= (!ar) ? (swap_ar ? ARX : ARY) : (ar-2'd1);
-    hdmi_ary    <= (!ar) ? (swap_ar ? ARY : ARX) : 12'd0;
+    hdmi_ary    <= (!ar) ? (swap_ar ? ARY : ARX) : 13'd0;
 
     `ifdef SIMULATION
         `ifdef DIP_PAUSE
