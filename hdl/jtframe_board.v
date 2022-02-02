@@ -114,8 +114,8 @@ module jtframe_board #(parameter
     output            game_service,
     // DIP and OSD settings
     input     [63:0]  status,
-    output    [11:0]  hdmi_arx,
-    output    [11:0]  hdmi_ary,
+    output    [12:0]  hdmi_arx,
+    output    [12:0]  hdmi_ary,
     output    [ 1:0]  rotate,
 
     output            enable_fm,
