@@ -99,8 +99,8 @@ wire [1:0] ar = status[17:16];    // only MiSTer
 `ifdef MISTER
 always @(*) begin
     scanlines = status[5:3];
-    bw_en     = status[11];
-    blend_en  = 1'd0;
+    bw_en     = 0;      // Old TV filter disabled in MiSTer, is not needed anymore
+    blend_en  = 0;
 end
 `else
 always @(*) begin

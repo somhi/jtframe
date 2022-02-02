@@ -30,7 +30,6 @@ H0OGH,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
     {{ end }}
 {{ end }}
 {{ .SEPARATOR }}
-                                    OB,Old TV,No,Yes;
 {{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
