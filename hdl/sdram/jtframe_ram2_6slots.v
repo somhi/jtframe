@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 1-12-2020 */
 
-module jtframe_ram2_5slots #(parameter
+module jtframe_ram2_6slots #(parameter
     SDRAMW = 22,
     SLOT0_FASTWR = 0,
 
@@ -117,7 +117,7 @@ wire [SDRAMW-1:0] slot0_addr_req,
                   slot1_addr_req,
                   slot2_addr_req,
                   slot3_addr_req,
-                  slot4_addr_req;
+                  slot4_addr_req,
                   slot5_addr_req;
 
 assign slot0_ok = slot_ok[0];
@@ -146,7 +146,7 @@ jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW),.FASTWR(SLOT0_FASTW
     .we        ( slot_sel[0]            )
 );
 
-jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.FASTWR(SLOT1_FASTWR)) u_slot1(
+jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.FASTWR(0)) u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .addr      ( slot1_addr             ),
