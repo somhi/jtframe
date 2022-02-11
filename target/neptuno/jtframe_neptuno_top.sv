@@ -275,8 +275,8 @@ assign sim_vb = ~LVBL;
 assign sim_hb = ~LHBL;
 `endif
 
-`ifndef SIGNED_SND
-`define SIGNED_SND 1'b1
+`ifndef JTFRAME_SIGNED_SND
+`define JTFRAME_SIGNED_SND 1'b1
 `endif
 
 `ifndef JTFRAME_BUTTONS
@@ -295,7 +295,7 @@ localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
 
 jtframe_mist #(
     .SDRAMW       ( SDRAMW         ),
-    .SIGNED_SND   ( `SIGNED_SND    ),
+    .SIGNED_SND   ( `JTFRAME_SIGNED_SND    ),
     .BUTTONS      ( GAME_BUTTONS   ),
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         )

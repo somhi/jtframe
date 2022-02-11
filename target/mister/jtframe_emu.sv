@@ -359,10 +359,10 @@ assign game_led[1] = 1'b1;
     assign game_tx = 1;
 `endif
 
-`ifndef SIGNED_SND
+`ifndef JTFRAME_SIGNED_SND
 assign AUDIO_S = 1'b1; // Assume signed by default
 `else
-assign AUDIO_S = `SIGNED_SND;
+assign AUDIO_S = `JTFRAME_SIGNED_SND;
 `endif
 
 `ifndef JTFRAME_SDRAM_BANKS
