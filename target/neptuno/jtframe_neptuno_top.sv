@@ -299,11 +299,11 @@ jtframe_mist #(
     .BUTTONS      ( GAME_BUTTONS   ),
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         )
-    `ifdef VIDEO_WIDTH
-    ,.VIDEO_WIDTH ( `VIDEO_WIDTH   )
+    `ifdef JTFRAME_WIDTH
+    ,.VIDEO_WIDTH ( `JTFRAME_WIDTH   )
     `endif
-    `ifdef VIDEO_HEIGHT
-    ,.VIDEO_HEIGHT( `VIDEO_HEIGHT  )
+    `ifdef JTFRAME_HEIGHT
+    ,.VIDEO_HEIGHT( `JTFRAME_HEIGHT  )
     `endif
 )
 u_frame(

@@ -103,7 +103,7 @@ always @(posedge clk) if(pxl_cen) begin
     if(!lhbl)
         hcnt <= 0;
     else hcnt <= hcnt + 9'd1;
-    osd_on <= debug_bus != 0 && vcnt[8:3]==6'b100 && hcnt[8:6] == 3'b010;
+    osd_on <= debug_bus != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
 end
 
 always @* begin
