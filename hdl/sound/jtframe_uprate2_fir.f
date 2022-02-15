@@ -1,2 +1,0 @@
-jtframe_uprate2_fir.v
-jtframe_fir.v
