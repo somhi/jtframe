@@ -1,15 +1,15 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "os"
-    "strings"
-    "flag"
-    "sort"
-    "io/ioutil"
-    "path/filepath"
-    "gopkg.in/yaml.v2"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"flag"
+	"sort"
+	"io/ioutil"
+	"path/filepath"
+	"gopkg.in/yaml.v2"
 )
 
 type Origin int
@@ -31,13 +31,13 @@ type JTModule struct {
 }
 
 type JTFiles struct {
-    Game [] FileList `yaml:"game"`
-    JTFrame [] FileList `yaml:"jtframe"`
-    Modules struct {
-    	JT [] JTModule `yaml:"jt"`
-	    Other [] FileList `yaml:"other"`
-    } `yaml:"modules"`
-    Here [] string `yaml:"here"`
+	Game [] FileList `yaml:"game"`
+	JTFrame [] FileList `yaml:"jtframe"`
+	Modules struct {
+		JT [] JTModule `yaml:"jt"`
+		Other [] FileList `yaml:"other"`
+	} `yaml:"modules"`
+	Here [] string `yaml:"here"`
 }
 
 type Args struct {
@@ -119,6 +119,15 @@ func append_filelist( dest *[]FileList, src []FileList, other *[]string, origin 
 	}
 }
 
+func is_parsed( name string ) bool {
+	for _,k := range(parsed) {
+		if name == k {
+			return true
+		}
+	}
+	return false
+}
+
 func parse_yaml( filename string, files *JTFiles ) {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -159,15 +168,8 @@ func parse_yaml( filename string, files *JTFiles ) {
 		}
 	}
 	for _,each := range(other) {
-		found := false
-		for _,k := range(parsed) {
-			if each == k {
-				found = true
-				break
-			}
-		}
-		if !found {
-			parse_yaml( each, files, )
+		if !is_parsed(each) {
+			parse_yaml( each, files )
 		}
 	}
 	// "here" files
@@ -176,7 +178,12 @@ func parse_yaml( filename string, files *JTFiles ) {
 	}
 	dir := filepath.Dir( filename )
 	for _,each := range(aux.Here) {
-		files.Here = append( files.Here, filepath.Join(dir,each) )
+		fullpath := filepath.Join(dir, each)
+		if strings.HasSuffix(each,".yaml") && !is_parsed(each) {
+			parse_yaml( fullpath, files )
+		} else {
+			files.Here = append( files.Here, fullpath )
+		}
 	}
 }
 
