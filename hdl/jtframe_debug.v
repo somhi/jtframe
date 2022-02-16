@@ -110,10 +110,17 @@ always @* begin
     rout = rin;
     gout = gin;
     bout = bin;
-    if( osd_on && hcnt[2:0]!=0 ) begin
-        rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
-        gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
-        bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+    if( osd_on ) begin
+        if( hcnt[2:0]!=0 ) begin
+            rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+            gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+            bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+            if( hcnt[2:0]==4 || vcnt[2:0]==4 ) begin // always mark the center with a cross
+                rout[COLORW-1:COLORW-2] = 2'b11;
+                gout[COLORW-1:COLORW-2] = 2'b11;
+                bout[COLORW-1:COLORW-2] = 2'b11;
+            end
+        end
     end
 end
 

@@ -24,33 +24,33 @@ module jtframe_sort(
 
 always @* begin
     case( debug_bus[4:0] )
-        0: busout = { busin[3], busin[2], busin[1], busin[0] };
-        1: busout = { busin[3], busin[2], busin[0], busin[1] };
-        2: busout = { busin[3], busin[1], busin[2], busin[0] };
-        3: busout = { busin[3], busin[1], busin[0], busin[2] };
-        4: busout = { busin[3], busin[0], busin[1], busin[2] };
-        5: busout = { busin[3], busin[0], busin[2], busin[1] };
+       5'h00: busout = { busin[3], busin[2], busin[1], busin[0] };
+       5'h01: busout = { busin[3], busin[2], busin[0], busin[1] };
+       5'h02: busout = { busin[3], busin[1], busin[2], busin[0] };
+       5'h03: busout = { busin[3], busin[1], busin[0], busin[2] };
+       5'h04: busout = { busin[3], busin[0], busin[1], busin[2] };
+       5'h05: busout = { busin[3], busin[0], busin[2], busin[1] };
 
-        6: busout = { busin[2], busin[3], busin[1], busin[0] };
-        7: busout = { busin[2], busin[3], busin[0], busin[1] };
-        8: busout = { busin[2], busin[1], busin[3], busin[0] };
-        9: busout = { busin[2], busin[1], busin[0], busin[3] };
-       10: busout = { busin[2], busin[0], busin[1], busin[3] };
-       11: busout = { busin[2], busin[0], busin[3], busin[1] };
+       5'h06: busout = { busin[2], busin[3], busin[1], busin[0] };
+       5'h07: busout = { busin[2], busin[3], busin[0], busin[1] };
+       5'h08: busout = { busin[2], busin[1], busin[3], busin[0] };
+       5'h09: busout = { busin[2], busin[1], busin[0], busin[3] };
+       5'h0a: busout = { busin[2], busin[0], busin[1], busin[3] };
+       5'h0b: busout = { busin[2], busin[0], busin[3], busin[1] };
 
-       12: busout = { busin[1], busin[2], busin[3], busin[0] };
-       13: busout = { busin[1], busin[2], busin[0], busin[3] };
-       14: busout = { busin[1], busin[3], busin[2], busin[0] };
-       15: busout = { busin[1], busin[3], busin[0], busin[2] };
-       16: busout = { busin[1], busin[0], busin[3], busin[2] };
-       17: busout = { busin[1], busin[0], busin[2], busin[3] };
+       5'h0c: busout = { busin[1], busin[2], busin[3], busin[0] };
+       5'h0d: busout = { busin[1], busin[2], busin[0], busin[3] };
+       5'h0e: busout = { busin[1], busin[3], busin[2], busin[0] };
+       5'h0f: busout = { busin[1], busin[3], busin[0], busin[2] };
+       5'h10: busout = { busin[1], busin[0], busin[3], busin[2] };
+       5'h11: busout = { busin[1], busin[0], busin[2], busin[3] };
 
-       18: busout = { busin[0], busin[2], busin[1], busin[3] };
-       19: busout = { busin[0], busin[2], busin[3], busin[1] };
-       20: busout = { busin[0], busin[1], busin[2], busin[3] };
-       21: busout = { busin[0], busin[1], busin[3], busin[2] };
-       22: busout = { busin[0], busin[3], busin[1], busin[2] };
-       23: busout = { busin[0], busin[3], busin[2], busin[1] };
+       5'h12: busout = { busin[0], busin[2], busin[1], busin[3] };
+       5'h13: busout = { busin[0], busin[2], busin[3], busin[1] };
+       5'h14: busout = { busin[0], busin[1], busin[2], busin[3] };
+       5'h15: busout = { busin[0], busin[1], busin[3], busin[2] };
+       5'h16: busout = { busin[0], busin[3], busin[1], busin[2] };
+       5'h17: busout = { busin[0], busin[3], busin[2], busin[1] };
        default: busout = busin;
     endcase
 end

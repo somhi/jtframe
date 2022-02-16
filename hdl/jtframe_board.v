@@ -280,7 +280,6 @@ jtframe_led u_led(
     .gfx_en     ( gfx_en        ),
     .game_led   ( game_led      ),
     .cheat_led  ( cheat_led     ),
-    .debug_bus  ( debug_bus     ),
     .led        ( led           )
 );
 

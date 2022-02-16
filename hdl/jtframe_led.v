@@ -23,13 +23,12 @@ module jtframe_led(
     input        downloading,
     input        osd_shown,
     input [3:0]  gfx_en,
-    input [7:0]  debug_bus,
     input [1:0]  game_led,
     input        cheat_led,
     output reg   led
 );
 
-wire  sys_led, enlarged, debug_led;
+wire  sys_led, enlarged;
 reg   last_LVBL, cen_VB;
 
 `ifdef MISTER
@@ -47,13 +46,10 @@ localparam POL = 0;
             if( !LVBL && last_LVBL ) fcnt <= fcnt+1;
         end
     end
-    assign debug_led = debug_bus==0 && fcnt[6];
 `else
-    assign debug_led = 0;
 `endif
 
-// debug_led is XOR'ed because it blinks
-assign sys_led = ~( downloading | cheat_led /*| osd_shown*/ | (|(~gfx_en)))^debug_led;
+assign sys_led = ~( downloading | cheat_led /*| osd_shown*/);
 
 always @(posedge clk) begin
     last_LVBL <= LVBL;
