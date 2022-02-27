@@ -171,6 +171,7 @@ wire [1:0] dip_fxlevel, game_led;
 wire       enable_fm, enable_psg;
 wire       dip_pause, dip_flip, dip_test;
 wire       pxl_cen, pxl2_cen;
+wire [7:0] st_addr, st_dout;
 
 `ifdef SIMULATION
 assign sim_pxl_clk = clk_sys;
@@ -344,6 +345,9 @@ u_frame(
     .dip_pause      ( dip_pause      ),
     .dip_flip       ( dip_flip       ),
     .dip_fxlevel    ( dip_fxlevel    ),
+    // status
+    .st_addr        ( st_addr        ),
+    .st_dout        ( st_dout        ),
     // Debug
     .gfx_en         ( gfx_en         ),
     .debug_bus      ( debug_bus      )
@@ -528,8 +532,8 @@ u_game(
     .sample      ( sample         ),
     // Debug
 `ifdef JTFRAME_STATUS
-    .st_addr     ( 8'd0           ),
-    .st_dout     (                ),
+    .st_addr     ( st_addr        ),
+    .st_dout     ( st_dout        ),
 `endif
     .gfx_en      ( gfx_en         )
 `ifdef JTFRAME_DEBUG

@@ -156,6 +156,8 @@ module jtframe_mist #(parameter
     output  [ 1:0]  dip_fxlevel,
     // Debug
     output          LED,
+    output   [ 7:0] st_addr,
+    input    [ 7:0] st_dout,
     output   [3:0]  gfx_en,
     output   [7:0]  debug_bus
 );
@@ -382,8 +384,8 @@ jtframe_board #(
     .ioctl_wr   ( ioctl_wr      ),
     .ioctl_dout ( ioctl_dout    ),
     .ioctl_addr ( ioctl_addr[7:0]),
-    .st_addr    (               ),
-    .st_dout    ( 8'd0          ),
+    .st_addr    ( st_addr       ),
+    .st_dout    ( st_dout       ),
 
     // Base video
     .osd_rotate     ( rotate          ),
