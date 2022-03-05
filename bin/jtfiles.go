@@ -24,10 +24,12 @@ const (
 type FileList struct {
 	From string `yaml:"from"`
 	Get []string `yaml:"get"`
+	Unless string `yaml:"unless"`
 }
 
 type JTModule struct {
 	Name string `yaml:"name"`
+	Unless string `yaml:"unless"`
 }
 
 type JTFiles struct {
@@ -85,7 +87,14 @@ func append_filelist( dest *[]FileList, src []FileList, other *[]string, origin 
 		*dest = make( []FileList, 0 )
 	}
 	for _,each := range(src) {
-		//fmt.Println(each)
+		// If an environment variable exists with the
+		// name set at "unless", the section is skipped
+		if each.Unless!="" {
+			_, exists := os.LookupEnv(each.Unless)
+			if exists {
+				continue
+			}
+		}
 		var newfl FileList
 		newfl.From = each.From
 		newfl.Get = make([]string,2)
