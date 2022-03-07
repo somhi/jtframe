@@ -33,7 +33,7 @@ mist_dump u_dump(
     .frame_cnt  ( frame_cnt )
 );
 //887808
-test_harness #(.sdram_instance(0),.GAME_ROMNAME(`GAME_ROM_PATH),
+test_harness #(.sdram_instance(0),.GAME_ROMNAME("rom.bin"),
     .TX_LEN(`GAME_ROM_LEN) ) u_harness(
     .rst         ( rst           ),
     .clk27       ( clk27         ),
@@ -124,13 +124,28 @@ mist_top UUT(
     .AUDIO_R    ( AUDIO_R   ),
     // unused
     .LED        ( led       ),
-    .sim_pxl_cen( pxl_cen   ),
-    .sim_pxl_clk( pxl_clk   ),
-    .sim_vb     ( pxl_vb    ),
-    .sim_hb     ( pxl_hb    ),
     .UART_TX    (           ),
     .UART_RX    ( 1'b1      )
+`ifndef GATES
+    ,.sim_pxl_cen( pxl_cen   )
+    ,.sim_pxl_clk( pxl_clk   )
+    ,.sim_vb     ( pxl_vb    )
+    ,.sim_hb     ( pxl_hb    )
+`endif
 );
+
+`ifdef GATES
+reg clk12m; // 12MHz because the scan doubler is enabled in gate sims
+initial begin
+    clk12m=0;
+    forever #41.667 clk12m=~clk12m;
+end
+
+assign pxl_clk = clk12m;
+assign pxl_cen = 1;
+assign pxl_vb  = VGA_VS;
+assign pxl_hb  = VGA_HS;
+`endif
 
 
 endmodule

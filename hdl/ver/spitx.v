@@ -64,7 +64,8 @@ module spitx(
     output  reg spi_done
 );
 parameter filename="../../../rom/JT1942.rom";
-parameter TX_LEN           = 1024*1024;
+parameter TX_LEN           = 1024*1024,
+          TX_OFFSET        = 0;     // offset at which transmission starts
 
 integer file, tx_cnt, file_len;
 assign SPI_SS4=1'b1;
@@ -82,6 +83,7 @@ initial begin
         $display("ERROR: %m\n\tcould not open file %s", filename );
         $finish;
     end
+    file_len=$fseek( file, TX_OFFSET, 0 );
     file_len=$fread( rom_buffer, file );
     $display("INFO: Read %s for SPI transmission (%0d bytes).",filename, file_len);
     if( file_len == 0 ) begin
