@@ -544,18 +544,24 @@ endgenerate
 
 
 //always @(negedge NMISample2 or posedge wNMIClear)
-always @(posedge clk) if(cen_Q) begin : NMIlatch
+always @(posedge clk, negedge nRESET) begin
     reg last_NMISample2, last_wNMIClear;
-    last_NMISample2 <= NMISample2;
-    last_wNMIClear  <= wNMIClear;
-    if( (!NMISample2 && last_NMISample2) ||
-        (wNMIClear && !last_wNMIClear) ) begin
-        if (wNMIClear == 1)
-            NMILatched <= 1;
-        else if (NMIMask == 0)
-            NMILatched <= 0;
-        else
-            NMILatched <= 1;
+    if( !nRESET ) begin
+        last_NMISample2 <= 1;
+        last_wNMIClear  <= 1;
+        NMILatched      <= 1;
+    end else if(cen_Q) begin : NMIlatch
+        last_NMISample2 <= NMISample2;
+        last_wNMIClear  <= wNMIClear;
+        if( (!NMISample2 && last_NMISample2) ||
+            (wNMIClear && !last_wNMIClear) ) begin
+            if (wNMIClear == 1)
+                NMILatched <= 1;
+            else if (NMIMask == 0)
+                NMILatched <= 0;
+            else
+                NMILatched <= 1;
+        end
     end
 end
 
@@ -578,19 +584,20 @@ end
 // analyzer on the 6809 to determine how many cycles before a new instruction an interrupt (or /HALT & /DMABREQ)
 // had to be asserted to be noted instead of the next instruction running start to finish.
 //
-always @(posedge clk) if(cen_Q)
-begin
-    NMISample <= nNMI;
-
-    IRQSample <= nIRQ;
-
-    FIRQSample <= nFIRQ;
-
-    HALTSample <= nHALT;
-
-    DMABREQSample <= nDMABREQ;
-
-
+always @(posedge clk, negedge nRESET) begin
+    if(!nRESET) begin
+        NMISample     <= 1;
+        IRQSample     <= 1;
+        FIRQSample    <= 1;
+        HALTSample    <= 1;
+        DMABREQSample <= 1;
+    end else if(cen_Q) begin
+        NMISample     <= nNMI;
+        IRQSample     <= nIRQ;
+        FIRQSample    <= nFIRQ;
+        HALTSample    <= nHALT;
+        DMABREQSample <= nDMABREQ;
+    end
 end
 
 
@@ -599,6 +606,14 @@ always @(posedge clk, negedge nRESET) begin
         CpuState <= CPUSTATE_RESET;
         NMIMask <= 1'b1; // Mask NMI until S is loaded.
         NMIClear <= 1'b0; // Mark us as not having serviced NMI
+
+        NMISample2  <= 1;
+        IRQSample2  <= 1;
+        IRQLatched  <= 1;
+        FIRQSample2 <= 1;
+        FIRQLatched <= 1;
+        HALTSample2 <= 1;
+        HALTLatched <= 1;
     end else if(cen_E) begin
         CpuState <= CpuState_nxt;
 
