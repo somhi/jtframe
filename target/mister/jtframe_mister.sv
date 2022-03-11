@@ -668,7 +668,7 @@ jtframe_board #(
 );
 
 always @(posedge scan2x_clk) begin
-    crop_ok   <= hdmi_width == 1920 && hdmi_height == 1080 &&
+    crop_ok   <= hdmi_width == 1920 && hdmi_height == 1080 && scan2x_sl==0 &&
                  !force_scan2x && crop_scale==0 && !direct_video && !rotate[0];
     crop_off  <= (vcopt < 6) ? {vcopt,1'b0} : ({vcopt,1'b0} - 5'd24);
     crop_size <= (crop_ok & crop_en) ? 10'd216 : 10'd0;
