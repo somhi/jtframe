@@ -93,16 +93,16 @@ module jtframe_mister #(parameter
  `endif
 
     // DDR3 RAM
-(*keep*)    output          DDRAM_CLK,
-(*keep*)    input           DDRAM_BUSY,
-(*keep*)    output  [7:0]   DDRAM_BURSTCNT,
-(*keep*)    output [28:0]   DDRAM_ADDR,
-(*keep*)    input  [63:0]   DDRAM_DOUT,
-(*keep*)    input           DDRAM_DOUT_READY,
-(*keep*)    output          DDRAM_RD,
-(*keep*)    output [63:0]   DDRAM_DIN,
-(*keep*)    output  [7:0]   DDRAM_BE,
-(*keep*)    output          DDRAM_WE,
+    output          DDRAM_CLK,
+    input           DDRAM_BUSY,
+    output  [7:0]   DDRAM_BURSTCNT,
+    output [28:0]   DDRAM_ADDR,
+    input  [63:0]   DDRAM_DOUT,
+    input           DDRAM_DOUT_READY,
+    output          DDRAM_RD,
+    output [63:0]   DDRAM_DIN,
+    output  [7:0]   DDRAM_BE,
+    output          DDRAM_WE,
 
     // ROM programming
     output       [26:0] ioctl_addr,
@@ -164,9 +164,12 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_coin,
     output  [ 3:0]  game_start,
     output          game_service,
-    // DIP and OSD settings
+    // HDMI
     output  [12:0]  hdmi_arx,
     output  [12:0]  hdmi_ary,
+    input   [11:0]  hdmi_width,
+    input   [11:0]  hdmi_height,
+    // DIP and OSD settings
     output  [ 1:0]  rotate,
 
     output          enable_fm,
@@ -250,6 +253,23 @@ wire        ddrld_rd, ddrld_busy;
 wire        uart_rx, uart_tx;
 wire [6:0]  joy_in, joy_out;
 
+// Vertical crop
+wire [12:0] raw_arx, raw_ary;
+wire        raw_de;
+reg  [11:0] crop_size;
+reg   [4:0] crop_off; // -16...+15
+wire  [2:0] crop_scale; //0 - normal, 1 - V-integer, 2 - HV-Integer-, 3 - HV-Integer+, 4 - HV-Integer
+wire        crop_en;    // OSD control by the user
+reg         crop_ok;    // whether the mister.ini video settings tolerate cropping
+wire  [3:0] vcopt;
+reg        en216p;
+reg  [4:0] voff;
+
+// Vertical crop
+assign crop_en    = status[41];
+assign vcopt      = status[45:42];
+assign crop_scale = {1'b0, status[47:46]};
+
 // H-Pos & V-Pos for CRT
 assign { voffset, hoffset } = status[31:24];
 
@@ -293,7 +313,8 @@ jtframe_resync u_resync(
 wire [15:0] status_menumask; // a high value hides the menu item
 reg         framebuf_flip;      // extra OSD options for rotation, bit 0 = rotate, bit 1 = flip
 
-assign status_menumask[15:5] = 0,
+assign status_menumask[15:6] = 0,
+       status_menumask[5]    = crop_ok, // video crop options
 `ifdef JTFRAME_ROTATE       // extra rotate options for vertical games
        status_menumask[4]    = ~core_mod[0],  // shown for vertical games
        status_menumask[1]    = 1,   // hidden
@@ -558,8 +579,8 @@ jtframe_board #(
     // screen
     .gamma_bus      ( gamma_bus       ),
     .direct_video   ( direct_video    ),
-    .hdmi_arx       ( hdmi_arx        ),
-    .hdmi_ary       ( hdmi_ary        ),
+    .hdmi_arx       ( raw_arx         ),
+    .hdmi_ary       ( raw_ary         ),
     .rotate         ( rotate          ),
     // LED
     .osd_shown      ( 1'b0            ),
@@ -576,7 +597,7 @@ jtframe_board #(
     .scan2x_vs      ( scan2x_vs       ),
     .scan2x_clk     ( scan2x_clk      ),
     .scan2x_cen     ( scan2x_cen      ),
-    .scan2x_de      ( scan2x_de       ),
+    .scan2x_de      ( raw_de          ),
     .scan2x_enb     ( ~force_scan2x   ),
     .scan2x_sl      ( scan2x_sl       ),
 
@@ -645,6 +666,32 @@ jtframe_board #(
     .gfx_en         ( gfx_en          ),
     .debug_bus      ( debug_bus       )
 );
+
+always @(posedge scan2x_clk) begin
+    crop_ok   <= hdmi_width == 1920 && hdmi_height == 1080 &&
+                 !force_scan2x && crop_scale==0 && !direct_video && !rotate[0];
+    crop_off  <= (vcopt < 6) ? {vcopt,1'b0} : ({vcopt,1'b0} - 5'd24);
+    crop_size <= (crop_ok & crop_en) ? 10'd216 : 10'd0;
+end
+
+video_freak u_crop(
+    .CLK_VIDEO  ( scan2x_clk    ),
+    .CE_PIXEL   ( scan2x_cen    ),
+    .VGA_VS     ( scan2x_vs     ),
+    .HDMI_WIDTH ( hdmi_width    ),
+    .HDMI_HEIGHT( hdmi_height   ),
+    .VGA_DE     ( scan2x_de     ),
+    .VIDEO_ARX  ( hdmi_arx      ),
+    .VIDEO_ARY  ( hdmi_ary      ),
+
+    .VGA_DE_IN  ( raw_de        ),
+    .ARX        ( raw_arx[11:0] ),
+    .ARY        ( raw_ary[11:0] ),
+    .CROP_SIZE  ( crop_size     ),
+    .CROP_OFF   ( crop_off      ),
+    .SCALE      ( crop_scale    )
+);
+
 
 wire rot_clk;
 

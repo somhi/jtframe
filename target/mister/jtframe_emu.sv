@@ -57,6 +57,9 @@ module emu
     output  [1:0] VGA_SL,
     output        VGA_SCALER,
 
+    input  [11:0] HDMI_WIDTH,
+    input  [11:0] HDMI_HEIGHT,
+
     //Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
     output [12:0] VIDEO_ARX,
     output [12:0] VIDEO_ARY,
@@ -539,6 +542,8 @@ u_frame(
     // HDMI
     .hdmi_arx       ( VIDEO_ARX      ),
     .hdmi_ary       ( VIDEO_ARY      ),
+    .hdmi_width     ( HDMI_WIDTH     ),
+    .hdmi_height    ( HDMI_HEIGHT    ),
     // scan doubler output to VGA pins
     .scan2x_r       ( VGA_R          ),
     .scan2x_g       ( VGA_G          ),

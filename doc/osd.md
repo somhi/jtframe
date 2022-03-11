@@ -64,7 +64,7 @@ Status bits currently configured in JTFRAME:
 ```
  0         1         2         3          4         5         6   
  01234567890123456789012345678901 23456789012345678901234567890123
- XXXXXXXXXX XXXXX        XXXXXXXX XXXXXX                  --FORKS-
+ XXXXXXXXXX XXXXX        XXXXXXXX XXXXXXXXXXXXXXXX        --FORKS-
  ```
 
 ## Values used in the status word by JTFRAME
@@ -94,6 +94,9 @@ bit     |  meaning                | Enabled with macro
 28-31   | CRT V offset            | MiSTer only
 37-38   | User output options     | MiSTer, selects DB15, UART, etc.
 39-40   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
+41      | Vertical crop (MiSTer)  | MiSTer only
+42-45   | Crop offset   (MiSTer)  | MiSTer only
+46-47   | Scaling style (MiSTer)  | MiSTer only
 56-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.

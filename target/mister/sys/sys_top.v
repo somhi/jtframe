@@ -1587,6 +1587,9 @@ emu emu
 	.VGA_F1(f1),
 	.VGA_SCALER(vga_force_scaler),
 
+	.HDMI_WIDTH ( hdmi_width 	),
+	.HDMI_HEIGHT( hdmi_height	),
+
 	.CLK_VIDEO(clk_vid),
 	.CE_PIXEL(ce_pix),
 	.VGA_SL(scanlines),

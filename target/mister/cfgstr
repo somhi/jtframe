@@ -27,6 +27,9 @@ H0P1OGH,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
                                     H1P1O2,Rotate screen,Yes,No;
     {{ end }}
 {{ end }}
+d5P1o9,Vertical Crop,Disabled,216p(5x);
+d5P1oAD,Crop Offset,0,2,4,8,10,12,-12,-10,-8,-6,-4,-2;
+P1oEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;
 {{ .SEPARATOR }}
 {{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
