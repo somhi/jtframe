@@ -8,9 +8,6 @@ J{{.CORENAME}};;
 {{ if .JTFRAME_CHEAT }}
     CHEAT;
 {{ end }}
-{{ if .CORE_OSD }}
-    {{ .CORE_OSD }}
-{{ end }}
 P1,Video;
 P1OOR,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
 P1OSV,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
@@ -31,6 +28,9 @@ d5P1o9,Vertical Crop,Disabled,216p(5x);
 d5P1oAD,Crop Offset,0,2,4,8,10,12,-12,-10,-8,-6,-4,-2;
 P1oEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;
 {{ .SEPARATOR }}
+{{ if .CORE_OSD }}
+    {{ .CORE_OSD }}
+{{ end }}
 {{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
