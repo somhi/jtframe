@@ -105,7 +105,6 @@ module jtframe_sys6809(
     output          irq_ack,
     // Bus sharing
     input           bus_busy,
-    output          waitn,
     // memory interface
     output  [15:0]  A,
     output          RnW,
