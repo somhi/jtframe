@@ -61,7 +61,8 @@ always @(posedge clk_sys)
 	osd_shown <= osd_enable_sys;
 
 jtframe_sync u_sync_sys(
-	.clk	( clk_sys 		 ),
+	.clk_in ( SPI_SCK        ),
+	.clk_out( clk_sys 		 ),
 	.raw	( osd_enable     ),
 	.sync	( osd_enable_sys )
 );

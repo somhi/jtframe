@@ -16,6 +16,9 @@
     Version: 1.0
     Date: 6-9-2021 */
 
+// Reference:
+// https://www.intel.com/content/www/us/en/programmable/quartushelp/15.1/index.htm#verify/da/comp_file_rules_reset_synch.htm
+
 module jtframe_rst_sync(
     input   rst,
     input   clk,
@@ -26,7 +29,7 @@ reg [1:0] s;
 
 assign rst_sync = s[1];
 
-always @(negedge clk) begin
+always @(posedge clk) begin
     s <= { s[0], rst };
 end
 
