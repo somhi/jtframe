@@ -1,6 +1,6 @@
 # Debugging
 
-If JTFRAME_RELEASE is not defined, the debug features can be used.
+If JTFRAME_RELEASE is not defined, the debug features can be used. Also check [the NVRAM saving](doc/sdram.md) procedure as it can be useful for debugging.
 
 ## GFX Enable Bus
 
@@ -12,7 +12,9 @@ If JTFRAME_DEBUG is defined, keys + and - (in a Spanish keyboard layout) will in
 
 By default, debug_bus is increased (decreased) by 1. If SHIFT is pressed with +/-, then the step is 16 instead. This can be used to control different signals with each debug_bus nibble. However, the bus is always increased as a byte, so be aware of it. Pressing CTRL with +/- will reset the debug_bus to zero. Press shift+1-0 keys (main keyboard, not keypad) to individually togle each bit of the debug bus.
 
-The game module must define the debug_bus input if JTFRAME_DEBUG is used.
+The game module must define the debug_bus input if **JTFRAME_DEBUG** is used. Becareful because if you don't define JTFRAME_DEBUG and use the debug_bus in the game module, Quartus will not warn you of the missing connection and you may get unexpected behaviour after synthesis.
+
+It is recommended to remove the debug_bus once the core is stable.
 
 ## Generic SDRAM Dump
 

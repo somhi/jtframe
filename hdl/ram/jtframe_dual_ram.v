@@ -27,14 +27,14 @@
 module jtframe_dual_ram #(parameter dw=8, aw=10,
     simfile="", simhexfile="", synfile="", dumpfile="dump.hex"
 )(
-    input   clk0,
-    input   clk1,
     // Port 0
+    input   clk0,
     input   [dw-1:0] data0,
     input   [aw-1:0] addr0,
     input   we0,
     output  [dw-1:0] q0,
     // Port 1
+    input   clk1,
     input   [dw-1:0] data1,
     input   [aw-1:0] addr1,
     input   we1,

@@ -44,9 +44,10 @@ module jtframe_mister_dwnld(
     input             prog_rdy,
 
     input             hps_download, // signal indicating an active download
-    input      [ 7:0] hps_index,        // menu index used to upload the file
+    input             hps_upload,   // signal indicating an active upload
+    input      [ 7:0] hps_index,    // menu index used to upload the file
     input             hps_wr,
-    input      [26:0] hps_addr,         // in WIDE mode address will be incremented by 2
+    input      [26:0] hps_addr,     // in WIDE mode address will be incremented by 2
     input      [ 7:0] hps_dout,
     output            hps_wait,
 
@@ -81,7 +82,7 @@ localparam [7:0] IDX_ROM          = 8'h0,
                  IDX_CHEAT_STATUS = 8'd255;
 
 always @(posedge clk) begin
-    ioctl_ram   <= hps_download && hps_index==IDX_NVRAM;
+    ioctl_ram   <= (hps_download && hps_index==IDX_NVRAM) || hps_upload;
     ioctl_cheat <= hps_download && hps_index==IDX_CHEAT;
     ioctl_lock  <= hps_download && hps_index==IDX_LOCK;
 end

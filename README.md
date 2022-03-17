@@ -12,7 +12,7 @@ You can show your appreciation through
 * [Compilation](doc/compilation.md)
 * [MiST derivatives](doc/mist.md)
 * [CPUs](doc/cpus.md)
-* [SDRAM](doc/sdram.md)
+* [SDRAM and SD card](doc/sdram.md)
 * [The OSD](doc/osd.md)
 * [Simulation](doc/sim.md)
 * [Clocking](doc/clocks.md)

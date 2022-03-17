@@ -111,7 +111,7 @@ wire [7:0]  ioctl_index;
 wire        ioctl_download;
 
 assign downloading = ioctl_download;
-assign ioctl_ram   = ioctl_index == IDX_NVRAM && ioctl_download;
+assign ioctl_ram   = (ioctl_index == IDX_NVRAM && ioctl_download) || ioctl_upload;
 assign ioctl_cheat = ioctl_index == IDX_CHEAT && ioctl_download;
 
 // unsupported by the firmware
@@ -275,8 +275,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .ioctl_din          ( ioctl_din         ),
         .ioctl_wr           ( ioctl_wr          ),
         .ioctl_index        ( ioctl_index       ),
+        .ioctl_upload       ( ioctl_upload      ),
         // Unused:
-        .ioctl_upload       (                   ),
         .ioctl_fileext      (                   ),
         .ioctl_filesize     (                   )
     );

@@ -232,7 +232,7 @@ wire [3:0]  hsize_scale;
 wire        hsize_hs, hsize_vs, hsize_hb, hsize_vb;
 wire [COLORW-1:0] hsize_r, hsize_g, hsize_b;
 
-wire        hps_download, hps_wr, hps_wait;
+wire        hps_download, hps_upload, hps_wr, hps_wait;
 wire [15:0] hps_index;
 wire [26:0] hps_addr;
 wire [ 7:0] hps_dout;
@@ -340,6 +340,7 @@ jtframe_mister_dwnld u_dwnld(
     .dwnld_busy     ( dwnld_busy     ),
 
     .hps_download   ( hps_download   ),
+    .hps_upload     ( hps_upload     ),
     .hps_index      ( hps_index[7:0] ),
     .hps_wr         ( hps_wr         ),
     .hps_addr       ( hps_addr       ),
@@ -454,8 +455,8 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ioctl_din       ( hps_din        ),
     .ioctl_index     ( hps_index      ),
     .ioctl_wait      ( hps_wait       ),
+    .ioctl_upload    ( hps_upload     ),
     // NVRAM support
-    .ioctl_upload    (                ), // no need
     .ioctl_rd        (                ), // no need
 
     .joy_raw         ( joystick1[5:0] ), // DB15 control

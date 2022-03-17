@@ -21,9 +21,23 @@ Bit    |  Use
 
 If JTFRAME_VERTICAL is defined, bit 0 is set during power up. The contents of core_mod can be set by defining a index=1 rom in the MRA file.
 
-## Automatic SDRAM Dump
+## Saving Data to the SD Card
 
-A fraction of bank zero's SDRAM contents can be dumped to the SDRAM on MiSTer using the NVRAM interface. You have to define two macros:
+It is possible to save information on the SD card. You have to follow these steps:
+
+1. Define the macro **JTFRAME_IOCTL_RD** with the size of the dump
+2. Define the **ioctl_ram** input signal and the 8-bit **ioctl_din** output bus as ports in the game module
+3. Add a `<nvram index="2" size="your data size"/>` element to the MRA
+
+When **ioctl_ram** is high, JTFRAME expects **ioctl_din** to have the contents matching the address at **ioctl_addr**. There is no read strobe and read speed is controlled by the platform firmware, so it may be too fast for direct dumping off the SDRAM contents. Note that **ioctl_ram** is also high when the firmware is sending the NVRAM data to the core during the downloading phase. You can distinguish between the two scenarios by checking the **downloading** signal.
+
+The write operation is triggered from the OSD *save settings* (MiSTer) or *Save NVRAM* (MiST) option.
+
+The TOML file for MRA generation supports a *nvram=size* statement in the *features* section. The value of **JTFRAME_IOCTL_RD** is only used in MiST. For MiSTer, it is enough to define the macro.
+
+### Automatic SDRAM Dump
+
+A fraction of bank zero's SDRAM contents can be dumped to the micro SD card on MiSTer using the NVRAM interface. You have to define two macros:
 
 ```
 JTFRAME_SHADOW=0x10_0000
