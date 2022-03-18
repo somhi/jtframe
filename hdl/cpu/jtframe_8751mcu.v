@@ -91,7 +91,8 @@ assign cen_eff = DIVCEN ? cen0 : cen;
 wire int0n_s, int1n_s;
 
 jtframe_sync #(.W(2)) u_sync(
-    .clk    (   clk               ),
+    .clk_in (   clk               ), // not resampled
+    .clk_out(   clk               ),
     .raw    ( {int1n, int0n }     ),
     .sync   ( {int1n_s, int0n_s } )
 );

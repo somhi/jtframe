@@ -61,6 +61,8 @@ module jtframe_m68k(
     output [2:0] FC
 );
 
+`ifndef LINT
+
 `ifdef JTFRAME_J68
 jtframe_j68 u_cpu(
     .clk        ( clk         ),
@@ -106,4 +108,5 @@ fx68k u_cpu(
     .FC2        ( FC[2]       )
 );
 
+`endif
 endmodule
