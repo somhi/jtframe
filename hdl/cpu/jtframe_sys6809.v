@@ -89,10 +89,83 @@ module jtframe_6809wait(
 endmodule
 
 
+module jtframe_sys6809 #( parameter
+    RAM_AW   = 12,
+    RECOVERY = 1,   // Recover clock cycles if needed
+    KONAMI1  = 0    // Enable Konami-1 mode
+)(
+    input           rstn,
+    input           clk,
+    input           cen,       // This is normally the input clock to the CPU
+    output          cpu_cen,   // 1/4th of cen
+    // Interrupts
+    input           nIRQ,
+    input           nFIRQ,
+    input           nNMI,
+    output          irq_ack,
+    // Bus sharing
+    input           bus_busy,
+    // memory interface
+    output  [15:0]  A,
+    output          RnW,
+    output          VMA,
+    input           ram_cs,
+    input           rom_cs,
+    input           rom_ok,
+    // Bus multiplexer is external
+    output  [7:0]   ram_dout,
+    output  [7:0]   cpu_dout,
+    input   [7:0]   cpu_din
+);
+    // This is a wrapper that hides the DMA access to RAM
+
+    jtframe_sys6809_dma #(
+        .RAM_AW     ( RAM_AW    ),
+        .RECOVERY   ( RECOVERY  ),
+        .KONAMI1    ( KONAMI1   )
+    ) u_sys6809(
+        .rstn       ( rstn      ),
+        .clk        ( clk       ),
+        .cen        ( cen       ),   // This is normally the input clock to the CPU
+        .cpu_cen    ( cpu_cen   ),   // 1/4th of cen
+
+        // Interrupts
+        .nIRQ       ( nIRQ      ),
+        .nFIRQ      ( nFIRQ     ),
+        .nNMI       ( nNMI      ),
+        .irq_ack    ( irq_ack   ),
+        // Bus sharing
+        .bus_busy   ( bus_busy  ),
+        // memory interface
+        .A          ( A         ),
+        .RnW        ( RnW       ),
+        .VMA        ( VMA       ),
+        .ram_cs     ( ram_cs    ),
+        .rom_cs     ( rom_cs    ),
+        .rom_ok     ( rom_ok    ),
+        // Bus multiplexer is external
+        .ram_dout   ( ram_dout  ),
+        .cpu_dout   ( cpu_dout  ),
+        .cpu_din    ( cpu_din   ),
+        // DMA access to RAM
+        .dma_clk    ( 1'b0      ),
+        .dma_we     ( 1'b0      ),
+        .dma_addr   ( {RAM_AW{1'b0}} ),
+        .dma_din    ( 8'd0      ),
+        .dma_dout   (           )
+    );
+
+endmodule
+
 ///////////////////////////////////////////////////////
 // Do not use with cen set to 1
 
-module jtframe_sys6809(
+module jtframe_sys6809_dma #( parameter
+    RAM_AW   = 12,
+    RECOVERY = 1,   // Recover clock cycles if needed
+    KONAMI1  = 0    // Enable Konami-1 mode
+)
+(
     input           rstn,
     input           clk,
     input           cen,       // This is normally the input clock to the CPU
@@ -115,13 +188,16 @@ module jtframe_sys6809(
     // Bus multiplexer is external
     output  [7:0]   ram_dout,
     output  [7:0]   cpu_dout,
-    input   [7:0]   cpu_din
+    input   [7:0]   cpu_din,
+    // DMA access to RAM
+    input              dma_clk,
+    input              dma_we,
+    input [RAM_AW-1:0] dma_addr,
+    input        [7:0] dma_din,
+    output       [7:0] dma_dout
 );
 
-    // RAM
-    parameter RAM_AW=12, RECOVERY=1, KONAMI1=0;
-
-    wire    ram_we = ram_cs & ~RnW;
+    wire    ram_we = ram_cs & ~RnW & cen_Q;
     wire    cen_E, cen_Q;
     wire    BA, BS, AVMA;
     wire    OP;
@@ -150,13 +226,19 @@ module jtframe_sys6809(
 
     generate
         if( RAM_AW != 0 ) begin
-            jtframe_ram #(.aw(RAM_AW)) u_ram(
-                .clk    ( clk         ),
-                .cen    ( cen_Q       ), // using cpu_cen instead of cen_Q creates a wrong sprite on the screen
-                .data   ( cpu_dout    ),
-                .addr   ( A[RAM_AW-1:0]),
-                .we     ( ram_we      ),
-                .q      ( ram_dout    )
+            jtframe_dual_ram #(.aw(RAM_AW)) u_ram(
+                // CPU access
+                .clk0   ( clk         ),
+                .data0  ( cpu_dout    ),
+                .addr0  ( A[RAM_AW-1:0]),
+                .we0    ( ram_we      ),
+                .q0     ( ram_dout    ),
+                // Second port
+                .clk1   ( dma_clk     ),
+                .addr1  ( dma_addr    ),
+                .data1  ( dma_din     ),
+                .q1     ( dma_dout    ),
+                .we1    ( dma_we      )
             );
         end else begin
             assign ram_dout = 0;
