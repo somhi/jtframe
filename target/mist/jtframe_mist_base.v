@@ -108,7 +108,7 @@ localparam [7:0] IDX_CHEAT = 8'h10,
 
 wire        ypbpr, no_csync;
 wire [7:0]  ioctl_index;
-wire        ioctl_download;
+wire        ioctl_download, ioctl_upload;
 
 assign downloading = ioctl_download;
 assign ioctl_ram   = (ioctl_index == IDX_NVRAM && ioctl_download) || ioctl_upload;
