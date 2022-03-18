@@ -150,7 +150,7 @@ module jtframe_sys6809 #( parameter
         // DMA access to RAM
         .dma_clk    ( 1'b0      ),
         .dma_we     ( 1'b0      ),
-        .dma_addr   ( {RAM_AW{1'b0}} ),
+        .dma_addr   (           ),
         .dma_din    ( 8'd0      ),
         .dma_dout   (           )
     );
