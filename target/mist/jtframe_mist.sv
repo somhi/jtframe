@@ -159,7 +159,8 @@ module jtframe_mist #(parameter
     output   [ 7:0] st_addr,
     input    [ 7:0] st_dout,
     output   [3:0]  gfx_en,
-    output   [7:0]  debug_bus
+    output   [7:0]  debug_bus,
+    input    [7:0]  debug_view
 );
 
 // control
@@ -409,6 +410,7 @@ jtframe_board #(
     // Debug
     .gfx_en         ( gfx_en          ),
     .debug_bus      ( debug_bus       ),
+    .debug_view     ( debug_view      ),
     // Unused ports (MiSTer)
     .gamma_bus      (                 ),
     .direct_video   ( 1'b0            ),

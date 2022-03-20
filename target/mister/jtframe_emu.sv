@@ -297,7 +297,7 @@ wire [ 7:0] ioctl_dout, ioctl_din;
 wire [ 9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [ 3:0] game_coin, game_start;
 wire [ 3:0] gfx_en;
-wire [ 7:0] debug_bus;
+wire [ 7:0] debug_bus, debug_view;
 wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
             joyana_r1, joyana_r2, joyana_r3, joyana_r4;
 
@@ -559,7 +559,8 @@ u_frame(
     .st_dout        ( st_dout        ),
     // Debug
     .gfx_en         ( gfx_en         ),
-    .debug_bus      ( debug_bus      )
+    .debug_bus      ( debug_bus      ),
+    .debug_view     ( debug_view     )
 );
 
 `ifdef SIMULATION
@@ -726,6 +727,7 @@ assign sim_pxl_cen = pxl_cen;
     .gfx_en       ( gfx_en           )
     `ifdef JTFRAME_DEBUG
     ,.debug_bus   ( debug_bus        )
+    ,.debug_view  ( debug_view       )
     `endif);
 
 `ifndef STEREO_GAME

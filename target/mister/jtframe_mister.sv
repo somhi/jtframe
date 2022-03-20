@@ -196,6 +196,7 @@ module jtframe_mister #(parameter
     output            LED,
     output    [ 3:0]  gfx_en,
     output    [ 7:0]  debug_bus,
+    input     [ 7:0]  debug_view,
     output    [ 7:0]  st_addr,
     input     [ 7:0]  st_dout
 );
@@ -665,7 +666,8 @@ jtframe_board #(
     .pxl2_cen       ( pxl2_cen        ),
     // Debug
     .gfx_en         ( gfx_en          ),
-    .debug_bus      ( debug_bus       )
+    .debug_bus      ( debug_bus       ),
+    .debug_view     ( debug_view      )
 );
 
 always @(posedge scan2x_clk) begin

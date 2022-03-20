@@ -167,7 +167,8 @@ module jtframe_board #(parameter
     input      [31:0] timestamp,
     // GFX enable
     output     [3:0]  gfx_en,
-    output     [7:0]  debug_bus
+    output     [7:0]  debug_bus,
+    input      [7:0]  debug_view
 );
 
 `ifdef JTFRAME_BA0_AUTOPRECH
@@ -333,7 +334,8 @@ jtframe_keyboard u_keyboard(
             .bout        ( dbg_b         ),
 
             .gfx_en      ( gfx_en        ),
-            .debug_bus   ( debug_bus     )
+            .debug_bus   ( debug_bus     ),
+            .debug_view  ( debug_view    )
         );
     `else
         assign gfx_en    = ~0;

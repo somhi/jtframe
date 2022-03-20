@@ -262,7 +262,7 @@ jtframe_mist_clocks u_clocks(
 assign clk_pico = clk48;
 
 
-wire [7:0] debug_bus;
+wire [7:0] debug_bus, debug_view;
 wire [1:0] dip_fxlevel, game_led;
 wire       enable_fm, enable_psg;
 wire       dip_pause, dip_flip, dip_test;
@@ -434,7 +434,8 @@ u_frame(
     .dip_fxlevel    ( dip_fxlevel    ),
     // Debug
     .gfx_en         ( gfx_en         ),
-    .debug_bus      ( debug_bus      )
+    .debug_bus      ( debug_bus      ),
+    .debug_view     ( debug_view     )
 );
 
 `ifdef SIMULATION
@@ -613,6 +614,7 @@ u_game(
     .gfx_en      ( gfx_en         )
     `ifdef JTFRAME_DEBUG
     ,.debug_bus   ( debug_bus      )
+    ,.debug_view  ( debug_view     )
     `endif
 );
 

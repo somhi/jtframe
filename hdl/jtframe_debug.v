@@ -43,6 +43,7 @@ module jtframe_debug #(
     output reg [COLORW-1:0] bout,
     // debug features
     output reg [7:0] debug_bus,
+    input      [7:0] debug_view, // an 8-bit signal that will be shown over the game image
     output reg [3:0] gfx_en
 );
 
@@ -91,7 +92,7 @@ end
 
 // Video overlay
 reg [8:0] vcnt,hcnt;
-reg       lvbl_l, lhbl_l, osd_on;
+reg       lvbl_l, lhbl_l, osd_on, view_on;
 
 always @(posedge clk) if(pxl_cen) begin
     lvbl_l <= lvbl;
@@ -103,7 +104,8 @@ always @(posedge clk) if(pxl_cen) begin
     if(!lhbl)
         hcnt <= 0;
     else hcnt <= hcnt + 9'd1;
-    osd_on <= debug_bus != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
+    osd_on  <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
+    view_on <= debug_view != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
 end
 
 always @* begin
@@ -115,6 +117,19 @@ always @* begin
             rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
             gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
             bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+            if( hcnt[2:0]==4 || vcnt[2:0]==4 ) begin // always mark the center with a cross
+                rout[COLORW-1:COLORW-2] = 2'b11;
+                gout[COLORW-1:COLORW-2] = 2'b11;
+                bout[COLORW-1:COLORW-2] = 2'b11;
+            end
+        end
+    end
+
+    if( view_on ) begin
+        if( hcnt[2:0]!=0 ) begin
+            rout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
+            gout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
+            bout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
             if( hcnt[2:0]==4 || vcnt[2:0]==4 ) begin // always mark the center with a cross
                 rout[COLORW-1:COLORW-2] = 2'b11;
                 gout[COLORW-1:COLORW-2] = 2'b11;
