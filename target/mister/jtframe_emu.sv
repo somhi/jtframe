@@ -339,15 +339,15 @@ assign ba3_addr   = 0;
 
 wire [7:0] st_addr, st_dout;
 
-`ifndef COLORW
-`define COLORW 4
+`ifndef JTFRAME_COLORW
+`define JTFRAME_COLORW 4
 `endif
 
 `ifndef JTFRAME_BUTTONS
 `define JTFRAME_BUTTONS 2
 `endif
 
-localparam COLORW=`COLORW;
+localparam COLORW=`JTFRAME_COLORW;
 localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
 
 wire [COLORW-1:0] game_r, game_g, game_b;

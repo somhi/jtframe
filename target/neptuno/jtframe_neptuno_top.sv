@@ -171,15 +171,15 @@ wire [15:0] ba0_din;
 wire [ 1:0] ba0_din_m;
 wire [15:0] sdram_dout;
 
-`ifndef COLORW
-`define COLORW 4
+`ifndef JTFRAME_COLORW
+`define JTFRAME_COLORW 4
 `endif
 
 `ifndef MC2_PINS
     wire [3:0] BUTTON_n = 4'hf;
 `endif
 
-localparam COLORW=`COLORW;
+localparam COLORW=`JTFRAME_COLORW;
 
 wire [COLORW-1:0] red;
 wire [COLORW-1:0] green;

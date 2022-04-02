@@ -17,6 +17,7 @@ JTFRAME_CLK6             |         | Adds an additional clock input
 JTFRAME_CLK96            |         | Adds an additional clock input
 JTFRAME_CHEAT            |         | Enables the [cheat engine](cheat.md)
 JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
+JTFRAME_COLORW           |         | Sets the number of bits per color component (default=4)
 JTFRAME_DEBUG            |         | Enables the debug_bus signal connection to the game instance
 JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
 JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
