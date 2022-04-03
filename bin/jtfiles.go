@@ -235,7 +235,8 @@ func dump_jtmodules( mods []JTModule, all *[]string, rel bool ) {
 	for _,each := range(mods) {
 		if len(each.Name)>0 {
 			lower := strings.ToLower(each.Name)
-			lower = filepath.Join(lower,"hdl",lower+".qip")
+			lower = filepath.Join(lower,"hdl",lower+".yaml")
+
 			*all = append( *all, make_path(modpath,lower,rel) )
 		}
 	}
