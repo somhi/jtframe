@@ -83,8 +83,7 @@ real rnum = num2;
 real rden = den;
 initial begin
     if( rnum/rden<=4 ) begin
-        $display("Error: num2/den must be 4 or more, otherwise recovery won't work (%m)");
-        $finish;
+        $display("WARNING: num2/den must be 4 or more, otherwise recovery won't work (%m)");
     end
 end
 `endif
