@@ -102,7 +102,7 @@ always @(posedge clk) begin : dtack_gen
         end else if( !ASn ) begin
             if( cpu_cen  ) wait1 <= 0;
             if( !wait1 || cpu_cen ) begin
-                if( !bus_cs || (bus_cs && !bus_busy) ) begin
+                if( DSn!=3 && (!bus_cs || (bus_cs && !bus_busy)) ) begin
                     DTACKn <= 0;
                     halt <= 0;
                 end else begin
