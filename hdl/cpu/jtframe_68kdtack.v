@@ -74,9 +74,7 @@ reg wait1, halt=0, aux=0;
 wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
 wire over = (cencnt>den-num2)
             && !cpu_cen /*&& !aux*/ && (!halt || RECOVERY==0);
-reg  DSnl;
 reg  cen_act=0, risefall=0;
-wire DSn_posedge = &DSn & ~DSnl;
 
 `ifdef SIMULATION
 real rnum = num2;
@@ -94,8 +92,9 @@ always @(posedge clk) begin : dtack_gen
         wait1  <= 1;
         halt   <= 0;
     end else begin
-        DSnl <= &DSn;
-        if( ASn || DSn_posedge ) begin // DSn is needed for read-modify-write cycles
+        if( ASn | &DSn ) begin // DSn is needed for read-modify-write cycles
+               // performed on the SDRAM. Just checking the DSn rising edge
+               // is not enough on Rastan
             DTACKn <= 1;
             wait1  <= 1;
             halt   <= 0;
