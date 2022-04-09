@@ -41,7 +41,8 @@ JTFRAME_NO_DB15          | MiSTer  | Disables DB15 controller modules
 JTFRAME_NO_DB15_OSD      | MiSTer  | Disables OSD control via DB15 controller
 JTFRAME_OSD_FLIP         |         | flip option on OSD
 JTFRAME_OSD_NOCREDITS    |         | No credits option on OSD
-JTFRAME_OSD_NOLOAD       |         | No load option on OSD
+JTFRAME_OSD_NOLOAD       | MiST    | No load option on OSD (on by default on MiST)
+JTFRAME_OSD_LOAD         | MiSTer  | load option shown on OSD (off by default on MiSTer)
 JTFRAME_OSD_NOLOGO       |         | Disables the JT logo as OSD background
 JTFRAME_OSD_SND_EN       |         | OSD option to enable/disable FX and FM channels
 JTFRAME_OSD_TEST         |         | Test option on OSD

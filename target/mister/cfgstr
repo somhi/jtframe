@@ -1,5 +1,5 @@
 J{{.CORENAME}};;
-{{ if not .JTFRAME_OSD_NOLOAD }}    F,rom; {{ end }}
+{{ if .JTFRAME_OSD_LOAD }}    F,rom; {{ end }}
 {{ if .JTFRAME_MRA_DIP }}
     DIP;
 {{ else }}
