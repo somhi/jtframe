@@ -83,6 +83,9 @@ module jtframe_sdram64 #(
     // higher level. This makes it possible to short the pins
     // of the SDRAM, as done in the MiSTer 128MB module
     inout       [15:0]  sdram_dq,       // SDRAM Data bus 16 Bits
+    `ifdef VERILATOR // sdram_dq is used as input-only in Verilator sims
+    output      [15:0]  sdram_din,      // Data to be stored in SDRAM
+    `endif
     output reg  [12:0]  sdram_a,        // SDRAM Address bus 13 Bits
     output              sdram_dqml,     // SDRAM Low-byte Data Mask
     output              sdram_dqmh,     // SDRAM High-byte Data Mask
@@ -133,7 +136,6 @@ wire [ 3:0] pre_cmd;
 reg         prog_rst, prog_bg, other_rst, rfsh_rst;
 
 reg         rfsh_bg;
-reg  [15:0] dq_pad;
 reg  [ 1:0] dqm;
 wire [ 1:0] mask_mux;
 wire        all_dqm, prog_busy, pre_br;
@@ -155,8 +157,14 @@ assign {next_ba, next_cmd, next_a } =
                                { 2'd0, bx0_cmd, bx0_a } )))));
 
 assign prio     = prio_lfsr[1:0];
-assign sdram_dq = dq_pad;
 assign mask_mux = prog_en ? prog_din_m : din_m;
+
+`ifndef VERILATOR
+reg  [15:0] dq_pad;
+assign sdram_dq = dq_pad;
+`else
+assign sdram_din = prog_en ? prog_din : din;
+`endif
 
 always @(negedge clk) begin
     prog_rst  <= ~prog_en | init | rst;
@@ -182,7 +190,9 @@ always @(posedge clk) begin
     sdram_ba      <= next_ba;
     sdram_a[10:0] <= next_a[10:0];
 
+`ifndef VERILATOR
     dq_pad <= wr_cycle ? (prog_en ? prog_din : din) : 16'hzzzz;
+`endif
     if( MISTER ) begin
         if( next_cmd==CMD_ACTIVE )
             sdram_a[12:11] <= next_a[12:11];
@@ -190,7 +200,7 @@ always @(posedge clk) begin
             sdram_a[12:11] <= wr_cycle ? mask_mux : 2'd0;
     end else begin
         sdram_a[12:11] <= next_a[12:11];
-        dqm <= wr_cycle ? mask_mux : 0;
+        dqm <= wr_cycle ? mask_mux : 2'd0;
     end
 end
 

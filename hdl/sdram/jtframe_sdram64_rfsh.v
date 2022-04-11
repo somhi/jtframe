@@ -39,6 +39,7 @@ localparam STW  = 3+7-(HF==1? 0 : 4),
            RFRSH= HF?2:1;
 
 localparam CW=6;
+localparam [STW-1:0] ONE;
 
 //                             /CS /RAS /CAS /WE
 localparam CMD_LOAD_MODE   = 4'b0___0____0____0, // 0
@@ -105,7 +106,7 @@ always @(posedge clk, posedge rst) begin
                 if( !noreq ) begin
                     rfshing <= 0;
                 end else  begin
-                    st <= 1 << RFRSH; // do another refresh cycle as there are no requests
+                    st <= ONE << RFRSH; // do another refresh cycle as there are no requests
                 end
             end else begin
                 rfshing <= 0;

@@ -81,7 +81,7 @@ always @(posedge clk) begin
     if( delete_we ) rd_data <= dump_data;
 end
 
-wire [AW-1:0] wr_af = flip ? ~wr_addr + FLIP_OFFSET : wr_addr;
+wire [AW-1:0] wr_af = flip ? ~wr_addr + FLIP_OFFSET[AW-1:0] : wr_addr;
 
 jtframe_dual_ram #(.aw(AW+1),.dw(DW)) u_line(
     .clk0   ( clk           ),

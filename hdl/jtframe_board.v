@@ -615,6 +615,9 @@ jtframe_sdram64 #(
     .prog_ack   ( prog_ack      ),
     // SDRAM interface
     .sdram_dq   ( SDRAM_DQ      ),
+`ifdef VERILATOR // to avoid a warning
+    .sdram_din  (               ),
+`endif
     .sdram_a    ( SDRAM_A       ),
     .sdram_dqml ( SDRAM_DQML    ),
     .sdram_dqmh ( SDRAM_DQMH    ),

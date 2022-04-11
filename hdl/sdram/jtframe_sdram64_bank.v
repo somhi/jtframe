@@ -86,7 +86,7 @@ localparam IDLE    = 0,
            DTICKS  = BURSTLEN==64 ? 4 : (BURSTLEN==32?2:1),
            BUSY    = DST+(DTICKS-1),
            RDY     = DST + (BALEN==16 ? 0 : (BALEN==32? 1 : 3)),
-           STW     = BUSY + 1 + AUTOPRECH[0];
+           STW     = BUSY + 1 + {2'd0,AUTOPRECH[0]};
 
 //                             /CS /RAS /CAS /WE
 localparam CMD_LOAD_MODE   = 4'b0___0____0____0, // 0
@@ -98,6 +98,8 @@ localparam CMD_LOAD_MODE   = 4'b0___0____0____0, // 0
            CMD_STOP        = 4'b0___1____1____0, // 6 Burst terminate
            CMD_NOP         = 4'b0___1____1____1, // 7
            CMD_INHIBIT     = 4'b1___0____0____0; // 8
+
+localparam [STW-1:0] ONE   = 1;
 /*
 `ifdef SIMULATION
 initial begin
@@ -153,15 +155,15 @@ always @(*) begin
     next_st = st;
     if( st[IDLE] ) begin
         if(do_prech) next_st = rot_st;
-        if(do_act  ) next_st = 1<<ACT;
-        if(do_read ) next_st = 1<<READ;
+        if(do_act  ) next_st = ONE<<ACT;
+        if(do_read ) next_st = ONE<<READ;
     end
     if( ( st[PRE_RD]  && bg && !all_dqm            ) ||
         ( st[PRE_ACT] && bg && !all_dqm && !all_act) ||
         ( !st[IDLE] && !st[PRE_ACT] && !st[PRE_RD] ) )
           next_st = rot_st;
     if( st[READ] && wr && !AUTOPRECH)
-        next_st <= 1; // writes finish earlier
+        next_st = 1; // writes finish earlier
 end
 
 wire row_match = match && actd && !AUTOPRECH[0];

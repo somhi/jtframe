@@ -280,6 +280,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .ioctl_fileext      (                   ),
         .ioctl_filesize     (                   )
     );
+
+    assign JOY_SELECT=0;
 `else
     // Neptuno
     wire [8:0]  nept_controls;

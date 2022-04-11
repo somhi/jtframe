@@ -63,7 +63,9 @@ wire [DW-1:0] dim2, dim4;
 function [COLORW-1:0] ave;
     input [COLORW-1:0] a;
     input [COLORW-1:0] b;
-    ave = ({1'b0,a}+{1'b0,b})>>1;
+    reg   [COLORW:0] ab;
+    ab  = {1'b0,a}+{1'b0,b};
+    ave = ab[COLORW:1];
 endfunction
 
 function [DW-1:0] blend;

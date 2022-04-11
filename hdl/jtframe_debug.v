@@ -52,7 +52,7 @@ integer    cnt;
 reg  [3:0] last_gfx;
 reg        last_digit;
 
-wire [7:0] step = shift ? 16 : 1;
+wire [7:0] step = shift ? 8'd16 : 8'd1;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -92,10 +92,9 @@ end
 
 // Video overlay
 reg [8:0] vcnt,hcnt;
-reg       lvbl_l, lhbl_l, osd_on, view_on;
+reg       lhbl_l, osd_on, view_on;
 
 always @(posedge clk) if(pxl_cen) begin
-    lvbl_l <= lvbl;
     lhbl_l <= lhbl;
     if (!lvbl)
         vcnt <= 0;
