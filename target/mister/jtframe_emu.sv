@@ -327,14 +327,16 @@ wire [ 1:0] ba0_din_m;
 wire [15:0] sdram_dout;
 
 `ifndef JTFRAME_SDRAM_BANKS
-// tie down unused bank signals
-assign prog_data  = {2{prog_data8}};
-assign ba_rd[3:1] = 0;
-assign ba_wr      = 0;
-assign prog_ba    = 0;
-assign ba1_addr   = 0;
-assign ba2_addr   = 0;
-assign ba3_addr   = 0;
+    // tie down unused bank signals
+    assign prog_data  = {2{prog_data8}};
+    assign ba_rd[3:1] = 0;
+    assign ba_wr      = 0;
+    assign prog_ba    = 0;
+    assign ba1_addr   = 0;
+    assign ba2_addr   = 0;
+    assign ba3_addr   = 0;
+    assign ba0_din    = 0;
+    assign ba0_din_m  = 3;
 `endif
 
 wire [7:0] st_addr, st_dout;

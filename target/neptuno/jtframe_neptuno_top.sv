@@ -289,6 +289,20 @@ localparam DIPBASE=`JTFRAME_MIST_DIPBASE;
 localparam DIPBASE=16;
 `endif
 
+`ifndef JTFRAME_SDRAM_BANKS
+    assign prog_ba   = 2'd0;
+    // tie down unused bank signals
+    assign ba1_addr = 22'd0;
+    assign ba2_addr = 22'd0;
+    assign ba2_ack  = 0;
+    assign ba3_addr = 22'd0;
+    assign prog_data = {2{prog_data8}};
+    assign ba_rd[3:1] = 0;
+    assign ba_wr      = 0;
+    assign ba0_din    = 0;
+    assign ba0_din_m  = 3;
+`endif
+
 assign game_led[1] = 1'b0; // Let system LED info go through too
 
 localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
@@ -617,18 +631,6 @@ u_game(
     ,.debug_view  ( debug_view     )
     `endif
 );
-
-`ifndef JTFRAME_SDRAM_BANKS
-    assign prog_ba   = 2'd0;
-    // tie down unused bank signals
-    assign ba1_addr = 22'd0;
-    assign ba2_addr = 22'd0;
-    assign ba2_ack  = 0;
-    assign ba3_addr = 22'd0;
-    assign prog_data = {2{prog_data8}};
-    assign ba_rd[3:1] = 0;
-    assign ba_wr      = 0;
-`endif
 
 `ifdef SIMULATION
 integer fsnd;

@@ -24,6 +24,8 @@
 //      simhexfile => hexadecimal file to load during simulation
 //      synfile => hexadecimal file to load for synthesis
 
+/* verilator lint_off MULTIDRIVEN */
+
 module jtframe_dual_ram #(parameter dw=8, aw=10,
     simfile="", simhexfile="", synfile="", dumpfile="dump.hex"
 )(
@@ -161,5 +163,5 @@ always @(posedge dump) begin
 end
 `endif
 /* verilator lint_on WIDTH */
-
 endmodule
+/* verilator lint_on MULTIDRIVEN */

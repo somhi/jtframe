@@ -139,6 +139,8 @@ assign snd_right = snd_left;
     assign ba1_addr   = 0;
     assign ba2_addr   = 0;
     assign ba3_addr   = 0;
+    assign ba0_din    = 0;
+    assign ba0_din_m  = 3;
 `endif
 
 jtframe_mist_clocks u_clocks(
