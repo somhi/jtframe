@@ -236,8 +236,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .sd_din         ( 8'd0      )
     );
 `else
-    assign ypbpr = 0;
-    assign no_csync = 1;
+    assign ypbpr     = 0;
+    assign no_csync  = 1;
 `endif
 
 `else // these inputs are not used in simulation:
@@ -333,8 +333,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     assign joystick2[31:12]=0;
     assign joystick3 = 0;
     assign joystick4 = 0;
-    assign joystick_analog_0 = 0;
-    assign joystick_analog_1 = 0;
+    assign joyana_l1 = 0;
+    assign joyana_r1 = 0;
 `endif
 
 // OSD will only get simulated if SIMULATE_OSD is defined

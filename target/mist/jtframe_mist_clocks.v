@@ -49,7 +49,7 @@ module jtframe_mist_clocks(
     `define JTFRAME_GAMEPLL jtframe_pllgame
 `endif
 
-wire pll0_lock, pll1_lock, clk27;
+wire pll0_lock, pll1_lock, pll_base, clk27;
 
 assign pll_locked = pll0_lock & pll1_lock;
 
