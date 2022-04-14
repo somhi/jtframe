@@ -92,7 +92,7 @@ end
 
 // Video overlay
 reg [8:0] vcnt,hcnt;
-reg       lhbl_l, osd_on, view_on, bus_hex_on, view_hex_on;
+reg       lhbl_l, osd_on, view_on;
 
 always @(posedge clk) if(pxl_cen) begin
     lhbl_l <= lhbl;
@@ -105,36 +105,7 @@ always @(posedge clk) if(pxl_cen) begin
     else hcnt <= hcnt + 9'd1;
     osd_on  <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
     view_on <= debug_view != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
-    
-    bus_hex_on  <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
-    view_hex_on <= debug_view != 0 && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
 end
-
-reg [0:24] font [0:15]; // 5x5 font
-
-// TIC computer 6x6 font by nesbox
-// https://fontstruct.com/fontstructions/show/1334143/tic-computer-6x6-font
-initial begin
-    font[4'd0]  = 25'b01110_10011_10101_11001_01110;
-    font[4'd1]  = 25'b00100_01100_00100_00100_01110;
-    font[4'd2]  = 25'b11110_00001_01110_10000_11111;
-    font[4'd3]  = 25'b11111_00001_00110_10001_01110;
-    font[4'd4]  = 25'b00010_00110_01010_11111_00010;
-    font[4'd5]  = 25'b11111_10000_11110_00001_11110;
-    font[4'd6]  = 25'b01110_10000_11110_10001_01110;
-    font[4'd7]  = 25'b11111_00001_00010_00100_01000;
-    font[4'd8]  = 25'b01110_10001_01110_10001_01110;
-    font[4'd9]  = 25'b01110_10001_01111_00001_01110;
-    font[4'd10] = 25'b01110_10001_10001_11111_10001;
-    font[4'd11] = 25'b11110_10001_11110_10001_11110;
-    font[4'd12] = 25'b01111_10000_10000_10000_01111;
-    font[4'd13] = 25'b11110_10001_10001_10001_11110;
-    font[4'd14] = 25'b11111_10000_11110_10000_11111;
-    font[4'd15] = 25'b11111_10000_11110_10000_10000;
-end
-
-reg [3:0] display_nibble;
-reg [4:0] font_pixel;
 
 always @* begin
     rout = rin;
@@ -163,38 +134,6 @@ always @* begin
                 gout[COLORW-1:COLORW-2] = 2'b11;
                 bout[COLORW-1:COLORW-2] = 2'b11;
             end
-        end
-    end
-
-    if( bus_hex_on ) begin
-        if( hcnt[2:0] != 0 ) begin
-            rout[COLORW-1:COLORW-2] = 2'b11;
-            gout[COLORW-1:COLORW-2] = 2'b11;
-            bout[COLORW-1:COLORW-2] = 2'b11;
-        end
-        if( hcnt[2:0] >= 2 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
-            display_nibble = hcnt[3] ? debug_bus[3:0] : debug_bus[7:4];
-            font_pixel = ( vcnt[2:0] - 2 ) * 5 + ( hcnt[2:0] - 2 );
-            
-            rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
-            gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
-            bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
-        end
-    end
-
-    if( view_hex_on ) begin
-        if( hcnt[2:0] != 0 ) begin
-            rout[COLORW-1:COLORW-2] = 2'b11;
-            gout[COLORW-1:COLORW-2] = 2'b11;
-            bout[COLORW-1:COLORW-2] = 2'b11;
-        end
-        if( hcnt[2:0] >= 2 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
-            display_nibble = hcnt[3] ? debug_view[3:0] : debug_view[7:4];
-            font_pixel = ( vcnt[2:0] - 2 ) * 5 + ( hcnt[2:0] - 2 );
-            
-            rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
-            gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
-            bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble ][ font_pixel ] }};
         end
     end
 end
