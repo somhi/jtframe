@@ -11,7 +11,7 @@ set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) r
 
 # PLLs
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pllgame/jtframe_pllgame.qip      ]
-# set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pllgame96/jtframe_pllgame96.qip  ]
+set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pllgame96/jtframe_pllgame96.qip  ]
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pll6000/jtframe_pll6000.qip ]
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pll6144/jtframe_pll6144.qip ]
 set_global_assignment -name QIP_FILE [file join $::quartus(qip_path) pll6293/jtframe_pll6293.qip ]
