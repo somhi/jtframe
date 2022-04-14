@@ -531,7 +531,9 @@ cyclonev_hps_interface_interrupts interrupts
 
 ///////////////////////////  RESET  ///////////////////////////////////
 
-reg reset_req = 0;
+reg        reset_req = 0;
+reg  [1:0] reset_na;
+
 always @(posedge FPGA_CLK2_50) begin
 	reg [1:0] resetd, resetd2;
 	reg       old_reset;
@@ -547,6 +549,10 @@ always @(posedge FPGA_CLK2_50) begin
 
 	resetd  <= gp_out[31:30];
 	resetd2 <= resetd;
+end
+
+always @(posedge FPGA_CLK1_50) begin
+	reset_na <= { reset_na[0], ~reset_req };
 end
 
 ////////////////////  SYSTEM MEMORY & SCALER  /////////////////////////
@@ -929,7 +935,7 @@ wire [15:0] lltune;
 pll_hdmi_adj pll_hdmi_adj
 (
 	.clk(FPGA_CLK1_50),
-	.reset_na(~reset_req),
+	.reset_na( reset_na[1] ),
 
 	.llena(lowlat),
 	.lltune({16{hdmi_config_done | cfg_dis}} & lltune),

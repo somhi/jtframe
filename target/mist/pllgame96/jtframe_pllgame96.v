@@ -4,7 +4,7 @@
 // MODULE: altpll 
 
 // ============================================================
-// File Name: plls16.v
+// File Name: jtframe_pllgame96.v
 // Megafunction Name(s):
 // 			altpll
 //
@@ -36,7 +36,8 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module plls16 (
+module jtframe_pllgame96 (
+	areset,
 	inclk0,
 	c0,
 	c1,
@@ -45,6 +46,7 @@ module plls16 (
 	c4,
 	locked);
 
+	input	  areset;
 	input	  inclk0;
 	output	  c0;
 	output	  c1;
@@ -52,30 +54,37 @@ module plls16 (
 	output	  c3;
 	output	  c4;
 	output	  locked;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_off
+`endif
+	tri0	  areset;
+`ifndef ALTERA_RESERVED_QIS
+// synopsys translate_on
+`endif
 
 	wire [4:0] sub_wire0;
-	wire  sub_wire3;
+	wire  sub_wire6;
 	wire [0:0] sub_wire9 = 1'h0;
-	wire [4:4] sub_wire6 = sub_wire0[4:4];
-	wire [2:2] sub_wire5 = sub_wire0[2:2];
-	wire [0:0] sub_wire4 = sub_wire0[0:0];
-	wire [3:3] sub_wire2 = sub_wire0[3:3];
+	wire [3:3] sub_wire5 = sub_wire0[3:3];
+	wire [4:4] sub_wire4 = sub_wire0[4:4];
+	wire [2:2] sub_wire3 = sub_wire0[2:2];
+	wire [0:0] sub_wire2 = sub_wire0[0:0];
 	wire [1:1] sub_wire1 = sub_wire0[1:1];
 	wire  c1 = sub_wire1;
-	wire  c3 = sub_wire2;
-	wire  locked = sub_wire3;
-	wire  c0 = sub_wire4;
-	wire  c2 = sub_wire5;
-	wire  c4 = sub_wire6;
+	wire  c0 = sub_wire2;
+	wire  c2 = sub_wire3;
+	wire  c4 = sub_wire4;
+	wire  c3 = sub_wire5;
+	wire  locked = sub_wire6;
 	wire  sub_wire7 = inclk0;
 	wire [1:0] sub_wire8 = {sub_wire9, sub_wire7};
 
 	altpll	altpll_component (
+				.areset (areset),
 				.inclk (sub_wire8),
 				.clk (sub_wire0),
-				.locked (sub_wire3),
+				.locked (sub_wire6),
 				.activeclock (),
-				.areset (1'b0),
 				.clkbad (),
 				.clkena ({6{1'b1}}),
 				.clkloss (),
@@ -110,35 +119,35 @@ module plls16 (
 				.vcounderrange ());
 	defparam
 		altpll_component.bandwidth_type = "AUTO",
-		altpll_component.clk0_divide_by = 37,
+		altpll_component.clk0_divide_by = 1,
 		altpll_component.clk0_duty_cycle = 50,
-		altpll_component.clk0_multiply_by = 69,
+		altpll_component.clk0_multiply_by = 2,
 		altpll_component.clk0_phase_shift = "0",
-		altpll_component.clk1_divide_by = 37,
+		altpll_component.clk1_divide_by = 1,
 		altpll_component.clk1_duty_cycle = 50,
-		altpll_component.clk1_multiply_by = 69,
+		altpll_component.clk1_multiply_by = 1,
 		altpll_component.clk1_phase_shift = "0",
-		altpll_component.clk2_divide_by = 37,
+		altpll_component.clk2_divide_by = 1,
 		altpll_component.clk2_duty_cycle = 50,
-		altpll_component.clk2_multiply_by = 69,
-		altpll_component.clk2_phase_shift = "6000",
-		altpll_component.clk3_divide_by = 74,
+		altpll_component.clk2_multiply_by = 2,
+		altpll_component.clk2_phase_shift = "-1000",
+		altpll_component.clk3_divide_by = 2,
 		altpll_component.clk3_duty_cycle = 50,
-		altpll_component.clk3_multiply_by = 69,
+		altpll_component.clk3_multiply_by = 1,
 		altpll_component.clk3_phase_shift = "0",
-		altpll_component.clk4_divide_by = 296,
+		altpll_component.clk4_divide_by = 8,
 		altpll_component.clk4_duty_cycle = 50,
-		altpll_component.clk4_multiply_by = 69,
+		altpll_component.clk4_multiply_by = 1,
 		altpll_component.clk4_phase_shift = "0",
 		altpll_component.compensate_clock = "CLK0",
-		altpll_component.inclk0_input_frequency = 37037,
+		altpll_component.inclk0_input_frequency = 20833,
 		altpll_component.intended_device_family = "Cyclone III",
-		altpll_component.lpm_hint = "CBX_MODULE_PREFIX=plls16",
+		altpll_component.lpm_hint = "CBX_MODULE_PREFIX=jtframe_pllgame96",
 		altpll_component.lpm_type = "altpll",
 		altpll_component.operation_mode = "NORMAL",
 		altpll_component.pll_type = "AUTO",
 		altpll_component.port_activeclock = "PORT_UNUSED",
-		altpll_component.port_areset = "PORT_UNUSED",
+		altpll_component.port_areset = "PORT_USED",
 		altpll_component.port_clkbad0 = "PORT_UNUSED",
 		altpll_component.port_clkbad1 = "PORT_UNUSED",
 		altpll_component.port_clkloss = "PORT_UNUSED",
@@ -203,21 +212,21 @@ endmodule
 // Retrieval info: PRIVATE: CUR_DEDICATED_CLK STRING "c0"
 // Retrieval info: PRIVATE: CUR_FBIN_CLK STRING "c0"
 // Retrieval info: PRIVATE: DEVICE_SPEED_GRADE STRING "8"
-// Retrieval info: PRIVATE: DIV_FACTOR0 NUMERIC "37"
-// Retrieval info: PRIVATE: DIV_FACTOR1 NUMERIC "37"
-// Retrieval info: PRIVATE: DIV_FACTOR2 NUMERIC "37"
-// Retrieval info: PRIVATE: DIV_FACTOR3 NUMERIC "74"
-// Retrieval info: PRIVATE: DIV_FACTOR4 NUMERIC "296"
+// Retrieval info: PRIVATE: DIV_FACTOR0 NUMERIC "1"
+// Retrieval info: PRIVATE: DIV_FACTOR1 NUMERIC "1"
+// Retrieval info: PRIVATE: DIV_FACTOR2 NUMERIC "1"
+// Retrieval info: PRIVATE: DIV_FACTOR3 NUMERIC "2"
+// Retrieval info: PRIVATE: DIV_FACTOR4 NUMERIC "8"
 // Retrieval info: PRIVATE: DUTY_CYCLE0 STRING "50.00000000"
 // Retrieval info: PRIVATE: DUTY_CYCLE1 STRING "50.00000000"
 // Retrieval info: PRIVATE: DUTY_CYCLE2 STRING "50.00000000"
 // Retrieval info: PRIVATE: DUTY_CYCLE3 STRING "50.00000000"
 // Retrieval info: PRIVATE: DUTY_CYCLE4 STRING "50.00000000"
-// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE0 STRING "50.351353"
-// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE1 STRING "50.351353"
-// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE2 STRING "50.351353"
-// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE3 STRING "25.175676"
-// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE4 STRING "6.293919"
+// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE0 STRING "96.000000"
+// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE1 STRING "48.000000"
+// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE2 STRING "96.000000"
+// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE3 STRING "24.000000"
+// Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE4 STRING "6.000000"
 // Retrieval info: PRIVATE: EXPLICIT_SWITCHOVER_COUNTER STRING "0"
 // Retrieval info: PRIVATE: EXT_FEEDBACK_RADIO STRING "0"
 // Retrieval info: PRIVATE: GLOCKED_COUNTER_EDIT_CHANGED STRING "1"
@@ -225,7 +234,7 @@ endmodule
 // Retrieval info: PRIVATE: GLOCKED_MODE_CHECK STRING "0"
 // Retrieval info: PRIVATE: GLOCK_COUNTER_EDIT NUMERIC "1048575"
 // Retrieval info: PRIVATE: HAS_MANUAL_SWITCHOVER STRING "1"
-// Retrieval info: PRIVATE: INCLK0_FREQ_EDIT STRING "27.000"
+// Retrieval info: PRIVATE: INCLK0_FREQ_EDIT STRING "48.000"
 // Retrieval info: PRIVATE: INCLK0_FREQ_UNIT_COMBO STRING "MHz"
 // Retrieval info: PRIVATE: INCLK1_FREQ_EDIT STRING "100.000"
 // Retrieval info: PRIVATE: INCLK1_FREQ_EDIT_CHANGED STRING "1"
@@ -248,13 +257,13 @@ endmodule
 // Retrieval info: PRIVATE: MIRROR_CLK2 STRING "0"
 // Retrieval info: PRIVATE: MIRROR_CLK3 STRING "0"
 // Retrieval info: PRIVATE: MIRROR_CLK4 STRING "0"
-// Retrieval info: PRIVATE: MULT_FACTOR0 NUMERIC "69"
-// Retrieval info: PRIVATE: MULT_FACTOR1 NUMERIC "69"
-// Retrieval info: PRIVATE: MULT_FACTOR2 NUMERIC "69"
-// Retrieval info: PRIVATE: MULT_FACTOR3 NUMERIC "69"
-// Retrieval info: PRIVATE: MULT_FACTOR4 NUMERIC "69"
+// Retrieval info: PRIVATE: MULT_FACTOR0 NUMERIC "2"
+// Retrieval info: PRIVATE: MULT_FACTOR1 NUMERIC "1"
+// Retrieval info: PRIVATE: MULT_FACTOR2 NUMERIC "2"
+// Retrieval info: PRIVATE: MULT_FACTOR3 NUMERIC "1"
+// Retrieval info: PRIVATE: MULT_FACTOR4 NUMERIC "1"
 // Retrieval info: PRIVATE: NORMAL_MODE_RADIO STRING "1"
-// Retrieval info: PRIVATE: OUTPUT_FREQ0 STRING "25.00000000"
+// Retrieval info: PRIVATE: OUTPUT_FREQ0 STRING "100.00000000"
 // Retrieval info: PRIVATE: OUTPUT_FREQ1 STRING "100.00000000"
 // Retrieval info: PRIVATE: OUTPUT_FREQ2 STRING "100.00000000"
 // Retrieval info: PRIVATE: OUTPUT_FREQ3 STRING "100.00000000"
@@ -273,7 +282,7 @@ endmodule
 // Retrieval info: PRIVATE: PHASE_RECONFIG_INPUTS_CHECK STRING "0"
 // Retrieval info: PRIVATE: PHASE_SHIFT0 STRING "0.00000000"
 // Retrieval info: PRIVATE: PHASE_SHIFT1 STRING "0.00000000"
-// Retrieval info: PRIVATE: PHASE_SHIFT2 STRING "6.00000000"
+// Retrieval info: PRIVATE: PHASE_SHIFT2 STRING "-1.00000000"
 // Retrieval info: PRIVATE: PHASE_SHIFT3 STRING "0.00000000"
 // Retrieval info: PRIVATE: PHASE_SHIFT4 STRING "0.00000000"
 // Retrieval info: PRIVATE: PHASE_SHIFT_STEP_ENABLED_CHECK STRING "0"
@@ -283,7 +292,7 @@ endmodule
 // Retrieval info: PRIVATE: PHASE_SHIFT_UNIT3 STRING "deg"
 // Retrieval info: PRIVATE: PHASE_SHIFT_UNIT4 STRING "deg"
 // Retrieval info: PRIVATE: PLL_ADVANCED_PARAM_CHECK STRING "0"
-// Retrieval info: PRIVATE: PLL_ARESET_CHECK STRING "0"
+// Retrieval info: PRIVATE: PLL_ARESET_CHECK STRING "1"
 // Retrieval info: PRIVATE: PLL_AUTOPLL_CHECK NUMERIC "1"
 // Retrieval info: PRIVATE: PLL_ENHPLL_CHECK NUMERIC "0"
 // Retrieval info: PRIVATE: PLL_FASTPLL_CHECK NUMERIC "0"
@@ -292,7 +301,7 @@ endmodule
 // Retrieval info: PRIVATE: PLL_PFDENA_CHECK STRING "0"
 // Retrieval info: PRIVATE: PLL_TARGET_HARCOPY_CHECK NUMERIC "0"
 // Retrieval info: PRIVATE: PRIMARY_CLK_COMBO STRING "inclk0"
-// Retrieval info: PRIVATE: RECONFIG_FILE STRING "plls16.mif"
+// Retrieval info: PRIVATE: RECONFIG_FILE STRING "jtframe_pllgame96.mif"
 // Retrieval info: PRIVATE: SACN_INPUTS_CHECK STRING "0"
 // Retrieval info: PRIVATE: SCAN_FEATURE_ENABLED STRING "1"
 // Retrieval info: PRIVATE: SELF_RESET_LOCK_LOSS STRING "0"
@@ -325,34 +334,34 @@ endmodule
 // Retrieval info: PRIVATE: ZERO_DELAY_RADIO STRING "0"
 // Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 // Retrieval info: CONSTANT: BANDWIDTH_TYPE STRING "AUTO"
-// Retrieval info: CONSTANT: CLK0_DIVIDE_BY NUMERIC "37"
+// Retrieval info: CONSTANT: CLK0_DIVIDE_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK0_DUTY_CYCLE NUMERIC "50"
-// Retrieval info: CONSTANT: CLK0_MULTIPLY_BY NUMERIC "69"
+// Retrieval info: CONSTANT: CLK0_MULTIPLY_BY NUMERIC "2"
 // Retrieval info: CONSTANT: CLK0_PHASE_SHIFT STRING "0"
-// Retrieval info: CONSTANT: CLK1_DIVIDE_BY NUMERIC "37"
+// Retrieval info: CONSTANT: CLK1_DIVIDE_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK1_DUTY_CYCLE NUMERIC "50"
-// Retrieval info: CONSTANT: CLK1_MULTIPLY_BY NUMERIC "69"
+// Retrieval info: CONSTANT: CLK1_MULTIPLY_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK1_PHASE_SHIFT STRING "0"
-// Retrieval info: CONSTANT: CLK2_DIVIDE_BY NUMERIC "37"
+// Retrieval info: CONSTANT: CLK2_DIVIDE_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK2_DUTY_CYCLE NUMERIC "50"
-// Retrieval info: CONSTANT: CLK2_MULTIPLY_BY NUMERIC "69"
-// Retrieval info: CONSTANT: CLK2_PHASE_SHIFT STRING "6000"
-// Retrieval info: CONSTANT: CLK3_DIVIDE_BY NUMERIC "74"
+// Retrieval info: CONSTANT: CLK2_MULTIPLY_BY NUMERIC "2"
+// Retrieval info: CONSTANT: CLK2_PHASE_SHIFT STRING "-1000"
+// Retrieval info: CONSTANT: CLK3_DIVIDE_BY NUMERIC "2"
 // Retrieval info: CONSTANT: CLK3_DUTY_CYCLE NUMERIC "50"
-// Retrieval info: CONSTANT: CLK3_MULTIPLY_BY NUMERIC "69"
+// Retrieval info: CONSTANT: CLK3_MULTIPLY_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK3_PHASE_SHIFT STRING "0"
-// Retrieval info: CONSTANT: CLK4_DIVIDE_BY NUMERIC "296"
+// Retrieval info: CONSTANT: CLK4_DIVIDE_BY NUMERIC "8"
 // Retrieval info: CONSTANT: CLK4_DUTY_CYCLE NUMERIC "50"
-// Retrieval info: CONSTANT: CLK4_MULTIPLY_BY NUMERIC "69"
+// Retrieval info: CONSTANT: CLK4_MULTIPLY_BY NUMERIC "1"
 // Retrieval info: CONSTANT: CLK4_PHASE_SHIFT STRING "0"
 // Retrieval info: CONSTANT: COMPENSATE_CLOCK STRING "CLK0"
-// Retrieval info: CONSTANT: INCLK0_INPUT_FREQUENCY NUMERIC "37037"
+// Retrieval info: CONSTANT: INCLK0_INPUT_FREQUENCY NUMERIC "20833"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone III"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "altpll"
 // Retrieval info: CONSTANT: OPERATION_MODE STRING "NORMAL"
 // Retrieval info: CONSTANT: PLL_TYPE STRING "AUTO"
 // Retrieval info: CONSTANT: PORT_ACTIVECLOCK STRING "PORT_UNUSED"
-// Retrieval info: CONSTANT: PORT_ARESET STRING "PORT_UNUSED"
+// Retrieval info: CONSTANT: PORT_ARESET STRING "PORT_USED"
 // Retrieval info: CONSTANT: PORT_CLKBAD0 STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: PORT_CLKBAD1 STRING "PORT_UNUSED"
 // Retrieval info: CONSTANT: PORT_CLKLOSS STRING "PORT_UNUSED"
@@ -395,6 +404,7 @@ endmodule
 // Retrieval info: CONSTANT: SELF_RESET_ON_LOSS_LOCK STRING "OFF"
 // Retrieval info: CONSTANT: WIDTH_CLOCK NUMERIC "5"
 // Retrieval info: USED_PORT: @clk 0 0 5 0 OUTPUT_CLK_EXT VCC "@clk[4..0]"
+// Retrieval info: USED_PORT: areset 0 0 0 0 INPUT GND "areset"
 // Retrieval info: USED_PORT: c0 0 0 0 0 OUTPUT_CLK_EXT VCC "c0"
 // Retrieval info: USED_PORT: c1 0 0 0 0 OUTPUT_CLK_EXT VCC "c1"
 // Retrieval info: USED_PORT: c2 0 0 0 0 OUTPUT_CLK_EXT VCC "c2"
@@ -402,6 +412,7 @@ endmodule
 // Retrieval info: USED_PORT: c4 0 0 0 0 OUTPUT_CLK_EXT VCC "c4"
 // Retrieval info: USED_PORT: inclk0 0 0 0 0 INPUT_CLK_EXT GND "inclk0"
 // Retrieval info: USED_PORT: locked 0 0 0 0 OUTPUT GND "locked"
+// Retrieval info: CONNECT: @areset 0 0 0 0 areset 0 0 0 0
 // Retrieval info: CONNECT: @inclk 0 0 1 1 GND 0 0 0 0
 // Retrieval info: CONNECT: @inclk 0 0 1 0 inclk0 0 0 0 0
 // Retrieval info: CONNECT: c0 0 0 0 0 @clk 0 0 1 0
@@ -410,12 +421,12 @@ endmodule
 // Retrieval info: CONNECT: c3 0 0 0 0 @clk 0 0 1 3
 // Retrieval info: CONNECT: c4 0 0 0 0 @clk 0 0 1 4
 // Retrieval info: CONNECT: locked 0 0 0 0 @locked 0 0 0 0
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16.v TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16.ppf TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16.inc FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16.cmp FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16.bsf FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16_inst.v FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL plls16_bb.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96.ppf TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96.inc FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96.cmp FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96.bsf FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96_inst.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL jtframe_pllgame96_bb.v TRUE
 // Retrieval info: LIB_FILE: altera_mf
 // Retrieval info: CBX_MODULE_PREFIX: ON
