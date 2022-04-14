@@ -50,8 +50,20 @@ Games can move these frequencies by replacing the PLL (using the **JTFRAME_PLL**
 
 JTFRAME_PLL     |    Base clock    | Pixel clocks  | Used on
 ----------------|------------------|---------------|-------------
-Default         |    48/96         | 8 and 6 MHz   | Most JT cores
-jtframe_pll6144 |    49.152        | 6.144 %       | JTKICKER, JTTWIN16
-plls16          |    50.3496       | 6.2937        | JTS16
+jtframe_pll6000 |    48/96         | 8 and 6 MHz   | Most JT cores. Used by default
+jtframe_pll6144 |    49.152        | 6.144         | JTKICKER, JTTWIN16
+jtframe_pll6293 |    50.3496       | 6.2937        | JTS16
+jtframe_pll6671 |    53.372        | 6.671         | JTRASTAN
 
-% JTFRAME_CLK96 not supported by this PLL
+For example, to use a 6.144 MHz pixel clock use `JTFRAME_PLL=jtframe_pll6144` in the .def file.
+
+The game module input clocks are multiples of the base clock:
+
+ clock input | Default  | jtframe_pll6144
+-------------|----------|------------------
+clk          |  48      |   49.152
+clk96        |  96      |   98.304
+clk48        |  48      |   49.152
+clk24        |  24      |   24.576
+clk6         |   6      |    6.144
+

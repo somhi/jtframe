@@ -198,7 +198,8 @@ always @(posedge clk_sys or posedge sRESET[1]) begin : pll_controller
 end
 
 `ifndef JTFRAME_PLL
-    `define JTFRAME_PLL pll
+    // Selects the 6 MHz PLL by default
+    `define JTFRAME_PLL jtframe_pll6000
 `endif
 
 `ifdef JTFRAME_CLK96
