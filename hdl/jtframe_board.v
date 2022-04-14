@@ -338,7 +338,7 @@ jtframe_keyboard u_keyboard(
             .debug_view  ( debug_view    )
         );
     `else
-        assign gfx_en    = ~0;
+        assign gfx_en    = 4'b1111;
         assign debug_bus =  0;
         assign dbg_r = pre2x_r;
         assign dbg_g = pre2x_g;

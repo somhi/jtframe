@@ -197,6 +197,12 @@ end
     `define JTFRAME_PLL pll
 `endif
 
+`ifdef JTFRAME_CLK96
+    `define JTFRAME_USEC0
+`elsif JTFRAME_SDRAM96
+    `define JTFRAME_USEC0
+`endif
+
 `JTFRAME_PLL pll(
     .refclk     ( CLK_50M    ),
     .rst        ( pll_rst    ),
@@ -204,16 +210,25 @@ end
     .outclk_0   ( clk48      ),
     .outclk_1   ( clk48sh    ),
     .outclk_2   ( clk24      ),
-    .outclk_3   ( clk6       ),
-    .outclk_4   ( clk96      ),
-    .outclk_5   ( clk96sh    )
+    .outclk_3   ( clk6       )
+`ifdef JTFRAME_USEC0
+    ,.outclk_4   ( clk96      )
+    ,.outclk_5   ( clk96sh    )
+`endif
 );
 
-jtframe_rst_sync u_reset96(
-    .rst        ( game_rst  ),
-    .clk        ( clk96     ),
-    .rst_sync   ( rst96     )
-);
+`ifdef JTFRAME_USEC0
+    jtframe_rst_sync u_reset96(
+        .rst        ( game_rst  ),
+        .clk        ( clk96     ),
+        .rst_sync   ( rst96     )
+    );
+`else
+    assign clk96 = 0;
+    assign rst96 = 1;
+`endif
+
+`undef JTFRAME_USEC0
 
 jtframe_rst_sync u_reset48(
     .rst        ( game_rst  ),

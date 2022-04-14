@@ -46,4 +46,12 @@ clk_pico  | picoBlaze clock         | 48MHz
 clk_rom is controlled by the macros **JTFRAME_SDRAM96**
 clk_sys is normally 48MHz, even if clk_rom is 96MHz. It can be set to 96MHz with **JTFRAME_CLK96**.
 
-Games can move these frequencies by replacing the PLL (using the **JTFRAME_PLL** macro) but the changes should be within ±10% of the expected values. So far, only System16 moves these frequencies from 48MHz to ~50MHz
+Games can move these frequencies by replacing the PLL (using the **JTFRAME_PLL** macro) but the changes should be within ±10% of the expected values.
+
+JTFRAME_PLL     |    Base clock    | Pixel clocks  | Used on
+----------------|------------------|---------------|-------------
+Default         |    48/96         | 8 and 6 MHz   | Most JT cores
+jtframe_pll6144 |    49.152        | 6.144 %       | JTKICKER, JTTWIN16
+plls16          |    50.3496       | 6.2937        | JTS16
+
+% JTFRAME_CLK96 not supported by this PLL

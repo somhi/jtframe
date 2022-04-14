@@ -43,7 +43,7 @@ localparam POL = 0;
         if( rst ) begin
             fcnt <= 0;
         end else begin
-            if( !LVBL && last_LVBL ) fcnt <= fcnt+1;
+            if( !LVBL && last_LVBL ) fcnt <= fcnt+7'd1;
         end
     end
 `else

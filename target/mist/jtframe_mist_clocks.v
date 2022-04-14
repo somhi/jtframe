@@ -62,18 +62,29 @@ assign pll_locked = pll0_lock & pll1_lock;
     assign pll0_lock = 1;
 `endif
 
+`ifdef JTFRAME_CLK96
+    `define JTFRAME_USEC0
+`elsif JTFRAME_SDRAM96
+    `define JTFRAME_USEC0
+`endif
+
 // clk_rom is used for SDRAM access
 // clk_sys is for video
 // clk96, clk24 and clk6 inputs to the core can be enabled via macros
 `JTFRAME_PLL u_pll_game (
     .inclk0 ( clk27       ),
+`ifdef JTFRAME_USEC0
     .c0     ( clk96       ),
+`endif
     .c1     ( clk48       ), // 48 MHz
     .c2     ( SDRAM_CLK   ), // 96 or 48 MHz shifted
     .c3     ( clk24       ),
     .c4     ( clk6        ),
     .locked ( pll1_lock   )
 );
+
+`undef JTFRAME_USEC0
+
 `ifdef JTFRAME_SDRAM96
     assign clk_rom = clk96;
 `else
