@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file path="jtframe_pllgame_sim/jtframe_pllgame.vo" type="VERILOG" />
+ <topLevel name="jtframe_pllgame" />
+ <deviceFamily name="cyclonev" />
+</simPackage>

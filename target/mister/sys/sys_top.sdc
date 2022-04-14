@@ -62,6 +62,15 @@ set_false_path -from {ascal|o_vdown}
 # JTFRAME
 set_false_path -from {*u_dip|enable_psg*}
 set_false_path -from {*u_dip|enable_fm*}
+set_false_path -to [get_keepers {audio_out:audio_out|cl1[*]}]
+set_false_path -to [get_keepers {audio_out:audio_out|cr1[*]}]
+set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|dout[*]}]
+set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_de}]
+set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_hs}]
+set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_vs}]
+
+set_false_path -from emu:emu|jtframe_mister:u_frame|jtframe_joymux:u_joymux|show_osd -to deb_osd[0]
+set_false_path -from emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_led:u_led|led -to mcp23009:mcp23009|din[0]
 
 # Reset synchronization signal
 set_false_path -from [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom[0]}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom_sync}]

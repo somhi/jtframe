@@ -163,20 +163,24 @@ wire [3:0] hoffset, voffset;
 
 ////////////////////   CLOCKS   ///////////////////
 
-wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6;
+wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6,
+     pll_base;
 wire game_rst, game_service, rst, rst_n;
 wire clk_pico;
 wire pxl2_cen, pxl_cen;
 wire rst96, rst48, rst24, rst6;
-wire pll_locked;
+wire pll_locked, base_locked;
 reg  pll_rst = 1'b0;
+wire [1:0] sRESET;
 
 // Resets the PLL if it looses lock
-always @(posedge clk_sys or posedge RESET) begin : pll_controller
+always @(posedge clk_sys) sRESET <= { sRESET[0], RESET };
+
+always @(posedge clk_sys or posedge sRESET[1]) begin : pll_controller
     reg last_locked;
     reg [7:0] rst_cnt;
 
-    if( RESET ) begin
+    if( sRESET[1] ) begin
         pll_rst <= 1'b0;
         rst_cnt <= 8'hd0;
     end else begin
@@ -203,18 +207,27 @@ end
     `define JTFRAME_USEC0
 `endif
 
-`JTFRAME_PLL pll(
-    .refclk     ( CLK_50M    ),
+// The first PLL should produce a frequency
+// around 48MHz
+
+`JTFRAME_PLL u_base(
+    .refclk     ( CLK_50M     ),
+    .rst        ( pll_rst     ),
+    .locked     ( base_locked ),
+    .outclk_0   ( pll_base    ),
+);
+
+// The second PLL produces 2x, 1x, /2 and /8
+jtframe_pllgame pll(
+    .refclk     ( pll_base   ),
     .rst        ( pll_rst    ),
     .locked     ( pll_locked ),
     .outclk_0   ( clk48      ),
     .outclk_1   ( clk48sh    ),
     .outclk_2   ( clk24      ),
-    .outclk_3   ( clk6       )
-`ifdef JTFRAME_USEC0
-    ,.outclk_4   ( clk96      )
-    ,.outclk_5   ( clk96sh    )
-`endif
+    .outclk_3   ( clk6       ),
+    .outclk_4   ( clk96      ),
+    .outclk_5   ( clk96sh    )
 );
 
 `ifdef JTFRAME_USEC0

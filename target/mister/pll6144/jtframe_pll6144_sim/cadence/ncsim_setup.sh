@@ -12,7 +12,7 @@
 # or its authorized distributors. Please refer to the applicable 
 # agreement for further details.
 
-# ACDS 20.1 720 linux 2022.04.14.12:26:15
+# ACDS 20.1 720 linux 2022.04.14.15:16:54
 
 # ----------------------------------------
 # ncsim - auto-generated simulation script
@@ -106,7 +106,7 @@
 # within the Quartus project, and generate a unified
 # script which supports all the Altera IP within the design.
 # ----------------------------------------
-# ACDS 20.1 720 linux 2022.04.14.12:26:15
+# ACDS 20.1 720 linux 2022.04.14.15:16:54
 # ----------------------------------------
 # initialize variables
 TOP_LEVEL_NAME="jtframe_pll6144"
