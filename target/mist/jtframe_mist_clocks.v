@@ -40,11 +40,13 @@ module jtframe_mist_clocks(
 );
 
 `ifndef JTFRAME_PLL
-    `ifdef JTFRAME_SDRAM96
-        `define JTFRAME_PLL jtframe_pll96
-    `else
-        `define JTFRAME_PLL jtframe_pll0
-    `endif
+    `define JTFRAME_PLL jtframe_pll6000
+`endif
+
+`ifdef JTFRAME_SDRAM96
+    `define JTFRAME_GAMEPLL jtframe_pllgame96
+`else
+    `define JTFRAME_GAMEPLL jtframe_pllgame
 `endif
 
 wire pll0_lock, pll1_lock, clk27;
@@ -62,28 +64,24 @@ assign pll_locked = pll0_lock & pll1_lock;
     assign pll0_lock = 1;
 `endif
 
-`ifdef JTFRAME_CLK96
-    `define JTFRAME_USEC0
-`elsif JTFRAME_SDRAM96
-    `define JTFRAME_USEC0
-`endif
+ `JTFRAME_PLL u_basepll(
+    .inclk0 ( clk27     ),
+    .c0     ( pll_base  ),
+    .locked (           )
+);
 
 // clk_rom is used for SDRAM access
 // clk_sys is for video
 // clk96, clk24 and clk6 inputs to the core can be enabled via macros
-`JTFRAME_PLL u_pll_game (
-    .inclk0 ( clk27       ),
-`ifdef JTFRAME_USEC0
+`JTFRAME_GAMEPLL u_pll_game (
+    .inclk0 ( pll_base    ),
     .c0     ( clk96       ),
-`endif
     .c1     ( clk48       ), // 48 MHz
     .c2     ( SDRAM_CLK   ), // 96 or 48 MHz shifted
     .c3     ( clk24       ),
     .c4     ( clk6        ),
     .locked ( pll1_lock   )
 );
-
-`undef JTFRAME_USEC0
 
 `ifdef JTFRAME_SDRAM96
     assign clk_rom = clk96;
