@@ -124,7 +124,7 @@ always @(posedge clk_sys) begin
             dwn_done <= 1;
         end
         if ( cntdown!=0 ) begin
-            cntdown <= cntdown-1;
+            cntdown <= cntdown-1'd1;
             nept_din <= 8'hff;
         end else begin
 

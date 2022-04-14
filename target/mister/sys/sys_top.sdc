@@ -76,3 +76,7 @@ set_false_path -from emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtfram
 
 # Reset synchronization signal
 set_false_path -from [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom[0]}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom_sync}]
+
+# static signals
+set_false_path -from FB_EN
+set_false_path -from lowlat

@@ -329,12 +329,13 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .controls       ( nept_controls )
     );
 
-    assign joystick1[31:12]=0;
-    assign joystick2[31:12]=0;
-    assign joystick3 = 0;
-    assign joystick4 = 0;
-    assign joyana_l1 = 0;
-    assign joyana_r1 = 0;
+    assign joystick1[31:12] = 0;
+    assign joystick2[31:12] = 0;
+    assign joystick3        = 0;
+    assign joystick4        = 0;
+    assign joyana_l1        = 0;
+    assign joyana_r1        = 0;
+    assign ioctl_upload     = 0;
 `endif
 
 // OSD will only get simulated if SIMULATE_OSD is defined

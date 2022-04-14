@@ -331,7 +331,8 @@ reg [11:0] VSET = 0, HSET = 0;
 reg        FREESCALE = 0;
 reg  [2:0] scaler_flt;
 reg        lowlat = 0;
-reg        cfg_dis = 0;
+reg        cfg_dis = 0,
+     [1:0] cfg_dis_sync;
 
 reg        vs_wait = 0;
 reg [11:0] vs_line = 0;
@@ -351,6 +352,11 @@ reg [12:0] arc1x = 0;
 reg [12:0] arc1y = 0;
 reg [12:0] arc2x = 0;
 reg [12:0] arc2y = 0;
+
+// Some synchronization
+always @(posedge FPGA_CLK1_50 ) begin
+	cfg_dis_sync <= { cfg_dis_sync[0], cfg_dis };
+end
 
 always@(posedge clk_sys) begin
 	reg  [7:0] cmd;
@@ -667,6 +673,10 @@ wire         hdmi_vs, hdmi_hs, hdmi_de, hdmi_vbl, hdmi_brd;
 
 `ifndef MISTER_DEBUG_NOHDMI
 wire clk_hdmi  = hdmi_clk_out;
+reg [1:0] ascal_rstn;
+
+// Synchronize the reset
+always @(posedge clk_ihdmi) ascal_rstn <= { ascal_rstn[0], ~reset_req };
 
 ascal
 #(
@@ -684,7 +694,7 @@ ascal
 )
 ascal
 (
-	.reset_na (~reset_req),
+	.reset_na ( ascal_rstn ),
 	.run      (1),
 	.freeze   (0),
 
@@ -938,7 +948,7 @@ pll_hdmi_adj pll_hdmi_adj
 	.reset_na( reset_na[1] ),
 
 	.llena(lowlat),
-	.lltune({16{hdmi_config_done | cfg_dis}} & lltune),
+	.lltune({16{hdmi_config_done | cfg_dis_sync[1]}} & lltune),
 	.locked(led_locked),
 	.i_waitrequest(adj_waitrequest),
 	.i_write(adj_write),
