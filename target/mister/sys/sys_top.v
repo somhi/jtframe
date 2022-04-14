@@ -331,8 +331,7 @@ reg [11:0] VSET = 0, HSET = 0;
 reg        FREESCALE = 0;
 reg  [2:0] scaler_flt;
 reg        lowlat = 0;
-reg        cfg_dis = 0,
-     [1:0] cfg_dis_sync;
+reg        cfg_dis = 0;
 
 reg        vs_wait = 0;
 reg [11:0] vs_line = 0;
@@ -352,11 +351,6 @@ reg [12:0] arc1x = 0;
 reg [12:0] arc1y = 0;
 reg [12:0] arc2x = 0;
 reg [12:0] arc2y = 0;
-
-// Some synchronization
-always @(posedge FPGA_CLK1_50 ) begin
-	cfg_dis_sync <= { cfg_dis_sync[0], cfg_dis };
-end
 
 always@(posedge clk_sys) begin
 	reg  [7:0] cmd;
@@ -537,9 +531,7 @@ cyclonev_hps_interface_interrupts interrupts
 
 ///////////////////////////  RESET  ///////////////////////////////////
 
-reg        reset_req = 0;
-reg  [1:0] reset_na;
-
+reg reset_req = 0;
 always @(posedge FPGA_CLK2_50) begin
 	reg [1:0] resetd, resetd2;
 	reg       old_reset;
@@ -555,10 +547,6 @@ always @(posedge FPGA_CLK2_50) begin
 
 	resetd  <= gp_out[31:30];
 	resetd2 <= resetd;
-end
-
-always @(posedge FPGA_CLK1_50) begin
-	reset_na <= { reset_na[0], ~reset_req };
 end
 
 ////////////////////  SYSTEM MEMORY & SCALER  /////////////////////////
@@ -673,10 +661,6 @@ wire         hdmi_vs, hdmi_hs, hdmi_de, hdmi_vbl, hdmi_brd;
 
 `ifndef MISTER_DEBUG_NOHDMI
 wire clk_hdmi  = hdmi_clk_out;
-reg [1:0] ascal_rstn;
-
-// Synchronize the reset
-always @(posedge clk_ihdmi) ascal_rstn <= { ascal_rstn[0], ~reset_req };
 
 ascal
 #(
@@ -694,7 +678,7 @@ ascal
 )
 ascal
 (
-	.reset_na ( ascal_rstn ),
+	.reset_na (~reset_req),
 	.run      (1),
 	.freeze   (0),
 
@@ -945,10 +929,10 @@ wire [15:0] lltune;
 pll_hdmi_adj pll_hdmi_adj
 (
 	.clk(FPGA_CLK1_50),
-	.reset_na( reset_na[1] ),
+	.reset_na(~reset_req),
 
 	.llena(lowlat),
-	.lltune({16{hdmi_config_done | cfg_dis_sync[1]}} & lltune),
+	.lltune({16{hdmi_config_done | cfg_dis}} & lltune),
 	.locked(led_locked),
 	.i_waitrequest(adj_waitrequest),
 	.i_write(adj_write),
