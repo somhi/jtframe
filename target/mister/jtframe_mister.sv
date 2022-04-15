@@ -390,7 +390,7 @@ jtframe_joymux #(.BUTTONS(BUTTONS)) u_joymux(
     .joyusb_1   ( joyusb_1  ),
     .joyusb_2   ( joyusb_2  ),
     .joymux_1   ( joystick1 ),
-    .joymux_2   ( joystick2 ),
+    .joymux_2   ( joystick2 )
 );
 `else
 assign db15_en   = 0;

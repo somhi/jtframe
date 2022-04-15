@@ -215,7 +215,7 @@ end
     .refclk     ( CLK_50M     ),
     .rst        ( pll_rst     ),
     .locked     ( base_locked ),
-    .outclk_0   ( pll_base    ),
+    .outclk_0   ( pll_base    )
 );
 
 // The second PLL produces 2x, 1x, /2 and /8
