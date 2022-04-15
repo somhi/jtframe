@@ -163,24 +163,20 @@ wire [3:0] hoffset, voffset;
 
 ////////////////////   CLOCKS   ///////////////////
 
-wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6,
-     pll_base;
+wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6;
 wire game_rst, game_service, rst, rst_n;
 wire clk_pico;
 wire pxl2_cen, pxl_cen;
 wire rst96, rst48, rst24, rst6;
-wire pll_locked, base_locked;
+wire pll_locked;
 reg  pll_rst = 1'b0;
-wire [1:0] sRESET;
 
 // Resets the PLL if it looses lock
-always @(posedge clk_sys) sRESET <= { sRESET[0], RESET };
-
-always @(posedge clk_sys or posedge sRESET[1]) begin : pll_controller
+always @(posedge clk_sys or posedge RESET) begin : pll_controller
     reg last_locked;
     reg [7:0] rst_cnt;
 
-    if( sRESET[1] ) begin
+    if( RESET ) begin
         pll_rst <= 1'b0;
         rst_cnt <= 8'hd0;
     end else begin
@@ -198,29 +194,11 @@ always @(posedge clk_sys or posedge sRESET[1]) begin : pll_controller
 end
 
 `ifndef JTFRAME_PLL
-    // Selects the 6 MHz PLL by default
-    `define JTFRAME_PLL jtframe_pll6000
+    `define JTFRAME_PLL pll
 `endif
 
-`ifdef JTFRAME_CLK96
-    `define JTFRAME_USEC0
-`elsif JTFRAME_SDRAM96
-    `define JTFRAME_USEC0
-`endif
-
-// The first PLL should produce a frequency
-// around 48MHz
-
-`JTFRAME_PLL u_base(
-    .refclk     ( CLK_50M     ),
-    .rst        ( pll_rst     ),
-    .locked     ( base_locked ),
-    .outclk_0   ( pll_base    )
-);
-
-// The second PLL produces 2x, 1x, /2 and /8
-jtframe_pllgame pll(
-    .refclk     ( pll_base   ),
+`JTFRAME_PLL pll(
+    .refclk     ( CLK_50M    ),
     .rst        ( pll_rst    ),
     .locked     ( pll_locked ),
     .outclk_0   ( clk48      ),
@@ -231,18 +209,11 @@ jtframe_pllgame pll(
     .outclk_5   ( clk96sh    )
 );
 
-`ifdef JTFRAME_USEC0
-    jtframe_rst_sync u_reset96(
-        .rst        ( game_rst  ),
-        .clk        ( clk96     ),
-        .rst_sync   ( rst96     )
-    );
-`else
-    assign clk96 = 0;
-    assign rst96 = 1;
-`endif
-
-`undef JTFRAME_USEC0
+jtframe_rst_sync u_reset96(
+    .rst        ( game_rst  ),
+    .clk        ( clk96     ),
+    .rst_sync   ( rst96     )
+);
 
 jtframe_rst_sync u_reset48(
     .rst        ( game_rst  ),

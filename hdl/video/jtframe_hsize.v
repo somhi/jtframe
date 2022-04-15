@@ -59,11 +59,9 @@ reg  [    VW-1:0] hmax, hb0, hb1;
 
 reg  line=0, over, passz, overl;
 reg  VSl, HSl, HBl, HBll, VBl, VBll;
-wire we;
 wire [SW-1:0] next_sum;
 
 assign rgb_in   = {r_in, g_in, b_in};
-assign we       = pxl_cen;
 assign next_sum = sum + {1'b0, summand};
 assign summand  = { ~scale[3], {SW-5{scale[3]}}, scale[2:0] };
 
