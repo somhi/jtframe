@@ -56,7 +56,7 @@ module jtframe_ram_rq #(parameter
 
     reg    last_cs, pending;
     wire   cs_posedge = addr_ok && !last_cs;
-    wire   cs_negedge = !addr_ok && last_cs;
+    // wire   cs_negedge = !addr_ok && last_cs;
 
     always @(posedge clk, posedge rst) begin
         if( rst ) begin

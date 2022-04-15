@@ -166,10 +166,13 @@ assign joyana_r4 = 0;
         `else
         assign snd_pwm_right = snd_pwm_left;
         `endif
+    `else // NOSOUND
+    assign snd_pwm_left  = 0;
+    assign snd_pwm_right = 0;
     `endif
 `else // Simulation:
-assign snd_pwm_left = 1'b0;
-assign snd_pwm_right = 1'b0;
+assign snd_pwm_left  = 0;
+assign snd_pwm_right = 0;
 `endif
 
 `ifndef JTFRAME_MIST_DIRECT

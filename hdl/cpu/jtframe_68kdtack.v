@@ -70,11 +70,11 @@ module jtframe_68kdtack
 localparam CW=W+WD;
 
 reg [CW-1:0] cencnt=0;
-reg wait1, halt=0, aux=0;
+reg wait1, halt=0; //, aux=0;
 wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
 wire over = (cencnt>den-num2)
             && !cpu_cen /*&& !aux*/ && (!halt || RECOVERY==0);
-reg  cen_act=0, risefall=0;
+reg  risefall=0;
 
 `ifdef SIMULATION
 real rnum = num2;
@@ -122,7 +122,7 @@ always @(posedge clk) begin
         cpu_cen  <= 0;
         cpu_cenb <= 0;
     end
-    aux <= cpu_cen; // forces a blank after cpu_cen,
+    // aux <= cpu_cen; // forces a blank after cpu_cen,
     // so the shortest sequence is cpu_cen, blank, cpu_cenb
     // note that cpu_cen can follow cpu_cenb without a blank
 end
