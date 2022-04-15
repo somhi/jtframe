@@ -67,7 +67,8 @@ set_false_path -to [get_keepers {audio_out:audio_out|cr1[*]}]
 
 # Reset synchronization signal
 set_false_path -from [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom[0]}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_rom_sync}]
-
+set_false_path -to emu:emu|sRESET[0]
+set_false_path -to emu:emu|jtframe_mister:u_frame|jtframe_board:u_board|jtframe_reset:u_reset|rst_req_sync[0]
 # static signals
 set_false_path -from FB_EN
 set_false_path -to deb_osd[0]
