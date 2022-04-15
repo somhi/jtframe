@@ -70,50 +70,35 @@ module jtframe_68kdtack
 localparam CW=W+WD;
 
 reg [CW-1:0] cencnt=0;
-reg wait1, halt=0; //, aux=0;
+reg          wait1; //, aux=0;
+wire         halt;
 wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
-wire over = (cencnt>den-num2)
-            && !cpu_cen /*&& !aux*/ && (!halt || RECOVERY==0);
+wire over = (cencnt>den-num2) && !cpu_cen;
 reg  risefall=0;
 
-`ifdef SIMULATION
-real rnum = num2;
-real rden = den;
-initial begin
-    if( rnum/rden<=4 ) begin
-        $display("WARNING: num2/den must be 4 or more, otherwise recovery won't work (%m)");
-    end
-end
-`endif
+assign halt = RECOVERY==1 && !ASn && !wait1 && (bus_cs && bus_busy && !bus_legit);
 
 always @(posedge clk) begin : dtack_gen
     if( rst ) begin
         DTACKn <= 1;
         wait1  <= 1;
-        halt   <= 0;
     end else begin
         if( ASn | &DSn ) begin // DSn is needed for read-modify-write cycles
                // performed on the SDRAM. Just checking the DSn rising edge
                // is not enough on Rastan
             DTACKn <= 1;
             wait1  <= 1;
-            halt   <= 0;
-        end else if( !ASn ) begin
-            if( cpu_cen  ) wait1 <= 0;
-            if( !wait1 || cpu_cen ) begin
-                if( !bus_cs || (bus_cs && !bus_busy) ) begin
-                    DTACKn <= 0;
-                    halt <= 0;
-                end else begin
-                    halt <= !bus_legit;
-                end
+        end else if( !ASn && cpu_cen ) begin
+            wait1 <= 0;
+            if( !wait1 && (!bus_cs || (bus_cs && !bus_busy)) ) begin
+                DTACKn <= 0;
             end
         end
     end
 end
 
 always @(posedge clk) begin
-    cencnt  <= over ? (cencnt+num2-den) : (cencnt+num2);
+    cencnt  <= over && !halt ? (cencnt+num2-den) : (cencnt+num2);
     if( over && !halt) begin
         cpu_cen  <= risefall;
         cpu_cenb <= ~risefall;
