@@ -64,9 +64,15 @@ assign pll_locked = pll0_lock & pll1_lock;
     assign pll0_lock = 1;
 `endif
 
- `JTFRAME_PLL u_basepll(
+`JTFRAME_PLL u_basepll(
     .inclk0 ( clk27     ),
     .c0     ( pll_base  ),
+`ifdef SIMULATION
+    .c1     (           ),
+    .c2     (           ),
+    .c3     (           ),
+    .c4     (           ),
+`endif
     .locked (           )
 );
 
