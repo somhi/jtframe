@@ -73,7 +73,8 @@ reg [CW-1:0] cencnt=0;
 reg          wait1; //, aux=0;
 wire         halt;
 wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
-wire over = (cencnt>den-num2) && !cpu_cen;
+wire over = cencnt>den-num2;
+reg  [CW:0] cencnt_nx;
 reg  risefall=0;
 
 assign halt = RECOVERY==1 && !ASn && !wait1 && (bus_cs && bus_busy && !bus_legit);
@@ -97,8 +98,12 @@ always @(posedge clk) begin : dtack_gen
     end
 end
 
+always @* begin
+    cencnt_nx = over && !halt ? {1'b0,cencnt}+num2-den : { 1'b0, cencnt} +num2;
+end
+
 always @(posedge clk) begin
-    cencnt  <= over && !halt ? (cencnt+num2-den) : (cencnt+num2);
+    cencnt  <= cencnt_nx[CW] ? {CW{1'b1}} : cencnt_nx[CW-1:0];
     if( over && !halt) begin
         cpu_cen  <= risefall;
         cpu_cenb <= ~risefall;
@@ -120,7 +125,7 @@ initial fworst = 16'hffff;
 always @(posedge clk) begin
     freq_cnt <= freq_cnt + 1'd1;
     if(cpu_cen) fout_cnt<=fout_cnt+1'd1;
-    if( freq_cnt == MFREQ-1 ) begin
+    if( freq_cnt == MFREQ-1 ) begin // updated every 1ms
         freq_cnt <= 0;
         fout_cnt <= 0;
         fave <= fout_cnt;
