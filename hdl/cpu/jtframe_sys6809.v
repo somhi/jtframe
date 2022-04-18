@@ -57,7 +57,7 @@ module jtframe_6809wait(
                 misses <= misses-4'd1;
             end
         end else if(!gate) begin
-            if( !last_EQ && !EQ && !(&misses))
+            if( !last_EQ && !EQ && !(&misses) && !dev_busy)
                 misses <= misses+4'd1;
         end
         if( !rstn ) begin
