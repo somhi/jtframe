@@ -688,8 +688,8 @@ video_freak u_crop(
     .VIDEO_ARY  ( hdmi_ary      ),
 
     .VGA_DE_IN  ( raw_de        ),
-    .ARX        ( raw_arx[11:0] ),
-    .ARY        ( raw_ary[11:0] ),
+    .ARX        ( raw_arx       ),
+    .ARY        ( raw_ary       ),
     .CROP_SIZE  ( crop_size     ),
     .CROP_OFF   ( crop_off      ),
     .SCALE      ( crop_scale    )
