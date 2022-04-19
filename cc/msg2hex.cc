@@ -87,10 +87,10 @@ void parse_line( int *buf, ifstream& fin ) {
         }
         // actual chars
         if( cnt++ == 32 ) {
-            throw "ERROR: line is longer than 32 characters, ";
+            throw "line is longer than 32 characters, ";
         }
         if( i<0x20 || i>0x7f ) {
-            throw "ERROR: character code out of range ";
+            throw "character code out of range ";
         }
         int v = i-0x20;
         v&=0x7f;

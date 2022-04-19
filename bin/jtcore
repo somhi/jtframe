@@ -271,7 +271,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     ############################################
     # Credits via jtframe_credits:
     if [[ -e $PRJPATH/patrons/msg ]]; then
-        $JTFRAME/bin/msg2hex $PRJPATH/patrons/msg
+        $JTFRAME/bin/msg2hex $PRJPATH/patrons/msg || exit $?
         MACROS="$MACROS JTFRAME_CREDITS"
     fi
     # Update Avatars
