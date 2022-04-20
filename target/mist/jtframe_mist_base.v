@@ -195,7 +195,6 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     assign but_start   = { 3'b0, buttons[1] };
 
     user_io #(.ROM_DIRECT_UPLOAD(`JTFRAME_MIST_DIRECT)) u_userio(
-        .rst            ( rst       ),
         .clk_sys        ( clk_sys   ),
 
         // config string
@@ -233,7 +232,13 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .sd_wr          ( 1'b0      ),
         .sd_conf        ( 1'b0      ),
         .sd_sdhc        ( 1'b0      ),
-        .sd_din         ( 8'd0      )
+        .sd_din         ( 8'd0      ),
+        .mouse_x        (           ),
+        .mouse_y        (           ),
+        .mouse_z        (           ),
+        .mouse_flags    (           ),
+        .mouse_strobe   (           ),
+        .mose_idx       (           )
     );
 `else
     assign ypbpr = 0;
