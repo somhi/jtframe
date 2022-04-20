@@ -793,7 +793,6 @@ function [7:0] extend8;
 endfunction
 
 `ifndef MISTER
-
     // This scan doubler takes very little memory. Some games in MiST
     // can only use this
     wire [CLROUTW*3-1:0] rgbx2;

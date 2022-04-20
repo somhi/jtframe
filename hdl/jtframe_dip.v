@@ -99,6 +99,9 @@ wire [1:0] ar = status[17:16];    // only MiSTer
 `ifdef MISTER
 always @(*) begin
     scanlines = status[5:3];
+`ifdef JTFRAME_OSD60HZ
+    if ( !status[19] ) scanlines=0;
+`endif
     bw_en     = 0;      // Old TV filter disabled in MiSTer, is not needed anymore
     blend_en  = 0;
 end

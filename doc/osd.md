@@ -36,12 +36,12 @@ JTFRAME_OSD_NOSND    | Do not display sound options
 Status bits in the configuration string are indicated with characters. This is the reference of the position for each character:
 
 ```
-Bits 0-31 (upper case)
+Bits 0-31 (o in upper case)
 bit          00000000001111111112222222222233
   number   : 01234567890123456789012345678901
 status char: 0123456789ABCDEFGHIJKLMNOPQRSTUV
 
-Bits 32-63 (lower case)
+Bits 32-63 (o in lower case)
 bit          33333333444444444455555555556666
   number   : 23456789012345678901234567890123
 status char: 0123456789ABCDEFGHIJKLMNOPQRSTUV
@@ -55,17 +55,10 @@ The status words are defined in the *cfgstr* files for each target. With the fol
 Omn      | option for bits 0-31. m character sets LSB, n sets MSB
 o (lower)| same as `O` but for bits 32-63
 HnOm     | Option code m, which can be hidden by hide bit n
+DnOm     | Option code m, which can be grayed out by hide bit n
 J        | Joystick definition
 R        | Reset
 V        | Core version
-
-
-Status bits currently configured in JTFRAME:
-```
- 0         1         2         3          4         5         6   
- 01234567890123456789012345678901 23456789012345678901234567890123
- XXXXXXXXXX XXXXX        XXXXXXXX XXXXXXXXXXXXXXXX        --FORKS-
- ```
 
 ## Values used in the status word by JTFRAME
 
@@ -88,23 +81,25 @@ bit     |  meaning                | Enabled with macro
 13-15   | Reserved for core use   | CORE_OSD (option char: D,E,F)
 16-17   | Aspect Ratio            | MiSTer only, visibility masked
 18      | Autofire button 0       | JTFRAME_AUTOFIRE0
-19      | CRT H scaling enable    | MiSTer only
-20-23   | CRT H scaling factor    | MiSTer only, visibility masked
-24-27   | CRT H offset            | MiSTer only
-28-31   | CRT V offset            | MiSTer only
+19      | 60 Hz option            | JTFRAME_OSD60HZ %%
 37-38   | User output options     | MiSTer, selects DB15, UART, etc.
 39-40   | Rotate options (MiSTer) | JTFRAME_VERTICAL && JTFRAME_ROTATE (see below)
 41      | Vertical crop (MiSTer)  | MiSTer only
 42-45   | Crop offset   (MiSTer)  | MiSTer only
 46-47   | Scaling style (MiSTer)  | MiSTer only
-56-63   | Reserved for forks      | JTFRAME forks can use these bits%
+48      | CRT H scaling enable    | MiSTer only
+49-52   | CRT H scaling factor    | MiSTer only, visibility masked
+53-56   | CRT H offset            | MiSTer only
+57-60   | CRT V offset            | MiSTer only
+61-63   | Reserved for forks      | JTFRAME forks can use these bits%
 
 Credits/Pause are handled differently in MiSTer vs MiST. For MiSTer, bit 12 sets whether credits will be displayed during pause. For MiST, bit 12 sets the pause. This difference is due to MiST missing key mapping, so I assume that MiST users depend more on the OSD for triggering the pause.
 
-% JTFRAME will not expand to use bits 56 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
+% JTFRAME will not expand to use bits 61 to 63 in MiSTer, so developers creating custom forks can use them. This can be used to provide custom inputs, for instance.
+
+%% If JTFRAME_OSD60HZ is defined and the status word bit is low, MiSTer will disable the Scan FX options. This options should be used when the pixel clock is produced by a fractional divider, and thus it's very jittery. Some displays do good with this, some don't. This is less important for MiST because the PLL is less troublesome there. In MiSTer, all hell breaks loose in the HDMI subsystem for some game PLL settings.
 
 Option visibility in MiSTer is controlled in [jtframe_mister.sv](../target/mister/jtframe_mister.sv) using the `status_menumask` variable.
-
 
 If **JTFRAME_OSD_VOL** is set, the dip_fxlevel inputs to the game module will vary according to the following table:
 

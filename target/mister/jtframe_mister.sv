@@ -272,11 +272,11 @@ assign vcopt      = status[45:42];
 assign crop_scale = {1'b0, status[47:46]};
 
 // H-Pos & V-Pos for CRT
-assign { voffset, hoffset } = status[31:24];
+assign { voffset, hoffset } = status[60:53];
 
 // Horizontal scaling for CRT
-assign hsize_enable = status[19];
-assign hsize_scale  = status[23:20];
+assign hsize_enable = status[48];
+assign hsize_scale  = status[52:49];
 
 `ifdef JTFRAME_VERTICAL
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
@@ -311,8 +311,10 @@ jtframe_resync u_resync(
     .vs_out     ( vs_resync     )
 );
 
-wire [15:0] status_menumask; // a high value hides the menu item
 reg         framebuf_flip;      // extra OSD options for rotation, bit 0 = rotate, bit 1 = flip
+
+// OSD option visibility
+wire [15:0] status_menumask; // a high value hides the menu item
 
 assign status_menumask[15:6] = 0,
        status_menumask[5]    = crop_ok, // video crop options
@@ -322,6 +324,9 @@ assign status_menumask[15:6] = 0,
 `else
        status_menumask[4]    = 1,   // hidden
        status_menumask[1]    = ~core_mod[0],  // shown for vertical games
+`endif
+`ifdef JTFRAME_OSD60HZ
+       status_menumask[3]    = status[19],      // Disables the Scan FX options if a core needs the 60Hz option but is not set
 `endif
        status_menumask[2]    = ~hsize_enable,    // horizontal scaling
        status_menumask[0]    = direct_video;

@@ -8,14 +8,15 @@ J{{.CORENAME}};;
 {{ if .JTFRAME_CHEAT }}
     CHEAT;
 {{ end }}
-P1,Video;
-P1OOR,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
-P1OSV,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
-P1OJ,CRT scale enable,Off,On;
-H2P1OKN,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+    P1,Video;
+{{ if .JTFRAME_OSD60HZ }}           P1OJ,Force 60Hz, Off, On; {{ end }}
+    P1oLN,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+    P1oPS,CRT V offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
+    P1oG,CRT scale enable,Off,On;
+    H2P1oHK,CRT scale factor,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
 P1{{ .SEPARATOR }}
-{{ if .JTFRAME_NOHQ2X }}            P1O35,Scandoubler Fx,None,N/A,CRT 25%,CRT 50%,CRT 75%;
-        {{ else }}                  P1O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
+{{ if .JTFRAME_NOHQ2X }}            d3P1O35,Scandoubler Fx,None,N/A,CRT 25%,CRT 50%,CRT 75%;
+        {{ else }}                  d3P1O35,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%; {{ end }}
 H0P1OGH,Aspect ratio,Original,Full screen,[ARC1],[ARC2];
 {{ if .JTFRAME_VERTICAL }}
     {{ if .JTFRAME_ROTATE }}        H4P1o78,Rotate screen,Yes,No (original),No (flip);
