@@ -27,7 +27,10 @@
 /* verilator lint_off MULTIDRIVEN */
 
 module jtframe_dual_ram #(parameter dw=8, aw=10,
-    simfile="", simhexfile="", synfile="", dumpfile="dump.hex"
+    simfile="", simhexfile="",
+    synfile="",
+    ascii_bin=0,  // set to 1 to read the ASCII file as binary
+    dumpfile="dump.hex"
 )(
     // Port 0
     input   clk0,
@@ -52,6 +55,7 @@ module jtframe_dual_ram #(parameter dw=8, aw=10,
         .simfile    ( simfile   ),
         .simhexfile ( simhexfile),
         .synfile    ( synfile   ),
+        .ascii_bin  ( ascii_bin ),
         .dumpfile   ( dumpfile  )
     ) u_ram (
         .clk0   ( clk0  ),
@@ -77,7 +81,10 @@ endmodule
 
 
 module jtframe_dual_ram_cen #(parameter dw=8, aw=10,
-    simfile="", simhexfile="", synfile="", dumpfile="dump.hex"
+    simfile="", simhexfile="",
+    synfile="",
+    ascii_bin=0,  // set to 1 to read the ASCII file as binary
+    dumpfile="dump.hex"
 )(
     input   clk0,
     input   cen0,
@@ -126,7 +133,10 @@ initial begin
             $display("INFO: Read %14s (hex) for %m", simhexfile);
         end else begin
             if( synfile!= "" ) begin
-                $readmemh(synfile,mem);
+                if( ascii_bin==1 )
+                    $readmemb(synfile,mem);
+                else
+                    $readmemh(synfile,mem);
                 $display("INFO: Read %14s (hex) for %m", synfile);
             end else
                 for( readcnt=0; readcnt<2**aw; readcnt=readcnt+1 )
@@ -136,7 +146,12 @@ initial begin
 end
 `else
 // file for synthesis:
-initial if(synfile!="" )$readmemh(synfile,mem);
+initial if(synfile!="" ) begin
+    if( ascii_bin==1 )
+        $readmemb(synfile,mem);
+    else
+        $readmemh(synfile,mem);
+end
 `endif
 
 always @(posedge clk0) if(cen0) begin

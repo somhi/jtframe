@@ -89,7 +89,7 @@ wire              vram_mode = vram_ctrl[0];
 
 assign hscan = hn - HOFFSET;
 
-jtframe_dual_ram #(.dw(9), .aw(MSGW),.synfile("msg.hex")) u_msg(
+jtframe_dual_ram #(.dw(9), .aw(MSGW),.synfile("msg.bin"),.ascii_bin(1)) u_msg(
     .clk0   ( clk       ),
     .clk1   ( clk       ),
     // Port 0: optional write access
