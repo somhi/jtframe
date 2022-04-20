@@ -267,21 +267,12 @@ if [ $SKIP_COMPILE = FALSE ]; then
     fi
     # Create MiST(er) folders if they don't exist
     mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp}
-    # Update message file
-    if [ -e bin/jt${PRJ}_msg.py ]; then
-        cd bin
-        jt${PRJ}_msg.py || echo -e "${yBG}WARNING:${NC}${wBG} No message file${NC}"
-    fi
     cd $PRJPATH/$TARGET || exit 1
     ############################################
     # Credits via jtframe_credits:
-    MSGFILE=msg
-    if [[ -e $PRJPATH/patrons/msg && ! -e $MSGFILE ]]; then
-        MSGFILE=$PRJPATH/patrons/msg
-    fi
-    if [ -e $MSGFILE ]; then
-        $JTFRAME/bin/msg2hex $MSGFILE
-        # cp ${MSGFILE}.bin $PRJPATH/$TARGET
+    if [[ -e $PRJPATH/patrons/msg ]]; then
+        $JTFRAME/bin/msg2hex $PRJPATH/patrons/msg || exit $?
+        MACROS="$MACROS JTFRAME_CREDITS"
     fi
     # Update Avatars
     if [ -e $PRJPATH/patrons/lut ]; then

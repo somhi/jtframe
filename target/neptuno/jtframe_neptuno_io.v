@@ -87,7 +87,7 @@ wire [ 7:0] osd_s;
 wire [31:0] status_s;
 
 wire        mc_reset;
-
+wire        toggle_scandb;
 
 // wire scan2x_toggle = joy_mix[10] & joy_mix[7]; // Start + B buttons
 wire osd_en = joy_mix[10] & joy_mix[6]; // Start + C buttons of Megadrive controller
@@ -118,13 +118,13 @@ always @(posedge clk_sys) begin
     if( sdram_init ) begin
         nept_din <= 8'hff;
         dwn_done <= 0;
-        cntdown  <= ~0;
+        cntdown  <= ~16'd0;
     end else begin
         if( ioctl_download ) begin
             dwn_done <= 1;
         end
         if ( cntdown!=0 ) begin
-            cntdown <= cntdown-1;
+            cntdown <= cntdown-1'd1;
             nept_din <= 8'hff;
         end else begin
 

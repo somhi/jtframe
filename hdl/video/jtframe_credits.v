@@ -419,7 +419,10 @@ end
 
 always @(posedge clk) if(pxl_cen) begin
     { HB_out, VB_out } <= { HB, VB };
-    if( !show || hn<HOFFSET || hn>=(HEND+HOFFSET) )
+    // if HOFFSET != 0 and the game is vertical, the full horizontal length
+    // of the screen is used. Otherwise, the credits will start at HOFFSET
+    // and last for 256 pixels
+    if( !show || ( HOFFSET!=0 && !tate && (hn<HOFFSET || hn>=(HEND+HOFFSET))) )
         rgb_out <= rgb_in;
     else begin
         if( (!pxl[0] && (!obj_ok || vram_mode)) || !visible ) begin

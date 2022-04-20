@@ -38,6 +38,8 @@ Once the three files msg, avatars and lut are available, jtcore will process the
 
 Features 1-bpp text font and 4-bpp objects. Enable it with macro **JTFRAME_CREDITS**. By default there are three pages of memory reserved for this. If a different number is needed define the macro **JTFRAME_CREDITS_PAGES** with the right value. Avatars are enabled with **JTFRAME_AVATARS**
 
+**JTFRAME_CREDITS** is also added by the script *jtcore* if the file patrons/msg exists.
+
 ## msg2hex
 Converts from a text file (patrons/msg) to a hex file usable by *JTFRAME_CREDITS*.
 Type text for ASCII conversion. Escape characters can be introduced by \ with the following meaning:

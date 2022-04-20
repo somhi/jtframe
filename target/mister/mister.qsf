@@ -42,6 +42,9 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
 set_global_assignment -name ALM_REGISTER_PACKING_EFFORT LOW
 set_global_assignment -name OPTIMIZE_POWER_DURING_SYNTHESIS OFF
 
+# set_location_assignment FRACTIONALPLL_X0_Y15_N0 -to "emu:emu|jtframe_pll6144:u_base|jtframe_pll6144_0002:jtframe_pll6144_inst|altera_pll:altera_pll_i|general[0].gpll~FRACTIONAL_PLL"
+# set_location_assignment FRACTIONALPLL_X89_Y1_N0 -to "emu:emu|jtframe_pllgame:pll|jtframe_pllgame_0002:jtframe_pllgame_inst|altera_pll:altera_pll_i|general[0].gpll~FRACTIONAL_PLL"
+
 ##################################################################
 ## Files
 ########################
@@ -55,7 +58,6 @@ set_global_assignment -name SDC_FILE sys_top.sdc
 # MiSTer Framework
 set_global_assignment -name QIP_FILE ${MODULES}/jtframe/target/mister/mister.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
-set_global_assignment -name QIP_FILE ${PRJPATH}/hdl/jt${CORENAME}.qip
 set_global_assignment -name QIP_FILE game.qip
 
 set_global_assignment -name VERILOG_MACRO "MISTER=<None>"

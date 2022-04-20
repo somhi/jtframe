@@ -166,10 +166,13 @@ assign joyana_r4 = 0;
         `else
         assign snd_pwm_right = snd_pwm_left;
         `endif
+    `else // NOSOUND
+    assign snd_pwm_left  = 0;
+    assign snd_pwm_right = 0;
     `endif
 `else // Simulation:
-assign snd_pwm_left = 1'b0;
-assign snd_pwm_right = 1'b0;
+assign snd_pwm_left  = 0;
+assign snd_pwm_right = 0;
 `endif
 
 `ifndef JTFRAME_MIST_DIRECT
@@ -241,8 +244,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .mose_idx       (           )
     );
 `else
-    assign ypbpr = 0;
-    assign no_csync = 1;
+    assign ypbpr     = 0;
+    assign no_csync  = 1;
 `endif
 
 `else // these inputs are not used in simulation:
@@ -334,12 +337,13 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .controls       ( nept_controls )
     );
 
-    assign joystick1[31:12]=0;
-    assign joystick2[31:12]=0;
-    assign joystick3 = 0;
-    assign joystick4 = 0;
-    assign joystick_analog_0 = 0;
-    assign joystick_analog_1 = 0;
+    assign joystick1[31:12] = 0;
+    assign joystick2[31:12] = 0;
+    assign joystick3        = 0;
+    assign joystick4        = 0;
+    assign joyana_l1        = 0;
+    assign joyana_r1        = 0;
+    assign ioctl_upload     = 0;
 `endif
 
 // OSD will only get simulated if SIMULATE_OSD is defined

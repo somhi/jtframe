@@ -43,6 +43,7 @@ reg [MAIN_RSTW-1:0] rst_cnt;
 reg [GAME_RSTW-1:0] game_rst_cnt;
 reg [MAIN_RSTW-1:0] rst_rom; // rst in clk_rom domain
 reg                 rst_rom_sync;
+reg [1:0]           rst_req_sync;
 
 always @(negedge clk_sys, negedge pll_locked) begin
     if( !pll_locked ) begin
@@ -69,8 +70,10 @@ end
 `endif
 
 // Game reset generation
+always @(posedge clk_sys ) rst_req_sync <= { rst_req_sync[0], rst_req };
+
 always @(posedge clk_sys ) begin
-    if( downloading | rst | rst_req
+    if( downloading | rst | rst_req_sync[1]
     | rst_flip | soft_rst | sdram_init)
         rst_rom <= {MAIN_RSTW{1'b1}};
     else if(pxl_cen) begin

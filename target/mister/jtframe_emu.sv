@@ -170,13 +170,21 @@ wire pxl2_cen, pxl_cen;
 wire rst96, rst48, rst24, rst6;
 wire pll_locked;
 reg  pll_rst = 1'b0;
+wire sys_rst;
 
 // Resets the PLL if it looses lock
-always @(posedge clk_sys or posedge RESET) begin : pll_controller
+jtframe_sync u_sync(
+    .clk_in     ( CLK_50M   ),
+    .clk_out    ( clk_sys   ),
+    .raw        ( RESET     ),
+    .sync       ( sys_rst   )
+);
+
+always @(posedge clk_sys or posedge sys_rst) begin : pll_controller
     reg last_locked;
     reg [7:0] rst_cnt;
 
-    if( RESET ) begin
+    if( sys_rst ) begin
         pll_rst <= 1'b0;
         rst_cnt <= 8'hd0;
     end else begin
@@ -197,12 +205,15 @@ end
     `define JTFRAME_PLL pll
 `endif
 
-`ifdef JTFRAME_CLK96
-    `define JTFRAME_USEC0
-`elsif JTFRAME_SDRAM96
-    `define JTFRAME_USEC0
-`endif
-
+// MiST uses a base PLL to generate the exact frequency
+// and then a second PLL to generate the *2,/2 and /8 ones
+// But when I try to do that in MiSTer all the sys_top stuff
+// gets awful timing results, especially the HDMI related
+// signals. I tried to fix it but I eventually gave up.
+// Using a single PLL instead of two means that frequencies
+// might have an error, but it should be below 0.1% anway
+// and that's within the error you get from the original
+// PCBs anyway.
 `JTFRAME_PLL pll(
     .refclk     ( CLK_50M    ),
     .rst        ( pll_rst    ),
@@ -210,25 +221,16 @@ end
     .outclk_0   ( clk48      ),
     .outclk_1   ( clk48sh    ),
     .outclk_2   ( clk24      ),
-    .outclk_3   ( clk6       )
-`ifdef JTFRAME_USEC0
-    ,.outclk_4   ( clk96      )
-    ,.outclk_5   ( clk96sh    )
-`endif
+    .outclk_3   ( clk6       ),
+    .outclk_4   ( clk96      ),
+    .outclk_5   ( clk96sh    )
 );
 
-`ifdef JTFRAME_USEC0
-    jtframe_rst_sync u_reset96(
-        .rst        ( game_rst  ),
-        .clk        ( clk96     ),
-        .rst_sync   ( rst96     )
-    );
-`else
-    assign clk96 = 0;
-    assign rst96 = 1;
-`endif
-
-`undef JTFRAME_USEC0
+jtframe_rst_sync u_reset96(
+    .rst        ( game_rst  ),
+    .clk        ( clk96     ),
+    .rst_sync   ( rst96     )
+);
 
 jtframe_rst_sync u_reset48(
     .rst        ( game_rst  ),
@@ -316,7 +318,7 @@ wire [ 7:0] debug_bus, debug_view;
 wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
             joyana_r1, joyana_r2, joyana_r3, joyana_r4;
 
-wire        rst_req   = RESET | status[0] | buttons[1];
+wire        rst_req   = sys_rst | status[0] | buttons[1];
 wire [15:0] snd_left, snd_right;
 
 assign LED_DISK  = 2'b0;
