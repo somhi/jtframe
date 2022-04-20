@@ -211,8 +211,8 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .SPI_MOSI       ( SPI_DI    ),
         .joystick_0     ( joystick2 ),
         .joystick_1     ( joystick1 ),
-        .joystick_3     ( joystick3 ),
-        .joystick_4     ( joystick4 ),
+        .joystick_2     ( joystick3 ),
+        .joystick_3     ( joystick4 ),
         .buttons        ( buttons   ),
         // Analog joysticks
         .joystick_analog_0(joyana_l1),
