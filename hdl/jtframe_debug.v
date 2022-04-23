@@ -92,7 +92,7 @@ end
 
 // Video overlay
 reg [8:0] vcnt,hcnt;
-reg       lhbl_l, osd_on, view_on;
+reg       lhbl_l, osd_on, view_on, bus_hex_on, view_hex_on;
 
 always @(posedge clk) if(pxl_cen) begin
     lhbl_l <= lhbl;
@@ -105,7 +105,44 @@ always @(posedge clk) if(pxl_cen) begin
     else hcnt <= hcnt + 9'd1;
     osd_on  <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
     view_on <= debug_view != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
+
+    bus_hex_on  <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
+    view_hex_on <= debug_view != 0 && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
 end
+
+reg [0:19] font [0:15]; // 4x5 font
+
+// Inspired by TIC computer 6x6 font by nesbox
+// https://fontstruct.com/fontstructions/show/1334143/tic-computer-6x6-font
+initial begin
+    font[4'd0]  = 20'b0110_1001_1001_1001_0110;
+    font[4'd1]  = 20'b0010_0110_0010_0010_0111;
+    font[4'd2]  = 20'b1110_0001_0110_1000_1111;
+    font[4'd3]  = 20'b1111_0001_0110_0001_1110;
+    font[4'd4]  = 20'b0010_1010_1010_1111_0010;
+    font[4'd5]  = 20'b1111_1000_1110_0001_1110;
+    font[4'd6]  = 20'b0110_1000_1110_1001_0110;
+    font[4'd7]  = 20'b1111_0001_0010_0100_0100;
+    font[4'd8]  = 20'b0110_1001_0110_1001_0110;
+    font[4'd9]  = 20'b0110_1001_0111_0001_0110;
+    font[4'd10] = 20'b0110_1001_1001_1111_1001;
+    font[4'd11] = 20'b1110_1001_1110_1001_1110;
+    font[4'd12] = 20'b0111_1000_1000_1000_0111;
+    font[4'd13] = 20'b1110_1001_1001_1001_1110;
+    font[4'd14] = 20'b1111_1000_1110_1000_1111;
+    font[4'd15] = 20'b1111_1000_1110_1000_1000;
+end
+
+
+wire [3:0] display_bit_bus, display_bit_view, display_nibble_bus, display_nibble_view;
+wire [4:0] font_pixel;
+
+assign display_bit_bus     = { 3'h0, debug_bus[ ~hcnt[5:3] ] };
+assign display_bit_view    = { 3'h0, debug_view[ ~hcnt[5:3] ] };
+assign display_nibble_bus  = hcnt[3] ? debug_bus[3:0]  : debug_bus[7:4];
+assign display_nibble_view = hcnt[3] ? debug_view[3:0] : debug_view[7:4];
+
+assign font_pixel          = ( ( vcnt[2:0] - 3'd2 ) << 2 ) + ( hcnt[2:0] - 3'd3 );
 
 always @* begin
     rout = rin;
@@ -116,11 +153,11 @@ always @* begin
             rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
             gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
             bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
-            if( hcnt[2:0]==4 || vcnt[2:0]==4 ) begin // always mark the center with a cross
-                rout[COLORW-1:COLORW-2] = 2'b11;
-                gout[COLORW-1:COLORW-2] = 2'b11;
-                bout[COLORW-1:COLORW-2] = 2'b11;
-            end
+        end
+        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+            rout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
+            gout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
+            bout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
         end
     end
 
@@ -129,11 +166,37 @@ always @* begin
             rout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
             gout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
             bout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
-            if( hcnt[2:0]==4 || vcnt[2:0]==4 ) begin // always mark the center with a cross
-                rout[COLORW-1:COLORW-2] = 2'b11;
-                gout[COLORW-1:COLORW-2] = 2'b11;
-                bout[COLORW-1:COLORW-2] = 2'b11;
-            end
+        end
+        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+            rout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
+            gout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
+            bout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
+        end
+    end
+
+    if( bus_hex_on ) begin
+        if( hcnt[2:0] != 0 ) begin
+            rout[COLORW-1:COLORW-2] = 2'b11;
+            gout[COLORW-1:COLORW-2] = 2'b11;
+            bout[COLORW-1:COLORW-2] = 2'b11;
+        end
+        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+            rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
+            gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
+            bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
+        end
+    end
+
+    if( view_hex_on ) begin
+        if( hcnt[2:0] != 0 ) begin
+            rout[COLORW-1:COLORW-2] = 2'b11;
+            gout[COLORW-1:COLORW-2] = 2'b11;
+            bout[COLORW-1:COLORW-2] = 2'b11;
+        end
+        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+            rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
+            gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
+            bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
         end
     end
 end
