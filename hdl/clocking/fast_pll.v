@@ -177,7 +177,7 @@ module jtframe_pll20_fast(
     end
 endmodule
 
-// 50.3496 MHz PLL
+// 48 MHz PLL
 module jtframe_pllgame(
     input        inclk0,
     output   reg c0,     // 50.3
@@ -187,7 +187,7 @@ module jtframe_pllgame(
     output   reg c4,     // 6.29
     output   reg locked
 );
-    jtframe_pll6293 pll(
+    jtframe_pll0 pll(
         .inclk0 ( inclk0    ),
         .c0     ( c0        ),
         .c1     ( c1        ),
@@ -196,6 +196,17 @@ module jtframe_pllgame(
         .c4     ( c4        ),
         .locked ( locked    )
     );
+endmodule
+
+module jtframe_pll6000(
+    input        inclk0,
+    output       c0,     // 50.3
+    output       locked
+);
+
+    assign c0=0;
+    assign locked=1;
+
 endmodule
 
 module jtframe_pll6293(
