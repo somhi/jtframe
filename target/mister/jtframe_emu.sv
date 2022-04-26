@@ -205,15 +205,9 @@ end
     `define JTFRAME_PLL pll
 `endif
 
-// MiST uses a base PLL to generate the exact frequency
-// and then a second PLL to generate the *2,/2 and /8 ones
-// But when I try to do that in MiSTer all the sys_top stuff
-// gets awful timing results, especially the HDMI related
-// signals. I tried to fix it but I eventually gave up.
-// Using a single PLL instead of two means that frequencies
-// might have an error, but it should be below 0.1% anway
-// and that's within the error you get from the original
-// PCBs anyway.
+// There are many false paths defined in the
+// SDC file between this PLL and the ones
+// used in sys_top
 `JTFRAME_PLL pll(
     .refclk     ( CLK_50M    ),
     .rst        ( pll_rst    ),

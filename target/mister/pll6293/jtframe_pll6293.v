@@ -17,7 +17,7 @@ module jtframe_pll6293 (
 		output wire  locked    //  locked.export
 	);
 
-	jtframe_pll6293_0002 pll_inst (
+	jtframe_pll6293_0002 game_pll (
 		.refclk   (refclk),   //  refclk.clk
 		.rst      (rst),      //   reset.reset
 		.outclk_0 (outclk_0), // outclk0.clk

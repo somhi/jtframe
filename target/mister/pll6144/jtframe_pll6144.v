@@ -17,7 +17,7 @@ module jtframe_pll6144 (
 		output wire  locked    //  locked.export
 	);
 
-	jtframe_pll6144_0002 jtframe_pll6144_inst (
+	jtframe_pll6144_0002 game_pll (
 		.refclk   (refclk),   //  refclk.clk
 		.rst      (rst),      //   reset.reset
 		.outclk_0 (outclk_0), // outclk0.clk
