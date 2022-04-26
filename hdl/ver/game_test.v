@@ -285,7 +285,7 @@ jtframe_sdram64 #(
     .dst        ( ba_dst        ),
 
     // ROM-load interface
-    .prog_en    ( downloading   ),
+    .prog_en    ( downloading | dwnld_busy  ),
     .prog_addr  ( prog_addr     ),
     .prog_ba    ( prog_ba       ),
     .prog_rd    ( prog_rd       ),
