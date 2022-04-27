@@ -81,6 +81,10 @@ module game_test(
     output [1:0]    SDRAM_BA,       // SDRAM Bank Address
     output          SDRAM_CLK,      // SDRAM Clock
     output          SDRAM_CKE,      // SDRAM Clock Enable
+    // input  [21:0]   SDRAM_BA_ADDR0,
+    // input  [21:0]   SDRAM_BA_ADDR1,
+    // input  [21:0]   SDRAM_BA_ADDR2,
+    // input  [21:0]   SDRAM_BA_ADDR3,
 
     // Debug
     input   [3:0]   gfx_en,
@@ -241,6 +245,9 @@ endgenerate
 // support for 48MHz
 // Above 64MHz HF should be 1. SHIFTED depends on whether the SDRAM
 // clock is shifted or not.
+/* verilator tracing_off */
+wire prog_en = downloading | dwnld_busy;
+
 jtframe_sdram64 #(
     .AW           ( SDRAMW        ),
     .BA0_LEN      ( BA0_LEN       ),
@@ -285,7 +292,7 @@ jtframe_sdram64 #(
     .dst        ( ba_dst        ),
 
     // ROM-load interface
-    .prog_en    ( downloading | dwnld_busy  ),
+    .prog_en    ( prog_en       ),
     .prog_addr  ( prog_addr     ),
     .prog_ba    ( prog_ba       ),
     .prog_rd    ( prog_rd       ),
@@ -311,7 +318,8 @@ jtframe_sdram64 #(
 
     // Common signals
     .dout       ( data_read     ),
-    .rfsh       ( ~LHBL         )
+    .rfsh       ( !prog_en & ~LHBL ) // Do not refresh during programming
+                                     // the verilator code sends the data too fast
 );
 
 `ifdef SIMULATION
@@ -338,6 +346,7 @@ jtframe_sdram64 #(
     );
     `endif
 `endif
+/* verilator tracing_on */
 
 `GAMETOP
 u_game(
