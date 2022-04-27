@@ -22,7 +22,14 @@
 
 // parameter STRLEN and the actual length of conf_str have to match
  
-module user_io (
+module user_io #( parameter
+    STRLEN=0,   // config string length
+    PS2DIV=100, // master clock divider for psk2_kbd/mouse clk
+    ROM_DIRECT_UPLOAD=0, // direct upload used for file uploads from the ARM
+    SD_IMAGES=2, // number of block-access images (max. 4 supported in current firmware)
+    PS2BIDIR=0,  // bi-directional PS2 interface
+    FEATURES=0   // requested features from the firmware
+) (
 	input [(8*STRLEN)-1:0] conf_str,
 	output       [9:0]  conf_addr, // RAM address for config string, if STRLEN=0
 	input        [7:0]  conf_chr,
@@ -98,13 +105,6 @@ module user_io (
 	input [7:0]         serial_data,
 	input               serial_strobe
 );
-
-parameter STRLEN=0; // config string length
-parameter PS2DIV=100; // master clock divider for psk2_kbd/mouse clk
-parameter ROM_DIRECT_UPLOAD=0; // direct upload used for file uploads from the ARM
-parameter SD_IMAGES=2; // number of block-access images (max. 4 supported in current firmware)
-parameter PS2BIDIR=0; // bi-directional PS2 interface
-parameter FEATURES=0; // requested features from the firmware
 
 localparam W = $clog2(SD_IMAGES);
 

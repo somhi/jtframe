@@ -145,7 +145,7 @@ endgenerate
 
 ////////////////////////////////////////////////////////////////////
 always @(posedge clk27)
-    if( spi_done && frames_done ) begin
+    if( ( spi_done && !dwnld_busy ) && frames_done ) begin
         for( fincnt=0; fincnt<`SIM_MS; fincnt=fincnt+1 ) begin
             #(1000*1000); // ms
             $display("%d ms",fincnt+1);

@@ -197,8 +197,8 @@ module jtframe_sys6809_dma #( parameter
     output       [7:0] dma_dout
 );
 
-    wire    ram_we = ram_cs & ~RnW & cen_Q;
     wire    cen_E, cen_Q;
+    wire    ram_we = ram_cs & ~RnW & cen_Q;
     wire    BA, BS, AVMA;
     wire    OP;
     wire [7:0] din_dec;
