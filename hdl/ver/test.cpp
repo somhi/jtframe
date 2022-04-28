@@ -45,6 +45,7 @@ class SDRAM {
     int ba_addr[4];
     //int last_rd[5];
     char header[32];
+    int burst_len, burst_mask;
     int read_offset( int region );
     int read_bank( char *bank, int addr );
     void write_bank16( char *bank,  int addr, int val, int dm /* act. low */ );
@@ -276,6 +277,15 @@ void SDRAM::update() {
     int cur_ba = dut.SDRAM_BA;
     cur_ba &= 3;
     if( !dut.SDRAM_nCS && neg_edge ) {
+        if( !dut.SDRAM_nRAS && !dut.SDRAM_nCAS && !dut.SDRAM_nWE ) { // Mode register
+            int mode = dut.SDRAM_A;
+            burst_len = 1 << (mode&3);
+            burst_mask = ~(burst_len-1);
+            cout << "\nSDRAM burt mode changed to " << burst_len;
+            if( burst_len>2 ) {
+                throw "\nError: support for bursts larger than 2 is not implemented in test.cpp\n";
+            }
+        }
         if( !dut.SDRAM_nRAS && dut.SDRAM_nCAS && dut.SDRAM_nWE ) { // Row address - Activate command
             ba_addr[ cur_ba ] = dut.SDRAM_A << 9; // 32MB module
             ba_addr[ cur_ba ] &= 0x3fffff;
@@ -295,6 +305,12 @@ void SDRAM::update() {
         }
         bool dqbusy=false;
         for( int k=0; k<4; k++ ) {
+            // switch( k ) {
+            //  case 0: dut.SDRAM_BA_ADDR0 = ba_addr[0]; break;
+            //  case 1: dut.SDRAM_BA_ADDR1 = ba_addr[1]; break;
+            //  case 2: dut.SDRAM_BA_ADDR2 = ba_addr[2]; break;
+            //  case 3: dut.SDRAM_BA_ADDR3 = ba_addr[3]; break;
+            // }
             if( rd_st[k]>0 && rd_st[k]<3 ) { // Supports only 32-bit reads
                 if( dqbusy ) {
                     cout << "WARNING: SDRAM reads clashed\n";
@@ -302,19 +318,18 @@ void SDRAM::update() {
                 auto data_read = read_bank( banks[k], ba_addr[k] );
                 //cout << "Read " << std::hex << data_read << " from bank " << k << '\n';
                 dut.SDRAM_DQ = data_read;
-                // Increase the column, but keep the same row:
-                auto col = (ba_addr[k]+1)&0x1ff;
-                ba_addr[k] &= ~0x1ff;
-                ba_addr[k] |= col;
+                if( burst_len>1 ) {
+                    // Increase the column within the burst
+                    auto col = ba_addr[k]&0x1ff;
+                    auto col_inc = (col+1) & ~burst_mask;
+                    col &= burst_mask;
+                    col |= col_inc;
+                    ba_addr[k] &= ~0x1ff;
+                    ba_addr[k] |= col;
+                }
                 dqbusy = true;
             }
             if(rd_st[k]>0) rd_st[k]--;
-            // switch( k ) {
-            //     case 0: dut.SDRAM_BA_ADDR0 = ba_addr[0]; break;
-            //     case 1: dut.SDRAM_BA_ADDR1 = ba_addr[1]; break;
-            //     case 2: dut.SDRAM_BA_ADDR2 = ba_addr[2]; break;
-            //     case 3: dut.SDRAM_BA_ADDR3 = ba_addr[3]; break;
-            // }
         }
     }
     last_clk = dut.SDRAM_CLK;
@@ -336,6 +351,7 @@ SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
     cout << "Multibank SDRAM enabled\n";
 #endif
     banks[0] = nullptr;
+    burst_len= 1;
     for( int k=0; k<4; k++ ) {
         banks[k] = new char[BANK_LEN];
         rd_st[k]=0;
