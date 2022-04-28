@@ -327,6 +327,8 @@ assign status_menumask[15:6] = 0,
 `endif
 `ifdef JTFRAME_OSD60HZ
        status_menumask[3]    = status[19],      // Disables the Scan FX options if a core needs the 60Hz option but is not set
+    `else
+       status_menumask[3]    = 1,
 `endif
        status_menumask[2]    = ~hsize_enable,    // horizontal scaling
        status_menumask[0]    = direct_video;
