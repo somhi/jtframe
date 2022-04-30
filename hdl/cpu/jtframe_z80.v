@@ -45,7 +45,7 @@ module jtframe_sysz80(
     input         clk,
     input         cen,
     output        cpu_cen,
-    input         int_n,
+    input         int_n, // see CLR_INT parameter below
     input         nmi_n,
     input         busrq_n,
     output        m1_n,
@@ -77,8 +77,31 @@ end
 `endif
 `endif
 
-    parameter RAM_AW=12;
+    parameter RAM_AW  = 12,
+              CLR_INT = 0;   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
     wire ram_we = ram_cs & ~wr_n;
+    wire int_n_pin;
+
+    generate
+        if( CLR_INT==1 ) begin
+            // This is the most common logic used to handle interrupts
+            reg int_ff, intn_l;
+            always @(posedge clk, negedge rst_n) begin
+                if( !rst_n ) begin
+                    int_ff <= 0;
+                    intn_l <= 0;
+                end else begin
+                    intn_l <= int_n;
+                    if( !m1_n && !iorq_n )
+                        int_ff <= 0;
+                    else if( !int_n && intn_l ) int_ff <= 1;
+                end
+            end
+            assign int_n_pin = ~int_ff;
+        end else begin
+            assign int_n_pin = int_n;
+        end
+    endgenerate
 
     jtframe_ram #(.aw(RAM_AW)) u_ram(
         .clk    ( clk         ),
@@ -89,13 +112,12 @@ end
         .q      ( ram_dout    )
     );
 
-
     jtframe_z80_romwait u_z80wait(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
         .cpu_cen    ( cpu_cen   ),
-        .int_n      ( int_n     ),
+        .int_n      ( int_n_pin ),
         .nmi_n      ( nmi_n     ),
         .busrq_n    ( busrq_n   ),
         .m1_n       ( m1_n      ),
