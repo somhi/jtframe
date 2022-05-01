@@ -281,7 +281,7 @@ void SDRAM::update() {
             int mode = dut.SDRAM_A;
             burst_len = 1 << (mode&3);
             burst_mask = ~(burst_len-1);
-            cout << "\nSDRAM burt mode changed to " << burst_len;
+            cout << "\nSDRAM burst mode changed to " << burst_len;
             if( burst_len>2 ) {
                 throw "\nError: support for bursts larger than 2 is not implemented in test.cpp\n";
             }

@@ -164,6 +164,7 @@ jtframe_romrq_stats u_stats(
 `endif
 
 `ifdef SIMULATION
+`ifndef VERILATOR
 `ifndef JTFRAME_SIM_ROMRQ_NOCHECK
 reg [AW-1:0] last_addr;
 reg          waiting, last_req;
@@ -195,6 +196,7 @@ always @(posedge clk, posedge rst) begin
         end
     end
 end
+`endif
 `endif
 `endif
 

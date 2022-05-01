@@ -91,9 +91,11 @@ module game_test(
     input   [7:0]   st_addr,
     output  [7:0]   st_dout,
     input   [7:0]   debug_bus,
-    output  [7:0]   debug_view,
-    input           ioctl_ram,
-    output  [ 7:0]  ioctl_din
+    output  [7:0]   debug_view
+    `ifdef JTFRAME_IOCTL_RD
+    ,input           ioctl_ram
+    ,output  [ 7:0]  ioctl_din
+    `endif
 );
 
 `ifdef JTFRAME_SDRAM_LARGE
