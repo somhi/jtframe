@@ -419,8 +419,8 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) : game(g), sdram(g), dwn(g), sim_i
     if( freqkHz < 5500.0 || freqkHz>9000.0 ) {
         throw("Error: unexpected JTFRAME_GAMEPLL value\n");
     }
-    semi_period = 0.5e6/freqkHz;
-    cout << "Simulation clock period set to " << dec << (semi_period<<1) << "ns = " << freqkHz << " kHz\n";
+    semi_period = 0.5e9/8.0/freqkHz;
+    cout << "Simulation clock period set to " << dec << (semi_period<<1) << "ps\n";
 #ifdef LOADROM
     download = true;
 #else
