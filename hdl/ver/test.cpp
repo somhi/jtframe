@@ -59,6 +59,8 @@ public:
 class SimInputs {
     ifstream fin;
     UUT& dut;
+    int line;
+    bool done;
 public:
     SimInputs( UUT& _dut) : dut(_dut) {
         dut.dip_pause=1;
@@ -69,25 +71,43 @@ public:
         dut.service      = 1;
         dut.dip_test     = 1;
 #ifdef SIM_INPUTS
+        line = 0;
+        done = false;
         fin.open("sim_inputs.hex");
         if( fin.bad() ) {
             cout << "Error: could not open sim_inputs.hex\n";
         } else {
-            cout << "reading sdram_inputs.hex\n";
+            cout << "reading sim_inputs.hex\n";
         }
         next();
+#else
+        done = true;
 #endif
     }
     void next() {
-        if( fin.good() ) {
+        if( !done && fin.good() ) {
             string s;
             unsigned v;
+            ++line;
             getline( fin, s );
             sscanf( s.c_str(),"%u", &v );
             v = ~v;
-            dut.start_button = 0xc | (v&3);
-            dut.coin_input   = 0xc | ((v>>2)&3);
+            auto coin_l  = dut.coin_input&3;
+            dut.start_button = 0xc | ((v>>2)&3);
+            dut.coin_input   = 0xc | (v&3);
             dut.joystick1    = 0x3c0 | ((v>>4)&0x3f);
+            if( coin_l != (dut.coin_input&3) && coin_l!=3 ) {
+                cout << "\ncoin inserted (line " << line << ")\n";
+            }
+            if( fin.eof() ) {
+                done = true;
+                cout << "\nsim_inputs.hex finished at line " << line << endl;
+                fin.close();
+            }
+        } else {
+            dut.start_button = 0xf;
+            dut.coin_input   = 0xf;
+            dut.joystick1    = 0x3ff;
         }
     }
 };
