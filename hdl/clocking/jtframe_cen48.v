@@ -71,66 +71,25 @@ end
 endmodule
 
 ////////////////////////////////////////////////////////////////////
-// Generates a 3.57 MHz clock enable signal for a 48MHz clock
-// Result: 105/1408 = 3,579,545.5 MHz, off by 0.5Hz (0.14ppm) :-)
-// This module seems to be related to missing sound in Bionic Commando and Street Fighter 1
-// Touching the initial conditions a bit seems to have fixed it -maybe-
-// I don't quite understand how the error occurs in those two games
+// Generates a 3.57 MHz clock enable signal for a 48MHz/24MHz clock
 
 module jtframe_cen3p57(
-    input      clk,       // 48 MHz
-    output reg cen_3p57,
-    output reg cen_1p78
+    input  clk,       // 48 MHz
+    output cen_3p57,
+    output cen_1p78
 );
+    parameter CLK24=0;
 
-parameter CLK24=0;
+    localparam [15:0] STEP   = 16'd3758<<CLK24;
+    localparam [15:0] LIM    = 16'd50393;
 
-localparam [15:0] STEP   = 16'd3758<<CLK24;
-localparam [15:0] LIM    = 16'd50393;
-localparam        ALT0   = 1;
-
-wire [15:0] absmax = LIM+STEP;
-
-reg  [15:0] cencnt=16'd0;
-reg  [15:0] next;
-reg  [15:0] next2;
-
-always @(*) begin
-    next  = cencnt+STEP;
-    next2 = next-LIM;
-end
-
-reg alt=ALT0[0];
-
-`ifdef SIMULATION
-initial begin
-    cencnt = 16'd0;
-    next   = 16'd0;
-    next2  = 16'd0;
-    alt    = 0;
-end
-`endif
-
-always @(posedge clk) begin
-    if( cencnt >= absmax ) begin
-        // something went wrong: restart
-        cencnt   <= 16'd0;
-        alt      <= ALT0[0];
-        cen_3p57 <= 1;
-        cen_1p78 <= 1;
-    end else
-    if( next >= LIM ) begin
-        cencnt   <= next2;
-        cen_3p57 <= 1;
-        alt      <= ~alt;
-        if( alt ) cen_1p78 <= 1;
-    end else begin
-        cencnt   <= next;
-        cen_3p57 <= 0;
-        cen_1p78 <= 0;
-    end
-end
-
+    jtframe_frac_cen #(.W(2),.WC(16)) u_frac(
+        .clk    ( clk   ),
+        .n      ( STEP  ),
+        .m      ( LIM   ),
+        .cen    ( { cen_1p78, cen_3p57 } ),
+        .cenb   (       )
+    );
 endmodule
 
 ////////////////////////////////////////////////////////////////////
