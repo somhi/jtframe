@@ -501,10 +501,7 @@ void JTSim::clock(int n) {
         int cur_dwn = game.downloading | game.dwnld_busy;
         game.clk = 1;
 #ifdef JTFRAME_CLK24    // not supported together with JTFRAME_CLK96
-        switch( ticks&3 ) {
-            case 0: game.clk24 = 1; break;
-            case 2: game.clk24 = 0; break;
-        }
+        game.clk24 = ticks&1;
 #endif
 #ifdef JTFRAME_CLK48
         game.clk48 = 1-game.clk48;
