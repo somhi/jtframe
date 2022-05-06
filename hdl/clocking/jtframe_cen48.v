@@ -80,12 +80,31 @@ module jtframe_cen3p57(
 );
     parameter CLK24=0;
 
-    localparam [15:0] STEP   = 16'd3758<<CLK24;
-    localparam [15:0] LIM    = 16'd50393;
+    localparam [15:0] STEP =
+`ifdef JTFRAME_PLL6144
+        16'd1048;
+`elsif JTFRAME_PLL6293
+        16'd35;
+`elsif JTFRAME_PLL6671
+        16'd105;
+`else
+        16'd3758; // 6MHz PLL
+`endif
+
+    localparam [15:0] LIM  =
+`ifdef JTFRAME_PLL6144
+        16'd14391;
+`elsif JTFRAME_PLL6293
+        16'd492;
+`elsif JTFRAME_PLL6671
+        16'd1566;
+`else
+        16'd50393;
+`endif
 
     jtframe_frac_cen #(.W(2),.WC(16)) u_frac(
         .clk    ( clk   ),
-        .n      ( STEP  ),
+        .n      ( STEP<<CLK24 ),
         .m      ( LIM   ),
         .cen    ( { cen_1p78, cen_3p57 } ),
         .cenb   (       )
