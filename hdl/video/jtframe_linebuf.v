@@ -16,20 +16,6 @@
     Version: 1.0
     Date: 27-10-2017 */
 
-// Generic dual port RAM with clock enable
-// parameters:
-// DW      => Data bit width, 8 for byte-based memories
-// AW      => Address bit width, 10 for 1kB
-//
-// Transparency when writting
-// ALPHAW  => The bits ALPHAW-1:0 will be used for comparison
-// ALPHA   => If the input data matches ALPHA it will not be written
-//
-// Old data deletion
-// After rd input goes low, the data at rd_addr will be overwritten
-// with the BLANK value. The data is deleted BLANK_DLY clock cycles
-// after rd went low
-
 module jtframe_linebuf #(parameter
     DW=8,
     AW=9

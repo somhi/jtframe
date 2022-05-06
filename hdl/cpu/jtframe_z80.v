@@ -194,7 +194,7 @@ jtframe_z80wait #(1) u_wait(
     .rom_ok     ( rom_ok    )
 );
 
-jtframe_z80 u_memcpu(
+jtframe_z80 u_cpu(
     .rst_n    ( rst_n     ),
     .clk      ( clk       ),
     .cen      ( cpu_cen   ),
