@@ -25,7 +25,8 @@ module jtframe_rom_1slot #(parameter
     SLOT0_DW     = 8,
     SLOT0_AW     = 8,
     SLOT0_LATCH  = 0,
-    SLOT0_DOUBLE = 0
+    SLOT0_DOUBLE = 0,
+    SLOT0_OKLATCH= 1
 )(
     input               rst,
     input               clk,
@@ -47,12 +48,13 @@ module jtframe_rom_1slot #(parameter
 );
 
 jtframe_rom_2slots #(
-    .SDRAMW      ( SDRAMW       ),
-    .SLOT0_AW    ( SLOT0_AW     ),
-    .SLOT0_DW    ( SLOT0_DW     ),
-    .SLOT0_LATCH ( SLOT0_LATCH  ),
-    .SLOT0_OFFSET( 'h0          ),
-    .SLOT0_DOUBLE( SLOT0_DOUBLE )
+    .SDRAMW       ( SDRAMW        ),
+    .SLOT0_AW     ( SLOT0_AW      ),
+    .SLOT0_DW     ( SLOT0_DW      ),
+    .SLOT0_LATCH  ( SLOT0_LATCH   ),
+    .SLOT0_OFFSET ( 'h0           ),
+    .SLOT0_DOUBLE ( SLOT0_DOUBLE  ),
+    .SLOT0_OKLATCH( SLOT0_OKLATCH )
 ) u_2slots(
     .rst    ( rst       ),
     .clk    ( clk       ),

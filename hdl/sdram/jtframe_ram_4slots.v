@@ -29,6 +29,10 @@ module jtframe_ram_4slots #(parameter
     SLOT2_DOUBLE = 0,
     SLOT3_DOUBLE = 0,
 
+    SLOT1_OKLATCH= 1,
+    SLOT2_OKLATCH= 1,
+    SLOT3_OKLATCH= 1,
+
     REF_FILE="sdram_bank3.hex"
 )(
     input               rst,
@@ -118,7 +122,9 @@ jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW)) u_slot0(
     .we        ( slot_sel[0]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.LATCH(SLOT1_LATCH),.DOUBLE(SLOT1_DOUBLE)) u_slot1(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),
+    .LATCH(SLOT1_LATCH),.DOUBLE(SLOT1_DOUBLE),.OKLATCH(SLOT1_OKLATCH))
+u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot1_clr              ),
@@ -135,7 +141,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.LATCH(SLOT1_LATCH),
     .we        ( slot_sel[1]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),.LATCH(SLOT2_LATCH),.DOUBLE(SLOT2_DOUBLE)) u_slot2(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),
+    .LATCH(SLOT2_LATCH),.DOUBLE(SLOT2_DOUBLE),.OKLATCH(SLOT2_OKLATCH))
+u_slot2(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot2_clr              ),
@@ -152,7 +160,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),.LATCH(SLOT2_LATCH),
     .we        ( slot_sel[2]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),.LATCH(SLOT3_LATCH),.DOUBLE(SLOT3_DOUBLE)) u_slot3(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),
+    .LATCH(SLOT3_LATCH),.DOUBLE(SLOT3_DOUBLE),.OKLATCH(SLOT3_OKLATCH))
+u_slot3(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot3_clr              ),

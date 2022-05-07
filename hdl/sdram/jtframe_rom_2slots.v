@@ -33,6 +33,9 @@ module jtframe_rom_2slots #(parameter
     SLOT0_DOUBLE = 0,
     SLOT1_DOUBLE = 0,
 
+    SLOT0_OKLATCH= 1,
+    SLOT1_OKLATCH= 1,
+
     parameter [SDRAMW-1:0] SLOT0_OFFSET = 0,
     parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
     parameter REF_FILE="sdram_bank3.hex"
@@ -76,7 +79,9 @@ assign slot1_ok = ok[1];
 wire [SDRAMW-1:0] offset0 = SLOT0_OFFSET,
                   offset1 = SLOT1_OFFSET;
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW),.LATCH(SLOT0_LATCH),.DOUBLE(SLOT0_DOUBLE)) u_slot0(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW),
+    .LATCH(SLOT0_LATCH),.DOUBLE(SLOT0_DOUBLE),.OKLATCH(SLOT0_OKLATCH))
+u_slot0(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( 1'b0                   ),
@@ -93,7 +98,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW),.LATCH(SLOT0_LATCH),
     .we        ( slot_sel[0]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.LATCH(SLOT1_LATCH),.DOUBLE(SLOT1_DOUBLE)) u_slot1(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),
+    .LATCH(SLOT1_LATCH),.DOUBLE(SLOT1_DOUBLE),.OKLATCH(SLOT1_OKLATCH))
+u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( 1'b0                   ),

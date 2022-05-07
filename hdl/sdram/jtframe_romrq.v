@@ -26,11 +26,18 @@
 //    1     2    easy
 
 module jtframe_romrq #(parameter
-    SDRAMW= 22,  // SDRAM width
-    AW    = 18,
-    DW    =  8,
-    DOUBLE=  0,
-    LATCH =  0  // dout is latched
+    SDRAMW  = 22,  // SDRAM width
+    AW      = 18,
+    DW      =  8,
+    OKLATCH =  1,  // Set to 1 to latch the data_ok signal. This implies that
+                   // data_ok will be high for one clock cycle after the input address
+                   // has changed. The requesting module needs to take care of that
+                   // If OKLATCH is zero, data_ok is combinational and it will go to
+                   // zero as soon as the input address changes. This simplifies the
+                   // requesting logic but it is more demanding for timing constraints
+    DOUBLE  =  0,
+
+    LATCH   =  0  // dout is latched
 )(
     input               rst,
     input               clk,
@@ -49,22 +56,21 @@ module jtframe_romrq #(parameter
     // <-> Consumer
     input [AW-1:0]      addr,
     input               addr_ok,    // signals that value in addr is valid
-    output reg          data_ok,    // strobe that signals that data is ready
+    output              data_ok,    // strobe that signals that data is ready
     output reg [DW-1:0] dout
 );
 
 reg [AW-1:0] addr_req;
 
-reg [AW-1:0] cached_addr0;
-reg [AW-1:0] cached_addr1;
-reg [31:0]   cached_data0;
-reg [31:0]   cached_data1;
+reg [AW-1:0] cached_addr0, cached_addr1, addr_l;
+reg [31:0]   cached_data0, cached_data1;
 reg [1:0]    good;
 reg          hit0, hit1;
-reg          dend, double;
+reg          dend, double, cache_ok;
 wire [AW-1:0] shifted;
 
-assign sdram_addr = offset + { {SDRAMW-AW{1'b0}}, addr_req>>(DW==8?1:0)};
+assign sdram_addr = offset + { {SDRAMW-AW{1'b0}}, addr_req>>(DW==8)};
+assign data_ok    = OKLATCH ? cache_ok : addr_ok && ( hit0 || hit1 );
 
 always @(*) begin
     case(DW)
@@ -88,11 +94,12 @@ always @(posedge clk, posedge rst) begin
         cached_data1 <= 'd0;
         cached_addr0 <= 'd0;
         cached_addr1 <= 'd0;
-        data_ok      <= 0;
+        cache_ok     <= 0;
         dend         <= 0;
         double       <= 0;
     end else begin
         if( clr ) good <= 0;
+        if( req ) addr_l <= addr_req;
         if( we ) begin
             if( dst | (double&~dend) ) begin
                 cached_data1 <= cached_data0;
@@ -101,21 +108,21 @@ always @(posedge clk, posedge rst) begin
                 if( double )
                     cached_addr0[1] <= ~cached_addr0[1];
                 else
-                    cached_addr0 <= addr_req;
+                    cached_addr0 <= addr_l;
                 good <= { good[0], 1'b1 };
                 dend <= 1;
             end
             if( dend ) begin
                 cached_data0[31:16] <= din;
                 cached_data0[15: 0] <= cached_data0[31:16];
-                if( !LATCH[0] && !DOUBLE[0] ) data_ok <= 1;
+                if( !LATCH[0] && !DOUBLE[0] ) cache_ok<= 1;
                 if( DOUBLE ) double <= ~double;
                 dend <= 0;
             end
         end
         else begin
-            data_ok <= addr_ok && ( hit0 || hit1 );
-            double  <= 0;
+            cache_ok <= addr_ok && ( hit0 || hit1 );
+            double   <= 0;
         end
     end
 end
