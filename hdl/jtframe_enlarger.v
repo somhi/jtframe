@@ -20,12 +20,6 @@
 
 */
 
-// Generic mixer: imprpulse_ines on the jt12_mixer in JT12 repository
-
-// Usage:
-// Specify width of input signals and desired outputs
-// Select gain for each signal
-
 module jtframe_enlarger(
     input      rst,
     input      clk,

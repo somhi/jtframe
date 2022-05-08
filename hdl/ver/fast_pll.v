@@ -55,7 +55,7 @@ assign #1 c2 = c1;
 */
 assign c2=c0;
 
-endmodule // jtgng_pll0
+endmodule
 
 // 48 MHz PLL
 module jtframe_pll0(
@@ -109,8 +109,7 @@ initial $display("INFO: SDRAM_CLK delay set to 1 ns");
 assign #1 c2 = c1;
 `endif
 
-endmodule // jtgng_pll0
-
+endmodule
 
 module jtframe_pll1 (
     input inclk0,
@@ -122,59 +121,6 @@ initial begin
     forever c0 = #20 ~c0;
 end
 
-endmodule // jtgng_pll1
-
-
-////////////////////////////////////////////////////
-////////////////////////////////////////////////////
-// 20 MHz PLL
-
-module jtframe_pll20_fast(
-    input        inclk0,
-    output   reg c0,     // 20
-    output   reg c1,     // 80
-    output   reg c2,     // 80 (shifted by -2.5ns)
-    output   reg locked
-);
-
-    initial begin
-        locked = 0;
-        #30 locked = 1;
-    end
-
-    `ifdef BASE_CLK
-    real base_clk = `BASE_CLK;
-    initial $display("INFO: base clock set to %f ns",base_clk);
-    `else
-    real base_clk = 12.5; // 80 MHz
-    `endif
-
-    initial begin
-        c1 = 1'b0;
-        forever c1 = #(base_clk/2.0) ~c1; // 80 MHz
-    end
-
-    reg [1:0] div=2'd0;
-
-    assign c0 = div[1];
-
-    always @(posedge c1) begin
-        div <= div+'d1;
-    end
-
-    `ifdef SDRAM_DELAY
-    real sdram_delay = `SDRAM_DELAY;
-    initial $display("INFO pll20: SDRAM_CLK delay set to %f ns",sdram_delay);
-    `else
-    initial $display("INFO pll20: SDRAM_CLK delay set to 0 ns");
-    real sdram_delay = 0;
-    `endif
-
-    initial begin
-        c2 = 1'b0;
-        #(sdram_delay);
-        forever c2 = #(base_clk/2.0) ~c2; // 80 MHz
-    end
 endmodule
 
 // 48 MHz PLL

@@ -422,8 +422,8 @@ u_game(
     .red         ( red            ),
     .green       ( green          ),
     .blue        ( blue           ),
-    .LHBL_dly    ( LHBL           ),
-    .LVBL_dly    ( LVBL           ),
+    .LHBL        ( LHBL           ),
+    .LVBL        ( LVBL           ),
     .HS          ( hs             ),
     .VS          ( vs             ),
     // LED

@@ -16,6 +16,9 @@
     Version: 1.0
     Date: 16-9-2019 */
 
+// Verifies that values read by the SDRAM controller
+// match the file contents
+
 module jtframe_din_check #(parameter
     DW=16,
     AW=18,

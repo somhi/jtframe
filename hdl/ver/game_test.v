@@ -377,8 +377,8 @@ u_game(
     .red         ( red[COLORW-1:0]   ),
     .green       ( green[COLORW-1:0] ),
     .blue        ( blue[COLORW-1:0]  ),
-    .LHBL_dly    ( LHBL           ),
-    .LVBL_dly    ( LVBL           ),
+    .LHBL        ( LHBL           ),
+    .LVBL        ( LVBL           ),
     .HS          ( HS             ),
     .VS          ( VS             ),
     // LED

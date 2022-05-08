@@ -19,10 +19,10 @@
 module jtframe_blank #(parameter DLY=4,DW=12)(
     input               clk,
     input               pxl_cen,
-    input               LHBL,
-    input               LVBL,
-    output reg          LHBL_dly,
-    output reg          LVBL_dly,
+    input               preLHBL,
+    input               preLVBL,
+    output reg          LHBL,
+    output reg          LVBL,
     output              preLBL,
     input      [DW-1:0] rgb_in,
     output reg [DW-1:0] rgb_out
@@ -37,23 +37,23 @@ generate
         jtframe_sh #(.width(2),.stages(DLY-1)) u_dly(
             .clk    ( clk          ),
             .clk_en ( pxl_cen      ),
-            .din    ( {LHBL, LVBL} ),
+            .din    ( {preLHBL, preLVBL} ),
             .drop   ( predly       )
         );
     else
-        assign predly = {LHBL, LVBL};
+        assign predly = {preLHBL, preLVBL};
 endgenerate
 
 generate
     if( DLY > 0 ) begin : latch
         always @(posedge clk) if(pxl_cen) begin
             rgb_out <= predly==2'b11 ? rgb_in : {DW{1'b0}};
-            {LHBL_dly, LVBL_dly} <= predly;
+            {LHBL, LVBL} <= predly;
         end
     end else begin : comb // DLY==0
         always @(*) begin
             rgb_out = predly==2'b11 ? rgb_in : {DW{1'b0}};
-            {LHBL_dly, LVBL_dly} = predly;
+            {LHBL, LVBL} = predly;
         end
     end
 endgenerate

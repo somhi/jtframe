@@ -618,8 +618,8 @@ assign sim_pxl_cen = pxl_cen;
     .red          ( game_r           ),
     .green        ( game_g           ),
     .blue         ( game_b           ),
-    .LHBL_dly     ( LHBL             ), // Final timing
-    .LVBL_dly     ( LVBL             ),
+    .LHBL         ( LHBL             ), // Final timing
+    .LVBL         ( LVBL             ),
     .HS           ( hs               ),
     .VS           ( vs               ),
 `ifdef JTFRAME_INTERLACED

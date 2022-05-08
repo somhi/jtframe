@@ -16,6 +16,8 @@
     Version: 1.0
     Date: 3-5-2021 */
 
+// Verifies that the SDRAM is driven correctly
+
 module jtframe_romrq_rdy_check(
     input       rst,
     input       clk,

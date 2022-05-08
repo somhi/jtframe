@@ -40,7 +40,7 @@ module jtframe_mixer #(parameter W0=16,W1=16,W2=16,W3=16,WOUT=16)(
     input  [7:0]             gain1,
     input  [7:0]             gain2,
     input  [7:0]             gain3,
-    output     signed [WOUT-1:0] mixed,
+    output signed [WOUT-1:0] mixed,
     output                   peak   // overflow signal (time enlarged)
 );
 
