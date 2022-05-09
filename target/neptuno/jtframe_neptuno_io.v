@@ -160,7 +160,7 @@ data_io  u_datain (
 );
 
 assign status[31:0]  = { status_s[31:1], status_s[0] | mc_reset }; 
-assign status[63:32] = 0;
+assign status[63:32] = ~32'h0; // This is less troublesome for DIP switches
 assign scan2x_enb = scandb_s ^ toggle_scandb; // scan doubler enabled
 
 jtframe_neptuno_joy u_joysticks(
