@@ -12,7 +12,7 @@
 {{ if not .JTFRAME_OSD_NOCREDITS }} OC,Pause,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OI,Autofire button 0,Off,On; {{ end }}
 {{ .SEPARATOR }}
-{{ if .JTFRAME_MRA_DIP }}           DIP; {{ end }}
+{{ if not .JTFRAME_NO_MRA_DIP }}    DIP; {{ end }}
 {{ .CORE_OSD }}
 {{ with .JTFRAME_IOCTL_RD }}         R{{ . }},Save NVRAM;{{ end }}
 T0,RST;

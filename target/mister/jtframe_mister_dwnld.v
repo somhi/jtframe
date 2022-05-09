@@ -101,7 +101,7 @@ always @(posedge clk, posedge rst) begin
     end
 end
 
-`ifndef JTFRAME_MRA_DIP
+`ifdef JTFRAME_NO_MRA_DIP
     // DIP switches through regular OSD options
     assign dipsw        = status;
 `else

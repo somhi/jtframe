@@ -485,9 +485,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) : game(g), sdram(g), dwn(g), sim_i
 #else
     game.gfx_en=0xf;    // enable all layers
 #endif
-#ifdef JTFRAME_MRA_DIP
     game.dipsw=JTFRAME_SIM_DIPS;
-#endif
     reset(0);
     game.sdram_rst = 0;
     clock(48);

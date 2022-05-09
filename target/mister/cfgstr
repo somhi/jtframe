@@ -1,13 +1,7 @@
 J{{.CORENAME}};;
-{{ if .JTFRAME_OSD_LOAD }}    F,rom; {{ end }}
-{{ if .JTFRAME_MRA_DIP }}
-    DIP;
-{{ else }}
-    R0,Reset;
-{{ end }}
-{{ if .JTFRAME_CHEAT }}
-    CHEAT;
-{{ end }}
+{{ if .JTFRAME_OSD_LOAD }}          F,rom;                    {{ end }}
+{{ if not (.JTFRAME_NOMRA_DIP) }}   DIP;                      {{ end }}
+{{ if .JTFRAME_CHEAT }}             CHEAT;                    {{ end }}
     P1,Video;
 {{ if .JTFRAME_OSD60HZ }}           P1OJ,Force 60Hz, Off, On; {{ end }}
     P1oLO,CRT H offset,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;
@@ -41,5 +35,6 @@ P1oEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;
                                     o56,User port,Off,DB15 Joystick,UART; {{ end }}
     {{ else }}                      o5,User port,Off,DB15 Joystick; {{ end }}
 {{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
+R0,Reset;
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

@@ -715,9 +715,7 @@ assign sim_pxl_cen = pxl_cen;
     .dip_flip     ( dip_flip         ),
     .dip_test     ( dip_test         ),
     .dip_fxlevel  ( dip_fxlevel      ),
-`ifdef JTFRAME_MRA_DIP
     .dipsw        ( dipsw            ),
-`endif
 
 `ifdef JTFRAME_UART
     .uart_tx      ( game_tx          ),

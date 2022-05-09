@@ -516,9 +516,7 @@ u_game(
     .dip_test    ( dip_test       ),
     .dip_fxlevel ( dip_fxlevel    ),
     .service     ( game_service   ),
-    `ifdef JTFRAME_MRA_DIP
     .dipsw       ( dipsw          ),
-    `endif
 
 `ifdef JTFRAME_GAME_UART
     .uart_tx     ( UART_TX        ),
