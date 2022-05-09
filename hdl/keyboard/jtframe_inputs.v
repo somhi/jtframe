@@ -141,6 +141,7 @@ function [9:0] apply_rotation;
     input [9:0] joy_in;
     input       rot;
     input       flip;
+    input       autofire;
     begin
     apply_rotation = {10{ACTIVE_LOW[0]}} ^
         (!rot ? joy_in & { 5'h1f, autofire, 4'hf } :
@@ -190,7 +191,7 @@ always @(posedge clk, posedge rst) begin
             game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
             game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 4'd0, sim_inputs[frame_cnt][9:4]};
         `else
-        game_joy1 <= apply_rotation(joy1_sync | key_joy1, rot_control, ~dip_flip );
+        game_joy1 <= apply_rotation(joy1_sync | key_joy1, rot_control, ~dip_flip, autofire );
         game_coin <= {4{ACTIVE_LOW[0]}} ^
             ({  joy4_sync[COIN_BIT],joy3_sync[COIN_BIT],
                 joy2_sync[COIN_BIT],joy1_sync[COIN_BIT]} | key_coin | board_coin );
@@ -199,9 +200,9 @@ always @(posedge clk, posedge rst) begin
             ({  joy4_sync[START_BIT],joy3_sync[START_BIT],
                 joy2_sync[START_BIT],joy1_sync[START_BIT]} | key_start | board_start );
         `endif
-        game_joy2 <= apply_rotation(joy2_sync | key_joy2, rot_control, ~dip_flip );
-        game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip );
-        game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip );
+        game_joy2 <= apply_rotation(joy2_sync | key_joy2, rot_control, ~dip_flip, autofire );
+        game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip, autofire );
+        game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip, autofire );
 
         soft_rst <= key_reset && !last_reset;
 

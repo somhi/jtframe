@@ -62,7 +62,8 @@ localparam MSGW  = PAGES == 1 ? 10 :
                    (PAGES > 5 && PAGES <=8 ? 13 : 14 ))); // Support for upto 16 pages
 localparam VPOSW = MSGW-2;
 localparam HPOSW = 9;
-localparam [VPOSW-1:0] MAXVISIBLE = PAGES*32*8-1;
+localparam             _MAXVISIBLE = PAGES*32*8-1; // workaround to avoid a warning
+localparam [VPOSW-1:0] MAXVISIBLE  = _MAXVISIBLE[VPOSW-1:0];
 
 `ifndef JTFRAME_CREDITS_HSTART
     localparam [HPOSW-1:0] HOFFSET=0;
