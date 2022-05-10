@@ -165,7 +165,7 @@ endfunction
             frame_cnt <= 0;
         else frame_cnt <= frame_cnt+1;
     end
-    assign game_test = sim_inputs[frame_cnt][10];
+    assign game_test = sim_inputs[frame_cnt][11];
 `else
     assign game_test = key_test;
 `endif
@@ -189,7 +189,7 @@ always @(posedge clk, posedge rst) begin
         `ifdef SIM_INPUTS
             game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
             game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
-            game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 4'd0, sim_inputs[frame_cnt][9:4]};
+            game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] };
         `else
         game_joy1 <= apply_rotation(joy1_sync | key_joy1, rot_control, ~dip_flip, autofire );
         game_coin <= {4{ACTIVE_LOW[0]}} ^

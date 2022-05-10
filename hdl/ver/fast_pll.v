@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 // 96 MHz PLL
-module jtframe_pll96(
+module jtframe_pllgame96(
     input        inclk0,
     output   reg c0,     // 96
     output   reg c1,     // 48
