@@ -40,6 +40,7 @@
 
 /* verilator tracing_off */
 
+// This is a wrapper for jtframe_sysz80_nvram, for volatile RAM
 module jtframe_sysz80(
     input         rst_n,
     input         clk,
@@ -65,6 +66,80 @@ module jtframe_sysz80(
     input         rom_cs,
     input         rom_ok
 );
+    parameter
+        RAM_AW  = 12,
+        CLR_INT = 0   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+
+    jtframe_sysz80_nvram#(
+        .RAM_AW  ( RAM_AW   ),
+        .CLR_INT ( CLR_INT  )
+    )(
+        .rst_n      ( rst_n     ),
+        .clk        ( clk       ),
+        .cen        ( cen       ),
+        .cpu_cen    ( cpu_cen   ),
+        .int_n      ( int_n     ), // see CLR_INT parameter below
+        .nmi_n      ( nmi_n     ),
+        .busrq_n    ( busrq_n   ),
+        .m1_n       ( m1_n      ),
+        .mreq_n     ( mreq_n    ),
+        .iorq_n     ( iorq_n    ),
+        .rd_n       ( rd_n      ),
+        .wr_n       ( wr_n      ),
+        .rfsh_n     ( rfsh_n    ),
+        .halt_n     ( halt_n    ),
+        .busak_n    ( busak_n   ),
+        .A          ( A         ),
+        .cpu_din    ( cpu_din   ),
+        .cpu_dout   ( cpu_dout  ),
+        .ram_dout   ( ram_dout  ),
+        // NVRAM dump/restoration
+        prog_addr   (           ),
+        prog_data   ( 8'd0      ),
+        prog_din    (           ),
+        prog_we     ( 1'b0      ),
+        // ROM access
+        .ram_cs     ( ram_cs    ),
+        .rom_cs     ( rom_cs    ),
+        .rom_ok     ( rom_ok    )
+    );
+endmodule
+
+///////////////////////////////////////////////////////////////
+
+module jtframe_sysz80_nvram#( parameter
+    RAM_AW  = 12,
+    CLR_INT = 0   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+)(
+    input         rst_n,
+    input         clk,
+    input         cen,
+    output        cpu_cen,
+    input         int_n, // see CLR_INT parameter below
+    input         nmi_n,
+    input         busrq_n,
+    output        m1_n,
+    output        mreq_n,
+    output        iorq_n,
+    output        rd_n,
+    output        wr_n,
+    output        rfsh_n,
+    output        halt_n,
+    output        busak_n,
+    output [15:0] A,
+    input  [7:0]  cpu_din,
+    output [7:0]  cpu_dout,
+    output [7:0]  ram_dout,
+    // NVRAM dump/restoration
+    input  [RAM_AW-1:0] prog_addr,
+    input  [7:0]        prog_data,
+    output [7:0]        prog_din,
+    input               prog_we,
+    // ROM access
+    input         ram_cs,
+    input         rom_cs,
+    input         rom_ok
+);
 
 `ifdef SIMULATION
 `ifndef VERILATOR
@@ -77,8 +152,6 @@ end
 `endif
 `endif
 
-    parameter RAM_AW  = 12,
-              CLR_INT = 0;   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
     wire ram_we = ram_cs & ~wr_n;
     wire int_n_pin;
 
@@ -103,13 +176,22 @@ end
         end
     endgenerate
 
-    jtframe_ram #(.aw(RAM_AW)) u_ram(
-        .clk    ( clk         ),
-        .cen    ( cpu_cen     ),
-        .data   ( cpu_dout    ),
-        .addr   ( A[RAM_AW-1:0]),
-        .we     ( ram_we      ),
-        .q      ( ram_dout    )
+    wire clk_ram = clk & cpu_cen;
+
+    jtframe_dual_nvram #(.aw(RAM_AW)) u_ram(
+        // regular access
+        .clk0   ( clk_ram     ),
+        .data0  ( cpu_dout    ),
+        .addr0  ( A[RAM_AW-1:0]),
+        .we0    ( ram_we      ),
+        .q0     ( ram_dout    ),
+        // NVRAM interface
+        .clk1   ( clk         ), // should really use clk_rom
+        .addr1a (             ),
+        .sel_b  ( 1'b1        ),
+        .we_b   ( prog_we     ),
+        .data1  ( prog_data   ),
+        .q1     ( prog_din    )
     );
 
     jtframe_z80_romwait u_z80wait(

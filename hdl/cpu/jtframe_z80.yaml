@@ -6,4 +6,4 @@ jtframe:
       - t80/T80.qip
   - from: ram
     get:
-      - jtframe_ram.v
+      - jtframe_dual_nvram.v
