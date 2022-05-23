@@ -68,12 +68,12 @@ module jtframe_sysz80(
 );
     parameter
         RAM_AW  = 12,
-        CLR_INT = 0   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+        CLR_INT = 0;   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
 
     jtframe_sysz80_nvram#(
         .RAM_AW  ( RAM_AW   ),
         .CLR_INT ( CLR_INT  )
-    )(
+    ) u_cpu(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
@@ -94,10 +94,10 @@ module jtframe_sysz80(
         .cpu_dout   ( cpu_dout  ),
         .ram_dout   ( ram_dout  ),
         // NVRAM dump/restoration
-        prog_addr   (           ),
-        prog_data   ( 8'd0      ),
-        prog_din    (           ),
-        prog_we     ( 1'b0      ),
+        .prog_addr  (           ),
+        .prog_data  ( 8'd0      ),
+        .prog_din   (           ),
+        .prog_we    ( 1'b0      ),
         // ROM access
         .ram_cs     ( ram_cs    ),
         .rom_cs     ( rom_cs    ),
@@ -188,6 +188,7 @@ end
         // NVRAM interface
         .clk1   ( clk         ), // should really use clk_rom
         .addr1a (             ),
+        .addr1b ( prog_addr   ),
         .sel_b  ( 1'b1        ),
         .we_b   ( prog_we     ),
         .data1  ( prog_data   ),
