@@ -176,11 +176,11 @@ end
         end
     endgenerate
 
-    wire clk_ram = clk & cpu_cen;
+    //wire clk_ram = clk & cpu_cen;
 
     jtframe_dual_nvram #(.aw(RAM_AW)) u_ram(
         // regular access
-        .clk0   ( clk_ram     ),
+        .clk0   ( clk         ), // clk_ram may be needed (?)
         .data0  ( cpu_dout    ),
         .addr0  ( A[RAM_AW-1:0]),
         .we0    ( ram_we      ),
