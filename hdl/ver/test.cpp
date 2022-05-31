@@ -108,7 +108,7 @@ public:
             unsigned v;
             ++line;
             getline( fin, s );
-            sscanf( s.c_str(),"%u", &v );
+            sscanf( s.c_str(),"%x", &v );
             v = ~v;
             auto coin_l  = dut.coin_input&3;
             dut.start_button = 0xc | ((v>>2)&3);
