@@ -43,7 +43,8 @@ type JTFiles struct {
 }
 
 type Args struct {
-	Corename string
+	Corename string // JT core
+	Parse    string // any file
 	Rel bool
 	SkipVHDL bool
 	Format string
@@ -60,22 +61,28 @@ func parse_args( args *Args ) {
 		os.Exit(0)
 	}
 	flag.StringVar(&args.Corename,"core","","core name")
+	flag.StringVar(&args.Parse,"parse","","File to parse. Use either -parse or -core")
 	flag.StringVar(&args.Format,"f","qip","Output format. Valid values: qip, sim")
 	flag.StringVar(&args.Target,"target","","Target platform: mist or mister")
 	flag.BoolVar(&args.Rel,"rel",false,"Output relative paths")
 	flag.BoolVar(&args.SkipVHDL,"novhdl",false,"Skip VHDL files")
 	flag.Parse()
-	if len(args.Corename)==0 {
-		log.Fatal("JTFILES: You must specify the core name with argument -core")
+	if len(args.Corename)==0 && len(args.Parse)==0 {
+		log.Fatal("JTFILES: You must specify either the core name with argument -core\nor a file name with -parse")
 	}
 }
 
 func get_filename( args Args ) string {
-	cores := os.Getenv("CORES")
-	if len(cores)==0 {
-		log.Fatal("JTFILES: environment variable CORES is not defined")
+	var fname string
+	if( len(args.Corename)>0 ) {
+		cores := os.Getenv("CORES")
+		if len(cores)==0 {
+			log.Fatal("JTFILES: environment variable CORES is not defined")
+		}
+		fname = cores + "/" + args.Corename + "/hdl/game.yaml"
+	} else {
+		fname=args.Parse
 	}
-	fname := cores + "/" + args.Corename + "/hdl/game.yaml"
 	return fname
 }
 
@@ -263,6 +270,12 @@ func collect_files( files JTFiles, rel bool ) []string {
 				uniq = append( uniq, each )
 			}
 		}
+		// Check that files exist
+		for _, each := range(uniq) {
+			if _,err := os.Stat(each); os.IsNotExist(err) {
+				fmt.Println("JTFiles warning: file", each, "not found")
+			}
+		}
 		return uniq
 	} else {
 		return all
@@ -297,7 +310,13 @@ func dump_qip( all []string, rel bool ) {
 }
 
 func dump_sim( all []string, args Args ) {
-	fout, err := os.Create("game.f")
+	var fname string
+	if args.Parse!="" {
+		fname = strings.TrimSuffix( filepath.Base(args.Parse),".yaml") + ".f"
+	} else {
+		fname = "game.f"
+	}
+	fout, err := os.Create(fname)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -326,10 +345,9 @@ func main() {
 
 	var files JTFiles
 	parse_yaml( get_filename(args), &files )
-	parse_yaml( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", &files )
-//	if len(args.Target)>0 {
-//
-//	}
+	if args.Corename!="" {
+		parse_yaml( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", &files )
+	}
 	all := collect_files(files, args.Rel)
 
 	switch( args.Format ) {
