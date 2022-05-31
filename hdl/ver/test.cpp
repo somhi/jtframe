@@ -56,6 +56,22 @@ using namespace std;
     #define JTFRAME_SIM_DIPS 0xffffffff
 #endif
 
+class WaveWritter {
+    std::ofstream fsnd, fhex;
+    std::string name;
+    bool dump_hex;
+    void Constructor(const char *filename, int sample_rate, bool hex );
+public:
+    WaveWritter(const char *filename, int sample_rate, bool hex ) {
+        Constructor( filename, sample_rate, hex );
+    }
+    WaveWritter(const std::string &filename, int sample_rate, bool hex ) {
+        Constructor( filename.c_str(), sample_rate, hex );
+    }
+    void write( int16_t *lr );
+    ~WaveWritter();
+};
+
 class SDRAM {
     UUT& dut;
     char *banks[4];
@@ -212,6 +228,7 @@ const int VIDEO_BUFLEN = 256;
 class JTSim {
     vluint64_t simtime;
     vluint64_t semi_period;
+    WaveWritter wav;
 
     void parse_args( int argc, char *argv[] );
     void video_dump();
@@ -246,6 +263,7 @@ public:
     };
     UUT& game;
     int get_frame() { return frame_cnt; }
+    void update_wav();
     JTSim( UUT& g, int argc, char *argv[] );
     ~JTSim();
     void clock(int n);
@@ -443,7 +461,9 @@ void JTSim::reset( int v ) {
 #endif
 }
 
-JTSim::JTSim( UUT& g, int argc, char *argv[]) : game(g), sdram(g), dwn(g), sim_inputs(g) {
+JTSim::JTSim( UUT& g, int argc, char *argv[]) :
+    game(g), sdram(g), dwn(g), sim_inputs(g), wav("snd.wav",48000,false)
+{
     simtime=0;
     frame_cnt=0;
     last_VS = 0;
@@ -589,6 +609,13 @@ void JTSim::video_dump() {
     }
 }
 
+void JTSim::update_wav() {
+    int16_t snd[2];
+    snd[0] = game.snd_left;
+    snd[1] = game.snd_right;
+    wav.write(snd);
+}
+
 void JTSim::parse_args( int argc, char *argv[] ) {
     trace = false;
     finish_frame = -1;
@@ -621,6 +648,64 @@ void JTSim::parse_args( int argc, char *argv[] ) {
     #endif
 }
 
+void WaveWritter::write( int16_t* lr ) {
+    fsnd.write( (char*)lr, sizeof(int16_t)*2 );
+    if( dump_hex ) {
+        fhex << hex << lr[0] << '\n';
+        fhex << hex << lr[1] << '\n';
+    }
+}
+
+void WaveWritter::Constructor( const char *filename, int sample_rate, bool hex ) {
+    name = filename;
+    fsnd.open(filename, ios_base::binary);
+    dump_hex = hex;
+    if( dump_hex ) {
+        char *hexname;
+        hexname = new char[strlen(filename)+1];
+        strcpy(hexname,filename);
+        strcpy( hexname+strlen(filename)-4, ".hex" );
+        cerr << "Hex file " << hexname << '\n';
+        fhex.open(hexname);
+        delete[] hexname;
+    }
+    // write header
+    char zero=0;
+    for( int k=0; k<45; k++ ) fsnd.write( &zero, 1 );
+    fsnd.seekp(0);
+    fsnd.write( "RIFF", 4 );
+    fsnd.seekp(8);
+    fsnd.write( "WAVEfmt ", 8 );
+    int32_t number32 = 16;
+    fsnd.write( (char*)&number32, 4 );
+    int16_t number16 = 1;
+    fsnd.write( (char*) &number16, 2);
+    number16=2;
+    fsnd.write( (char*) &number16, 2);
+    number32 = sample_rate;
+    fsnd.write( (char*)&number32, 4 );
+    number32 = sample_rate*2*2;
+    fsnd.write( (char*)&number32, 4 );
+    number16=2*2;   // Block align
+    fsnd.write( (char*) &number16, 2);
+    number16=16;
+    fsnd.write( (char*) &number16, 2);
+    fsnd.write( "data", 4 );
+    fsnd.seekp(44);
+}
+
+WaveWritter::~WaveWritter() {
+    int32_t number32;
+    streampos file_length = fsnd.tellp();
+    number32 = (int32_t)file_length-8;
+    fsnd.seekp(4);
+    fsnd.write( (char*)&number32, 4);
+    fsnd.seekp(40);
+    number32 = (int32_t)file_length-44;
+    fsnd.write( (char*)&number32, 4);
+}
+
+
 ////////////////////////////////////////////////////
 // Main
 
@@ -633,7 +718,8 @@ int main(int argc, char *argv[]) {
         JTSim sim(game, argc, argv);
 
         while( !sim.done() ) {
-            sim.clock(10'000);
+            sim.clock(1'000); // if the clock is 48MHz, this will dump at 48kHz
+            sim.update_wav(); // Other clock rates will not have exact wav dumps
         }
         if( sim.get_frame()>1 ) cout << endl;
     } catch( const char *error ) {

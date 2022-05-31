@@ -17,7 +17,7 @@
       Date: 19-9-2020
 
 */
-
+/* verilator tracing_off */
 module jtframe_kabuki(
     input             clk,  // This clock must match the SDRAM's
     input             m1_n,
@@ -112,3 +112,4 @@ end
 `endif
 
 endmodule
+/* verilator tracing_on */
