@@ -38,7 +38,7 @@ module emu
     input         RESET,
 
     //Must be passed to hps_io module
-    inout  [47:0] HPS_BUS,
+    inout  [48:0] HPS_BUS,
 
     //Base video clock. Usually equals to CLK_SYS.
     output        CLK_VIDEO,
@@ -59,6 +59,7 @@ module emu
 
     input  [11:0] HDMI_WIDTH,
     input  [11:0] HDMI_HEIGHT,
+    output        HDMI_FREEZE,
 
     //Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
     output [12:0] VIDEO_ARX,
@@ -158,6 +159,7 @@ assign VGA_F1=field;
 `endif
 
 assign VGA_SCALER = 0;
+assign HDMI_FREEZE = 0;
 
 wire [3:0] hoffset, voffset;
 
