@@ -16,45 +16,55 @@
     Version: 1.0
     Date: 25-9-2019 */
 
+// 1. Sets the video to zero during blanking
+// 2. Adds a low bandwidth effect to the video signal when enabled
+
 module jtframe_wirebw #(parameter WIN=4, WOUT=5) (
-    input  clk,
-    input  spl_in,
-    input  [WIN-1:0] r_in,
-    input  [WIN-1:0] g_in,
-    input  [WIN-1:0] b_in,
-    input  HS_in,
-    input  VS_in,
-    input  HB_in,
-    input  VB_in,
-    input  enable,
+    input                 clk,
+    input                 spl_in, // sample strobe
+    input       [WIN-1:0] r_in,
+    input       [WIN-1:0] g_in,
+    input       [WIN-1:0] b_in,
+    input                 HS_in,
+    input                 VS_in,
+    input                 LHB_in,
+    input                 LVB_in,
+    input                 enable,
     // filtered video
-    output            HS_out,
-    output            VS_out,
-    output            HB_out,
-    output            VB_out,
-    output [WOUT-1:0] r_out,
-    output [WOUT-1:0] g_out,
-    output [WOUT-1:0] b_out
+    output reg            HS_out,
+    output reg            VS_out,
+    output reg            LHB_out,
+    output reg            LVB_out,
+    output reg [WOUT-1:0] r_out,
+    output reg [WOUT-1:0] g_out,
+    output reg [WOUT-1:0] b_out
 );
 
-wire [3:0] dly;
+wire [     3:0] dly;
+wire [WOUT-1:0] pr, pg, pb;
+wire            bl_n;
+
+assign bl_n = enable ? (LHB_out & LVB_out) : (LHB_in & LVB_in);
 
 jtframe_sh #(.width(4), .stages(4)) u_sh(
     .clk    ( clk              ),
     .clk_en ( spl_in           ),
-    .din    ( {HS_in,  VS_in,  HB_in,  VB_in  } ),
+    .din    ( {HS_in,  VS_in,  LHB_in,  LVB_in  } ),
     .drop   ( dly              )
 );
 
-assign {HS_out, VS_out, HB_out, VB_out } =
-    enable ? dly : {HS_in,  VS_in,  HB_in,  VB_in  };
+always @(posedge clk) begin
+    {HS_out, VS_out, LHB_out, LVB_out } <=
+        enable ? dly : {HS_in,  VS_in,  LHB_in,  LVB_in  };
+    {r_out,g_out,b_out} <= bl_n ? {pr,pg,pb} : {3*WOUT{1'b0}};
+end
 
 jtframe_wirebw_unit #(.WIN(WIN),.WOUT(WOUT)) u_rfilter(
     .clk    ( clk       ),
     .spl_in ( spl_in    ),
     .enable ( enable    ),
     .din    ( r_in      ),
-    .dout   ( r_out     )
+    .dout   ( pr        )
 );
 
 jtframe_wirebw_unit #(.WIN(WIN),.WOUT(WOUT)) u_gfilter(
@@ -62,7 +72,7 @@ jtframe_wirebw_unit #(.WIN(WIN),.WOUT(WOUT)) u_gfilter(
     .spl_in ( spl_in    ),
     .enable ( enable    ),
     .din    ( g_in      ),
-    .dout   ( g_out     )
+    .dout   ( pg        )
 );
 
 jtframe_wirebw_unit #(.WIN(WIN),.WOUT(WOUT)) u_bfilter(
@@ -70,7 +80,7 @@ jtframe_wirebw_unit #(.WIN(WIN),.WOUT(WOUT)) u_bfilter(
     .spl_in ( spl_in    ),
     .enable ( enable    ),
     .din    ( b_in      ),
-    .dout   ( b_out     )
+    .dout   ( pb        )
 );
 
 endmodule

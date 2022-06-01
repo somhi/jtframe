@@ -767,14 +767,14 @@ jtframe_wirebw #(.WIN(COLORW), .WOUT(CLROUTW)) u_wirebw(
     .b_in       ( dbg_b     ),
     .HS_in      ( hs        ),
     .VS_in      ( vs        ),
-    .HB_in      ( pre2x_LHBL),
-    .VB_in      ( pre2x_LVBL),
+    .LHB_in     ( pre2x_LHBL),
+    .LVB_in     ( pre2x_LVBL),
     .enable     ( bw_en     ),
     // filtered video
     .HS_out     ( hs_ana    ),
     .VS_out     ( vs_ana    ),
-    .HB_out     ( lhbl_ana  ),
-    .VB_out     ( lvbl_ana  ),
+    .LHB_out    ( lhbl_ana  ),
+    .LVB_out    ( lvbl_ana  ),
     .r_out      ( r_ana     ),
     .g_out      ( g_ana     ),
     .b_out      ( b_ana     )
