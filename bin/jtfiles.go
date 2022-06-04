@@ -45,6 +45,7 @@ type JTFiles struct {
 type Args struct {
 	Corename string // JT core
 	Parse    string // any file
+	Output   string // Output file name
 	Rel bool
 	SkipVHDL bool
 	Format string
@@ -62,6 +63,7 @@ func parse_args( args *Args ) {
 	}
 	flag.StringVar(&args.Corename,"core","","core name")
 	flag.StringVar(&args.Parse,"parse","","File to parse. Use either -parse or -core")
+	flag.StringVar(&args.Output,"output","","Output file name with no extension. Default is 'game'")
 	flag.StringVar(&args.Format,"f","qip","Output format. Valid values: qip, sim")
 	flag.StringVar(&args.Target,"target","","Target platform: mist or mister")
 	flag.BoolVar(&args.Rel,"rel",false,"Output relative paths")
@@ -282,8 +284,21 @@ func collect_files( files JTFiles, rel bool ) []string {
 	}
 }
 
-func dump_qip( all []string, rel bool ) {
-	fout, err := os.Create("game.qip")
+func get_output_name( args Args ) string {
+	var fname string
+	if args.Output != "" {
+		fname = args.Output
+	} else if args.Parse!="" {
+		fname = strings.TrimSuffix( filepath.Base(args.Parse),".yaml")
+	} else {
+		fname = "game"
+	}
+	return fname
+}
+
+func dump_qip( all []string, args Args ) {
+	fname := get_output_name(args)+".qip"
+	fout, err := os.Create(fname)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -300,7 +315,7 @@ func dump_qip( all []string, rel bool ) {
 			}
 		}
 		aux := "set_global_assignment -name " + filetype
-		if rel {
+		if args.Rel {
 			aux = aux + "[file join $::quartus(qip_path) " + each + "]"
 		} else {
 			aux = aux + " " + each
@@ -310,12 +325,7 @@ func dump_qip( all []string, rel bool ) {
 }
 
 func dump_sim( all []string, args Args ) {
-	var fname string
-	if args.Parse!="" {
-		fname = strings.TrimSuffix( filepath.Base(args.Parse),".yaml") + ".f"
-	} else {
-		fname = "game.f"
-	}
+	fname := get_output_name(args)+".f"
 	fout, err := os.Create(fname)
 	if err != nil {
 		log.Fatal(err)
@@ -351,7 +361,7 @@ func main() {
 	all := collect_files(files, args.Rel)
 
 	switch( args.Format ) {
-		case "qip": dump_qip(all, args.Rel )
+		case "qip": dump_qip(all, args )
 		default: dump_sim(all, args )
 	}
 }
