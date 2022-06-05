@@ -110,7 +110,7 @@ low         |   1         |
 high        |   2         | Default
 very high   |   3         |
 
-If **JTFRAME_FLIP_RESET** is defined a change in dip_flip will reset the game.
+If **JTFRAME_FLIP_RESET** is defined a change in dip_flip will reset the game. Connect the game module *flip* signal directly to the DIP switch bit if this macro is used. Connecting it to the CPU controlled *flip* bit may create a lock during reset as the CPU flips the bit from the default value to that in the DIP settings.
 
 To add game specific OSD strings, the recommended way is by adding a line to the **.def** file:
 
