@@ -44,7 +44,7 @@ wire [     3:0] dly;
 wire [WOUT-1:0] pr, pg, pb;
 wire            bl_n;
 
-assign bl_n = enable ? (LHB_out & LVB_out) : (LHB_in & LVB_in);
+assign bl_n = enable ? &dly[1:0] : (LHB_in & LVB_in);
 
 jtframe_sh #(.width(4), .stages(4)) u_sh(
     .clk    ( clk              ),
