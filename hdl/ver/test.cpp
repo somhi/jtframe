@@ -256,7 +256,7 @@ class JTSim {
     }
     void reset(int r);
 public:
-    int finish_time, finish_frame;
+    int finish_time, finish_frame, totalh, totalw, activeh, activew;
     bool done() {
         return (finish_frame>0 ? frame_cnt > finish_frame :
                 simtime/1000'000'000 >= finish_time ) && (!game.downloading && !game.dwnld_busy);
@@ -592,20 +592,44 @@ void JTSim::clock(int n) {
 }
 
 void JTSim::video_dump() {
-    if( game.pxl_cen && game.LHBL && game.LVBL && frame_cnt>0 ) {
-        const int MASK = (1<<JTFRAME_COLORW)-1;
-        int red   = game.red   & MASK;
-        int green = game.green & MASK;
-        int blue  = game.blue  & MASK;
-        int mix = 0xFF000000 |
-            ( color8(blue ) << 16 ) |
-            ( color8(green) <<  8 ) |
-            ( color8(red  )       );
-        dump.buffer[dump.ptr++] = mix;
-        if( dump.ptr==256 ) {
-            dump.fout.write( (char*)dump.buffer, VIDEO_BUFLEN*4 );
-            dump.ptr=0;
+    static int LHBLl, LVBLl;
+    static int cntw[2], cnth[2];
+    if( game.pxl_cen ) {
+        // Count the video size
+        if( !game.LHBL && LHBLl!=0 ) {
+            totalw = cntw[0];
+            activew= cntw[1];
+            cntw[0]=0; cntw[1]=0;
+            if( !game.LVBL && LVBLl!=0 ) {
+                totalh = cnth[0];
+                activeh= cnth[1];
+                cnth[0]=0; cnth[1]=0;
+            } else {
+                cnth[0]++;
+                if( game.LVBL!=0 ) cnth[1]++;
+            }
+        } else {
+            cntw[0]++;
+            if( game.LHBL!=0 ) cntw[1]++;
         }
+        // Dump the video
+        if( game.LHBL && game.LVBL && frame_cnt>0 ) {
+            const int MASK = (1<<JTFRAME_COLORW)-1;
+            int red   = game.red   & MASK;
+            int green = game.green & MASK;
+            int blue  = game.blue  & MASK;
+            int mix = 0xFF000000 |
+                ( color8(blue ) << 16 ) |
+                ( color8(green) <<  8 ) |
+                ( color8(red  )       );
+            dump.buffer[dump.ptr++] = mix;
+            if( dump.ptr==256 ) {
+                dump.fout.write( (char*)dump.buffer, VIDEO_BUFLEN*4 );
+                dump.ptr=0;
+            }
+        }
+        LHBLl = game.LHBL;
+        LVBLl = game.LVBL;
     }
 }
 
@@ -720,6 +744,13 @@ int main(int argc, char *argv[]) {
         while( !sim.done() ) {
             sim.clock(1'000); // if the clock is 48MHz, this will dump at 48kHz
             sim.update_wav(); // Other clock rates will not have exact wav dumps
+            if( sim.get_frame()==2 ) {
+                if( sim.activeh != JTFRAME_HEIGHT || sim.activew != JTFRAME_WIDTH ) {
+                    printf("\nError: video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
+                        JTFRAME_WIDTH, JTFRAME_HEIGHT, sim.activew, sim.activeh );
+                    break;
+                }
+            }
         }
         if( sim.get_frame()>1 ) cout << endl;
     } catch( const char *error ) {
