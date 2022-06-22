@@ -37,7 +37,7 @@ function [7:0] cv( input [8:0] min ); // convert to the right format
     `ifdef JTFRAME_MOUSE_NO2COMPL
         // some games cannot handle 2's complement, so
         // a conversion to sign plus magnitude is provided here
-        cv = min[8] ? -min[7:1] : min[7:1];
+        cv = { min[8], min[8] ? -min[7:1] : min[7:1] };
     `else
         cv = min[8:1];
     `endif
