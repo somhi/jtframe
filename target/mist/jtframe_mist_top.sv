@@ -168,12 +168,14 @@ jtframe_mist_clocks u_clocks(
 
 assign clk_pico = clk48;
 
-wire [7:0] debug_bus, debug_view;
-wire [1:0] dip_fxlevel, game_led;
-wire       enable_fm, enable_psg;
-wire       dip_pause, dip_flip, dip_test;
-wire       pxl_cen, pxl2_cen;
-wire [7:0] st_addr, st_dout;
+wire [ 7:0] debug_bus, debug_view;
+wire [ 1:0] dip_fxlevel, game_led;
+wire        enable_fm, enable_psg;
+wire        dip_pause, dip_flip, dip_test;
+wire        pxl_cen, pxl2_cen;
+wire [ 7:0] st_addr, st_dout;
+wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
+wire [15:0] mouse_1p, mouse_2p;
 
 `ifdef SIMULATION
 assign sim_pxl_clk = clk_sys;
@@ -332,6 +334,14 @@ u_frame(
     .joyana_r2      ( joyana_r2      ),
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
+    // Paddle inputs
+    .paddle_0       ( paddle_0       ),
+    .paddle_1       ( paddle_1       ),
+    .paddle_2       ( paddle_2       ),
+    .paddle_3       ( paddle_3       ),
+    // Mouse inputs
+    .mouse_1p       ( mouse_1p       ),
+    .mouse_2p       ( mouse_2p       ),
     .LED            ( LED            ),
     // Unused in MiST
     .BUTTON_n       ( 4'hf           ),
@@ -438,7 +448,16 @@ u_game(
     .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
     .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
-
+`ifdef JTFRAME_PADDLE
+    .paddle_0     ( paddle_0         ),
+    .paddle_1     ( paddle_1         ),
+    .paddle_2     ( paddle_2         ),
+    .paddle_3     ( paddle_3         ),
+`endif
+`ifdef JTFRAME_MOUSE
+    .mouse_1p     ( mouse_1p         ),
+    .mouse_2p     ( mouse_2p         ),
+`endif
 `ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ),
     .joyana_l2    ( joyana_l2        ),

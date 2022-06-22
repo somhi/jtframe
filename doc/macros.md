@@ -30,6 +30,8 @@ JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interfa
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
+JTFRAME_MOUSE            |         | Enables mouse input. See [inputs.md](inputs.md)
+JTFRAME_MOUSE_NO2COMPL   |         | Mouse input is provided as sign+magnitude instead of default 2's complement
 JTFRAME_MR_FASTIO        | MiSTer  | 16-bit ROM load in MiSTer. Set by default if CLK96 is set
 JTFRAME_MR_DDRLOAD       | MiSTer  | ROM download process uses the DDR as proxy
 JTFRAME_MR_DDR           | MiSTer  | Defined internally. Do not define manually.

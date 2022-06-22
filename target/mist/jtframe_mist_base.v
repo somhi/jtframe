@@ -1,16 +1,16 @@
-/*  This file is part of JT_GNG.
-    JT_GNG program is free software: you can redistribute it and/or modify
+/*  This file is part of JTFRAME.
+    JTFRAME program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    JT_GNG program is distributed in the hope that it will be useful,
+    JTFRAME program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with JT_GNG.  If not, see <http://www.gnu.org/licenses/>.
+    along with JTFRAME. If not, see <http://www.gnu.org/licenses/>.
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
@@ -72,6 +72,12 @@ module jtframe_mist_base #(parameter
     output [15:0]   joyana_r3,
     output [15:0]   joyana_l4,
     output [15:0]   joyana_r4,
+
+    output [ 8:0]   mouse_dx,
+    output [ 8:0]   mouse_dy,
+    output [ 7:0]   mouse_f,
+    output          mouse_st,
+    output          mouse_idx,
 
     output [ 3:0]   but_coin,   // buttons, active high
     output [ 3:0]   but_start,
@@ -236,12 +242,12 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
         .sd_conf        ( 1'b0      ),
         .sd_sdhc        ( 1'b0      ),
         .sd_din         ( 8'd0      ),
-        .mouse_x        (           ),
-        .mouse_y        (           ),
+        .mouse_x        ( mouse_dx  ),
+        .mouse_y        ( mouse_dy  ),
         .mouse_z        (           ),
-        .mouse_flags    (           ),
-        .mouse_strobe   (           ),
-        .mose_idx       (           )
+        .mouse_flags    ( mouse_f   ),
+        .mouse_strobe   ( mouse_st  ),
+        .mouse_idx      ( mouse_idx )
     );
 `else
     assign ypbpr     = 0;

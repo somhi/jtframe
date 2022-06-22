@@ -145,6 +145,16 @@ module jtframe_mist #(parameter
     output  [15:0]  joyana_r3,
     output  [15:0]  joyana_l4,
     output  [15:0]  joyana_r4,
+    // Paddle
+    output  [ 7:0]  paddle_0,
+    output  [ 7:0]  paddle_1,
+    output  [ 7:0]  paddle_2,
+    output  [ 7:0]  paddle_3,
+
+    // Mouse
+    output  [15:0]  mouse_1p,
+    output  [15:0]  mouse_2p,
+
     // DIP and OSD settings
     output          enable_fm,
     output          enable_psg,
@@ -180,7 +190,15 @@ wire          ioctl_cheat, sdram_init;
 
 wire  [15:0]  board_left, board_right;
 
+wire  [ 8:0]  bd_mouse_dx, bd_mouse_dy;
+wire          bd_mouse_st, bd_mouse_idx;
+wire  [ 7:0]  bd_mouse_f;
+
+
 assign board_status = { {64-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
+assign paddle_1 = 0;
+assign paddle_2 = 0;
+assign paddle_3 = 0;
 
 jtframe_mist_base #(
     .SIGNED_SND     ( SIGNED_SND    ),
@@ -253,6 +271,12 @@ jtframe_mist_base #(
     .joy1_bus       ( joy1_bus      ),
     .joy2_bus       ( joy2_bus      ),
     .JOY_SELECT     ( JOY_SELECT    ),
+    // Mouse
+    .mouse_st       ( bd_mouse_st   ),
+    .mouse_dx       ( bd_mouse_dx   ),
+    .mouse_dy       ( bd_mouse_dy   ),
+    .mouse_idx      ( bd_mouse_idx  ),
+    .mouse_f        ( bd_mouse_f    ),
     // MC2(+) buttons
     .BUTTON_n       ( BUTTON_n      ),
     // audio
@@ -319,6 +343,16 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    // Mouse & paddle
+    .bd_mouse_dx    ( bd_mouse_dx     ),
+    .bd_mouse_dy    ( bd_mouse_dy     ),
+    .bd_mouse_st    ( bd_mouse_st     ),
+    .bd_mouse_f     ( bd_mouse_f      ),
+    .bd_mouse_idx   ( bd_mouse_idx    ),
+
+    .paddle_0       ( paddle_0        ),
+    .mouse_1p       ( mouse_1p        ),
+    .mouse_2p       ( mouse_2p        ),
     // DIP and OSD settings
     .status         ( board_status    ),
     .enable_fm      ( enable_fm       ),

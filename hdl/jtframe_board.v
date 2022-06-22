@@ -103,15 +103,27 @@ module jtframe_board #(parameter
     input     [15:0]  joyana_r1,
     input     [15:0]  joyana_l2,
     input     [15:0]  joyana_r2,
-    input      [3:0]  board_start,
-    input      [3:0]  board_coin,
-    output     [9:0]  game_joystick1,
-    output     [9:0]  game_joystick2,
-    output     [9:0]  game_joystick3,
-    output     [9:0]  game_joystick4,
-    output     [3:0]  game_coin,
-    output     [3:0]  game_start,
+    input     [ 3:0]  board_start,
+    input     [ 3:0]  board_coin,
+    output    [ 9:0]  game_joystick1,
+    output    [ 9:0]  game_joystick2,
+    output    [ 9:0]  game_joystick3,
+    output    [ 9:0]  game_joystick4,
+    output    [ 3:0]  game_coin,
+    output    [ 3:0]  game_start,
     output            game_service,
+
+    // Mouse & Paddle
+    input      [ 8:0] bd_mouse_dx,
+    input      [ 8:0] bd_mouse_dy,
+    input      [ 7:0] bd_mouse_f,       // flags
+    input             bd_mouse_idx,
+    input             bd_mouse_st,
+
+    output     [ 7:0] paddle_0,
+    output     [15:0] mouse_1p,
+    output     [15:0] mouse_2p,
+
     // DIP and OSD settings
     input     [63:0]  status,
     output    [12:0]  hdmi_arx,
@@ -403,6 +415,17 @@ jtframe_inputs #(
     .game_service   ( game_service    ),
     .game_test      ( game_test       ),
     .lock           ( lock            ),
+
+    // Mouse & Paddle
+    .bd_mouse_dx    ( bd_mouse_dx     ),
+    .bd_mouse_idx   ( bd_mouse_idx    ),
+    .bd_mouse_dy    ( bd_mouse_dy     ),
+    .bd_mouse_f     ( bd_mouse_f      ),
+    .bd_mouse_st    ( bd_mouse_st     ),
+
+    .paddle         ( paddle_0        ),
+    .mouse_1p       ( mouse_1p        ),
+    .mouse_2p       ( mouse_2p        ),
 
     // Simulation helpers
     .game_pause     ( game_pause      )

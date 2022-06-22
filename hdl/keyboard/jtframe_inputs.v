@@ -57,8 +57,19 @@ module jtframe_inputs(
     output            game_test,
     input             lock, // disable joystick inputs
 
+    // Mouse & Paddle
+    input signed [8:0] bd_mouse_dx,
+    input signed [8:0] bd_mouse_dy,
+    input        [7:0] bd_mouse_f,
+    input              bd_mouse_st,
+    input              bd_mouse_idx,
+
+    output      [15:0] mouse_1p,
+    output      [15:0] mouse_2p,
+    output       [7:0] paddle,
+
     // For simulation only
-    input             downloading
+    input              downloading
 );
 
 parameter BUTTONS    = 2,
@@ -66,6 +77,7 @@ parameter BUTTONS    = 2,
 
 reg  [15:0] joy1_sync, joy2_sync, joy3_sync, joy4_sync;
 wire [ 3:0] joy4way1p, joy4way2p, joy4way3p, joy4way4p;
+wire [ 2:0] mouse_but_1p, mouse_but_2p;
 
 `ifdef JTFRAME_SUPPORT_4WAY
     wire en4way = core_mod[1];
@@ -191,7 +203,7 @@ always @(posedge clk, posedge rst) begin
             game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
             game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] };
         `else
-        game_joy1 <= apply_rotation(joy1_sync | key_joy1, rot_control, ~dip_flip, autofire );
+        game_joy1 <= apply_rotation( joy1_sync | key_joy1 | { mouse_but_1p, 4'd0}, rot_control, ~dip_flip, autofire );
         game_coin <= {4{ACTIVE_LOW[0]}} ^
             ({  joy4_sync[COIN_BIT],joy3_sync[COIN_BIT],
                 joy2_sync[COIN_BIT],joy1_sync[COIN_BIT]} | key_coin | board_coin );
@@ -200,7 +212,7 @@ always @(posedge clk, posedge rst) begin
             ({  joy4_sync[START_BIT],joy3_sync[START_BIT],
                 joy2_sync[START_BIT],joy1_sync[START_BIT]} | key_start | board_start );
         `endif
-        game_joy2 <= apply_rotation(joy2_sync | key_joy2, rot_control, ~dip_flip, autofire );
+        game_joy2 <= apply_rotation(joy2_sync | key_joy2 | { mouse_but_2p, 4'd0}, rot_control, ~dip_flip, autofire );
         game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip, autofire );
         game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip, autofire );
 
@@ -243,5 +255,29 @@ always @(posedge clk, posedge rst) begin
         end
     end
 end
+
+jtframe_paddle u_paddle(
+    .rst        ( rst          ),
+    .clk        ( clk          ),
+    .mouse_dx   ( bd_mouse_dx  ),
+    .mouse_st   ( bd_mouse_st  ),
+    .paddle     ( paddle       )
+);
+
+jtframe_mouse u_mouse(
+    .rst        ( rst          ),
+    .clk        ( clk          ),
+    .lock       ( lock         ),
+
+    .mouse_dx   ( bd_mouse_dx  ),
+    .mouse_dy   ( bd_mouse_dy  ),
+    .mouse_f    ( bd_mouse_f   ),
+    .mouse_st   ( bd_mouse_st  ),
+    .mouse_idx  ( bd_mouse_idx ),
+    .mouse_1p   ( mouse_1p     ),
+    .mouse_2p   ( mouse_2p     ),
+    .but_1p     ( mouse_but_1p ),
+    .but_2p     ( mouse_but_2p )
+);
 
 endmodule

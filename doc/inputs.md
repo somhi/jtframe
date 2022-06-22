@@ -53,6 +53,26 @@ Use to emulate trackball inputs with buttons. One button is used to increase the
 
 A more comprehensive trackball emulator that already instantiates internally the **jt4701** and can be easily interface with the CPU.
 
+# Paddle
+**Paddle support is preliminary**
+
+A [paddle](https://en.wikipedia.org/wiki/Paddle_%28game_controller%29) has a range of values and can hold a position. For some games, it is convenient to use the analog sticks found in modern gamepads. For other, the mouse may be a better interface. JTFRAME provides four 8-bit paddle signals, that can be mapped to other controllers
+
+Paddle # | Mouse axis | Joystick   | Analog stick
+---------|------------|------------|-------------------
+  0      |   X        | 1P, L/R    | 1P left stick L/R
+  1      |   Y        | 1P, U/D    | 1P left stick U/D
+  2      |            | 2P, L/R    | 2P left stick L/R
+  3      |            | 2P, U/D    | 2P left stick U/D
+
+The macro **JTFRAME_PADDLE=max** enables the paddle inputs to the game module. The macro should be defined to the maximum value the paddle can handle, otherwise the maximum is 8'hff and the minimum is 8'h0. The paddle value is unsigned.
+
+# Mouse
+
+Mouse control is simplified for arcades. Enable it with **JTFRAME_MOUSE**. The mouse buttons get mapped over the joystick buttons, so both can be used together. The mouse resolution is 8 bits per axis and up to two mouse devices can be connected. The game *Block* of the [JTPANG](https://www.github.com/jotego/jtpang) can serve as an example.
+
+Notice that the mouse signals are signed. Some games may require a sign + magnitude value. Set **JTFRAME_MOUSE_NO2COMPL** to get that format.
+
 # UART
 
 JTFRAME comes with a simple [UART interface](../hdl/jtframe_uart.v) that can serve to connect to an external computer.
