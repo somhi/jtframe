@@ -164,6 +164,9 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_coin,
     output  [ 3:0]  game_start,
     output          game_service,
+    // mouse
+    output  [15:0]  mouse_1p,
+    output  [15:0]  mouse_2p,
     // HDMI
     output  [12:0]  hdmi_arx,
     output  [12:0]  hdmi_ary,
@@ -225,6 +228,12 @@ wire        force_scan2x, direct_video;
 wire        video_rotated;
 
 wire [ 6:0] core_mod;
+// Mouse support
+wire [24:0] ps2_mouse;
+reg         ps2_mouse_l;
+wire [ 8:0] mouse_dx, mouse_dy;
+wire [ 7:0] mouse_f;
+wire        mouse_st;
 
 wire        hs_resync, vs_resync;
 
@@ -298,6 +307,16 @@ assign uart_rx  = uart_en ? USER_IN[1] : 1'b1;
 assign game_rx  = uart_rx;
 assign joy_in   = USER_IN;
 assign uart_en  = status[38]; // It can be used by the cheat engine or the game
+
+// Mouse
+assign mouse_st = ps2_mouse[24]^ps2_mouse_l;
+assign mouse_f  = ps2_mouse[7:0];
+assign mouse_dx = { mouse_f[4], ps2_mouse[15: 8] };
+assign mouse_dy = { mouse_f[5], ps2_mouse[23:16] };
+
+always @(posedge clk_sys) begin
+    ps2_mouse_l <= ps2_mouse[24];
+end
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
@@ -488,7 +507,7 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ps2_key         (                ),
     .RTC             (                ),
     .TIMESTAMP       ( timestamp      ),
-    .ps2_mouse       (                ),
+    .ps2_mouse       ( ps2_mouse      ),
     .ps2_mouse_ext   (                ),
     .ioctl_file_ext  (                )
 );
@@ -578,6 +597,16 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    // Mouse & paddle
+    .bd_mouse_dx    ( mouse_dx        ),
+    .bd_mouse_dy    ( mouse_dy        ),
+    .bd_mouse_st    ( mouse_st        ),
+    .bd_mouse_f     ( mouse_f         ),
+    .bd_mouse_idx   ( 1'b0            ),    // MiSTer only supports one mouse
+
+    .paddle_0       (                 ),
+    .mouse_1p       ( mouse_1p        ),
+    .mouse_2p       ( mouse_2p        ),
     // DIP and OSD settings
     .status         ( status          ),
     .enable_fm      ( enable_fm       ),

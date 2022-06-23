@@ -352,7 +352,8 @@ wire [15:0] sdram_dout;
     assign ba0_din_m  = 3;
 `endif
 
-wire [7:0] st_addr, st_dout;
+wire [ 7:0] st_addr, st_dout;
+wire [15:0] mouse_1p, mouse_2p;
 
 `ifndef JTFRAME_COLORW
 `define JTFRAME_COLORW 4
@@ -543,6 +544,9 @@ u_frame(
     .joyana_r2      ( joyana_r2      ),
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
+    // Mouse inputs
+    .mouse_1p       ( mouse_1p       ),
+    .mouse_2p       ( mouse_2p       ),
     .LED            ( LED_USER       ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
@@ -639,7 +643,10 @@ assign sim_pxl_cen = pxl_cen;
     .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
     .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
     `endif
-
+`ifdef JTFRAME_MOUSE
+    .mouse_1p     ( mouse_1p         ),
+    .mouse_2p     ( mouse_2p         ),
+`endif
 `ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ),
     .joyana_l2    ( joyana_l2        ),

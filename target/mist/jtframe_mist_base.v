@@ -301,6 +301,12 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     wire [8:0]  nept_controls;
     assign but_coin    = nept_controls[7:4];
     assign but_start   = nept_controls[3:0];
+    // Mouse not supported
+    assign mouse_st    = 0;
+    assign mouse_dx    = 0;
+    assign mouse_dy    = 0;
+    assign mouse_idx   = 0;
+    assign mouse_f     = 0;
 
     jtframe_neptuno_io u_neptuno_io(
         .sdram_init     ( sdram_init    ),
