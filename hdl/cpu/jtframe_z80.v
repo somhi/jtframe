@@ -68,11 +68,13 @@ module jtframe_sysz80(
 );
     parameter
         RAM_AW  = 12,
-        CLR_INT = 0;   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+        CLR_INT = 0,   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+        M1_WAIT = 0;
 
     jtframe_sysz80_nvram#(
         .RAM_AW  ( RAM_AW   ),
-        .CLR_INT ( CLR_INT  )
+        .CLR_INT ( CLR_INT  ),
+        .M1_WAIT ( M1_WAIT  )
     ) u_cpu(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
@@ -109,7 +111,8 @@ endmodule
 
 module jtframe_sysz80_nvram#( parameter
     RAM_AW  = 12,
-    CLR_INT = 0   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+    CLR_INT = 0,  // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+    M1_WAIT = 0
 )(
     input         rst_n,
     input         clk,
@@ -195,7 +198,7 @@ end
         .q1     ( prog_din    )
     );
 
-    jtframe_z80_romwait u_z80wait(
+    jtframe_z80_romwait #(.M1_WAIT(M1_WAIT)) u_z80wait(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
@@ -246,6 +249,9 @@ module jtframe_z80_romwait (
     input         rom_ok
 );
 
+parameter M1_WAIT=0; // wait states after M1 goes down
+wire wait_n;
+
 `ifdef SIMULATION
 integer rstd=0;
 
@@ -260,6 +266,25 @@ always @(posedge clk) begin
     end
 end
 `endif
+
+generate
+    if( M1_WAIT>0 ) begin
+        reg [M1_WAIT-1:0] wsh;
+        reg m1n_l;
+        always @(posedge clk, negedge rst_n ) begin
+            if( !rst_n ) begin
+                wsh <= 0;
+            end else if(cen) begin
+                m1n_l <= m1_n;
+                if( !m1_n && m1n_l ) wsh <= {M1_WAIT{1'b1}};
+                else wsh <= wsh>>1;
+            end
+        end
+        assign wait_n = ~wsh[0];
+    end else begin
+        assign wait_n = 1;
+    end
+endgenerate
 
 jtframe_z80wait #(1) u_wait(
     .rst_n      ( rst_n     ),
@@ -281,7 +306,7 @@ jtframe_z80 u_cpu(
     .rst_n    ( rst_n     ),
     .clk      ( clk       ),
     .cen      ( cpu_cen   ),
-    .wait_n   ( 1'b1      ),
+    .wait_n   ( wait_n    ),
     .int_n    ( int_n     ),
     .nmi_n    ( nmi_n     ),
     .busrq_n  ( busrq_n   ),

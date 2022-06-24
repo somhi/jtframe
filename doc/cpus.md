@@ -19,3 +19,16 @@ M6809       |  2992        |    0  |  mc6809i
 Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65
 PicoBlaze   |   950        |    0  |  PauloBlaze
+
+## Z80
+
+The two basic modules to instantiate are:
+
+- jtframe_sysz80_nvram
+- jtframe_sysz80
+
+These two modules offer a Z80 CPU plus:
+
+- A connected RAM (or NVRAM)
+- Automatic interrupt clear if CLR_INT parameter is set
+- Automatic wait cycles inserted on M1 falling edge if M1_WAIT is set larger than zero
