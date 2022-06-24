@@ -69,9 +69,9 @@ The macro **JTFRAME_PADDLE=max** enables the paddle inputs to the game module. T
 
 # Mouse
 
-Mouse control is simplified for arcades. Enable it with **JTFRAME_MOUSE**. The mouse buttons get mapped over the joystick buttons, so both can be used together. The mouse resolution is 8 bits per axis and up to two mouse devices can be connected. The game *Block* of the [JTPANG](https://www.github.com/jotego/jtpang) can serve as an example.
+Mouse control is simplified for arcades. Enable it with **JTFRAME_MOUSE**. The mouse buttons get mapped over the joystick buttons, so both can be used together. The mouse resolution is 8 bits per axis and up to two mouse devices can be connected. Two inputs are added to the game module with **JTFRAME_MOUSE**: *mouse_1p* and *mouse_2p*. Each is a 16-bit bus, where the upper 8 bits account for vertical movement and the lower for horizontal. Notice that the mouse signals are signed. Some games may require a sign + magnitude value. Set **JTFRAME_MOUSE_NO2COMPL** to get that format.
 
-Notice that the mouse signals are signed. Some games may require a sign + magnitude value. Set **JTFRAME_MOUSE_NO2COMPL** to get that format.
+The game *Block* of the [JTPANG](https://www.github.com/jotego/jtpang) can serve as an example.
 
 # UART
 
