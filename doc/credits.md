@@ -1,4 +1,5 @@
 # Credits Screen
+
 Credits can be displayed using the module *JTFRAME_CREDITS*. This module needs the following files inside the patrons folder:
 
 Input File | Output File    | Tool      | Function
@@ -39,6 +40,8 @@ Once the three files msg, avatars and lut are available, jtcore will process the
 Features 1-bpp text font and 4-bpp objects. Enable it with macro **JTFRAME_CREDITS**. By default there are three pages of memory reserved for this. If a different number is needed define the macro **JTFRAME_CREDITS_PAGES** with the right value. Avatars are enabled with **JTFRAME_AVATARS**
 
 **JTFRAME_CREDITS** is also added by the script *jtcore* if the file patrons/msg exists.
+
+If the same core plays horizontal and vertical games, jtframe_credits will rotate the credits. The credits text file must be designed to fit both scenarios. If the vertical case is not as important, the credits can set to always show in horizontal using **JTFRAME_CREDITS_NOROTATE** or to not show for vertical games **JTFRAME_CREDITS_HIDEVERT**.
 
 ## msg2hex
 Converts from a text file (patrons/msg) to a hex file usable by *JTFRAME_CREDITS*.
