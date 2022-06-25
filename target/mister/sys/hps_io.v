@@ -197,7 +197,7 @@ reg [DWNLD_W-1:0] dwnld_st;
 
 assign HPS_BUS[37]   = ioctl_wait;
 assign HPS_BUS[36]   = clk_sys;
-assign HPS_BUS[32]   = io_wide && ioctl_download; // JT: always 8-bit for uploads
+assign HPS_BUS[32]   = io_wide && !ioctl_upload; // JT: always 8-bit for uploads
 assign HPS_BUS[15:0] = EXT_BUS[32] ? EXT_BUS[15:0] : fp_enable ? fp_dout : io_dout;
 
 reg [15:0] cfg;
@@ -718,8 +718,10 @@ always@(posedge clk_sys) begin : fio_block
 							end
 						end
 						else begin // JT: fixed as 8-bit transfers, regardless of WIDE
-							ioctl_addr    <= ioctl_addr + 1'd1;
-							fp_dout[ 7:0] <= ioctl_din;
+							if( ioctl_upload ) begin
+								ioctl_addr    <= ioctl_addr + 1'd1;
+								fp_dout[ 7:0] <= ioctl_din;
+							end
 							ioctl_rd      <= 1;
 						end
 				endcase
