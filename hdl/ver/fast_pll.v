@@ -196,3 +196,45 @@ assign #1 c2 = c1;
 `endif
 
 endmodule
+
+module jtframe_pll6144(
+    input        inclk0,
+    output   reg c0,     // 49.152
+    output       c1,     // 49.152
+    output       c2,     // 49.152 (shifted by -2.5ns)
+    output   reg c3,     // 24.576
+    output   reg c4,     // 6.144
+    output   reg locked
+);
+
+initial begin
+    locked = 0;
+    #30 locked = 1;
+end
+
+assign c1=c0;
+
+reg nc;
+
+initial begin
+    c0 = 1'b0;
+    c3 = 1'b0;
+    c4 = 1'b0;
+    nc = 1'b0;
+    forever c0 = #(20.345/2.0) ~c0;
+end
+
+always @(posedge c0) begin
+    {c4,nc,c3} <= {c4,nc,c3} + 1'b1;
+end
+
+`ifdef SDRAM_DELAY
+real sdram_delay = `SDRAM_DELAY;
+initial $display("INFO: SDRAM_CLK delay set to %f ns",sdram_delay);
+assign #sdram_delay c2 = c1;
+`else
+initial $display("INFO: SDRAM_CLK delay set to 1 ns");
+assign #1 c2 = c1;
+`endif
+
+endmodule
