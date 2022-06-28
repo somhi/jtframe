@@ -269,6 +269,11 @@ jtframe_mouse u_mouse(
     .clk        ( clk          ),
     .lock       ( lock         ),
 
+    // Mouse emulation
+    .joy1       ( game_joy1[3:0] ^ {4{ACTIVE_LOW[0]}} ),
+    .joy2       ( game_joy2[3:0] ^ {4{ACTIVE_LOW[0]}} ),
+
+    // Actual mouse input
     .mouse_dx   ( bd_mouse_dx  ),
     .mouse_dy   ( bd_mouse_dy  ),
     .mouse_f    ( bd_mouse_f   ),

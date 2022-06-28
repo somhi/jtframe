@@ -71,6 +71,8 @@ The macro **JTFRAME_PADDLE=max** enables the paddle inputs to the game module. T
 
 Mouse control is simplified for arcades. Enable it with **JTFRAME_MOUSE**. The mouse buttons get mapped over the joystick buttons, so both can be used together. The mouse resolution is 8 bits per axis and up to two mouse devices can be connected. Two inputs are added to the game module with **JTFRAME_MOUSE**: *mouse_1p* and *mouse_2p*. Each is a 16-bit bus, where the upper 8 bits account for vertical movement and the lower for horizontal. Notice that the mouse signals are signed. Some games may require a sign + magnitude value. Set **JTFRAME_MOUSE_NO2COMPL** to get that format.
 
+By default, the mouse input can be emulated by using the regular joystick and keyboard controllers. This means that the mouse signals will respond to both an actual mouse connected to the FPGA but also to joystick and keyboard inputs. If that creates a problem in the core, the mouse emulation can be disabled by setting **JTFRAME_MOUSE_NOEMU**.
+
 The game *Block* of the [JTPANG](https://www.github.com/jotego/jtpang) can serve as an example.
 
 # UART

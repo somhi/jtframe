@@ -29,9 +29,28 @@ module jtframe_mouse(
     output reg  [15:0] mouse_1p,
     output reg  [15:0] mouse_2p,
 
+    // Mouse emulation
+    input       [ 3:0] joy1,
+    input       [ 3:0] joy2,
+
     output reg  [ 2:0] but_1p,
     output reg  [ 2:0] but_2p
 );
+
+reg  [3:0] joy1_l, joy2_l;
+wire [3:0] joy1_on, joy1_off, joy2_on, joy2_off;
+
+`ifndef JTFRAME_MOUSE_NOEMU
+    localparam MOUSE_EMU=1;
+`else
+    localparam MOUSE_EMU=0;
+`endif
+
+`ifndef JTFRAME_MOUSE_EMUSENS
+    localparam [8:0] MOUSE_EMU_SENS=9'h10;
+`else
+    localparam [8:0] MOUSE_EMU_SENS=`JTFRAME_MOUSE_EMUSENS;
+`endif
 
 function [7:0] cv( input [8:0] min ); // convert to the right format
     `ifdef JTFRAME_MOUSE_NO2COMPL
@@ -43,14 +62,23 @@ function [7:0] cv( input [8:0] min ); // convert to the right format
     `endif
 endfunction
 
+assign joy1_on  =  joy1 & ~joy1_l;
+assign joy1_off = ~joy1 &  joy1_l;
+assign joy2_on  =  joy2 & ~joy2_l;
+assign joy2_off = ~joy2 &  joy2_l;
+
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         mouse_1p <= 0;
         mouse_2p <= 0;
         but_1p   <= 0;
         but_2p   <= 0;
-    end else begin
-        if( mouse_st && !lock ) begin
+        joy1_l   <= 0;
+        joy2_l   <= 0;
+    end else if(!lock) begin
+        joy1_l <= joy1;
+        joy2_l <= joy2;
+        if( mouse_st ) begin
             if( !mouse_idx ) begin
                 mouse_1p <= { cv(mouse_dy), cv(mouse_dx) };
                 but_1p   <= mouse_f[2:0];
@@ -58,6 +86,23 @@ always @(posedge clk, posedge rst) begin
                 mouse_2p <= { cv(mouse_dy), cv(mouse_dx) };
                 but_2p   <= mouse_f[2:0];
             end
+        end
+        if( MOUSE_EMU ) begin
+            if( joy1_on[0] ) mouse_1p[ 7:0] <= MOUSE_EMU_SENS[7:0];
+            if( joy1_on[1] ) mouse_1p[ 7:0] <= cv(-MOUSE_EMU_SENS<<1);
+            if( joy1_on[2] ) mouse_1p[15:8] <= MOUSE_EMU_SENS[7:0];
+            if( joy1_on[3] ) mouse_1p[15:8] <= cv(-MOUSE_EMU_SENS);
+
+            if( joy2_on[0] ) mouse_2p[ 7:0] <= MOUSE_EMU_SENS[7:0];
+            if( joy2_on[1] ) mouse_2p[ 7:0] <= cv(-MOUSE_EMU_SENS<<1);
+            if( joy2_on[2] ) mouse_2p[15:8] <= MOUSE_EMU_SENS[7:0];
+            if( joy2_on[3] ) mouse_2p[15:8] <= cv(-MOUSE_EMU_SENS);
+
+            // Stop the mouse when releasing the joystick
+            if( joy1_off[1:0]!=0 ) mouse_1p[ 7:0] <= 0;
+            if( joy1_off[3:2]!=0 ) mouse_1p[15:8] <= 0;
+            if( joy2_off[1:0]!=0 ) mouse_2p[ 7:0] <= 0;
+            if( joy2_off[3:2]!=0 ) mouse_2p[15:8] <= 0;
         end
     end
 end
