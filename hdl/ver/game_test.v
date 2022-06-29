@@ -20,12 +20,22 @@
 `define JTFRAME_BUTTONS 2
 `endif
 
+// Top level for verilator simulations
+
 module game_test(
     input           sdram_rst,
+
+    // Clocks and resets, depending on the JTFRAME_CLK macros
+    // some of these inputs will be used
     input           rst,
     input           clk,
     input           rst24,
     input           clk24,
+    input           rst48,
+    input           clk48,
+    input           rst96,
+    input           clk96,
+
     output          pxl2_cen,   // 12   MHz
     output          pxl_cen,    //  6   MHz
     output   [7:0]  red,
@@ -497,5 +507,9 @@ u_game(
    ,.debug_view  ( debug_view     )
 `endif
 );
+
+`ifndef JTFRAME_DEBUG
+    assign debug_view = 0;
+`endif
 
 endmodule
