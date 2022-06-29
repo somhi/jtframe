@@ -22,6 +22,10 @@
 #include "UUT.h"
 #include "defmacros.h"
 
+// fork
+#include <sys/types.h>
+#include <unistd.h>
+
 #ifdef DUMP
     #include "verilated_vcd_c.h"
 #endif
@@ -223,7 +227,7 @@ public:
     }
 };
 
-const int VIDEO_BUFLEN = 256;
+const int VIDEO_BUFLEN = JTFRAME_WIDTH*JTFRAME_HEIGHT;
 
 class JTSim {
     vluint64_t simtime;
@@ -241,10 +245,24 @@ class JTSim {
     Download dwn;
     int frame_cnt, last_VS;
     // Video dump
-    struct {
+    struct t_dump{
         ofstream fout;
-        int ptr;
-        int32_t buffer[VIDEO_BUFLEN];
+        int k;
+        int32_t buffer0[VIDEO_BUFLEN];
+        int32_t *buffer;
+        void reset() {
+            buffer = buffer0;
+            k = 0;
+        }
+        t_dump() {
+            reset();
+        }
+        void push(int32_t val) {
+            if( k<VIDEO_BUFLEN ) {
+                *buffer++ = val;
+                k++;
+            }
+        }
     } dump;
     int color8(int c) {
         switch(JTFRAME_COLORW) {
@@ -486,15 +504,6 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #else
     download = false;
 #endif
-    // Video dump
-    dump.fout.open("video.pipe", ios_base::binary );
-    if( !dump.fout.good() ) {
-        printf("ERROR: cannot open video.pipe\n");
-    } else {
-        printf("opened video.pipe\n");
-    }
-    dump.ptr = 0;
-
     parse_args( argc, argv );
 #ifdef DUMP
     if( trace ) {
@@ -531,7 +540,6 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 }
 
 JTSim::~JTSim() {
-    dump.fout.write( (char*) dump.buffer, dump.ptr*4 ); // flushes the buffer
 #ifdef DUMP
     delete tracer;
 #endif
@@ -602,24 +610,6 @@ void JTSim::video_dump() {
     static int LHBLl, LVBLl;
     static int cntw[2], cnth[2];
     if( game.pxl_cen ) {
-        // Count the video size
-        if( !game.LHBL && LHBLl!=0 ) {
-            totalw = cntw[0];
-            activew= cntw[1];
-            cntw[0]=0; cntw[1]=0;
-            if( !game.LVBL && LVBLl!=0 ) {
-                totalh = cnth[0];
-                activeh= cnth[1];
-                cnth[0]=0; cnth[1]=0;
-            } else {
-                cnth[0]++;
-                if( game.LVBL!=0 ) cnth[1]++;
-            }
-            LVBLl = game.LVBL;
-        } else {
-            cntw[0]++;
-            if( game.LHBL!=0 ) cntw[1]++;
-        }
         // Dump the video
         if( game.LHBL && game.LVBL && frame_cnt>0 ) {
             const int MASK = (1<<JTFRAME_COLORW)-1;
@@ -630,11 +620,41 @@ void JTSim::video_dump() {
                 ( color8(blue ) << 16 ) |
                 ( color8(green) <<  8 ) |
                 ( color8(red  )       );
-            dump.buffer[dump.ptr++] = mix;
-            if( dump.ptr==256 ) {
-                dump.fout.write( (char*)dump.buffer, VIDEO_BUFLEN*4 );
-                dump.ptr=0;
+            dump.push( mix );
+        }
+        // Count the video size
+        if( !game.LHBL && LHBLl!=0 ) {
+            totalw = cntw[0];
+            activew= cntw[1];
+            cntw[0]=0; cntw[1]=0;
+            if( !game.LVBL && LVBLl!=0 ) {
+                totalh = cnth[0];
+                activeh= cnth[1];
+                cnth[0]=0; cnth[1]=0;
+                dump.reset();
+                // converts image to jpg in a different fork
+                // I suppose a thread would be faster...
+                if( fork()==0 ) {
+                    dump.fout.open("frame.raw",ios_base::binary);
+                    if( dump.fout.good() ) {
+                        dump.fout.write( (char*)dump.buffer, (activew*activeh)<<2 );
+                        dump.fout.close();
+                        char exes[512];
+                        sprintf(exes,"convert -filter Point "
+                            "-size %dx%d -depth 8 RGBA:frame.raw frame_%d.jpg",
+                            activew, activeh, frame_cnt);
+                        system(exes);
+                    }
+                    exit(0);
+                }
+            } else {
+                cnth[0]++;
+                if( game.LVBL!=0 ) cnth[1]++;
             }
+            LVBLl = game.LVBL;
+        } else {
+            cntw[0]++;
+            if( game.LHBL!=0 ) cntw[1]++;
         }
         LHBLl = game.LHBL;
     }
