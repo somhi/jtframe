@@ -278,6 +278,7 @@ int SDRAM::read_bank( char *bank, int addr ) {
     addr &= mask;
     int16_t *b16 =(int16_t*)bank;
     int v = b16[addr]&0xffff;
+    //printf("\tread %x\n", addr );
     return v;
 }
 
@@ -337,9 +338,9 @@ void SDRAM::update() {
             int mode = dut.SDRAM_A;
             burst_len = 1 << (mode&3);
             burst_mask = ~(burst_len-1);
-            cout << "\nSDRAM burst mode changed to " << burst_len;
-            if( burst_len>2 ) {
-                throw "\nError: support for bursts larger than 2 is not implemented in test.cpp\n";
+            cout << "SDRAM burst mode changed to " << burst_len << " mask 0x" << hex << burst_mask << '\n';
+            if( burst_len>4 ) {
+                throw "\nError: support for bursts larger than 4 is not implemented in test.cpp\n";
             }
         }
         if( !dut.SDRAM_nRAS && dut.SDRAM_nCAS && dut.SDRAM_nWE ) { // Row address - Activate command
@@ -350,7 +351,7 @@ void SDRAM::update() {
             ba_addr[ cur_ba ] &= ~0x1ff;
             ba_addr[ cur_ba ] |= (dut.SDRAM_A & 0x1ff);
             if( dut.SDRAM_nWE ) { // enque read
-                rd_st[ cur_ba ] = 3;
+                rd_st[ cur_ba ] = burst_len+1;
             } else {
                 int dqm = dut.SDRAM_DQM;
                 // cout << "Write bank " << cur_ba <<
@@ -367,10 +368,11 @@ void SDRAM::update() {
             //  case 2: dut.SDRAM_BA_ADDR2 = ba_addr[2]; break;
             //  case 3: dut.SDRAM_BA_ADDR3 = ba_addr[3]; break;
             // }
-            if( rd_st[k]>0 && rd_st[k]<3 ) { // Supports only 32-bit reads
+            if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Supports only 32-bit reads
                 if( dqbusy ) {
                     cout << "WARNING: SDRAM reads clashed\n";
                 }
+                // if( rd_st[k]==burst_len ) printf("Read start\n");
                 auto data_read = read_bank( banks[k], ba_addr[k] );
                 //cout << "Read " << std::hex << data_read << " from bank " << k << '\n';
                 dut.SDRAM_DQ = data_read;
@@ -486,6 +488,11 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #endif
     // Video dump
     dump.fout.open("video.pipe", ios_base::binary );
+    if( !dump.fout.good() ) {
+        printf("ERROR: cannot open video.pipe\n");
+    } else {
+        printf("opened video.pipe\n");
+    }
     dump.ptr = 0;
 
     parse_args( argc, argv );
@@ -608,6 +615,7 @@ void JTSim::video_dump() {
                 cnth[0]++;
                 if( game.LVBL!=0 ) cnth[1]++;
             }
+            LVBLl = game.LVBL;
         } else {
             cntw[0]++;
             if( game.LHBL!=0 ) cntw[1]++;
@@ -629,7 +637,6 @@ void JTSim::video_dump() {
             }
         }
         LHBLl = game.LHBL;
-        LVBLl = game.LVBL;
     }
 }
 
