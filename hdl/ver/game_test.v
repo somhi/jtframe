@@ -58,7 +58,7 @@ module game_test(
     output          dwnld_busy,
 
     // ROM LOAD
-    input   [24:0]  ioctl_addr,
+    input   [25:0]  ioctl_addr,
     input   [ 7:0]  ioctl_dout,
     input           ioctl_wr,
 
@@ -113,7 +113,6 @@ module game_test(
 `else
     localparam SDRAMW=22; // 32 MB
 `endif
-
 
 `ifdef JTFRAME_BA0_AUTOPRECH
     localparam BA0_AUTOPRECH = `JTFRAME_BA0_AUTOPRECH;
@@ -175,10 +174,11 @@ localparam
 `endif
     PROG_LEN = 32;
 
-wire [21:0] ba0_addr;
-wire [21:0] ba1_addr;
-wire [21:0] ba2_addr;
-wire [21:0] ba3_addr;
+wire [SDRAMW-1:0] ba0_addr;
+wire [SDRAMW-1:0] ba1_addr;
+wire [SDRAMW-1:0] ba2_addr;
+wire [SDRAMW-1:0] ba3_addr;
+wire [SDRAMW-1:0] prog_addr;
 wire [15:0] ba0_din;
 wire [ 1:0] ba0_din_m;  // write mask
 wire [ 3:0] ba_rd;
@@ -188,7 +188,6 @@ wire [ 3:0] ba_dst;
 wire [ 3:0] ba_dok;
 wire [ 3:0] ba_rdy;
 
-wire [21:0] prog_addr;
 wire [15:0] prog_data;
 wire [ 1:0] prog_mask;
 wire [ 1:0] prog_ba;
@@ -425,7 +424,7 @@ u_game(
     .enable_fm   ( enable_fm      ),
     .enable_psg  ( enable_psg     ),
     // PROM programming
-    .ioctl_addr  ( ioctl_addr     ),
+    .ioctl_addr  ( ioctl_addr[SDRAMW+2:0] ),
     .ioctl_dout  ( ioctl_dout     ),
     .ioctl_wr    ( ioctl_wr       ),
 `ifdef JTFRAME_IOCTL_RD
