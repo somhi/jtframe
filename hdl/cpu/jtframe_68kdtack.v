@@ -89,8 +89,8 @@ always @(posedge clk) begin : dtack_gen
                // is not enough on Rastan
             DTACKn <= 1;
             wait1  <= 1;
-        end else if( !ASn && cpu_cen ) begin
-            wait1 <= 0;
+        end else if( !ASn ) begin
+            if( cpu_cen ) wait1 <= 0;
             if( !wait1 && (!bus_cs || (bus_cs && !bus_busy)) ) begin
                 DTACKn <= 0;
             end
