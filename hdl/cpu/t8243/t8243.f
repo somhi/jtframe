@@ -1,5 +1,0 @@
-t8243_core.vhd
-t8243_core-c.vhd
-t8243_comp_pack-p.vhd
-t8243_sync_notri.vhd
-t8243_sync_notri-c.vhd
