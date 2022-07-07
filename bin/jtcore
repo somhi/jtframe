@@ -1,4 +1,21 @@
 #!/bin/bash
+# This file is part of JTFRAME.
+# JTFRAME program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# JTFRAME program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with JTFRAME.  If not, see <http://www.gnu.org/licenses/>.
+
+# Author: Jose Tejada Gomez. Twitter: @topapate
+# Version: 1.0
+# Date: 7-7-2022
 
 function show_usage() {
     cat << EOF
@@ -124,12 +141,6 @@ if [ ! -e "$JTFRAME" ]; then
     exit 1
 fi
 
-if ! which jtcfgstr > /dev/null; then
-    echo "Cannot find jtcfgstr in the path. This file can be found in the"
-    echo "JTBIN repository, in the bin folder"
-    exit 1
-fi
-
 # Is the project defined?
 case "$PRJ" in
     "")
@@ -191,7 +202,7 @@ function parse_macros {
     for i in $MACROS; do
         MM="-def $i $MM"
     done
-    jtcfgstr -target=$TARGET -parse $MACROS_FILE $VERBOSE -commit $PRJCOMMIT $MM -output $1
+    go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -parse $MACROS_FILE $VERBOSE -commit $PRJCOMMIT $MM -output $1
 }
 
 # qsf line to disable SOUND synthesis

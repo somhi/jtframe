@@ -15,5 +15,5 @@
 {{ if not .JTFRAME_NO_MRA_DIP }}    DIP; {{ end }}
 {{ .CORE_OSD }}
 {{ with .JTFRAME_IOCTL_RD }}         R{{ . }},Save NVRAM;{{ end }}
-T0,RST;
+T0,Reset v{{.COMMIT}};
 V,{{ .COMMIT }} - patreon.com/topapate
