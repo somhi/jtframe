@@ -557,7 +557,7 @@ wire [SDRAMW-1:0] bax_addr;
     assign uart_tx   = 1; // no signal out
     assign cheat_led = 0;
     assign dip_pause = pre_pause;
-    assign st_addr   = 0;
+    assign st_addr   = debug_bus;
 `endif
 
 // Audio
