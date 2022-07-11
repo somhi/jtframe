@@ -19,21 +19,19 @@
 module jtframe_ram2_5slots #(parameter
     SDRAMW = 22,
     SLOT0_FASTWR = 0,
+    SLOT1_FASTWR = 0,
 
     SLOT0_DW = 8, SLOT1_DW = 8, SLOT2_DW = 8, SLOT3_DW = 8, SLOT4_DW = 8,
     SLOT0_AW = 8, SLOT1_AW = 8, SLOT2_AW = 8, SLOT3_AW = 8, SLOT4_AW = 8,
 
-    SLOT1_LATCH  = 0,
     SLOT2_LATCH  = 0,
     SLOT3_LATCH  = 0,
     SLOT4_LATCH  = 0,
 
-    SLOT1_DOUBLE = 0,
     SLOT2_DOUBLE = 0,
     SLOT3_DOUBLE = 0,
     SLOT4_DOUBLE = 0,
 
-    SLOT1_OKLATCH= 1,
     SLOT2_OKLATCH= 1,
     SLOT3_OKLATCH= 1,
     SLOT4_OKLATCH= 1,
