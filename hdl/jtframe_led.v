@@ -49,7 +49,7 @@ localparam POL = 0;
 `else
 `endif
 
-assign sys_led = ~( /*downloading |*/ cheat_led /*| osd_shown*/);
+assign sys_led = ~( downloading | cheat_led /*| osd_shown*/);
 
 always @(posedge clk) begin
     last_LVBL <= LVBL;
@@ -71,7 +71,7 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         led <= POL[0];
     end else begin
-        led <= (downloading ? 1'b1 : (~enlarged & sys_led )) ^ POL[0];
+        led <= (~enlarged & sys_led ) ^ POL[0];
     end
 end
 

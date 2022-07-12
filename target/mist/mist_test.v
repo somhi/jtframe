@@ -8,7 +8,7 @@ wire [31:0] frame_cnt;
 wire VGA_HS, VGA_VS;
 wire led;
 
-wire            downloading;
+wire            downloading, dwnld_busy;
 wire    [24:0]  ioctl_addr;
 wire    [ 7:0]  ioctl_dout;
 wire clk27, rst;
@@ -42,9 +42,7 @@ test_harness #(.sdram_instance(0),.GAME_ROMNAME("rom.bin"),
     .pxl_vb      ( pxl_vb        ),
     .pxl_hb      ( pxl_hb        ),
     .downloading ( downloading   ),
-    .dwnld_busy  ( ~led          ), // LED is set low during downloading
-        // the downloading process can extend pass the downloading signal
-        // because of SDRAM content conversion
+    .dwnld_busy  ( dwnld_busy    ),
     .ioctl_addr  ( ioctl_addr    ),
     .ioctl_dout  ( ioctl_dout    ),
     .SPI_SCK     ( SPI_SCK       ),
@@ -127,10 +125,11 @@ mist_top UUT(
     .UART_TX    (           ),
     .UART_RX    ( 1'b1      )
 `ifndef GATES
-    ,.sim_pxl_cen( pxl_cen   )
-    ,.sim_pxl_clk( pxl_clk   )
-    ,.sim_vb     ( pxl_vb    )
-    ,.sim_hb     ( pxl_hb    )
+    ,.sim_pxl_cen    ( pxl_cen    )
+    ,.sim_pxl_clk    ( pxl_clk    )
+    ,.sim_vb         ( pxl_vb     )
+    ,.sim_hb         ( pxl_hb     )
+    ,.sim_dwnld_busy ( dwnld_busy )
 `endif
 );
 
@@ -145,6 +144,7 @@ assign pxl_clk = clk12m;
 assign pxl_cen = 1;
 assign pxl_vb  = VGA_VS;
 assign pxl_hb  = VGA_HS;
+assign dwnld_busy = 0;
 `endif
 
 

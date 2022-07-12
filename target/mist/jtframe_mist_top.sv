@@ -58,7 +58,8 @@ module mist_top(
     ,output         sim_pxl_cen,
     output          sim_pxl_clk,
     output          sim_vb,
-    output          sim_hb
+    output          sim_hb,
+    output          sim_dwnld_busy
     `endif
 );
 
@@ -178,10 +179,11 @@ wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
 wire [15:0] mouse_1p, mouse_2p;
 
 `ifdef SIMULATION
-assign sim_pxl_clk = clk_sys;
-assign sim_pxl_cen = pxl_cen;
-assign sim_vb = ~LVBL;
-assign sim_hb = ~LHBL;
+assign sim_pxl_clk    = clk_sys;
+assign sim_pxl_cen    = pxl_cen;
+assign sim_vb         = ~LVBL;
+assign sim_hb         = ~LHBL;
+assign sim_dwnld_busy = dwnld_busy;
 `endif
 
 `ifndef JTFRAME_SIGNED_SND
