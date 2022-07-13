@@ -37,6 +37,11 @@ module jtframe_ram2_6slots #(parameter
     SLOT4_DOUBLE = 0,
     SLOT5_DOUBLE = 0,
 
+    SLOT2_OKLATCH= 1,
+    SLOT3_OKLATCH= 1,
+    SLOT4_OKLATCH= 1,
+    SLOT5_OKLATCH= 1,
+
     REF_FILE="sdram_bank5.hex"
 )(
     input               rst,
@@ -165,7 +170,9 @@ jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.FASTWR(0)) u_slot1
     .we        ( slot_sel[1]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),.LATCH(SLOT2_LATCH),.DOUBLE(SLOT2_DOUBLE)) u_slot2(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),
+    .LATCH(SLOT2_LATCH),.DOUBLE(SLOT2_DOUBLE),.OKLATCH(SLOT2_OKLATCH))
+u_slot2(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot2_clr              ),
@@ -182,7 +189,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),.LATCH(SLOT2_LATCH),
     .we        ( slot_sel[2]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),.LATCH(SLOT3_LATCH),.DOUBLE(SLOT3_DOUBLE)) u_slot3(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),
+    .LATCH(SLOT3_LATCH),.DOUBLE(SLOT3_DOUBLE),.OKLATCH(SLOT3_OKLATCH))
+u_slot3(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot3_clr              ),
@@ -199,7 +208,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),.LATCH(SLOT3_LATCH),
     .we        ( slot_sel[3]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT4_AW),.DW(SLOT4_DW),.LATCH(SLOT4_LATCH),.DOUBLE(SLOT4_DOUBLE)) u_slot4(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT4_AW),.DW(SLOT4_DW),
+    .LATCH(SLOT4_LATCH),.DOUBLE(SLOT4_DOUBLE),.OKLATCH(SLOT4_OKLATCH))
+u_slot4(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot4_clr              ),
@@ -216,7 +227,9 @@ jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT4_AW),.DW(SLOT4_DW),.LATCH(SLOT4_LATCH),
     .we        ( slot_sel[4]            )
 );
 
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT5_AW),.DW(SLOT5_DW),.LATCH(SLOT5_LATCH),.DOUBLE(SLOT5_DOUBLE)) u_slot5(
+jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT5_AW),.DW(SLOT5_DW),
+    .LATCH(SLOT5_LATCH),.DOUBLE(SLOT5_DOUBLE),.OKLATCH(SLOT5_OKLATCH))
+u_slot5(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot5_clr              ),

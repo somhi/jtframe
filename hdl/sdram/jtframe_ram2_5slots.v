@@ -81,8 +81,7 @@ module jtframe_ram2_5slots #(parameter
     input [SLOT1_DW-1:0] slot1_din,
     input [1:0]         slot1_wrmask,
 
-    // Slot 1-4 cache can be cleared
-    input               slot1_clr,
+    // Slot 2-4 cache can be cleared
     input               slot2_clr,
     input               slot3_clr,
     input               slot4_clr,
@@ -155,7 +154,6 @@ jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT1_AW),.DW(SLOT1_DW),.FASTWR(SLOT1_FASTW
     .data_ok   ( slot_ok[1]             ),
     .we        ( slot_sel[1]            )
 );
-
 
 jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT2_AW),.DW(SLOT2_DW),
     .LATCH(SLOT2_LATCH),.DOUBLE(SLOT2_DOUBLE),.OKLATCH(SLOT2_OKLATCH))
