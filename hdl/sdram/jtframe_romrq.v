@@ -64,13 +64,13 @@ reg [AW-1:0] addr_req;
 
 reg [AW-1:0] cached_addr0, cached_addr1, addr_l;
 reg [31:0]   cached_data0, cached_data1;
-reg [1:0]    good;
+reg [1:0]    good, hitl;
 reg          hit0, hit1;
 reg          dend, double, cache_ok;
 wire [AW-1:0] shifted;
 
 assign sdram_addr = offset + { {SDRAMW-AW{1'b0}}, addr_req>>(DW==8)};
-assign data_ok    = OKLATCH ? cache_ok : addr_ok && ( hit0 || hit1 );
+assign data_ok    = cache_ok && {hit1,hit0}==hitl && (hit1 || hit0);
 
 always @(*) begin
     case(DW)
@@ -89,15 +89,17 @@ end
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
-        good         <= 'd0;
-        cached_data0 <= 'd0;
-        cached_data1 <= 'd0;
-        cached_addr0 <= 'd0;
-        cached_addr1 <= 'd0;
+        good         <= 0;
+        cached_data0 <= 0;
+        cached_data1 <= 0;
+        cached_addr0 <= 0;
+        cached_addr1 <= 0;
         cache_ok     <= 0;
         dend         <= 0;
         double       <= 0;
+        hitl         <= 0;
     end else begin
+        hitl <= { hit1, hit0 };
         if( clr ) good <= 0;
         if( req ) addr_l <= addr_req;
         if( we ) begin
