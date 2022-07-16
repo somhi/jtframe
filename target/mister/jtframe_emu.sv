@@ -731,7 +731,7 @@ assign sim_pxl_cen = pxl_cen;
     .uart_rx      ( game_rx          ),
 `endif
 
-`ifdef STEREO_GAME
+`ifdef JTFRAME_STEREO
     .snd_left     ( snd_left         ),
     .snd_right    ( snd_right        ),
 `else
@@ -750,7 +750,7 @@ assign sim_pxl_cen = pxl_cen;
     ,.debug_view  ( debug_view       )
     `endif);
 
-`ifndef STEREO_GAME
+`ifndef JTFRAME_STEREO
     assign snd_right = snd_left;
 `endif
 

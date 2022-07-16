@@ -127,7 +127,7 @@ wire data_rdy, sdram_ack;
 wire pll_locked, clk_pico;
 
 
-`ifndef STEREO_GAME
+`ifndef JTFRAME_STEREO
 assign snd_right = snd_left;
 `endif
 
@@ -545,7 +545,7 @@ u_game(
 `endif
 
     // sound
-`ifndef STEREO_GAME
+`ifndef JTFRAME_STEREO
     .snd         ( snd_left       ),
 `else
     .snd_left    ( snd_left       ),

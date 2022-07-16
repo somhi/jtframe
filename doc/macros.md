@@ -62,6 +62,7 @@ JTFRAME_SHADOW           | MiSTer  | Start address for SDRAM shadowing and dump 
 JTFRAME_SHADOW_LEN       | MiSTer  | Length in bits of the shadowing. See [sdram.md](sdram.md)
 JTFRAME_SIGNED_SND       | MiSTer  | Set to 0 if the game only uses unsigned sound sources
 JTFRAME_STATUS           |         | Game module will receive an 8-bit address and can output 8-bit data in response
+JTFRAME_STEREO           |         | Enables stereo sound (snd_left/right outputs from game module instead of single snd)
 JTFRAME_SUPPORT_4WAY     |         | Enables support for 4-way joysticks if the MRA sets it
 JTFRAME_UART             |         | Connects the UART pins to the game module (see [inputs.md](inputs.md))
 JTFRAME_VERTICAL         |         | Enables support for vertical games

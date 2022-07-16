@@ -225,7 +225,7 @@ localparam STARTW=4;
 localparam STARTW=2;
 `endif
 
-`ifndef STEREO_GAME
+`ifndef JTFRAME_STEREO
 assign snd_right = snd_left;
 `endif
 
@@ -488,7 +488,7 @@ u_game(
 `endif
 
     // sound
-`ifndef STEREO_GAME
+`ifndef JTFRAME_STEREO
     .snd         ( snd_left       ),
 `else
     .snd_left    ( snd_left       ),

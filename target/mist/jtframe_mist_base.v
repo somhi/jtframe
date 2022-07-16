@@ -160,7 +160,7 @@ assign joyana_r4 = 0;
       .dac_out  ( snd_pwm_left         )
     );
 
-        `ifdef STEREO_GAME
+        `ifdef JTFRAME_STEREO
         hifi_1bit_dac u_dac_right
         (
           .reset    ( rst                  ),
