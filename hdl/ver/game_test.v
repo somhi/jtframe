@@ -53,6 +53,16 @@ module game_test(
     input   [ 9:0]  joystick3,
     input   [ 9:0]  joystick4,
 
+    // Analog inputs
+    input   [15:0]  joyana_l1,
+    input   [15:0]  joyana_l2,
+    input   [15:0]  joyana_l3,
+    input   [15:0]  joyana_l4,
+    input   [15:0]  joyana_r1,
+    input   [15:0]  joyana_r2,
+    input   [15:0]  joyana_r3,
+    input   [15:0]  joyana_r4,
+
     // SDRAM interface
     input           downloading,
     output          dwnld_busy,
