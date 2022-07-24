@@ -40,6 +40,12 @@
     cycle than expected on those occasions. Both CPS and S16
     use only ASn to generate DTACKn.
 
+    The M68K requires one wait cycle for all access. But it's
+    common to have systems where 2 or 3 wait states are used too.
+    The wait2 and wait3 inputs can be set high to use more wait
+    states. Clock cycle recovery does not take effect during
+    extra wait states requested by the system.
+
 */
 
 module jtframe_68kdtack
@@ -59,6 +65,8 @@ module jtframe_68kdtack
     input [1:0]   DSn,  // If DSn goes high, DTACKn is reset high
     input [W-2:0] num,  // numerator
     input [W-1:0] den,  // denominator
+    input         wait2, // high for 2 wait states
+    input         wait3, // high for 3 wait states
 
     output reg    DTACKn,
     output reg [15:0] fave, // average cpu_cen frequency in kHz
@@ -70,28 +78,34 @@ module jtframe_68kdtack
 localparam CW=W+WD;
 
 reg [CW-1:0] cencnt=0;
-reg          wait1; //, aux=0;
+reg  [2:0]   wait1;
 wire         halt;
 wire [W-1:0] num2 = { num, 1'b0 }; // num x 2
 wire over = cencnt>den-num2;
 reg  [CW:0] cencnt_nx;
 reg  risefall=0;
 
-assign halt = RECOVERY==1 && !ASn && !wait1 && (bus_cs && bus_busy && !bus_legit);
+assign halt = RECOVERY==1 && !ASn && wait1==0 && (bus_cs && bus_busy && !bus_legit);
 
 always @(posedge clk) begin : dtack_gen
     if( rst ) begin
         DTACKn <= 1;
-        wait1  <= 1;
+        wait1  <= 3'b111;
     end else begin
         if( ASn | &DSn ) begin // DSn is needed for read-modify-write cycles
                // performed on the SDRAM. Just checking the DSn rising edge
                // is not enough on Rastan
             DTACKn <= 1;
-            wait1  <= 1;
+            wait1  <= 3'b111;
         end else if( !ASn ) begin
-            if( cpu_cen ) wait1 <= 0;
-            if( !wait1 && (!bus_cs || (bus_cs && !bus_busy)) ) begin
+            if( cpu_cen ) begin
+                case( {wait3,wait2} )
+                    0: wait1 <= 0;
+                    1: wait1 <= {2'b0, wait1[1] };
+                    2,3: wait1 <= {1'b0, wait1[2:1] };
+                endcase
+            end
+            if( wait1==0 && (!bus_cs || (bus_cs && !bus_busy)) ) begin
                 DTACKn <= 0;
             end
         end
