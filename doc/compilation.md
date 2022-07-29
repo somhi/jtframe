@@ -16,7 +16,6 @@ All JT arcade cores depend on JTFRAME for compilation:
 3. Python and Go installed
 4. Python `pypng` package
 5. Go YAML package `go get gopkg.in/yaml.v2`
-6. [jtcfgstr](https://github.com/jotego/jtbin/blob/master/bin/jtcfgstr) in your path
 
 ## Quick Steps
 
@@ -36,7 +35,6 @@ That should produce the MiST output. If you have a fresh linux installation, you
 * You need 32-bit support if you're going to compile MiST/SiDi cores
 * There are some linux dependencies that you can sort out with `sudo apt install`, mostly Python, the pypng pythong package, Go and the YAML.v2 package
 * Populate the arcade core repository including submodules recursively. I believe in using submodules to break up tasks and sometimes submodules may have their own submodules. So be sure to populate the repository recursively. Be sure to understand how git submodules work
-* JTCORE uses an utility called _jtcfgstr_ to generate the config string from a text template. The binary for that tool is [here](https://github.com/jotego/jtbin/blob/master/bin/jtcfgstr).
 * Now jtframe should be located in `core-folder/modules/jtframe` go there and enter the `cc` folder. Run `make`. Make sure all files compile correctly and install whatever you need to make them compile. All should be in your standard linux software repository. Nothing fancy is needed
 * Now go to the `core-folder` and run `source setprj.sh`
 * Now you can compile the core using the `jtcore` script.
@@ -99,7 +97,7 @@ JTFRAME_CHEAT
 
 Will include the file *common.def*, then define several macros and concatenate more values to those already present in CORE_OSD. Then, only for MiSTer, it will define some extra options
 
-Macros are evaluated by [jtcfgstr](https://github.com/jotego/jtbin/blob/master/bin/jtcfgstr)
+Macros are evaluated by [jtcfgstr](../bin/jtcfgstr.go)
 
 ## Folder and file locations
 
