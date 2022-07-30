@@ -75,8 +75,7 @@ assign data_ok    = cache_ok && {hit1,hit0}==hitl && (hit1 || hit0);
 always @(*) begin
     case(DW)
         8:  addr_req = {addr[AW-1:2],2'b0};
-        16: addr_req = {addr[AW-1:1],1'b0};
-        32: addr_req = addr;
+        16,32: addr_req = {addr[AW-1:1],1'b0};
     endcase
     // It is important to leave === for simulations, instead of ==
     // It shouldn't have any implication for synthesis
