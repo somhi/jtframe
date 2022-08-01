@@ -25,7 +25,10 @@
 // input is unsigned
 // output is signed
 
-module jtframe_dcrm #(parameter SW=8) (
+module jtframe_dcrm #(parameter
+    SW           = 8,
+    SIGNED_INPUT = 0
+)(
     input                   rst,
     input                   clk,
     input                   sample,
@@ -45,7 +48,7 @@ reg signed [SW:0] q;
 always @(*) begin
     exact = integ+error;
     q = exact[SW+DW:DW];
-    pre_dout  = { 1'b0, din } - q;
+    pre_dout  = { SIGNED_INPUT ? din[SW-1] : 1'b0, din } - q;
     //dout_ext = { pre_dout, {DW{1'b0}} };
     //mult  = dout_ext;
 end
