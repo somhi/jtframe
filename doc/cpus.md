@@ -18,7 +18,7 @@ i8751       |  4019        |    5  |  jtframe_8751mcu
 M6809       |  2992        |    0  |  mc6809i
 Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65 (VHDL)
-6502        |   832        |    0  |  chip_6502 (Andrew Holme)
+6502        |   937        |    0  |  chip_6502 (Andrew Holme)
 PicoBlaze   |   950        |    0  |  PauloBlaze
 
 ## Z80
