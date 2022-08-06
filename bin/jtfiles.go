@@ -296,8 +296,11 @@ func get_output_name( args Args ) string {
 	return fname
 }
 
-func dump_qip( all []string, args Args ) {
+func dump_qip( all []string, args Args, do_target bool ) {
 	fname := get_output_name(args)+".qip"
+	if do_target {
+		fname = "target.qip"
+	}
 	fout, err := os.Create(fname)
 	if err != nil {
 		log.Fatal(err)
@@ -310,6 +313,7 @@ func dump_qip( all []string, args Args ) {
 			case ".vhd": filetype="VHDL_FILE"
 			case ".v": filetype="VERILOG_FILE"
 			case ".qip": filetype="QIP_FILE"
+			case ".sdc": filetype="SDC_FILE"
 			default: {
 				log.Fatalf("Unsupported file extension %s in file %s", filepath.Ext(each), each)
 			}
@@ -324,8 +328,12 @@ func dump_qip( all []string, args Args ) {
 	}
 }
 
-func dump_sim( all []string, args Args ) {
+func dump_sim( all []string, args Args, do_target bool ) {
 	fname := get_output_name(args)+".f"
+	if do_target {
+		fname = "target.f"
+	}
+
 	fout, err := os.Create(fname)
 	if err != nil {
 		log.Fatal(err)
@@ -338,6 +346,7 @@ func dump_sim( all []string, args Args ) {
 			case ".vhd": dump = !args.SkipVHDL
 			case ".v": dump = true
 			case ".qip": dump = false
+			case ".sdc": dump = false
 			default: {
 				log.Fatalf("Unsupported file extension %s in file %s", filepath.Ext(each), each)
 			}
@@ -361,7 +370,31 @@ func main() {
 	all := collect_files(files, args.Rel)
 
 	switch( args.Format ) {
-		case "qip": dump_qip(all, args )
-		default: dump_sim(all, args )
+		case "qip": dump_qip(all, args, false )
+		default: dump_sim(all, args, false )
+	}
+
+	if( args.Target!="" ) {
+		var target_files JTFiles
+		parse_yaml( os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", &target_files )
+		target_all := collect_files(target_files, args.Rel)
+		// Remove files that could have appeared in the game section
+		uniq := make([]string,0)
+		for _,s := range(target_all) {
+			found := false
+			for _, s2 := range(all) {
+				if s==s2 {
+					found = true
+					break
+				}
+			}
+			if !found {
+				uniq = append( uniq, s )
+			}
+		}
+		switch( args.Format ) {
+			case "qip": dump_qip(uniq, args, true )
+			default: dump_sim(uniq, args, true )
+		}
 	}
 }

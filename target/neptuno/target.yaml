@@ -1,0 +1,14 @@
+here:
+  # Common with MiST
+  - ../mist/common.yaml
+  # Joysticks
+  - joydecoder.v
+  - jtframe_neptuno_joy.v
+  - jtframe_neptuno_io.v
+  - mc2_hid.vhd
+  # 50 to 27MHz conversion
+  - pll_neptuno.qip
+  # Framework
+  - jtframe_neptuno_top.sv
+  - ../mist/jtframe_mist.sv
+  - data_io_mc2.sv

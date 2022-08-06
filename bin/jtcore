@@ -334,7 +334,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     echo -e "\nset_global_assignment -name seed $SEED" >> jt$PRJ.qsf
     if [ $SIM = FALSE ]; then
         # Create the QIP file
-        go run $JTFRAME/bin/jtfiles.go -core $PRJ
+        go run $JTFRAME/bin/jtfiles.go -core $PRJ -target $TARGET
         # Compilation
         quartus_sh --flow compile jt$PRJ > "$LOG"
         if ! grep "Full Compilation was successful" "$LOG"; then

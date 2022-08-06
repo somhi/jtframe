@@ -1,4 +1,5 @@
 # Cabinet inputs during simulation
+
 You can use a hex file with inputs for simulation. Enable this with the macro
 SIM_INPUTS. The file must be called sim_inputs.hex. Each line has a hexadecimal
 number with inputs coded. Active high only:
@@ -40,16 +41,3 @@ The current contents of the SDRAM can be dumped at the beginning of each frame (
 
 To simulate the SDRAM load operation use **-load** on sim.sh. The normal download speed 1/270ns=3.7MHz. This is faster than the real systems but speeds up simulation. It is possible to slow it down by adding dead clock cycles to each transfer. The macro **JTFRAME_SIM_LOAD_EXTRA** can be defined with the required number of extra cycles.
 
-# Modules with simulation files added automatically
-Define and export the following environgment variables to have these
-modules added to your simulation when using sim.sh
-
-YM2203
-YM2149
-YM2151
-MSM5205
-M6801
-M6809
-I8051
-
-Many modules are also added depending on the contents of the project qip file.
