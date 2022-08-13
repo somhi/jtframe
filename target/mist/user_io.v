@@ -106,7 +106,11 @@ module user_io #( parameter
 	input               serial_strobe
 );
 
-localparam W = $clog2(SD_IMAGES);
+`ifdef SIMULATION
+	localparam W = 1;
+`else
+	localparam W = $clog2(SD_IMAGES); // this statement doesn't work on SynaptiCAD
+`endif
 
 reg [6:0]     sbuf;
 reg [7:0]     cmd;
@@ -128,8 +132,9 @@ assign conf_addr = byte_cnt;
 wire [7:0] core_type = ROM_DIRECT_UPLOAD ? 8'hb4 : 8'ha4;
 
 reg [W:0] drive_sel;
-always begin
-	integer i;
+integer i;
+
+always @* begin
 	drive_sel = 0;
 	for(i = 0; i < SD_IMAGES; i = i + 1) if(sd_rd[i] | sd_wr[i]) drive_sel = i[W:0];
 end
@@ -144,8 +149,8 @@ wire spi_sck = SPI_CLK;
 localparam PS2_FIFO_BITS = 3;
 
 reg ps2_clk;
+integer cnt;
 always @(posedge clk_sys) begin
-	integer cnt;
 	cnt <= cnt + 1'd1;
 	if(cnt == PS2DIV) begin
 		ps2_clk <= ~ps2_clk;

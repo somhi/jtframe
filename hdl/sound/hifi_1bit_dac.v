@@ -12,13 +12,22 @@ module hifi_1bit_dac
   output reg    dac_out
 );
 
-// ======================================
-// ============== Stage #1 ==============
-// ======================================
 wire [23:0] w_data_in_p0;
 wire [23:0] w_data_err_p0;
 wire [23:0] w_data_int_p0;
 reg  [23:0] r_data_fwd_p1;
+wire [23:0] w_data_fb1_p1;
+wire [23:0] w_data_fb2_p1;
+wire [23:0] w_data_lpf_p1;
+reg  [23:0] r_data_lpf_p2;
+wire [23:0] w_data_fb3_p1;
+wire [23:0] w_data_int_p1;
+reg  [23:0] r_data_fwd_p2;
+wire [23:0] w_data_qt_p2;
+
+// ======================================
+// ============== Stage #1 ==============
+// ======================================
 
 // PCM input extended to 24 bits
 assign w_data_in_p0  = { {4{pcm_in[19]}}, pcm_in };
@@ -40,10 +49,6 @@ always @(posedge reset or posedge clk)
 // ======================================
 // ============== Stage #2 ==============
 // ======================================
-wire [23:0] w_data_fb1_p1;
-wire [23:0] w_data_fb2_p1;
-wire [23:0] w_data_lpf_p1;
-reg  [23:0] r_data_lpf_p2;
 
 // Feedback from the quantizer output
 assign w_data_fb1_p1 = { {3{r_data_fwd_p1[23]}}, r_data_fwd_p1[22:2] } // Divide by 4
@@ -66,9 +71,6 @@ always @(posedge reset or posedge clk)
 // ======================================
 // ============== Stage #3 ==============
 // ======================================
-wire [23:0] w_data_fb3_p1;
-wire [23:0] w_data_int_p1;
-reg  [23:0] r_data_fwd_p2;
 
 // Feedback from the quantizer output
 assign w_data_fb3_p1 = { {2{w_data_lpf_p1[23]}}, w_data_lpf_p1[22:1] } // Divide by 2
@@ -87,7 +89,6 @@ always @(posedge reset or posedge clk)
 // =====================================
 // ========== 1-bit quantizer ==========
 // =====================================
-wire [23:0] w_data_qt_p2;
 
 assign w_data_qt_p2 = (r_data_fwd_p2[23]) ? 24'hF00000 : 24'h100000;
 

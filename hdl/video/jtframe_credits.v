@@ -87,6 +87,7 @@ wire              visible = vrender < MAXVISIBLE;
 reg               last_toggle, last_enable;
 reg               show, hide;
 wire              vram_mode = vram_ctrl[0];
+wire              vram_nc;
 
 assign hscan = hn - HOFFSET;
 
@@ -97,7 +98,7 @@ jtframe_dual_ram #(.dw(9), .aw(MSGW),.synfile("msg.bin"),.ascii_bin(1)) u_msg(
     .data0  ( {1'b1, vram_din }             ),
     .addr0  ( { {MSGW-10{1'b0}}, vram_addr } ),
     .we0    ( vram_we   ),
-    .q0     ( vram_dout ),
+    .q0     ( { vram_nc, vram_dout } ),
     // Port 1: video dump
     .data1  ( 9'd0      ),
     .addr1  ( scan_addr ),

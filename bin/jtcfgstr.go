@@ -234,7 +234,7 @@ func main() {
 		// dump_parameter(def, "set_parameter -name %s %s")
 	case "iverilog", "verilator":
 		dump_verilog(def, "+define+%s=%s",false)
-    case "ncverilog":
+    case "ncverilog","synapticad":
         dump_verilog(def, "+define+%s=%s",true)
 	default:
 		{

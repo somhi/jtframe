@@ -84,11 +84,15 @@ initial begin
     // VS should be at least 3 line long
     // In the case the count is expressed in a funny way
     // with VS_END < VS_START, the check is not performed
-    assert( VS_END<VS_START || (VS_END-VS_START)>=3 );
+    if ( !(VS_END<VS_START || (VS_END-VS_START)>=3) ) begin
+        $display("%m assert failed ");
+    end
 
     // HS length check is not exact because the pixel clock
     // is not known to the module
-    assert( HS_END<HS_START || (HS_END-HS_START)>=27 );
+    if ( !(HS_END<HS_START || (HS_END-HS_START)>=27) ) begin
+        $display("%m assert failed ");
+    end
 end
 `endif
 

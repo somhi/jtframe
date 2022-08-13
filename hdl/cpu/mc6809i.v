@@ -544,8 +544,9 @@ endgenerate
 
 
 //always @(negedge NMISample2 or posedge wNMIClear)
+reg last_NMISample2, last_wNMIClear;
+
 always @(posedge clk, negedge nRESET) begin
-    reg last_NMISample2, last_wNMIClear;
     if( !nRESET ) begin
         last_NMISample2 <= 1;
         last_wNMIClear  <= 1;

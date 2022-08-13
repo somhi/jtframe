@@ -59,18 +59,20 @@ wire          HS_posedge     =  HS && !last_HS;
 wire          HS_negedge     = !HS &&  last_HS;
 wire [DW-1:0] next;
 wire [DW-1:0] dim2, dim4;
+reg [COLORW:0] ab;
 
-function [COLORW-1:0] ave;
-    input [COLORW-1:0] a;
-    input [COLORW-1:0] b;
-    reg   [COLORW:0] ab;
-    ab  = {1'b0,a}+{1'b0,b};
-    ave = ab[COLORW:1];
+function [COLORW-1:0] ave(
+        input [COLORW-1:0] a,
+        input [COLORW-1:0] b );
+    begin
+        ab  = {1'b0,a}+{1'b0,b};
+        ave = ab[COLORW:1];
+    end
 endfunction
 
-function [DW-1:0] blend;
-    input [DW-1:0] a;
-    input [DW-1:0] b;
+function [DW-1:0] blend(
+    input [DW-1:0] a,
+    input [DW-1:0] b );
     blend = {
         ave(a[COLORW*3-1:COLORW*2],b[COLORW*3-1:COLORW*2]),
         ave(a[COLORW*2-1:COLORW],b[COLORW*2-1:COLORW]),

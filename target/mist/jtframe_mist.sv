@@ -323,6 +323,10 @@ jtframe_board #(
     .snd_lout       ( board_left      ),
     .snd_rout       ( board_right     ),
     .snd_sample     ( snd_sample      ),
+    // base video with OSD/debug information
+    .base_rgb       (                 ),
+    .base_LHBL      (                 ),
+    .base_LVBL      (                 ),
     // joystick
     .ps2_kbd_clk    ( ps2_clk         ),
     .ps2_kbd_data   ( ps2_dout        ),
