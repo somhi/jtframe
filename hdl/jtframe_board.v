@@ -78,22 +78,22 @@ module jtframe_board #(parameter
     output              prog_ack,
     input               downloading,
     // SDRAM interface
-    inout  [15:0]     SDRAM_DQ,       // SDRAM Data bus 16 Bits
-    output [12:0]     SDRAM_A,        // SDRAM Address bus 13 Bits
-    output            SDRAM_DQML,     // SDRAM Low-byte Data Mask
-    output            SDRAM_DQMH,     // SDRAM High-byte Data Mask
-    output            SDRAM_nWE,      // SDRAM Write Enable
-    output            SDRAM_nCAS,     // SDRAM Column Address Strobe
-    output            SDRAM_nRAS,     // SDRAM Row Address Strobe
-    output            SDRAM_nCS,      // SDRAM Chip Select
-    output [1:0]      SDRAM_BA,       // SDRAM Bank Address
-    output            SDRAM_CKE,      // SDRAM Clock Enable
+    inout    [15:0]     SDRAM_DQ,       // SDRAM Data bus 16 Bits
+    output   [12:0]     SDRAM_A,        // SDRAM Address bus 13 Bits
+    output              SDRAM_DQML,     // SDRAM Low-byte Data Mask
+    output              SDRAM_DQMH,     // SDRAM High-byte Data Mask
+    output              SDRAM_nWE,      // SDRAM Write Enable
+    output              SDRAM_nCAS,     // SDRAM Column Address Strobe
+    output              SDRAM_nRAS,     // SDRAM Row Address Strobe
+    output              SDRAM_nCS,      // SDRAM Chip Select
+    output   [1:0]      SDRAM_BA,       // SDRAM Bank Address
+    output              SDRAM_CKE,      // SDRAM Clock Enable
     // keyboard
-    input             ps2_kbd_clk,
-    input             ps2_kbd_data,
+    input               ps2_kbd_clk,
+    input               ps2_kbd_data,
     // UART
-    input             uart_rx,
-    output            uart_tx,
+    input               uart_rx,
+    output              uart_tx,
     // joystick
     input     [15:0]  board_joystick1,
     input     [15:0]  board_joystick2,
@@ -149,6 +149,10 @@ module jtframe_board #(parameter
     input             vs,
     input             pxl_cen,
     input             pxl2_cen,
+    // Base video after OSD and Debugger
+    output [3*COLORW-1:0] base_rgb,
+    output            base_LHBL,
+    output            base_LVBL,
     // HDMI outputs (only for MiSTer)
     inout     [21:0]  gamma_bus,
     input             direct_video,
@@ -266,6 +270,10 @@ wire              pre2x_LHBL, pre2x_LVBL;
     assign autofire0=0;
 `endif
 
+assign base_rgb  = { dbg_r, dbg_g, dbg_b };
+assign base_LHBL = pre2x_LHBL;
+assign base_LVBL = pre2x_LVBL;
+
 jtframe_reset u_reset(
     .clk_sys    ( clk_sys       ),
     .clk_rom    ( clk_rom       ),
@@ -372,6 +380,9 @@ jtframe_keyboard u_keyboard(
     assign gfx_en      = `JTFRAME_SIM_GFXEN;
     assign debug_bus   = 0;
     assign key_gfx     = 0;
+    assign dbg_r       = pre2x_r;
+    assign dbg_g       = pre2x_g;
+    assign dbg_b       = pre2x_b;
 `endif
 
 jtframe_inputs #(
@@ -769,16 +780,16 @@ jtframe_sdram64 #(
 
 
 `ifdef JTFRAME_DONTSIM_SCAN2X
-initial $display("INFO: Scan2x simulation bypassed");
-assign scan2x_r    = pre2x_r;
-assign scan2x_g    = pre2x_g;
-assign scan2x_b    = pre2x_b;
-assign scan2x_hs   = hs;
-assign scan2x_vs   = vs;
-assign scan2x_clk  = clk_sys;
-assign scan2x_cen  = pxl_cen;
-assign scan2x_de   = LVBL && LHBL;
-assign scan2x_sl   = 2'd0;
+    initial $display("INFO: Scan2x simulation bypassed");
+    assign scan2x_r    = pre2x_r;
+    assign scan2x_g    = pre2x_g;
+    assign scan2x_b    = pre2x_b;
+    assign scan2x_hs   = hs;
+    assign scan2x_vs   = vs;
+    assign scan2x_clk  = clk_sys;
+    assign scan2x_cen  = pxl_cen;
+    assign scan2x_de   = LVBL && LHBL;
+    assign scan2x_sl   = 2'd0;
 `else
 
 // Limited bandwidth for video signal

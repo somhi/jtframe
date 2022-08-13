@@ -18,6 +18,16 @@ Key     |   Action
 By default JTFRAME supports two joysticks only and will try to connect to game modules based on this assumption. For games that need four joysticks, define the macro **JTFRAME_4PLAYERS**.
 Note that the registers containing the coin and start button inputs are always passed as 4 bits, but the game can just ignore the 2 MSB if it only supports two players.
 
+The digital controllers (joysticks) are mapped as:
+
+Bit  |  Action
+-----|--------
+ 0   | right
+ 1   | left
+ 2   | down
+ 3   | up
+ 4+  | buttons
+
 Analog controllers are not connected to the game module by default. In order to get them connected, define the macro **JTFRAME_ANALOG** and then these input ports:
 
 ```
@@ -28,6 +38,51 @@ input   [15:0]  joyana2,
 Analogue sticks uses 2-complement bytes to signal information: right and bottom are possitive (127 is the maximum). Left and top are negative (FFh minimum, 80h maximum)
 
 Support for 4-way joysticks (instead of 8-way joysticks) is enabled by setting high bit 1 of core_mod. See MOD BYTE.
+
+## Analogue Pocket
+
+The Pocket signals are translated to the JTFRAME standard. Their original encoding is:
+
+For the *contx_key* signals:
+
+ Bit | Meaning
+-----|---------
+ 0   |  dpad_up
+ 1   |  dpad_down
+ 2   |  dpad_left
+ 3   |  dpad_right
+ 4   |  face_a
+ 5   |  face_b
+ 6   |  face_x
+ 7   |  face_y
+ 8   |  trig_l1
+ 9   |  trig_r1
+ 10  |  trig_l2
+ 11  |  trig_r2
+ 12  |  trig_l3
+ 13  |  trig_r3
+ 14  |  face_select
+ 15  |  face_start
+
+All analogue stick and trigger signals are unsigned.
+
+For the *contx_joy* signals:
+
+Bits | Meaning
+-----|-----------
+ 7: 0| lstick_x
+15: 8| lstick_y
+23:16| rstick_x
+31:24| rstick_y
+
+For the *contx_l/rtrig* signals:
+
+ Bits | Meaning
+------|----------
+ 7: 0 | ltrig
+15: 8 | rtrig
+
+Original documentation [here](https://www.analogue.co/developer/docs/bus-communication#pad).
 
 ## DB15 Support
 

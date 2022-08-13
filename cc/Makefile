@@ -1,4 +1,4 @@
-programs = bin2m msg2hex lut2hex  
+programs = bin2m msg2hex lut2hex reverse_bits
 
 all: $(programs)
 	cp $(programs) ../bin
@@ -9,3 +9,4 @@ msg2hex:
 
 lut2hex:
 
+reverse_bits:

@@ -36,6 +36,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019, @topapate
     -neptuno    compiles the NeptUNO version
     -mc2        compiles the MultiCore2  version
     -mcp        compiles the MultiCore2+ version
+    -core       compiles the Analogue Pocket version
 
     -seed       sets random seed for compilation
     -rename     name used for copying the RBF file into the SD card
@@ -76,7 +77,7 @@ function parse_args {
         case "$1" in
             -mister | -mr)
                 TARGET=mister;;
-            -mist|-sidi|-neptuno|-mc2|-mcp)
+            -mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
                 TARGET=${1:1};;
             -d)
                 shift
@@ -277,7 +278,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
         exit 1
     fi
     # Create MiST(er) folders if they don't exist
-    mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp}
+    mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp,pocket}
     cd $PRJPATH/$TARGET || exit 1
     ############################################
     # Credits via jtframe_credits:
@@ -390,6 +391,7 @@ case $TARGET in
     neptuno) EXT=np1;;
     mc2) EXT=mc2;;
     mcp) EXT=mcp;;
+    pocket) EXT=rbf_r;;
     *) EXT=rbf;;
 esac
 
@@ -416,10 +418,20 @@ if [ $TARGET = mister ]; then
 else
     RBF=$PRJPATH/${TARGET}/jt$PRJ.rbf
 fi
+
 if [ ! -e $RBF ]; then
     echo -e "${rBG}ERROR:${NC}${wBG} file ${red}$RBF${NC}${wBG} does not exist. You need to recompile.${NC}"
     exit 1
 fi
+
+if [ $TARGET = pocket ]; then
+    # The Pocket must have something misconnected inside
+    # and it requires the bit order in each RBF byte to
+    # be reversed
+    $JTFRAME/bin/reverse_bits $RBF /tmp/reverse.rbf_r
+    cp /tmp/reverse.rbf_r $RBF
+fi
+
 cp $RBF releases/$TARGET/$RELEASE.$EXT
 
 END_TIME=$(date +%s)

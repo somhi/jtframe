@@ -49,15 +49,22 @@ module jtframe_mist_clocks(
     `define JTFRAME_GAMEPLL jtframe_pllgame
 `endif
 
-wire pll0_lock, pll1_lock, pll_base, clk27;
+wire pll0_lock, pll1_lock, pll2_lock, pll_base, clk27;
 
-assign pll_locked = pll0_lock & pll1_lock;
+assign pll_locked = pll0_lock & pll1_lock & pll2_lock;
 
 `ifdef NEPTUNO
     pll_neptuno u_pllneptuno(
         .inclk0 ( clk_ext   ),
         .c0     ( clk27     ),
         .locked ( pll0_lock )
+    );
+`elsif POCKET
+    pll_pocket u_pllpocket( // converts 74.25 to 27MHz
+        .rst     ( 1'b0      ),
+        .refclk  ( clk_ext   ),
+        .outclk_0( clk27     ),
+        .locked  ( pll0_lock )
     );
 `else
     assign clk27 = clk_ext;
@@ -67,13 +74,7 @@ assign pll_locked = pll0_lock & pll1_lock;
 `JTFRAME_PLL u_basepll(
     .inclk0 ( clk27     ),
     .c0     ( pll_base  ),
-`ifdef SIMULATION  // This prevents a warning that we can ignore
-    .c1     (           ),
-    .c2     (           ),
-    .c3     (           ),
-    .c4     (           ),
-`endif
-    .locked (           )
+    .locked ( pll2_lock )
 );
 
 // clk_rom is used for SDRAM access

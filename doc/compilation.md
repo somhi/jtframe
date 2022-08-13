@@ -155,8 +155,16 @@ will get the files `$CORES/cps1/hdl/jtcps1_game.v`
 
 Files from the key `jtframe` are based in folder `$JTFRAME/HDL`. Files from `jt` modules will look directly for a file in `$MODULES/name/hdl/name.yaml`. And files from `other` are based in `$MODULES`
 
+There is also a `target:` section but unless you are creating a new target for JTFRAME, you should not use it. Games cores should not directly reference files in the JTFRAME/target folder. An example of the `target:` section can be seen in [mist](../target/mist/common.yaml).
+
 The utility [jtfiles](../bin/jtfiles.go) translates the yaml files to two files: a game.qip and a target.qip for compilation and a game.f and target.f for simulation. The compilation script [jtcore](../bin/jtcore) calls jtfiles in order to obtain the compilation files. To get the simulation files call jtfiles as:
 
 `go run $JTFRAME/bin/jtfiles.go -core corename -target mister -f sim`
+
+There is an alias already defined so you can call jtfiles directly:
+
+`jtfiles -core corename -target mister -f sim`
+
+The alias takes care of the *go run* syntax for you.
 
 From the folder where you want the files game.f and target.f to be produced.

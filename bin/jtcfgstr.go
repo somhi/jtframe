@@ -54,10 +54,10 @@ func append_args(flag_name string, k *int, slice []string) []string {
 
 func parse_args() (cfg Config) {
 	if len(os.Args) < 2 {
-		fmt.Println("usage: jtcfgstr [-target (mist|mister|sidi|neptuno|mc2|mcp)] [-def path to def file] [-tpl path to template file]")
+		fmt.Println("usage: jtcfgstr [-target (mist|mister|sidi|neptuno|mc2|mcp|pocket)] [-def path to def file] [-tpl path to template file]")
 		os.Exit(1)
 	}
-	flag.StringVar(&cfg.target, "target", "mist", "Target platform (mist, mister, sidi, neptuno, mc2, mcp)")
+	flag.StringVar(&cfg.target, "target", "mist", "Target platform (mist, mister, sidi, neptuno, mc2, mcp, pocket)")
 	flag.StringVar(&cfg.deffile, "parse", "", "Path to .def file")
 	flag.StringVar(&cfg.template, "tpl", "", "Path to template file")
 	flag.StringVar(&cfg.commit, "commit", "nocommit", "Commit ID")
@@ -69,11 +69,11 @@ func parse_args() (cfg Config) {
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
 	flag.Parse()
 	switch cfg.target {
-	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp":
+	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket":
 		break
 	default:
 		{
-			fmt.Println("Unsupported target ", cfg.target)
+			fmt.Printf("Unsupported target '%s'\n", cfg.target)
 			os.Exit(1)
 		}
 	}
@@ -101,6 +101,9 @@ func make_cfgstr(cfg Config, def map[string]string) (cfgstr string) {
 		tfolder := cfg.target
 		if cfg.target == "sidi" { // SiDi shares the config string with MiST
 			tfolder = "mist"
+		}
+		if cfg.target == "pocket" { // Pocket doesn't have a config string
+			return ""
 		}
 		tpath = jtframe_path + "/target/" + tfolder + "/cfgstr"
 	} else {

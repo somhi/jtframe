@@ -2,15 +2,15 @@
 
 For I/O (SDRAM download, etc.) the following indexes are used
 
- Purpose          | MiST   | MiSTer
-------------------|--------|--------
- Main ROM         |   0    |    0
- JTFRAME options  |   1    |    1
- NVRAM            | 255    |    2
- Cheat ROM        |  16    |   16
- Beta keys        |  N/A   |   17
- DIP switches     |  N/A   |  254
- Cheat switches   |  N/A   |  255
+ Purpose          | MiST   | MiSTer | Pocket
+------------------|--------|--------|-------
+ Main ROM         |   0    |    0   |    0
+ JTFRAME options  |   1    |    1   |    1
+ NVRAM            | 255    |    2   |  N/A
+ Cheat ROM        |  16    |   16   |  N/A
+ Beta keys        |  N/A   |   17   |   17
+ DIP switches     |  N/A   |  254   |  N/A
+ Cheat switches   |  N/A   |  255   |  N/A
 
 ## core_mod (JTFRAME options)
 

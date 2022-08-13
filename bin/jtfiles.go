@@ -17,6 +17,7 @@ type Origin int
 const (
 	GAME Origin = iota
 	FRAME
+	TARGET
 	MODULE
 	JTMODULE
 )
@@ -29,12 +30,13 @@ type FileList struct {
 
 type JTModule struct {
 	Name string `yaml:"name"`
-	Unless string `yaml:"unless"`
+	Unless string `yaml:"unless"` // will be compared against env. variables and target argument
 }
 
 type JTFiles struct {
 	Game [] FileList `yaml:"game"`
 	JTFrame [] FileList `yaml:"jtframe"`
+	Target  [] FileList `yaml:"target"`
 	Modules struct {
 		JT [] JTModule `yaml:"jt"`
 		Other [] FileList `yaml:"other"`
@@ -54,10 +56,24 @@ type Args struct {
 
 var parsed []string
 var CWD string
+var args Args
 
 func parse_args( args *Args ) {
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), "%s, part of JTFRAME. (c) Jose Tejada 2021.\nUsage:\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "%s, part of JTFRAME. (c) Jose Tejada 2021-2022.\nUsage:\n", os.Args[0])
+		fmt.Fprint( flag.CommandLine.Output(),
+`    jtfiles look for three yaml files:
+		- game.yaml, in the core folder
+		- target.yaml, in $JTFRAME/target
+		- sim.yaml, in $JTFRAME/target (when simulation output requested)
+
+	 Each yaml file can call other files. The game.yaml file should avoid
+	 files specific to a target. That's the only file that a JTFRAME user
+	 should populate.
+	 The files target.yaml and sim.yaml are part of JTFRAME and should not
+	 be modified, except for adding support to new devices.
+
+`)
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
@@ -65,7 +81,7 @@ func parse_args( args *Args ) {
 	flag.StringVar(&args.Parse,"parse","","File to parse. Use either -parse or -core")
 	flag.StringVar(&args.Output,"output","","Output file name with no extension. Default is 'game'")
 	flag.StringVar(&args.Format,"f","qip","Output format. Valid values: qip, sim")
-	flag.StringVar(&args.Target,"target","","Target platform: mist or mister")
+	flag.StringVar(&args.Target,"target","","Target platform: mist, mister, pocket, etc.")
 	flag.BoolVar(&args.Rel,"rel",false,"Output relative paths")
 	flag.BoolVar(&args.SkipVHDL,"novhdl",false,"Skip VHDL files")
 	flag.Parse()
@@ -103,6 +119,9 @@ func append_filelist( dest *[]FileList, src []FileList, other *[]string, origin 
 			if exists {
 				continue
 			}
+			if strings.ToLower(each.Unless) == strings.ToLower(args.Target) {
+				continue
+			}
 		}
 		var newfl FileList
 		newfl.From = each.From
@@ -114,6 +133,7 @@ func append_filelist( dest *[]FileList, src []FileList, other *[]string, origin 
 				switch origin {
 					case GAME: path = os.Getenv("CORES")+"/"+newfl.From+"/hdl/"
 					case FRAME: path = os.Getenv("JTFRAME")+"/hdl/"+newfl.From+"/"
+					case TARGET: path = os.Getenv("JTFRAME")+"/target/"+newfl.From+"/"
 					default: path = os.Getenv("MODULES")+"/"
 				}
 				*other = append( *other, path+each )
@@ -170,6 +190,7 @@ func parse_yaml( filename string, files *JTFiles ) {
 	// Parse
 	append_filelist( &files.Game, aux.Game, &other, GAME )
 	append_filelist( &files.JTFrame, aux.JTFrame, &other, FRAME )
+	append_filelist( &files.Target, aux.Target, &other, TARGET )
 	append_filelist( &files.Modules.Other, aux.Modules.Other, &other, MODULE )
 	if files.Modules.JT==nil {
 		files.Modules.JT = make( []JTModule, 0 )
@@ -225,6 +246,7 @@ func dump_filelist( fl []FileList, all *[]string, origin Origin, rel bool ) {
 		switch( origin ) {
 			case GAME: path=filepath.Join(os.Getenv("CORES"),each.From,"hdl")
 			case FRAME: path=filepath.Join(os.Getenv("JTFRAME"),"hdl",each.From)
+			case TARGET: path=filepath.Join(os.Getenv("JTFRAME"),"target",each.From)
 			case MODULE: path=filepath.Join(os.Getenv("MODULES"),each.From)
 			default: path=os.Getenv("JTROOT")
 		}
@@ -255,6 +277,7 @@ func collect_files( files JTFiles, rel bool ) []string {
 	all := make([]string,0)
 	dump_filelist( files.Game, &all, GAME, rel )
 	dump_filelist( files.JTFrame, &all, FRAME, rel )
+	dump_filelist( files.Target, &all, TARGET, rel )
 	dump_jtmodules( files.Modules.JT, &all, rel )
 	dump_filelist( files.Modules.Other, &all, MODULE, rel )
 	for _,each := range(files.Here) {
@@ -328,13 +351,19 @@ func dump_qip( all []string, args Args, do_target bool ) {
 	}
 }
 
-func dump_sim( all []string, args Args, do_target bool ) {
+func dump_sim( all []string, args Args, do_target, noclobber bool ) {
 	fname := get_output_name(args)+".f"
 	if do_target {
 		fname = "target.f"
 	}
+	flag := os.O_CREATE|os.O_WRONLY
+	if noclobber {
+		flag = flag | os.O_APPEND
+	} else {
+		flag = flag | os.O_TRUNC
+	}
 
-	fout, err := os.Create(fname)
+	fout, err := os.OpenFile(fname, flag, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -357,44 +386,44 @@ func dump_sim( all []string, args Args, do_target bool ) {
 	}
 }
 
+func parse_one( path string, dump2target, noclobber bool, skip []string, args Args ) (uniq []string) {
+	var files JTFiles
+	if !dump2target {
+		parse_yaml( get_filename(args), &files )
+	}
+	parse_yaml( path, &files )
+	all := collect_files(files, args.Rel)
+	// Remove files that could have appeared in the game section
+	for _,s := range(all) {
+		found := false
+		for _, s2 := range(skip) {
+			if s==s2 {
+				found = true
+				break
+			}
+		}
+		if !found {
+			uniq = append( uniq, s )
+		}
+	}
+	switch( args.Format ) {
+		case "qip": dump_qip(uniq, args, dump2target )
+		default: dump_sim(uniq, args, dump2target, noclobber )
+	}
+	return uniq
+}
+
 func main() {
-	var args Args
 	parse_args(&args)
 	CWD,_ = os.Getwd()
 
-	var files JTFiles
-	parse_yaml( get_filename(args), &files )
-	if args.Corename!="" {
-		parse_yaml( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", &files )
-	}
-	all := collect_files(files, args.Rel)
-
-	switch( args.Format ) {
-		case "qip": dump_qip(all, args, false )
-		default: dump_sim(all, args, false )
-	}
+	game_files := parse_one( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", false, false, nil, args )
 
 	if( args.Target!="" ) {
-		var target_files JTFiles
-		parse_yaml( os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", &target_files )
-		target_all := collect_files(target_files, args.Rel)
-		// Remove files that could have appeared in the game section
-		uniq := make([]string,0)
-		for _,s := range(target_all) {
-			found := false
-			for _, s2 := range(all) {
-				if s==s2 {
-					found = true
-					break
-				}
-			}
-			if !found {
-				uniq = append( uniq, s )
-			}
-		}
-		switch( args.Format ) {
-			case "qip": dump_qip(uniq, args, true )
-			default: dump_sim(uniq, args, true )
+		target_files := parse_one( os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", true, false, game_files, args )
+		if args.Format =="sim" {
+			all_files := append( target_files, game_files... )
+			parse_one( os.Getenv("JTFRAME")+"/target/"+args.Target+"/sim.yaml", true, true, all_files, args )
 		}
 	}
 }

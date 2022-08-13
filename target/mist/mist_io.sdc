@@ -140,3 +140,4 @@ set_input_delay -clock SPI_SCK -min 3.2 [get_ports CONF_DATA0]
 set_output_delay -add_delay -max -clock SPI_SCK  6.4 [get_ports SPI_DO]
 set_output_delay -add_delay -min -clock SPI_SCK  3.2 [get_ports SPI_DO]
 
+set_false_path -to [get_keepers {*|jtframe_sync:*|synchronizer[*].s[0]}]

@@ -100,3 +100,7 @@ function jtmacros {
 # Only the pre-commit is added automatically, the post-commit must
 # be copied manually as it implies automatic pushing to the server
 cp --no-clobber $JTFRAME/bin/pre-commit $JTROOT/.git/hooks/pre-commit
+
+# Run go programs without compiling them
+alias jtfiles="go run $JTFRAME/bin/jtfiles.go"
+alias jtcfgstr="go run $JTFRAME/bin/jt{cfgstr,def}.go"
