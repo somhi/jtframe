@@ -247,12 +247,20 @@ class JTSim {
     // Video dump
     struct t_dump{
         ofstream fout;
-        int k;
+        int k, half;
         int32_t buffer0[VIDEO_BUFLEN];
+        int32_t buffer1[VIDEO_BUFLEN];
         int32_t *buffer;
         void reset() {
-            buffer = buffer0;
+            buffer = half ? buffer0 : buffer1;
+            half = 1-half;
             k = 0;
+        }
+        bool diff() {
+            for(int j=0;j<VIDEO_BUFLEN;j++) {
+                if(buffer0[j]!=buffer1[j]) return true;
+            }
+            return false;
         }
         t_dump() {
             reset();
@@ -484,9 +492,10 @@ void JTSim::reset( int v ) {
 JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     game(g), sdram(g), dwn(g), sim_inputs(g), wav("snd.wav",48000,false)
 {
-    simtime=0;
-    frame_cnt=0;
-    last_VS = 0;
+    simtime   = 0;
+    frame_cnt = 0;
+    last_VS   = 0;
+    dump.half = 0;
     // Derive the clock speed from JTFRAME_GAMEPLL
     const char *jtframe_gamepll = JTFRAME_GAMEPLL;
     if( strlen(jtframe_gamepll)!=strlen("jtframe_pll6000") ) {
@@ -632,20 +641,28 @@ void JTSim::video_dump() {
                 activeh= cnth[1];
                 cnth[0]=0; cnth[1]=0;
                 dump.reset();
-                // converts image to jpg in a different fork
-                // I suppose a thread would be faster...
-                if( fork()==0 ) {
-                    dump.fout.open("frame.raw",ios_base::binary);
-                    if( dump.fout.good() ) {
-                        dump.fout.write( (char*)dump.buffer, (activew*activeh)<<2 );
-                        dump.fout.close();
-                        char exes[512];
-                        sprintf(exes,"convert -filter Point "
-                            "-size %dx%d -depth 8 RGBA:frame.raw frame_%d.jpg",
-                            activew, activeh, frame_cnt);
-                        system(exes);
+                if( dump.diff() ) {
+                    // converts image to jpg in a different fork
+                    // I suppose a thread would be faster...
+                    if( fork()==0 ) {
+                        dump.fout.open("frame.raw",ios_base::binary);
+                        if( dump.fout.good() ) {
+                            dump.fout.write( (char*)dump.buffer, (activew*activeh)<<2 );
+                            dump.fout.close();
+                            char exes[512];
+                            sprintf(exes,"convert -filter Point "
+                                "-size %dx%d %s -depth 8 RGBA:frame.raw frame_%d.jpg",
+                                activew, activeh,
+                            #ifdef JTFRAME_VERTICAL
+                                "-rotate -90",
+                            #else
+                                "",
+                            #endif
+                                frame_cnt);
+                            system(exes);
+                        }
+                        exit(0);
                     }
-                    exit(0);
                 }
             } else {
                 cnth[0]++;
