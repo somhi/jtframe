@@ -306,7 +306,6 @@ if [ $SKIP_COMPILE = FALSE ]; then
     if [ -d $MODULES/jt6295 ]; then
         ln -srf $MODULES/jt6295/hdl/jt6295_up4.hex .
         ln -srf $MODULES/jt6295/hdl/jt6295_up4_soft.hex .
-        git add --force jt6295_up4*.hex
     fi
 
     # Link .hex files in hdl, if they exist

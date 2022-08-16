@@ -252,7 +252,7 @@ class JTSim {
         int32_t buffer1[VIDEO_BUFLEN];
         int32_t *buffer;
         void reset() {
-            buffer = half ? buffer0 : buffer1;
+            buffer = !half ? buffer0 : buffer1;
             half = 1-half;
             k = 0;
         }
@@ -262,7 +262,11 @@ class JTSim {
             }
             return false;
         }
+        char *prev_buffer() {
+            return (char*)(half ? buffer1 : buffer0 );
+        }
         t_dump() {
+            half=0;
             reset();
         }
         void push(int32_t val) {
@@ -495,7 +499,6 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     simtime   = 0;
     frame_cnt = 0;
     last_VS   = 0;
-    dump.half = 0;
     // Derive the clock speed from JTFRAME_GAMEPLL
     const char *jtframe_gamepll = JTFRAME_GAMEPLL;
     if( strlen(jtframe_gamepll)!=strlen("jtframe_pll6000") ) {
@@ -647,7 +650,7 @@ void JTSim::video_dump() {
                     if( fork()==0 ) {
                         dump.fout.open("frame.raw",ios_base::binary);
                         if( dump.fout.good() ) {
-                            dump.fout.write( (char*)dump.buffer, (activew*activeh)<<2 );
+                            dump.fout.write( dump.prev_buffer(), (activew*activeh)<<2 );
                             dump.fout.close();
                             char exes[512];
                             sprintf(exes,"convert -filter Point "
