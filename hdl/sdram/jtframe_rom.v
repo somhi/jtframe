@@ -22,6 +22,8 @@
 // Each slot can be used for 8, 16 or 32 bit access
 // Small 4 byte cache used for each slot
 
+/* verilator tracing_off */
+
 module jtframe_rom #(parameter
     SLOT0_DW = 8, SLOT1_DW = 8, SLOT2_DW = 8, SLOT3_DW = 8,
     SLOT4_DW = 8, SLOT5_DW = 8, SLOT6_DW = 8, SLOT7_DW = 8, SLOT8_DW = 8,
@@ -340,5 +342,7 @@ end else begin
         endcase
     end
 end
+
+/* verilator tracing_on */
 
 endmodule // jtframe_rom
