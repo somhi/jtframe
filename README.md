@@ -4,7 +4,7 @@ JTFRAME by Jose Tejada (@topapate)
 JTFRAME is a framework for FPGA computing on the MiST and MiSTer platforms. JTFRAME is also a library of verilog modules, including simulation models and utilities to develop retro hardware on FPGA.
 
 You can show your appreciation through
-* Patreon: https://patreon.com/topapate
+* Patreon: https://patreon.com/jotego
 * Paypal: https://paypal.me/topapate
 
 # Topics
