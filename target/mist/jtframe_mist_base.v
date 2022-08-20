@@ -253,7 +253,7 @@ jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
     assign ypbpr     = 0;
     assign no_csync  = 1;
 `endif
-
+// Simulation:
 `else // these inputs are not used in simulation:
     assign joystick1 = 32'd0;
     assign joystick2 = 32'd0;

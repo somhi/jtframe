@@ -173,7 +173,7 @@ func parse_yaml( filename string, files *JTFiles ) {
 			log.Printf("Warning: cannot open file %s. YAML processing still used for JTFRAME board.",filename)
 			return
 		} else {
-			log.Fatalf("cannot open referenced file %s",filename)
+			log.Fatalf("JTFILES: cannot open referenced file %s",filename)
 		}
 	}
 	if parsed == nil {
@@ -184,7 +184,7 @@ func parse_yaml( filename string, files *JTFiles ) {
 	err_yaml := yaml.Unmarshal( buf, &aux )
 	if err_yaml != nil {
 		//fmt.Println(err_yaml)
-		log.Fatalf("jtfiles: cannot parse file\n\t%s\n\t%v", filename, err_yaml )
+		log.Fatalf("JTFILES: cannot parse file\n\t%s\n\t%v", filename, err_yaml )
 	}
 	other := make( []string, 0 )
 	// Parse
@@ -235,7 +235,7 @@ func make_path( path, filename string, rel bool ) (item string) {
 		item = filepath.Clean(oldpath)
 	}
 	if err != nil {
-		log.Fatalf("Cannot parse path to %s\n",oldpath)
+		log.Fatalf("JTFILES: Cannot parse path to %s\n",oldpath)
 	}
 	return item
 }
@@ -338,7 +338,7 @@ func dump_qip( all []string, args Args, do_target bool ) {
 			case ".qip": filetype="QIP_FILE"
 			case ".sdc": filetype="SDC_FILE"
 			default: {
-				log.Fatalf("Unsupported file extension %s in file %s", filepath.Ext(each), each)
+				log.Fatalf("JTFILES: unsupported file extension %s in file %s", filepath.Ext(each), each)
 			}
 		}
 		aux := "set_global_assignment -name " + filetype
@@ -377,7 +377,7 @@ func dump_sim( all []string, args Args, do_target, noclobber bool ) {
 			case ".qip": dump = false
 			case ".sdc": dump = false
 			default: {
-				log.Fatalf("Unsupported file extension %s in file %s", filepath.Ext(each), each)
+				log.Fatalf("JTFILES: unsupported file extension %s in file %s", filepath.Ext(each), each)
 			}
 		}
 		if dump {

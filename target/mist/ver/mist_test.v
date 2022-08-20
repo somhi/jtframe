@@ -32,7 +32,7 @@ mist_dump u_dump(
     .led        ( led       ),
     .frame_cnt  ( frame_cnt )
 );
-//887808
+
 test_harness #(.sdram_instance(0),.GAME_ROMNAME("rom.bin"),
     .TX_LEN(`GAME_ROM_LEN) ) u_harness(
     .rst         ( rst           ),

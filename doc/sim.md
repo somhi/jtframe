@@ -1,22 +1,32 @@
+# Simulation setup
+
+JTFrame supports simulation of the target system top level. In the case of verilator sims, only the *jtgame* module is simulated.
+
+The use of YAML files allows for sharing the core file list between different tools, so there is no need to elaborate a different list for simulators. Each JTFRAME target platform also has specific *sim.yaml* files that are taken into account only for simulators.
+
+Some target platforms have a top-level test which can be used and that harness all signals and emulates the ROM transfer protocol. The MiST platform is the most commonly used for simulations and is kept alive. MiSTer is hard to keep working in simulations as many *sys* files developed by the MiSTer team do not work well in simulation and need to be edited. So the MiSTer setup will not normally work without extra effort.
+
+The simulation script [jtsim](../bin/jtsim) supports several simulators and sets up everything. Installing simulators and running a first successful simulation is complicated and the JTFRAME team does not support users through this process. Yet, all the files needed are here, so with some studying anyone can set up a simulation.
+
 # Cabinet inputs during simulation
 
 You can use a hex file with inputs for simulation. Enable this with the macro
 SIM_INPUTS. The file must be called sim_inputs.hex. Each line has a hexadecimal
 number with inputs coded. Active high only:
 
-bit    |    meaning
--------|-------------
-0      |    coin 1
-1      |    coin 2
-2      |    1P start
-3      |    2P start
-4      |    right   (may vary with each game)
-5      |    left    (may vary with each game)
-6      |    down    (may vary with each game)
-7      |    up      (may vary with each game)
-8      |    Button 1
-9      |    Button 2
-10     |    Test button
+bit  | meaning
+-----|------------
+0    | coin 1
+1    | coin 2
+2    | 1P start
+3    | 2P start
+4    | right   (may vary with each game)
+5    | left    (may vary with each game)
+6    | down    (may vary with each game)
+7    | up      (may vary with each game)
+8    | Button 1
+9    | Button 2
+10   | Test button
 
 Each line will be applied on a new frame.
 
@@ -41,3 +51,14 @@ The current contents of the SDRAM can be dumped at the beginning of each frame (
 
 To simulate the SDRAM load operation use **-load** on sim.sh. The normal download speed 1/270ns=3.7MHz. This is faster than the real systems but speeds up simulation. It is possible to slow it down by adding dead clock cycles to each transfer. The macro **JTFRAME_SIM_LOAD_EXTRA** can be defined with the required number of extra cycles.
 
+## Simulator Speed
+
+Comparison run on [Roc'n Rope](https://github.com/jotego/jtkicker) core for ten frames plus ROM loading.
+
+simulator | vcd/no video | no vcd/video | no vcd/no video
+----------|--------------|--------------|-----------------
+modelsim  |  17'         |   16'        | 16'
+iverilog  |              |              |
+verilator |  0'30"       |  0'12"       |
+
+Verilator simulations do not simulate the *target* but only the game top. SDRAM access is particularly faster in Verilator. Verilator does not simulate 4-state signals either.

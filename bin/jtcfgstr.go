@@ -65,7 +65,7 @@ func parse_args() (cfg Config) {
 	flag.String("def", "", "Defines macro")
 	flag.String("undef", "", "Undefines macro")
 	flag.StringVar(&cfg.output, "output", "cfgstr",
-		"Type of output: \n\tcfgstr -> config string\n\tbash -> bash script\n\tquartus -> quartus tcl\n\tverilator -> verilator command file")
+		"Type of output: \n\tcfgstr -> config string\n\tbash -> bash script\n\tquartus -> quartus tcl\n\tsimulator name as specified in jtsim")
 	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
 	flag.Parse()
 	switch cfg.target {
@@ -233,12 +233,12 @@ func main() {
 		dump_verilog(def, "set_global_assignment -name VERILOG_MACRO \"%s=%s\"",false)
 		// dump_parameter(def, "set_parameter -name %s %s")
 	case "iverilog", "verilator":
-		dump_verilog(def, "+define+%s=%s",false)
-    case "ncverilog","synapticad":
-        dump_verilog(def, "+define+%s=%s",true)
+		dump_verilog(def, "+define+%s=%s",false) // do not escape quotes
+    case "ncverilog","synapticad","modelsim":
+        dump_verilog(def, "+define+%s=%s",true) // escape quotes
 	default:
 		{
-			fmt.Println("Error: specified output is not valid: ", cfg.output)
+			fmt.Println("JTCFGSTR: requested invalid output ", cfg.output)
 			os.Exit(1)
 		}
 	}
