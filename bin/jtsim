@@ -18,15 +18,12 @@
 # Date: 20-8-2022
 
 DUMP=
-FIRMWARE=gng_test.s
 SIM_MS=1
+SIMARGS="-f core.def -f filtered.f"
 SIMULATOR=modelsim
 TOP=game_test
 TARGET=
 FILES=
-MIST_PLL=
-DEFFILE=
-PLL_FILE=$JTFRAME/hdl/ver/fast_pll.v
 MACROPREFIX=+define+
 EXTRA=
 SHOWCMD=
@@ -37,8 +34,6 @@ GATES=NO
 MACOS=NO
 SED="sed -i"
 
-rm -f test2.bin
-rm -f video.pipe
 rm -f macros.f
 
 if [ `uname` = Darwin ]; then
@@ -47,7 +42,7 @@ if [ `uname` = Darwin ]; then
     SED="sed -i bak"
 fi
 
-# delete previous .f files
+# set blank .f files
 echo -n > jtsim_vhdl.f
 echo -n > jtsim.f
 
@@ -56,24 +51,10 @@ trap "rm -f video.raw video.pipe" EXIT
 
 function show_help {
         cat << EOF
-JTFRAME simulation tool. (c) Jose Tejada 2019, @topapate
-    -d        Add specific Verilog macros for the simulation.
-              Use -help-macros to display all macros
-              Some common options:
-        VIDEO_START=X   video output will start on frame X
-        DUMP_START=X    waveform dump will start on frame X
-        DIP_TEST        Enable the test bit (active low)
-        DIP_PAUSE       Enable the DIP PAUSE bit (active low)
-        TESTSCR1        disable scroll control by the CPU and scroll the
-                        background automatically. It can be used together with
-                        NOMAIN macro
-        SDRAM_DELAY=X   ns delay for SDRAM_CLK (cannot use with -slowpll)
-        BASE_CLK=X      Base period for game clock (cannot use with -slowpll)
-        SIMULATE_OSD    Simulate OSD display
-        SIMINFO         Show simulation options available thorugh define commands
-        SCANDOUBLER_DISABLE=1   Disables the scan doubler module
-    -deep      Save all signals for scope verification
-    -def       Path to a macro definition file to add to simulation
+JTFRAME simulation tool. (c) Jose Tejada 2019-2022, @topapate
+    -d         Add specific Verilog macros for the simulation.
+               Call jtmacros to display all macros.
+    -deep      Save all signals for scope verification. See -w below.
     -frame     Number of frames to simulate
     -gates     Gate-level simulation
     -inputs    Defines SIM_INPUTS macro:
@@ -97,8 +78,6 @@ JTFRAME simulation tool. (c) Jose Tejada 2019, @topapate
     -mist      Use MiST setup for simulation, instead of using directly the
                game module. This is slower but more informative.
     -ncverilog Select NCVerilog as the simulator
-    -nochar    Disable CHAR hardware. Faster simulation.
-    -noscr     Disable SCROLL hardware. Faster simulation.
     -nosnd     Disable SOUND hardware. Speeds up simulation a lot!
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
     -srate     Sampling rate of the .wav file
@@ -177,76 +156,45 @@ function emulate_F {
     IFS="$oldIFS"
 }
 
-function get_named_arg {
-    ARGNAME="$1"
-    shift
+# First parse all the arguments in search of simulator arguments
+function preparse_args {
     while [ $# -gt 0 ]; do
-        if [ "$1" = "$ARGNAME" ]; then
-            echo $2
-            return
-        fi
+        case ${1:1} in
+            verilator|lint)
+                SIMULATOR=verilator
+                MACROPREFIX=-D
+                ;;
+            ncverilog|synapticad|modelsim|iverilog)
+                SIMULATOR=${1:1}
+                MACROPREFIX=+define+
+                ;;
+            sysname) shift; SYSNAME=$1
+        esac
         shift
     done
 }
 
-# Which core is this for?
-SYSNAME=$(get_named_arg -sysname $*)
-PERCORE=
+function require {
+    if [ -z "$1" ]; then
+        echo "$2"
+        exit 1
+    fi
+}
+
+preparse_args $*
+require "$SYSNAME" "JTSIM: Missing core name. Specify it with -sysname"
+require "$JTFRAME" "You need to source the project setprj.sh"
+require "$MODULES" "Missing the modules path. You need to source the project setprj.sh"
 
 if [ -z "$GAMETOP" ]; then
     GAMETOP=jt${SYSNAME}_game
     echo Using $GAMETOP as top module
 fi
 
-function check_qip {
-    if ls ../../hdl/*.qip 2> /dev/null; then
-        if grep --quiet "^[^#].*$1" ../../hdl/*.qip ; then
-            echo 1
-        else
-            echo 0
-        fi
-    else
-        echo 0
-    fi
-}
-
-if [ -z "$JTFRAME" ]; then
-    echo "You need to source the project setprj.sh"
-    exit 1
-fi
-if [ -z "$MODULES" ]; then
-    echo "Missing the modules path. You need to source the project setprj.sh"
-    exit 1
-fi
 
 function add_macro {
     echo ${MACROPREFIX}$1 >> macros.f
 }
-
-if [ -z "$SYSNAME" ]; then
-    if [[ "$1" = -help || "$1" = -h ]]; then
-        show_help
-        exit 0
-    else
-        echo "ERROR: Needs system name. Use -sysname"
-        exit 1
-    fi
-fi
-
-# First parse all the arguments in search of simulator arguments
-for arg in $*; do
-    case ${arg:1} in
-        verilator|lint)
-            SIMULATOR=verilator
-            MACROPREFIX=-D
-            EXTRA="$EXTRA --cc test.cpp --exe"
-            ;;
-        ncverilog|synapticad|modelsim|iverilog)
-            SIMULATOR=${arg:1}
-            MACROPREFIX=+define+
-            ;;
-    esac
-done
 
 if [ ! -e "rom.bin" ]; then
     echo "Error: cannot find ROM file rom.bin"
@@ -284,21 +232,13 @@ case "$1" in
         ;;
     -inputs)
         add_macro SIM_INPUTS;;
-    -def)
-        shift
-        if [ ! -e "$1" ]; then
-            echo "Cannot find macro definition file $1"
-            exit 1
-        fi
-        DEFFILE="$1"
-        ;;
     -keepcpp)
         shift
         TESTCPP=KEEP
         ;;
     -pause)
         add_macro DIP_PAUSE;;
-    "-frame")
+    -frame)
         shift
         if [ "$1" = "" ]; then
             echo "Must specify number of frames to simulate"
@@ -325,61 +265,23 @@ case "$1" in
     -mist)
         TOP=mist_test
         TARGET=mist
-        rm -f mist.f
-        MISTTOP=$JTFRAME/target/mist/jtframe_mist_top.sv
-        for i in $JTFRAME/target/mist/ver/mist_test.v $MISTTOP; do
-            echo $i >> mist.f
-        done
         add_macro MIST
         ;;
     #################### MiSTer setup
     -mister|-mr)
         TOP=mister_test
         TARGET=mister
-        if [ $SIMULATOR = iverilog ]; then
-            FILES=$(add_dir $JTFRAME/target/mister mister.f)
-        else
-            FILES="-F $JTFRAME/target/mister/mister.f"
-        fi
-
-        if [ -e $JTROOT/hdl/jt${SYSNAME}.sv ]; then
-            MISTTOP=../../hdl/jt${SYSNAME}_mister.sv
-        else
-            # jtgng cores share a common MiST top file
-            MISTTOP=$MODULES/jtframe/target/mister/jtframe_emu.sv
-            # Check if the conf_str.v file is present
-            # and try to link to it if it is not here
-            if [ ! -e conf_str.v ]; then
-                if [ -e ../../mist/conf_str.v ]; then
-                    ln -s ../../mist/conf_str.v
-                fi
-            fi
-        fi
-        FILES="$JTFRAME/target/mister/mister_test.v $MISTTOP $FILES"
         add_macro MISTER
-        PLL_FILE=$JTROOT/modules/jtframe/target/mister/mister_pll48.v
         # Generate a fake build_id.v file
         echo "\`define BUILD_DATE \"190311\"" > build_id.v
         echo "\`define BUILD_TIME \"190311\"" >> build_id.v
         ;;
     ##########################
-    "-slowpll")
-        echo "INFO: Simulation will use the slow PLL model"
-        MIST_PLL=altera_pll.f
-        PLL_FILE="slow_pll.f"
-        add_macro SLOWPLL
-        ;;
-    "-nosnd")
+    -nosnd)
         add_macro NOSOUND
         add_macro NOFM
         add_macro NOSSG;;
-    "-nocolmix")
-        add_macro NOCOLMIX;;
-    "-noscr")
-        add_macro NOSCR;;
-    "-nochar")
-        add_macro NOCHAR;;
-    "-time")
+    -time)
         shift
         if [ "$1" = "" ]; then
             echo "Must specify number of milliseconds to simulate"
@@ -388,11 +290,11 @@ case "$1" in
         SIM_MS="$1"
         echo Simulate $1 ms
         ;;
-    "-stats")
+    -stats)
         add_macro JTFRAME_SDRAM_STATS
         echo RAM stats enabled
         ;;
-    "-video")
+    -video)
         add_macro DUMP_VIDEO
         echo Video dump enabled
         if [ "${2:0:1}" != - ]; then
@@ -414,11 +316,11 @@ case "$1" in
         shift
         JTFRAME_HEIGHT=$1
         ;;
-    "-load")
+    -load)
         add_macro LOADROM
         echo ROM load through SPI enabled
         ;;
-    "-lint")
+    -lint)
         # only possible with verilator
         EXTRA="$EXTRA --lint-only"
         add_macro LINT
@@ -427,11 +329,7 @@ case "$1" in
     -ncverilog|-verilator|-synap|-modelsim|-iverilog)
         # This is parsed in the first argument loop
         ;;
-    "-help-macros")
-        cat $JTFRAME/doc/macros.md
-        echo
-        exit 0;;
-    "-help")
+    -help)
         show_help
         exit 0
         ;;
@@ -447,8 +345,6 @@ if [ ! -e ${TARGET}_dump.v ]; then
     git add -v ${TARGET}_dump.v
 fi
 FILES="$FILES ${TARGET}_dump.v"
-
-source jtsim_dep.sh
 
 if [ $MACOS = YES ]; then
     GAME_ROM_LEN=$(stat -L -f %z rom.bin)
@@ -478,37 +374,24 @@ fi
 
 add_macro SYSTOP=jt${SYSNAME}_mist
 
-# Add the PLL (MiST only)
-if [[ $TOP = mist_test || $TOP = mister_test ]]; then
-    if [ "$MIST_PLL" != "" ]; then
-        # Adds the Altera file with the PLL models
-        if [ $SIMULATOR = iverilog ]; then
-            add_dir $JTFRAME/target/mist $MIST_PLL >> mist.f
-        else
-            FILES="$FILES -F $JTFRAME/target/mist/$MIST_PLL"
-        fi
-    else
-        # Adds the .f file with the PLL modules
-        echo "$PLL_FILE" >> mist.f
-    fi
+function jtcfgstr {
+    go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -output=$1 -core $SYSNAME
+}
+
+# Parse the core .def file
+if ! jtcfgstr $SIMULATOR > core.def; then
+    cat core.def
+    exit 1
+fi
+$SED /JTFRAME_CREDITS/d core.def
+
+# Verilator macros
+if ! jtcfgstr cpp > defmacros.h ; then
+    cat defmacros.h
+    exit 1
 fi
 
-# Search for a macro definition file
-# Only supported for iverilog and ncverilog
-
-if [ -z "$DEFFILE" ]; then
-    if ! go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -output=$SIMULATOR -core $SYSNAME > core.def; then
-        cat core.def
-        exit 1
-    fi
-    COREDEF="-f core.def"
-    $SED /JTFRAME_CREDITS/d core.def
-else
-    COREDEF=
-    add_macro GAMETOP=jt${SYSNAME}_game
-fi
-
-# Verilator sims do their own image conversion
+# Non Verilator sims do image conversion via raw2png
 if [[ "$VIDEO_DUMP" = TRUE && $SIMULATOR != verilator ]]; then
     rm -f video.pipe
     mkfifo video.pipe
@@ -523,7 +406,6 @@ for i in ../../hdl/*.hex; do
     ln -fs $i $(basename $i)
 done
 
-
 # Common macros
 add_macro SIM_MS=$SIM_MS
 add_macro SIMULATION
@@ -537,8 +419,6 @@ if [ $GATES = NO ]; then
     # Simulator-specific needs
     case $SIMULATOR in
         verilator)
-            # Add definitions in mist.f that are commonly used
-            # outside the MiST testbench too
             $SED "/\.vhd/d" game.f
             $SED "/\.qip/d" game.f;;
         ncverilog)
@@ -595,8 +475,8 @@ case $SIMULATOR in
 iverilog)
     SIMEXE=sim
 
-    $SHOWCMD iverilog -g2005-sv $FILES $COREDEF \
-        -f filtered.f -f target.f \
+    $SHOWCMD iverilog -g2005-sv $FILES $SIMARGS \
+        -f target.f \
         -s $TOP -o $SIMEXE \
         -DIVERILOG $EXTRA \
         -DDUMP_VIDEO_FNAME=\"video.pipe\" \
@@ -605,9 +485,9 @@ iverilog)
     rm -f $SIMEXE;;
 modelsim)
     # vcom compiles VHDL, vlog compiles verilog
-    $SHOWCMD vcom $COREDEF -f jtsim_vhdl.f || exit $?
+    $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     $SHOWCMD vlog +initwireX \
-        $COREDEF -f target.f -f filtered.f \
+        $SIMARGS -f target.f \
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
     echo calling vsim $TOP
@@ -624,18 +504,18 @@ synapticad)
     $SHOWCMD simx +access+r +define+SYNAPTICAD +timescale+1ns/1ps\
         -f filtered.f -f target.f $FILES \
         +scd_top+$TOP \
-        $COREDEF \
+        $SIMARGS \
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $EXTRA -l /dev/null || exit $?;;
 ncverilog)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f
     $SHOWCMD ncverilog +access+r +nc64bit +define+NCVERILOG +nctimescale+1ns/1ps\
         -mcmaxcores 3 -mccodegen \
-        -sysv -f filtered.f -f jtsim_vhdl.f -f target.f \
+        -sysv -f jtsim_vhdl.f -f target.f \
         -disable_sem2009 $FILES \
         +nctop+$TOP \
         -ncvhdl_args,-V93 \
-        $COREDEF \
+        $SIMARGS \
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         -nowarn "MCONDE" -nowarn "NOCOND" -nowarn "RECOME" -nowarn "ZROMCW" \
         $EXTRA -l /dev/null || exit $?;;
@@ -649,12 +529,8 @@ verilator)
         cp $JTFRAME/hdl/ver/test.cpp .
         cp $JTFRAME/hdl/ver/game_test.v .
     fi
-    rm -f defmacros.h
-    if [ ! -z "$DEFFILE" ]; then
-        go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -output=cpp -parse $DEFFILE > defmacros.h
-        echo "// Macros from command line " >> defmacros.h
-    fi
     # Import macros for simulation
+    echo "// Macros from command line " >> defmacros.h
     cat macros.f >> defmacros.h
     $SED "s/$MACROPREFIX/#define /" defmacros.h
     $SED "s/=/ /" defmacros.h
@@ -668,10 +544,11 @@ verilator)
     # Ignore FX68k in Verilator sims
     $SED '/fx68k/d' filtered.f
     $SHOWCMD verilator -I../../hdl --timescale 1ps/1ps \
-        -f filtered.f game_test.v $COREDEF \
+        game_test.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
          $EXTRA $TRACE --prefix UUT --assert \
+         --cc test.cpp --exe \
          -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT \
         || exit $?
     # boost C++ optimization without affecting other settings
@@ -699,7 +576,7 @@ esac
 
 rm -f video.pipe
 rm -f frame.raw
-rm -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f  mist.f  simfile.f
+rm -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
 # killall --quiet raw2png
 
 # convert raw sound file to wav format

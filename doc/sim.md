@@ -58,7 +58,14 @@ Comparison run on [Roc'n Rope](https://github.com/jotego/jtkicker) core for ten 
 simulator | vcd/no video | no vcd/video | no vcd/no video
 ----------|--------------|--------------|-----------------
 modelsim  |  17'         |   16'        | 16'
-iverilog  |              |              |
+iverilog  |              |              | 15'50"
 verilator |  0'30"       |  0'12"       |
+
+Versions used:
+* The ModelSim - INTEL FPGA STARTER EDITION vsim 2020.1
+* Icarus Verilog 12.0
+* Verilator 4.224
+
+The advantage of ModelSim over the other two is mixed VHDL/Verilog simulations.
 
 Verilator simulations do not simulate the *target* but only the game top. SDRAM access is particularly faster in Verilator. Verilator does not simulate 4-state signals either.

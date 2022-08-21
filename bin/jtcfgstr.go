@@ -238,7 +238,7 @@ func main() {
         dump_verilog(def, "+define+%s=%s",true) // escape quotes
 	default:
 		{
-			fmt.Println("JTCFGSTR: requested invalid output ", cfg.output)
+			fmt.Printf("JTCFGSTR: requested invalid output '%s'", cfg.output)
 			os.Exit(1)
 		}
 	}

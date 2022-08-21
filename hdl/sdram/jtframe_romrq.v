@@ -25,6 +25,8 @@
 //    0     1    medium
 //    1     2    easy
 
+`timescale 1ns/1ps
+
 module jtframe_romrq #(parameter
     SDRAMW  = 22,  // SDRAM width
     AW      = 18,
@@ -211,6 +213,7 @@ end
 endmodule // jtframe_romrq
 
 `ifdef JTFRAME_SDRAM_STATS
+
 ////////////////////////////////////////////////////////////////
 module jtframe_romrq_stats(
     input clk,
