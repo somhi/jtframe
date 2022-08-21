@@ -499,17 +499,12 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     simtime   = 0;
     frame_cnt = 0;
     last_VS   = 0;
-    // Derive the clock speed from JTFRAME_GAMEPLL
-    const char *jtframe_gamepll = JTFRAME_GAMEPLL;
-    if( strlen(jtframe_gamepll)!=strlen("jtframe_pll6000") ) {
-        throw ( "Error: JTFRAME_GAMEPLL malformed. It must be like jtframe_pll6000\n"
-            "where the last four digits represent the clock frequency in kHz\n" );
-    }
-    float freqkHz = atof(jtframe_gamepll+11);
-    if( freqkHz < 5500.0 || freqkHz>9000.0 ) {
-        throw("Error: unexpected JTFRAME_GAMEPLL value\n");
-    }
-    semi_period = 0.5e9/8.0/freqkHz;
+    // Derive the clock speed from JTFRAME_PLL
+#ifdef JTFRAME_PLL
+    semi_period = (vluint64_t)(1e12/(16.0*JTFRAME_PLL*1000.0));
+#else
+    semi_period = (vluint64_t)(10416/2);
+#endif
     cout << "Simulation clock period set to " << dec << (semi_period<<1) << "ps\n";
 #ifdef LOADROM
     download = true;

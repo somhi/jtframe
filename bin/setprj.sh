@@ -109,3 +109,7 @@ function jtfiles {
 function jtcfgstr {
     go run $JTFRAME/bin/jt{cfgstr,def}.go $*
 }
+
+# Run go programs in other scripts
+export JTFILES="go run $JTFRAME/bin/jtfiles.go"
+export JTCFGSTR="go run $JTFRAME/bin/jtcfgstr.go $JTFRAME/bin/jtdef.go"
