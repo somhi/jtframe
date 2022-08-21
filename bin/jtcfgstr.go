@@ -154,14 +154,16 @@ func dump_bash(def map[string]string) {
 
 func dump_cpp(def map[string]string) {
 	for k, v := range def {
-		if k == "JTFRAME_GAMEPLL" {
-			v = "\"" + v + "\""
+		if k == "JTFRAME_PLL" {
+			v = strings.TrimPrefix(v,"jtframe_pll")
 		}
-		fmt.Printf("#define %s %s\n", k, v)
+		// Get only the numerical part
+		fmt.Printf("#define %s %s\n", k, v )
 	}
 }
 
 func dump_verilog(def map[string]string, fmtstr string, esc_quotes bool) {
+	pllsim := "10.416"
 	for k, v := range def {
 		if len(v) > 2 && v[0:2] == "0x" {
 			val, _ := strconv.ParseInt(v, 0, 0)
@@ -178,7 +180,18 @@ func dump_verilog(def map[string]string, fmtstr string, esc_quotes bool) {
 		if strings.Index(v, " ") == -1 {
 			fmt.Printf(fmtstr+"\n", k, v)
 		}
+		if k == "JTFRAME_PLL" {
+			// Converts to ns for simulation
+			khz, err := strconv.Atoi(strings.TrimPrefix(v,"jtframe_pll"))
+			if err != nil {
+				log.Fatal("JTCFGSTR: while parsing JTFRAME_PLL ", nil)
+			}
+			ns := 1e6/float32(khz*16)
+			pllsim = fmt.Sprintf("%.3f",ns)
+		}
 	}
+	// Output an extra macro used by fast_pll.v
+	fmt.Printf(fmtstr+"\n","JTFRAME_PLLSIM",pllsim)
 }
 
 func dump_parameter(def map[string]string, fmtstr string) {

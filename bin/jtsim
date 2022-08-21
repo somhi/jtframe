@@ -499,7 +499,8 @@ iverilog)
 modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
     $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
-    $SHOWCMD vlog +initwireX \
+    $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
+        +initwireX \
         $SIMARGS -f target.f \
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?

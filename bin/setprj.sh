@@ -102,5 +102,10 @@ function jtmacros {
 cp --no-clobber $JTFRAME/bin/pre-commit $JTROOT/.git/hooks/pre-commit
 
 # Run go programs without compiling them
-alias jtfiles="go run $JTFRAME/bin/jtfiles.go"
-alias jtcfgstr="go run $JTFRAME/bin/jt{cfgstr,def}.go"
+function jtfiles {
+    go run $JTFRAME/bin/jtfiles.go $*
+}
+
+function jtcfgstr {
+    go run $JTFRAME/bin/jt{cfgstr,def}.go $*
+}
