@@ -80,6 +80,7 @@ JTFRAME simulation tool. (c) Jose Tejada 2019-2022, @topapate
     -ncverilog Select NCVerilog as the simulator
     -nosnd     Disable SOUND hardware. Speeds up simulation a lot!
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
+    -questasim Use QuestaSim as the simulator
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis
     -synap     Use Synapticad's simulator
@@ -164,7 +165,7 @@ function preparse_args {
                 SIMULATOR=verilator
                 MACROPREFIX=-D
                 ;;
-            ncverilog|synapticad|modelsim|iverilog)
+            ncverilog|synapticad|modelsim|iverilog|questasim)
                 SIMULATOR=${1:1}
                 MACROPREFIX=+define+
                 ;;
@@ -190,7 +191,6 @@ if [ -z "$GAMETOP" ]; then
     GAMETOP=jt${SYSNAME}_game
     echo Using $GAMETOP as top module
 fi
-
 
 function add_macro {
     echo ${MACROPREFIX}$1 >> macros.f
@@ -326,7 +326,7 @@ case "$1" in
         add_macro LINT
         export LINT=
         ;;
-    -ncverilog|-verilator|-synap|-modelsim|-iverilog)
+    -ncverilog|-verilator|-synap|-modelsim|-iverilog|-questasim)
         # This is parsed in the first argument loop
         ;;
     -help)
@@ -424,7 +424,7 @@ if [ $GATES = NO ]; then
         ncverilog)
             # quotes need escaping in ncverilog
             $SED 's/"/\\"/g' macros.f;;
-        modelsim)
+        modelsim|questasim)
             # ' induces new line by modelsim
             $SED "s/'h/\\\\'h/g" core.def;;
         iverilog)
@@ -471,6 +471,19 @@ mist_dump.v \
     FILES=
 fi
 
+# These tools use the same names for their executables, so the
+# PATH is defined here
+case $SIMULATOR in
+    questasim)
+        require "$QUESTASIM_LIC" "Define the right path for the QuestaSim license"
+        export LM_LICENSE_FILE="$QUESTASIM_LIC"
+        require "$QUESTASIM_PATH" "Define QUESTASIM_PATH to run ModelSim"
+        export PATH="$PATH:$QUESTASIM_PATH";;
+    modelsim)
+        require "$MODELSIM_PATH" "Define MODELSIM_PATH to run ModelSim"
+        export PATH="$PATH:$MODELSIM_PATH";;
+esac
+
 case $SIMULATOR in
 iverilog)
     SIMEXE=sim
@@ -483,7 +496,7 @@ iverilog)
     || exit 1
     $SHOWCMD $SIMEXE -lxt
     rm -f $SIMEXE;;
-modelsim)
+modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
     $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     $SHOWCMD vlog +initwireX \

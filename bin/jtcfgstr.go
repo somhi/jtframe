@@ -234,11 +234,11 @@ func main() {
 		// dump_parameter(def, "set_parameter -name %s %s")
 	case "iverilog", "verilator":
 		dump_verilog(def, "+define+%s=%s",false) // do not escape quotes
-    case "ncverilog","synapticad","modelsim":
+    case "ncverilog","synapticad","modelsim","questasim":
         dump_verilog(def, "+define+%s=%s",true) // escape quotes
 	default:
 		{
-			fmt.Printf("JTCFGSTR: requested invalid output '%s'", cfg.output)
+			fmt.Printf("JTCFGSTR: requested invalid output '%s'\n", cfg.output)
 			os.Exit(1)
 		}
 	}
