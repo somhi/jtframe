@@ -65,12 +65,12 @@ endmodule
 // 96 MHz PLL
 module jtframe_pllgame96(
     input        inclk0,
-    output   reg c0,     // 96
-    output   reg c1,     // 48
+    output       c0,     // 96
+    output       c1,     // 48
     output       c2,     // 96 (shifted by -2.5ns)
-    output   reg c3,     // 24
-    output   reg c4,     // 6
-    output   reg locked
+    output       c3,     // 24
+    output       c4,     // 6
+    output       locked
 );
     jtframe_pll0 pll(
         .inclk0 ( inclk0    ),
