@@ -35,6 +35,7 @@ module jtframe_dip(
     output reg         enable_fm,
     output reg         enable_psg,
     output             osd_pause,
+    input              osd_shown,
 
     input              game_test,
     output             dip_test,
@@ -122,8 +123,10 @@ end
     `else
         assign osd_pause   = 1'b0;  // MiSTer relies on the keyboard/gamepad for pause
     `endif
+`elsif POCKET
+    assign osd_pause = osd_shown;
 `else
-    assign osd_pause   = 1'b0;
+    assign osd_pause = 1'b0;
 `endif
 
 // Screen or control rotation

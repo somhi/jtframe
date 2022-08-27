@@ -293,9 +293,9 @@ if [ $SKIP_COMPILE = FALSE ]; then
             cp $PRJPATH/patrons/avatar{,_pal}.hex $PRJPATH/$TARGET || exit $?
         fi
     fi
-    if [ ! -e font0.hex ]; then
-        ln -srf $JTFRAME/bin/font0.hex
-    fi
+    # Fonts and graphics
+    ln -srf $JTFRAME/bin/font0.hex
+    ln -srf $JTFRAME/hdl/video/jtframe_logo.hex
     ############################################
     # Link filter files in case they are needed
     for i in $JTFRAME/hdl/sound/*.hex; do

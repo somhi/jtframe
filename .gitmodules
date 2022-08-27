@@ -1,0 +1,3 @@
+[submodule "target/pocket"]
+	path = target/pocket
+	url = git@github.com:jotego/pocket.git

@@ -458,6 +458,7 @@ jtframe_dip u_dip(
     .enable_fm  ( enable_fm     ),
     .enable_psg ( enable_psg    ),
     .osd_pause  ( osd_pause     ),
+    .osd_shown  ( osd_shown     ),
     .game_test  ( game_test     ),
     .dip_test   ( dip_test      ),
     .dip_pause  ( pre_pause     ),
