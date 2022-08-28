@@ -375,7 +375,7 @@ fi
 add_macro SYSTOP=jt${SYSNAME}_mist
 
 function jtcfgstr {
-    go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -output=$1 -core $SYSNAME
+    jtframe cfgstr $SYSNAME --target=$TARGET --output=$1
 }
 
 # Parse the core .def file
@@ -412,7 +412,7 @@ add_macro SIMULATION
 
 if [ $GATES = NO ]; then
     # Prepare all file lists
-    go run $JTFRAME/bin/jtfiles.go -core $SYSNAME -f sim -rel -target "$TARGET" || exit $?
+    jtframe files sim $SYSNAME --rel --target "$TARGET" || exit $?
     # Remove duplicated lines
     rm -f tmp.f
     rm -f game_env.f

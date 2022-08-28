@@ -5,7 +5,6 @@ if (echo $PATH | grep modules/jtframe/bin -q); then
     unalias jtcore
     PATH=$(echo $PATH | sed 's/:[^:]*jtframe\/bin//g')
     PATH=$(echo $PATH | sed 's/:\.//g')
-    unset VER GAME VIDEO HDL OKI
     unset JT12 JT51 CC MRA ROM CORES
 fi
 
@@ -100,16 +99,3 @@ function jtmacros {
 # Only the pre-commit is added automatically, the post-commit must
 # be copied manually as it implies automatic pushing to the server
 cp --no-clobber $JTFRAME/bin/pre-commit $JTROOT/.git/hooks/pre-commit
-
-# Run go programs without compiling them
-function jtfiles {
-    go run $JTFRAME/bin/jtfiles.go $*
-}
-
-function jtcfgstr {
-    go run $JTFRAME/bin/jt{cfgstr,def}.go $*
-}
-
-# Run go programs in other scripts
-export JTFILES="go run $JTFRAME/bin/jtfiles.go"
-export JTCFGSTR="go run $JTFRAME/bin/jtcfgstr.go $JTFRAME/bin/jtdef.go"

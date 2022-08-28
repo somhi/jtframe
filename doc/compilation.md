@@ -2,8 +2,8 @@
 
 All JT arcade cores depend on JTFRAME for compilation:
 
-* [CAPCOM arcades prior to CPS1](https://github.com/jotego/jt_gng)
-* [CAPCOM SYSTEM](https://github.com/jotego/jtcps1)
+* [CAPCOM arcades prior to CPS1](https://github.com/jotego/jtgng)
+* [CAPCOM SYSTEM](https://github.com/jotego/jtcps)
 * [Technos Double Dragon 1 & 2](https://github.com/jotego/jtdd) arcade games
 * [Konami Contra](https://github.com/jotego/jtcontra)
 * [Nintendo Popeye](https://github.com/jotego/jtpopeye)
@@ -15,7 +15,8 @@ All JT arcade cores depend on JTFRAME for compilation:
 2. Quartus
 3. Python and Go installed
 4. Python `pypng` package
-5. Go YAML package `go get gopkg.in/yaml.v2`
+
+JTFRAME uses a submodule to give support to the *Analogue Pocket* target. This submodule is not open source and you will get an error if you try to initialize it. You can safely ignore this submodule, it is only needed to create Pocket files.
 
 ## Quick Steps
 
@@ -97,7 +98,7 @@ JTFRAME_CHEAT
 
 Will include the file *common.def*, then define several macros and concatenate more values to those already present in CORE_OSD. Then, only for MiSTer, it will define some extra options
 
-Macros are evaluated by [jtcfgstr](../bin/jtcfgstr.go)
+Macros are evaluated with `jtframe cfgstr <corename>`
 
 ## Folder and file locations
 
@@ -157,14 +158,9 @@ Files from the key `jtframe` are based in folder `$JTFRAME/HDL`. Files from `jt`
 
 There is also a `target:` section but unless you are creating a new target for JTFRAME, you should not use it. Games cores should not directly reference files in the JTFRAME/target folder. An example of the `target:` section can be seen in [mist](../target/mist/common.yaml).
 
-The utility [jtfiles](../bin/jtfiles.go) translates the yaml files to two files: a game.qip and a target.qip for compilation and a game.f and target.f for simulation. The compilation script [jtcore](../bin/jtcore) calls jtfiles in order to obtain the compilation files. To get the simulation files call jtfiles as:
+The utility `jtframe files` translates the yaml files to two files: a game.qip and a target.qip for compilation and a game.f and target.f for simulation. The compilation script [jtcore](../bin/jtcore) calls jtfiles in order to obtain the compilation files.
+To get the simulation files call jtfiles as:
 
-`go run $JTFRAME/bin/jtfiles.go -core corename -target mister -f sim`
-
-There is an alias already defined so you can call jtfiles directly:
-
-`jtfiles -core corename -target mister -f sim`
-
-The alias takes care of the *go run* syntax for you.
+`jtframe files sim corename --target mister`
 
 From the folder where you want the files game.f and target.f to be produced.

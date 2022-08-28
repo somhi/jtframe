@@ -16,12 +16,11 @@
     Version: 1.0
     Date: 7-7-2022 */
 
-package main
+package jtcfgstr
 
 import (
 	//"text/template"
 	"bytes"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -29,6 +28,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/jotego/jtframe/jtdef"
 )
 
 // appends arguments to a slice
@@ -52,62 +53,47 @@ func append_args(flag_name string, k *int, slice []string) []string {
 	return slice
 }
 
-func parse_args() (cfg Config) {
-	if len(os.Args) < 2 {
-		fmt.Println("usage: jtcfgstr [-target (mist|mister|sidi|neptuno|mc2|mcp|pocket)] [-def path to def file] [-tpl path to template file]")
-		os.Exit(1)
-	}
-	flag.StringVar(&cfg.target, "target", "mist", "Target platform (mist, mister, sidi, neptuno, mc2, mcp, pocket)")
-	flag.StringVar(&cfg.deffile, "parse", "", "Path to .def file")
-	flag.StringVar(&cfg.template, "tpl", "", "Path to template file")
-	flag.StringVar(&cfg.commit, "commit", "nocommit", "Commit ID")
-	flag.StringVar(&cfg.core, "core", "", "Core name, overrides -parse")
-	flag.String("def", "", "Defines macro")
-	flag.String("undef", "", "Undefines macro")
-	flag.StringVar(&cfg.output, "output", "cfgstr",
-		"Type of output: \n\tcfgstr -> config string\n\tbash -> bash script\n\tquartus -> quartus tcl\n\tsimulator name as specified in jtsim")
-	flag.BoolVar(&cfg.verbose, "v", false, "verbose")
-	flag.Parse()
-	switch cfg.target {
+func parse_args(cfg jtdef.Config, args []string) {
+	switch cfg.Target {
 	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket":
 		break
 	default:
 		{
-			fmt.Printf("Unsupported target '%s'\n", cfg.target)
+			fmt.Printf("Unsupported target '%s'\n", cfg.Target)
 			os.Exit(1)
 		}
 	}
-	if len(cfg.core)>0 {
-		cfg.deffile = filepath.Join( os.Getenv("CORES"), cfg.core, "/hdl/jt"+cfg.core+".def" )
+	if len(cfg.Core) > 0 {
+		cfg.Deffile = filepath.Join(os.Getenv("CORES"), cfg.Core, "/hdl/jt"+cfg.Core+".def")
 	}
-	if cfg.verbose {
-		fmt.Println("target=", cfg.target)
-		fmt.Println("def=", cfg.deffile)
+	if cfg.Verbose {
+		fmt.Println("target=", cfg.Target)
+		fmt.Println("def=", cfg.Deffile)
 	}
-	for k := 1; k < len(os.Args); k++ {
-		cfg.discard = append_args("-undef", &k, cfg.discard)
-		cfg.add = append_args("-def", &k, cfg.add)
+	for k := 1; k < len(args); k++ {
+		cfg.Discard = append_args("--undef", &k, cfg.Discard)
+		cfg.Add = append_args("--def", &k, cfg.Add)
 	}
 	return
 }
 
-func make_cfgstr(cfg Config, def map[string]string) (cfgstr string) {
+func make_cfgstr(cfg jtdef.Config, def map[string]string) (cfgstr string) {
 	jtframe_path := os.Getenv("JTFRAME")
 	if jtframe_path == "" {
 		log.Fatal("Environment variable JTFRAME must be set")
 	}
 	var tpath string
-	if cfg.template == "" {
-		tfolder := cfg.target
-		if cfg.target == "sidi" { // SiDi shares the config string with MiST
+	if cfg.Template == "" {
+		tfolder := cfg.Target
+		if cfg.Target == "sidi" { // SiDi shares the config string with MiST
 			tfolder = "mist"
 		}
-		if cfg.target == "pocket" { // Pocket doesn't have a config string
+		if cfg.Target == "pocket" { // Pocket doesn't have a config string
 			return ""
 		}
 		tpath = jtframe_path + "/target/" + tfolder + "/cfgstr"
 	} else {
-		tpath = cfg.template
+		tpath = cfg.Template
 	}
 	t := template.Must(template.ParseFiles(tpath))
 	var buffer bytes.Buffer
@@ -155,10 +141,10 @@ func dump_bash(def map[string]string) {
 func dump_cpp(def map[string]string) {
 	for k, v := range def {
 		if k == "JTFRAME_PLL" {
-			v = strings.TrimPrefix(v,"jtframe_pll")
+			v = strings.TrimPrefix(v, "jtframe_pll")
 		}
 		// Get only the numerical part
-		fmt.Printf("#define %s %s\n", k, v )
+		fmt.Printf("#define %s %s\n", k, v)
 	}
 }
 
@@ -169,10 +155,10 @@ func dump_verilog(def map[string]string, fmtstr string, esc_quotes bool) {
 			val, _ := strconv.ParseInt(v, 0, 0)
 			v = fmt.Sprintf("'h%X", val)
 		}
-        // Optionally escape quote characters
-        if esc_quotes {
-            v = strings.ReplaceAll( v, "\"", "\\\"" )
-        }
+		// Optionally escape quote characters
+		if esc_quotes {
+			v = strings.ReplaceAll(v, "\"", "\\\"")
+		}
 		// Output the key=value pair in the format
 		// given by fmtstr, but skip it if the value
 		// contains spaces, as simulators will get
@@ -182,25 +168,25 @@ func dump_verilog(def map[string]string, fmtstr string, esc_quotes bool) {
 		}
 		if k == "JTFRAME_PLL" {
 			// Converts to ns for simulation
-			khz, err := strconv.Atoi(strings.TrimPrefix(v,"jtframe_pll"))
+			khz, err := strconv.Atoi(strings.TrimPrefix(v, "jtframe_pll"))
 			if err != nil {
 				log.Fatal("JTCFGSTR: while parsing JTFRAME_PLL ", nil)
 			}
-			ns := 1e6/float32(khz*16)
-			pllsim = fmt.Sprintf("%.3f",ns)
+			ns := 1e6 / float32(khz*16)
+			pllsim = fmt.Sprintf("%.3f", ns)
 		}
 	}
 	// Output an extra macro used by fast_pll.v
-	fmt.Printf(fmtstr+"\n","JTFRAME_PLLSIM",pllsim)
+	fmt.Printf(fmtstr+"\n", "JTFRAME_PLLSIM", pllsim)
 }
 
 func dump_parameter(def map[string]string, fmtstr string) {
 	for k, v := range def {
-		if !strings.HasPrefix(k,"JTFRAME_") {
+		if !strings.HasPrefix(k, "JTFRAME_") {
 			continue
 		}
-		if len(v)==0 {
-			v="1"
+		if len(v) == 0 {
+			v = "1"
 		}
 		if len(v) > 2 && v[0:2] == "0x" {
 			val, _ := strconv.ParseInt(v, 0, 0)
@@ -216,21 +202,21 @@ func dump_parameter(def map[string]string, fmtstr string) {
 	}
 }
 
-func main() {
-	cfg := parse_args()
-	def := Make_macros(cfg)
-	if !Check_macros(def) {
+func Run(cfg jtdef.Config, args []string) {
+	parse_args(cfg, args)
+	def := jtdef.Make_macros(cfg)
+	if !jtdef.Check_macros(def) {
 		os.Exit(1)
 	}
-	switch cfg.output {
+	switch cfg.Output {
 	case "cfgstr":
 		{
 			// Make the config string
 			cfgstr := make_cfgstr(cfg, def)
 			dump_cfgstr(cfgstr)
 			// show the config string
-			if cfg.verbose {
-				fmt.Printf("Config for target %s (%d bits)\n\n", cfg.target, len(cfgstr)*8)
+			if cfg.Verbose {
+				fmt.Printf("jtdef.Config for target %s (%d bits)\n\n", cfg.Target, len(cfgstr)*8)
 				fmt.Println(cfgstr, "\n\nBreak up:")
 				aux := strings.Split(cfgstr, ";")
 				for _, s := range aux {
@@ -243,15 +229,15 @@ func main() {
 	case "bash":
 		dump_bash(def)
 	case "quartus":
-		dump_verilog(def, "set_global_assignment -name VERILOG_MACRO \"%s=%s\"",false)
+		dump_verilog(def, "set_global_assignment -name VERILOG_MACRO \"%s=%s\"", false)
 		// dump_parameter(def, "set_parameter -name %s %s")
 	case "iverilog", "verilator":
-		dump_verilog(def, "+define+%s=%s",false) // do not escape quotes
-    case "ncverilog","synapticad","modelsim","questasim":
-        dump_verilog(def, "+define+%s=%s",true) // escape quotes
+		dump_verilog(def, "+define+%s=%s", false) // do not escape quotes
+	case "ncverilog", "synapticad", "modelsim", "questasim":
+		dump_verilog(def, "+define+%s=%s", true) // escape quotes
 	default:
 		{
-			fmt.Printf("JTCFGSTR: requested invalid output '%s'\n", cfg.output)
+			fmt.Printf("JTCFGSTR: requested invalid output '%s'\n", cfg.Output)
 			os.Exit(1)
 		}
 	}

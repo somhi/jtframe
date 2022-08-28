@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 7-7-2022 */
 
-package main
+package jtdef
 
 import (
 	"bufio"
@@ -30,15 +30,15 @@ import (
 )
 
 type Config struct {
-	target,
-	deffile,
-	template,
-	output,
-	core,
-	commit string
-	add     []string // new definitions in command line
-	discard []string // definitions to be discarded
-	verbose bool
+	Target,
+	Deffile,
+	Template,
+	Output,
+	Core,
+	Commit string
+	Add     []string // new definitions in command line
+	Discard []string // definitions to be discarded
+	Verbose bool
 }
 
 func parse_def(path string, cfg Config, macros *map[string]string) {
@@ -70,13 +70,13 @@ func parse_def(path string, cfg Config, macros *map[string]string) {
 			sections := strings.Split(strings.TrimSpace(line[1:idx]), "|")
 			for _, s := range sections {
 				section = s
-				if strings.TrimSpace(s) == cfg.target {
+				if strings.TrimSpace(s) == cfg.Target {
 					break
 				}
 			}
 			continue
 		}
-		if section == "all" || section == cfg.target {
+		if section == "all" || section == cfg.Target {
 			// Look for keywords
 			words := strings.SplitN(line, " ", 2)
 			if words[0] == "include" {
@@ -144,30 +144,30 @@ func Check_macros(def map[string]string) bool {
 
 func get_defpath(cfg Config) string {
 	jtroot := os.Getenv("JTROOT")
-	if cfg.core != "" && jtroot != "" {
-		path := path.Join(jtroot, "cores", cfg.core, "hdl", "jt"+cfg.core+".def")
+	if cfg.Core != "" && jtroot != "" {
+		path := path.Join(jtroot, "cores", cfg.Core, "hdl", "jt"+cfg.Core+".def")
 		return path
 	} else {
-		return cfg.deffile
+		return cfg.Deffile
 	}
 }
 
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
 	parse_def(get_defpath(cfg), cfg, &macros)
-	switch cfg.target {
+	switch cfg.Target {
 	case "mist", "sidi", "neptuno":
 		macros["SEPARATOR"] = ""
 	case "mister":
 		macros["SEPARATOR"] = "-;"
 	}
-	macros["TARGET"] = cfg.target
+	macros["TARGET"] = cfg.Target
 	// Adds the date
 	year, month, day := time.Now().Date()
 	datestr := fmt.Sprintf("%d%02d%02d", year%100, month, day)
 	macros["DATE"] = datestr
 	// Adds the commit
-	macros["COMMIT"] = cfg.commit
+	macros["COMMIT"] = cfg.Commit
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
 	// prevent the CORE_OSD from having two ;; in a row or starting with ;
@@ -185,11 +185,11 @@ func Make_macros(cfg Config) (macros map[string]string) {
 		macros["CORE_OSD"] = ""
 	}
 	// Delete macros listed in cfg.discard
-	for _, undef := range cfg.discard {
+	for _, undef := range cfg.Discard {
 		delete(macros, undef)
 	}
 	// Add macros in cfg.add
-	for _, def := range cfg.add {
+	for _, def := range cfg.Add {
 		split := strings.SplitN(def, "=", 2)
 		if len(split) == 2 {
 			macros[split[0]] = split[1]
@@ -208,7 +208,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	_, isbeta := macros["BETA"]
 	if isbeta {
 		_, cheatok := macros["JTFRAME_CHEAT"]
-		if !cheatok && cfg.target == "mister" {
+		if !cheatok && cfg.Target == "mister" {
 			fmt.Fprintln(os.Stderr, "Compiling a BETA for MiSTer but JTFRAME_CHEAT was not set\nAdding it now automatically.")
 			macros["JTFRAME_CHEAT"] = ""
 		}

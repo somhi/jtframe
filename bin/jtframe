@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ ! -e $JTFRAME/src/jtframe ]; then
+    cd $JTFRAME/src
+    go build . || exit $?
+fi
+
+$JTFRAME/src/jtframe $*

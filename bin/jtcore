@@ -180,7 +180,6 @@ case $TARGET in
                 cd /opt/intelFPGA_lite
                 cd $(ls | head -n 1)
                 PATH=$PATH:`pwd`/quartus/bin
-                export PATH
             else
                 echo "Cannot find Quartus in /opt/intelFPGA_lite"
                 exit 1
@@ -190,9 +189,9 @@ case $TARGET in
         if ! (which quartus_sh|grep 13 -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
             PATH=$PATH:$(locate altera/13.1/quartus/bin | head -1)
-            export PATH
         fi;;
 esac
+export PATH=$PATH:$JTFRAME/bin
 
 function escape_bars {
     echo ${1//\//\\/}
@@ -201,9 +200,9 @@ function escape_bars {
 function parse_macros {
     local MM=""
     for i in $MACROS; do
-        MM="-def $i $MM"
+        MM="--def $i $MM"
     done
-    go run $JTFRAME/bin/jt{cfgstr,def}.go -target=$TARGET -parse $MACROS_FILE $VERBOSE -commit $PRJCOMMIT $MM -output $1
+    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit $PRJCOMMIT $MM --output $1
 }
 
 # qsf line to disable SOUND synthesis
@@ -334,7 +333,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     echo -e "\nset_global_assignment -name seed $SEED" >> jt$PRJ.qsf
     if [ $SIM = FALSE ]; then
         # Create the QIP file
-        go run $JTFRAME/bin/jtfiles.go -core $PRJ -target $TARGET
+        jtframe files syn $PRJ --target=$TARGET
         # Compilation
         quartus_sh --flow compile jt$PRJ > "$LOG"
         if ! grep "Full Compilation was successful" "$LOG"; then
