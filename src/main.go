@@ -15,6 +15,9 @@
     Author: Jose Tejada Gomez. Twitter: @topapate
     Date: 28-8-20122 */
 
+// Use the Cobra Generator to add more commands
+// github.com/spf13/cobra/cobra
+
 package main
 
 import "github.com/jotego/jtframe/cmd"

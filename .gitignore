@@ -7,3 +7,5 @@ sim
 history
 a.out
 *.sim
+src/jtframe
+src/mra/pocket.go

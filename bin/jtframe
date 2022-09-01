@@ -1,7 +1,19 @@
 #!/bin/bash
+POCKET=
+
+if [ -z "$JTFRAME" ]; then
+    echo "Missing JTFRAME environment variable definition"
+    exit 1
+fi
+
 if [ ! -e $JTFRAME/src/jtframe ]; then
+    if [ -e $JTFRAME/target/pocket/pocket.go ]; then
+        ln -srf $JTFRAME/target/pocket/pocket.go $JTFRAME/src/mra/pocket.go
+        POCKET="-tags pocket"
+        echo "compiling jtframe with Pocket support"
+    fi
     cd $JTFRAME/src
-    go build . || exit $?
+    go build $POCKET . || exit $?
 fi
 
 $JTFRAME/src/jtframe $*

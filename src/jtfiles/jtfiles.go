@@ -156,7 +156,7 @@ func append_filelist(dest *[]FileList, src []FileList, other *[]string, origin O
 				case TARGET:
 					path = os.Getenv("JTFRAME") + "/target/" + newfl.From + "/"
 				default:
-					path = os.Getenv("MODULES") + "/"
+					path = os.Getenv("MODULES") + "/" + newfl.From + "/"
 				}
 				*other = append(*other, path+each)
 			} else {
