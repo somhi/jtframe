@@ -680,6 +680,7 @@ func is_family(name string, machine *MachineXML) bool {
 
 // if the region is marked for splitting returns the
 // offset at which it must occur. Otherwise, zero
+// only one split per region will be applied
 func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len int) {
 	offset = 0
 	min_len = 0
@@ -923,14 +924,39 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 					}
 				}
 				rom_pos := pos
+				// check if the next ROM should be split
+				rom_len := 0
+				var m *XMLNode
 				if reg_cfg.Reverse {
 					pp := p.AddNode("interleave").AddAttr("output", "16")
-					m := add_rom(pp, r)
+					m = add_rom(pp, r)
 					m.AddAttr("map", "12")
 				} else {
-					add_rom(p, r)
+					m = add_rom(p, r)
 				}
-				pos += r.Size
+				// Parse ROM splits by marking the dumped ROM above
+				// as only the first half, filling in a blank, and
+				// adding the second half
+				if( pos-start_pos<= split && pos-start_pos+r.Size>split && split_minlen>(r.Size>>1) ) {
+					fmt.Printf("\t-split on single ROM file at %X\n",split)
+					rom_len = r.Size>>1
+					m.AddAttr("length",fmt.Sprintf("0x%X",rom_len))
+					pos += rom_len
+					fill_upto( &pos, pos+split_minlen-rom_len, p )
+					// second half
+					if reg_cfg.Reverse {
+						pp := p.AddNode("interleave").AddAttr("output", "16")
+						m = add_rom(pp, r)
+						m.AddAttr("map", "12")
+					} else {
+						m = add_rom(p, r)
+					}
+					m.AddAttr("length",fmt.Sprintf("0x%X",rom_len))
+					m.AddAttr("offset",fmt.Sprintf("0x%X",rom_len))
+					pos += rom_len
+				} else {
+					pos += r.Size
+				}
 				if reg_cfg.Rom_len > r.Size {
 					fill_upto(&pos, reg_cfg.Rom_len+rom_pos, p)
 				}
