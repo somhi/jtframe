@@ -469,8 +469,11 @@ func guess_world_region(name string) string {
 	return "World"
 }
 
-func set_rbfname(root *XMLNode, machine *MachineXML, cfg Mame2MRA) *XMLNode {
+func set_rbfname(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode {
 	name := cfg.Rbf.Name
+	if name=="" {
+		name = "jt"+args.Def_cfg.Core
+	}
 check_devs:
 	for _, cfg_dev := range cfg.Rbf.Dev {
 		for _, mac_dev := range machine.Devices {
@@ -500,6 +503,9 @@ check_devs:
 			break
 		}
 	}
+	if name=="" {
+		fmt.Printf("\tWarning: no RBF name defined\n")
+	}
 	return root.AddNode("rbf", name)
 }
 
@@ -520,7 +526,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode {
 	n.AddAttr("twitter", "@topapate")
 	root.AddNode("name", mra_name(machine, cfg)) // machine.Description)
 	root.AddNode("setname", machine.Name)
-	set_rbfname(&root, machine, cfg)
+	set_rbfname(&root, machine, cfg, args )
 	root.AddNode("mameversion", Mame_version())
 	root.AddNode("year", machine.Year)
 	root.AddNode("manufacturer", machine.Manufacturer)
@@ -902,6 +908,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 					reg_pos = pos - start_pos
 					if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
 						fill_upto(&pos, pos+blank_len, p)
+						p.AddNode(fmt.Sprintf("Blank ends at 0x%X", pos)).comment = true
 					}
 				}
 				if pos-chunk0 < split_minlen {
@@ -959,6 +966,11 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				}
 				if reg_cfg.Rom_len > r.Size {
 					fill_upto(&pos, reg_cfg.Rom_len+rom_pos, p)
+				}
+				reg_pos = pos - start_pos
+				if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+					fill_upto(&pos, pos+blank_len, p)
+					p.AddNode(fmt.Sprintf("Blank ends at 0x%X", pos)).comment = true
 				}
 				reg_pos = pos - start_pos
 			}
