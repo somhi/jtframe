@@ -31,6 +31,8 @@
 // See the parameter definition below to alter the needed parameters when
 // instantiating the module
 
+/* verilator tracing_off */
+
 module jtframe_vtimer(
     input               clk,
     input               pxl_cen,
@@ -52,14 +54,14 @@ reg LVBL2, LVBL1;
 parameter [8:0] V_START  = 9'd0,
                 VB_START = 9'd239,
                 VB_END   = 9'd255,
-                VCNT_END = VB_END,
                 VS_START = 9'd244,
                 VS_END   = (VS_START+9'd3),
+                VCNT_END = VB_END > VS_END ? VB_END : VS_END,
                 HB_END   = 9'd395,
                 HB_START = HB_END-9'd116,
-                HCNT_END = HB_END,
                 HS_START = 9'd330,
                 HS_END   = HS_START+9'd27, // Default 4.5us for a 6MHz clock
+                HCNT_END = HB_END > HS_END ? HB_END : HS_END,
                 H_VB     = HB_START,
                 H_VS     = HS_START,
                 H_VNEXT  = HS_START,
