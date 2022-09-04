@@ -21,6 +21,8 @@
 // W refers to the number of divided down cen signals available
 // each one is divided by 2
 
+/* verilator tracing_off */
+
 module jtframe_frac_cen #(parameter W=2,WC=10)(
     input         clk,
     input   [WC-1:0] n,         // numerator

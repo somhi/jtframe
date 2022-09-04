@@ -132,6 +132,8 @@ DUMP_6809                |         | Generates a m6809.log during simulation wit
 
 # ROM Downloading
 
+The following macros only have an effect if SIMULATION is defined.
+
 Macro                    | Target  |  Usage
 -------------------------|---------|---------------------------------------------
 LOADROM                  |         | Sends ROM data via serial interface
