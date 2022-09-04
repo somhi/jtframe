@@ -502,10 +502,12 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     // Derive the clock speed from JTFRAME_PLL
 #ifdef JTFRAME_PLL
     semi_period = (vluint64_t)(1e12/(16.0*JTFRAME_PLL*1000.0));
+#elif JTFRAME_CLK96 || JTFRAME_SDRAM96
+    semi_period = (vluint64_t)(10416/2); // 96MHz
 #else
-    semi_period = (vluint64_t)(10416/2);
+    semi_period = (vluint64_t)10416; // 48MHz
 #endif
-    cout << "Simulation clock period set to " << dec << (semi_period<<1) << "ps\n";
+    printf("Simulation clock period set to %ld ps (%f MHz) ", (semi_period<<1), 1e6/(semi_period<<1));
 #ifdef LOADROM
     download = true;
 #else
@@ -657,7 +659,9 @@ void JTSim::video_dump() {
                                 "",
                             #endif
                                 frame_cnt);
-                            system(exes);
+                            if( system(exes) ) {
+                                printf("Warning: convert tool did not succeed\n");
+                            }
                         }
                         exit(0);
                     }
