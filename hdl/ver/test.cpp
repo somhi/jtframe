@@ -108,6 +108,9 @@ public:
         dut.coin_input   = 0xf;
         dut.service      = 1;
         dut.dip_test     = 1;
+#ifdef JTFRAME_OSD_FLIP
+        dut.dip_flip     = 0;
+#endif
 #ifdef SIM_INPUTS
         line = 0;
         done = false;

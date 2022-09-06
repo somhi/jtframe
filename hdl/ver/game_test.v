@@ -78,7 +78,11 @@ module game_test(
     input           service,
     input           dip_test,
     input           dip_pause,
+`ifdef JTFRAME_OSD_FLIP
+    input           dip_flip,
+`else
     output          dip_flip,
+`endif
     input   [ 1:0]  dip_fxlevel, // Not a DIP on the original PCB
     // Sound output
     output  signed [15:0] snd_left,

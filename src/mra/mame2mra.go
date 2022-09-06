@@ -126,8 +126,9 @@ type Mame2MRA struct {
 		// This can be used to group several files in a different order (see Golden Axe)
 		// or to make a file look bigger than it is (see Bad Dudes)
 		Splits []struct {
-			Machine, Setname, Region string
-			Offset, Min_len          int
+			Machine, Setname string
+			Namehas, Region  string
+			Offset, Min_len  int
 		}
 		Blanks []struct {
 			Machine, Setname, Region string
@@ -694,9 +695,10 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 		if split.Region != reg && split.Region != "" {
 			continue
 		}
-		if (split.Machine == "" && split.Setname == "") || // apply to all
+		if (split.Machine == "" && split.Setname == "" && split.Namehas=="") || // apply to all
 			is_family(split.Machine, machine) || // apply to machine
-			(split.Setname == machine.Name) { // apply to a setname
+			(split.Setname == machine.Name) || // exact match
+			(len(split.Namehas)>0 && strings.Contains( machine.Name, split.Namehas ) ) { // name contains substring
 			offset = split.Offset
 			min_len = split.Min_len
 		}

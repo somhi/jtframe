@@ -84,15 +84,24 @@ function __git_subdir {
 }
 PS1='[$(__git_subdir)$(__git_ps1 " (%s)")]\$ '
 
-function pull_jtframe {
+function jtpull {
     cd $JTFRAME
     git pull
     cd -
 }
 
 function jtmacros {
-    cat $JTFRAME/doc/macros.md
-    echo
+    if [ ! -z "$1" ]; then
+        grep -i "$1" $JTFRAME/doc/macros.md
+    else
+        cat $JTFRAME/doc/macros.md
+        echo
+    fi
+}
+
+function lnrom {
+    ln -srf $ROM/$1.rom rom.bin
+    ls -l rom.bin
 }
 
 # check that git hooks are present
