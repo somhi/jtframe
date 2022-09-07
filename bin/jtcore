@@ -200,8 +200,11 @@ function escape_bars {
 function parse_macros {
     local MM=""
     for i in $MACROS; do
-        MM="--def $i $MM"
+        MM="$i,$MM"
     done
+    if [ ! -z "$MM" ]; then
+        MM="--def $MM"
+    fi
     jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit $PRJCOMMIT $MM --output $1
 }
 

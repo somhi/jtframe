@@ -1,7 +1,21 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+/*  This file is part of JTFRAME.
+    JTFRAME program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-*/
+    JTFRAME program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with JTFRAME.  If not, see <http://www.gnu.org/licenses/>.
+
+    Author: Jose Tejada Gomez. Twitter: @topapate
+    Version: 1.0
+    Date: 7-9-2022 */
+
 package cmd
 
 import (
@@ -11,6 +25,7 @@ import (
 )
 
 var cfg jtdef.Config
+var extra_def, extra_undef string
 
 // cfgstrCmd represents the cfgstr command
 var cfgstrCmd = &cobra.Command{
@@ -20,7 +35,7 @@ var cfgstrCmd = &cobra.Command{
 creates input files for simulation or synthesis`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg.Core = args[0]
-		jtcfgstr.Run(cfg, args)
+		jtcfgstr.Run(cfg, args, extra_def, extra_undef)
 	},
 	Args: cobra.MinimumNArgs(1),
 }
@@ -33,8 +48,8 @@ func init() {
 	flag.StringVar(&cfg.Deffile, "parse", "", "Path to .def file")
 	flag.StringVar(&cfg.Template, "tpl", "", "Path to template file")
 	flag.StringVar(&cfg.Commit, "commit", "nocommit", "Commit ID")
-	flag.String("def", "", "Defines macro")
-	flag.String("undef", "", "Undefines macro")
+	flag.StringVar(&extra_def,"def", "", "Defines macros, separated by comma")
+	flag.StringVar(&extra_undef,"undef", "", "Undefines macros, separated by comma")
 	flag.StringVar(&cfg.Output, "output", "cfgstr",
 		"Type of output: \n\tcfgstr -> config string\n\tbash -> bash script\n\tquartus -> quartus tcl\n\tsimulator name as specified in jtsim")
 	flag.BoolVarP(&cfg.Verbose, "verbose","v", false, "verbose")
