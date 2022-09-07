@@ -30,11 +30,11 @@ P1oEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OI,Autofire button 0,Off,On; {{ end }}
-{{ if (.JTFRAME_CHEAT) or (.JTFRAME_UART) }}
+{{ if .JTFRAME_UART }}
     {{ if .JTFRAME_NO_DB15 }}       o6,User port,Off,UART; {{ else }}
                                     o56,User port,Off,DB15 Joystick,UART; {{ end }}
     {{ else }}                      o5,User port,Off,DB15 Joystick; {{ end }}
-{{ if (.JTFRAME_CREDITS) and not (.BETA) }} OC,Show credits in pause,On,Off; {{ end }}
+{{ if .JTFRAME_CREDITS }} OC,Show credits in pause,On,Off; {{ end }}
 R0,Reset;
 {{ with .CORE_KEYMAP }} {{ . }} {{ end }}
 V,v{{ .COMMIT }};

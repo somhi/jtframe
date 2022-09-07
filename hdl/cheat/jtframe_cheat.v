@@ -74,7 +74,7 @@ module jtframe_cheat #(parameter AW=22)(
     output reg [2:0] vram_ctrl,
 
     // UART
-    input            uart_rx,
+    input            uart_rx,     // Define JTFRAME_UART for OSD options to show
     output           uart_tx,
 
     // PBlaze Program
