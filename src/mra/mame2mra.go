@@ -278,7 +278,12 @@ func Run( args Args ) {
 	}
 	ex := NewExtractor(args.Xml_path)
 	parent_names := make(map[string]string)
+	// Set the RBF Name if blank
+	if mra_cfg.Rbf.Name=="" {
+		mra_cfg.Rbf.Name = "jt"+args.Def_cfg.Core
+	}
 	var data_queue []ParsedMachine
+	pocket_init( mra_cfg, args, macros)
 extra_loop:
 	for {
 		machine := ex.Extract(mra_cfg.Parse)
@@ -315,7 +320,6 @@ extra_loop:
 			}
 		}
 		mra_xml := make_mra(machine, mra_cfg, args)
-		dump_pocket(machine, mra_cfg, args, macros)
 		pm := ParsedMachine{machine, mra_xml, cloneof}
 		data_queue = append(data_queue, pm)
 	}
@@ -329,12 +333,14 @@ extra_loop:
 		for _, d := range data_queue {
 			_, good := parent_names[d.machine.Cloneof]
 			if good || len(d.machine.Cloneof) == 0 {
+				pocket_add(d.machine, mra_cfg, args, macros)
 				dump_mra(args, d.machine, d.mra_xml, d.cloneof, parent_names)
 			} else {
 				fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
 					d.machine.Name, d.machine.Cloneof)
 			}
 		}
+		pocket_save()
 	}
 }
 
@@ -472,9 +478,6 @@ func guess_world_region(name string) string {
 
 func set_rbfname(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode {
 	name := cfg.Rbf.Name
-	if name=="" {
-		name = "jt"+args.Def_cfg.Core
-	}
 check_devs:
 	for _, cfg_dev := range cfg.Rbf.Dev {
 		for _, mac_dev := range machine.Devices {
