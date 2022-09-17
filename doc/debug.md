@@ -31,3 +31,7 @@ It is not possible to use JTFRAME_SHADOW and JTFRAME_IOCTL_RD at the same time.
 ## Frequency counter
 
 Sometimes it is useful to measure an internal frequency. The module [jtframe_freqinfo](../hdl/clocking/jtframe_freqinfo.v) provides this information. It needs to know the clock frequency in kHz and it provides the measured frequency in kHz too.
+
+## Using Signal Tap
+
+Compile the core normally using `jtcore` one time. You don't need to wait until the compilation is done. This will create the Quartus project files. After that, you can load the project in Quartus and re-compile with Signal Tap enabled.
