@@ -8,7 +8,7 @@ fi
 
 if [ ! -e $JTFRAME/src/jtframe ]; then
     if [ -e $JTFRAME/target/pocket/pocket.go ]; then
-        ln -srf $JTFRAME/target/pocket/pocket.go $JTFRAME/src/mra/pocket.go
+        ln -sf $JTFRAME/target/pocket/pocket.go $JTFRAME/src/mra/pocket.go
         POCKET="-tags pocket"
         echo "compiling jtframe with Pocket support"
     fi
