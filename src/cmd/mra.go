@@ -53,6 +53,7 @@ func init() {
 	flag.StringVar(&mra_args.Year, "year", "", "Year string for MRA file comment")
 	flag.BoolVarP(&mra_args.Verbose, "verbose","v", false, "verbose")
 	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA","s", false, "Do not generate MRA files")
+	flag.BoolVarP(&mra_args.Show_platform, "show_platform","p", false, "Show platform name and quit")
 	flag.StringVar(&mra_args.Buttons, "buttons", "", "Buttons used by the game -upto six-")
 }
 

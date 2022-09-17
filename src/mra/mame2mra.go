@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -68,6 +69,7 @@ type Mame2MRA struct {
 	Global struct {
 		Info      []Info
 		Mraauthor []string
+		Platform  string // Used by the Pocket target
 		Zip       struct {
 			Alt string
 		}
@@ -150,6 +152,7 @@ type Args struct {
 	Buttons                   string
 	Year                      string
 	Verbose, SkipMRA          bool
+	Show_platform			  bool
 }
 
 type XMLAttr struct {
@@ -281,6 +284,14 @@ func Run( args Args ) {
 	// Set the RBF Name if blank
 	if mra_cfg.Rbf.Name=="" {
 		mra_cfg.Rbf.Name = "jt"+args.Def_cfg.Core
+	}
+	// Set the platform name if blank
+	if mra_cfg.Global.Platform=="" {
+		mra_cfg.Global.Platform = filepath.Base(os.Getenv("JTROOT"))
+	}
+	if args.Show_platform {
+		fmt.Printf("%s",mra_cfg.Global.Platform)
+		return
 	}
 	var data_queue []ParsedMachine
 	pocket_init( mra_cfg, args, macros)

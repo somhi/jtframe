@@ -4,8 +4,8 @@ For I/O (SDRAM download, etc.) the following indexes are used
 
  Purpose          | MiST   | MiSTer | Pocket
 ------------------|--------|--------|-------
- Main ROM         |   0    |    0   |    0
- JTFRAME options  |   1    |    1   |    1
+ Main ROM         |   0    |    0   |    1
+ JTFRAME options  |   1    |    1   |  F900'0000 write
  NVRAM            | 255    |    2   |  N/A
  Cheat ROM        |  16    |   16   |  N/A
  Beta keys        |  N/A   |   17   |   17
