@@ -223,8 +223,6 @@ end
 
 endmodule
 
-// Note that this Z80 operates one clock cycle behind cpu_cen
-// Because of the internal gating done to it
 module jtframe_z80_romwait (
     input         rst_n,
     input         clk,
@@ -247,6 +245,58 @@ module jtframe_z80_romwait (
     // ROM access
     input         rom_cs,
     input         rom_ok
+);
+    jtframe_z80_devwait u_cpu(
+        .rst_n      ( rst_n     ),
+        .clk        ( clk       ),
+        .cen        ( cen       ),
+        .cpu_cen    ( cpu_cen   ),
+        .int_n      ( int_n     ),
+        .nmi_n      ( nmi_n     ),
+        .busrq_n    ( busrq_n   ),
+        .m1_n       ( m1_n      ),
+        .mreq_n     ( mreq_n    ),
+        .iorq_n     ( iorq_n    ),
+        .rd_n       ( rd_n      ),
+        .wr_n       ( wr_n      ),
+        .rfsh_n     ( rfsh_n    ),
+        .halt_n     ( halt_n    ),
+        .busak_n    ( busak_n   ),
+        .A          ( A         ),
+        .din        ( din       ),
+        .dout       ( dout      ),
+        // ROM access
+        .rom_cs     ( rom_cs    ),
+        .rom_ok     ( rom_ok    ),
+        .dev_busy   ( 1'b0      )
+    );
+endmodule
+
+// Note that this Z80 operates one clock cycle behind cpu_cen
+// Because of the internal gating done to it
+module jtframe_z80_devwait (
+    input         rst_n,
+    input         clk,
+    input         cen,
+    output        cpu_cen,
+    input         int_n,
+    input         nmi_n,
+    input         busrq_n,
+    output        m1_n,
+    output        mreq_n,
+    output        iorq_n,
+    output        rd_n,
+    output        wr_n,
+    output        rfsh_n,
+    output        halt_n,
+    output        busak_n,
+    output [15:0] A,
+    input  [7:0]  din,
+    output [7:0]  dout,
+    // ROM access
+    input         rom_cs,
+    input         rom_ok,
+    input         dev_busy
 );
 
 parameter M1_WAIT=0; // wait states after M1 goes down
@@ -296,7 +346,7 @@ jtframe_z80wait #(1) u_wait(
     .mreq_n     ( mreq_n    ),
     .busak_n    ( busak_n   ),
     // manage access to shared memory
-    .dev_busy   ( 1'b0      ),
+    .dev_busy   ( dev_busy  ),
     // manage access to ROM data from SDRAM
     .rom_cs     ( rom_cs    ),
     .rom_ok     ( rom_ok    )
