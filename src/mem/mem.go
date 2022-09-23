@@ -45,7 +45,6 @@ type SDRAMBus struct {
 }
 
 type SDRAMBank struct {
-	Number int
 	Buses  []SDRAMBus `yaml:"buses"`
 }
 
@@ -55,6 +54,7 @@ type SDRAMCfg struct {
 
 type MemConfig struct {
 	Include []string `yaml:include` // not supported yet
+	PROM_en bool `yaml:"PROM_en"`
 	SDRAM   SDRAMCfg `yaml:"sdram"`
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.
@@ -63,7 +63,8 @@ type MemConfig struct {
 	Core   string
 	Macros map[string]string
 	// Precalculated values
-	Colormsb, Cabmsb, Joymsb int
+	Colormsb int
+	Unused [4]bool // true for unused banks
 }
 
 func Run(args Args) {
@@ -84,6 +85,13 @@ func Run(args Args) {
 		fmt.Println("jtframe mem: memory configuration:")
 		fmt.Println(cfg)
 	}
+	// Check that the arguments make sense
+	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
+		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))
+	}
+	for k := len(cfg.SDRAM.Banks); k<4; k++ {
+		cfg.Unused[k] = true
+	}
 	// Execute the template
 	cfg.Core = args.Core
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
@@ -91,5 +99,5 @@ func Run(args Args) {
 	t := template.Must(template.ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &cfg)
-	fmt.Println(buffer.String())
+	ioutil.WriteFile( "jt"+args.Core+"_game_sdram.v", buffer.Bytes(), 0644 )
 }

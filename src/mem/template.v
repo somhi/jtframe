@@ -1,24 +1,35 @@
+`ifndef JTFRAME_COLORW
+`define JTFRAME_COLORW 4
+`endif
+
 module jt{{.Core}}_game_sdram(
     input           rst,
     input           clk,
-{{ with index .Macros "JTFRAME_CLK24" }}
+`ifdef JTFRAME_CLK24
     input           rst24,
     input           clk24,
-{{ end }}
+`endif
     output          pxl2_cen,   // 12   MHz
     output          pxl_cen,    //  6   MHz
-    output   [{{.Colormsb}}:0]  red,
-    output   [{{.Colormsb}}:0]  green,
-    output   [{{.Colormsb}}:0]  blue,
+    output   [`JTFRAME_COLORW-1:0]  red,
+    output   [`JTFRAME_COLORW-1:0]  green,
+    output   [`JTFRAME_COLORW-1:0]  blue,
     output          LHBL,
     output          LVBL,
     output          HS,
     output          VS,
     // cabinet I/O
-    input   [{{.Cabmsb}}:0]  start_button,
-    input   [{{.Cabmsb}}:0]  coin_input,
-    input   [{{.Joymsb}}:0]  joystick1,
-    input   [{{.Joymsb}}:0]  joystick2,
+`ifdef JTFRAME_4PLAYERS
+    input    [ 3:0] start_button,
+    input    [ 3:0] coin_input,
+    input    [ 3:0] joystick1,
+    input    [ 3:0] joystick2,
+`else
+    input    [ 1:0] start_button,
+    input    [ 1:0] coin_input,
+    input    [ 1:0] joystick1,
+    input    [ 1:0] joystick2,
+`endif
     // SDRAM interface
     input           downloading,
     output          dwnld_busy,
@@ -73,10 +84,10 @@ module jt{{.Core}}_game_sdram(
 jt{{.Core}}_game u_game(
     .rst        ( rst       ),
     .clk        ( clk       ),
-{{ with index .Macros "JTFRAME_CLK24" }}
+`ifdef JTFRAME_CLK24
     .rst24      ( rst24     ),
     .clk24      ( clk24     ),
-{{ end }}
+`endif
     .pxl2_cen   ( pxl2_cen  ),   // 12   MHz
     .pxl_cen    ( pxl_cen   ),    //  6   MHz
     .red        ( red       ),
@@ -114,18 +125,60 @@ jt{{.Core}}_game u_game(
     .{{.Name}}_data ( {{.Name}}_data ),
     {{end}}
     {{- end}}
+    // PROM writting
+    {{ with .PROM_en }}
+    .prog_addr    ( prog_addr      ),
+    .prog_data    ( prog_data      ),
+    .prog_we      ( prog_we        ),
+    .prom_we      ( prom_we        ),
+    {{ end }}
     // Debug  
     .gfx_en         ( gfx_en        )
 );
 
+assign dwnld_busy = downloading;
+
+/* verilator lint_off WIDTH */
+jtframe_dwnld #(
+`ifdef BA1_START
+    .BA1_START ( `BA1_START ),
+`endif
+`ifdef BA2_START
+    .BA2_START ( `BA2_START ),
+`endif
+`ifdef BA3_START
+    .BA3_START ( `BA3_START ),
+`endif
+    .SWAB      ( 1         )
+) u_dwnld(
+/* verilator lint_on WIDTH */
+    .clk          ( clk            ),
+    .downloading  ( downloading    ),
+    .ioctl_addr   ( ioctl_addr     ),
+    .ioctl_dout   ( ioctl_dout     ),
+    .ioctl_wr     ( ioctl_wr       ),
+    .prog_addr    ( prog_addr      ),
+    .prog_data    ( prog_data      ),
+    .prog_mask    ( prog_mask      ), // active low
+    .prog_we      ( prog_we        ),
+    .prog_rd      ( prog_rd        ),
+    .prog_ba      ( prog_ba        ),
+    .prom_we      ( prom_we        ),
+    .header       (                ),
+    .sdram_ack    ( prog_ack       )
+);
+
 {{ range $bank, $each:=.SDRAM.Banks }}
+{{- if gt (len .Buses) 0 }}
 /* verilator tracing_off */
 jtframe_rom_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
+{{- $first := true}}
 {{- range $index, $each:=.Buses}}
+    {{- if $first}}{{$first = false}}{{else}}, {{end}}
     .SLOT{{$index}}_DW({{.Data_width}}),
-    .SLOT{{$index}}_AW({{.Addr_width}}),
+    .SLOT{{$index}}_AW({{.Addr_width}})
 {{- end}}
-) u_bank{{.Number}}(
+) u_bank{{$bank}}(
     .rst         ( rst        ),
     .clk         ( clk        ),
     {{ range $index2, $each:=.Buses }}
@@ -135,13 +188,21 @@ jtframe_rom_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     .slot{{$index2}}_ok    ( {{.Name}}_ok    ),
     {{end}}
     // SDRAM controller interface
-    .sdram_ack   ( ba_ack[{{.Number}}]  ),
-    .sdram_req   ( ba_rd[{{.Number}}]   ),
-    .sdram_addr  ( ba{{.Number}}_addr   ),
-    .data_dst    ( ba_dst[{{.Number}}]  ),
-    .data_rdy    ( ba_rdy[{{.Number}}]  ),
+    .sdram_ack   ( ba_ack[{{$bank}}]  ),
+    .sdram_req   ( ba_rd[{{$bank}}]   ),
+    .sdram_addr  ( ba{{$bank}}_addr   ),
+    .data_dst    ( ba_dst[{{$bank}}]  ),
+    .data_rdy    ( ba_rdy[{{$bank}}]  ),
     .data_read   ( data_read  )
 );
+{{- end }}
 {{end}}
+
+{{ range $index, $each:=.Unused }}
+{{- with . -}}
+assign ba{{$index}}_addr = 0;
+assign ba_rd[{{$index}}] = 0;
+{{- end -}}
+{{ end }}
 
 endmodule
