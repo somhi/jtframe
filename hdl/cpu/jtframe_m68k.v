@@ -38,6 +38,7 @@ module jtframe_m68k(
     input   BGACKn,
 
     input   HALTn,
+    output  RESETn,
 
     output  [23:1] eab,
     output  ASn,
@@ -77,8 +78,8 @@ fx68k u_cpu(
 
     .VPAn       ( VPAn        ),
     .BERRn      ( BERRn       ),
+    .oRESETn    ( RESETn      ),
     // Unused
-    .oRESETn    (             ),
     .oHALTEDn   (             ),
     .VMAn       (             ),
     .E          (             ),

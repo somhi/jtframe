@@ -198,7 +198,7 @@ end
         .q1     ( prog_din    )
     );
 
-    jtframe_z80_romwait #(.M1_WAIT(M1_WAIT)) u_z80wait(
+    jtframe_z80_romwait u_z80wait(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
