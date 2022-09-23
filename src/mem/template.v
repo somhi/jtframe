@@ -1,7 +1,7 @@
 module jt{{.Core}}_game_sdram(
     input           rst,
     input           clk,
-{{ if .JTFRAME_CLK24 }}
+{{ with index .Macros "JTFRAME_CLK24" }}
     input           rst24,
     input           clk24,
 {{ end }}
@@ -17,8 +17,8 @@ module jt{{.Core}}_game_sdram(
     // cabinet I/O
     input   [{{.Cabmsb}}:0]  start_button,
     input   [{{.Cabmsb}}:0]  coin_input,
-    input   [{{Joymsb}}:0]  joystick1,
-    input   [{{Joymsb}}:0]  joystick2,
+    input   [{{.Joymsb}}:0]  joystick1,
+    input   [{{.Joymsb}}:0]  joystick2,
     // SDRAM interface
     input           downloading,
     output          dwnld_busy,
@@ -73,8 +73,10 @@ module jt{{.Core}}_game_sdram(
 jt{{.Core}}_game u_game(
     .rst        ( rst       ),
     .clk        ( clk       ),
+{{ with index .Macros "JTFRAME_CLK24" }}
     .rst24      ( rst24     ),
     .clk24      ( clk24     ),
+{{ end }}
     .pxl2_cen   ( pxl2_cen  ),   // 12   MHz
     .pxl_cen    ( pxl_cen   ),    //  6   MHz
     .red        ( red       ),
@@ -104,33 +106,34 @@ jt{{.Core}}_game u_game(
     .enable_psg     ( enable_psg    ),
     .enable_fm      ( enable_fm     ),
     // Memory interface
-    {{range .MemSignals}}
+    {{- range .SDRAM.Banks}}
+    {{- range .Buses}}
     .{{.Name}}_addr ( {{.Name}}_addr ),
     .{{.Name}}_cs   ( {{.Name}}_cs   ),
     .{{.Name}}_ok   ( {{.Name}}_ok   ),
     .{{.Name}}_data ( {{.Name}}_data ),
     {{end}}
-
+    {{- end}}
     // Debug  
     .gfx_en         ( gfx_en        )
 );
 
-{{ range $bank, $each:=.Banks }}
+{{ range $bank, $each:=.SDRAM.Banks }}
 /* verilator tracing_off */
-jtframe_rom_{{len .}}slot{{with lt 1 (len .)}}s{{end}} #(
-{{ range $index, $each:=.}}
-    .SLOT{{$index}}_DW({{.data_width}}),
-    .SLOT{{$index}}_AW({{.addr_width}})
-{{end}}
+jtframe_rom_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
+{{- range $index, $each:=.Buses}}
+    .SLOT{{$index}}_DW({{.Data_width}}),
+    .SLOT{{$index}}_AW({{.Addr_width}}),
+{{- end}}
 ) u_bank{{.Number}}(
     .rst         ( rst        ),
     .clk         ( clk        ),
-
-    .slot0_addr  ( main_addr  ),
-    .slot0_dout  ( main_data  ),
-    .slot0_cs    ( main_cs    ),
-    .slot0_ok    ( main_ok    ),
-
+    {{ range $index2, $each:=.Buses }}
+    .slot{{$index2}}_addr  ( {{.Name}}_addr  ),
+    .slot{{$index2}}_dout  ( {{.Name}}_data  ),
+    .slot{{$index2}}_cs    ( {{.Name}}_cs    ),
+    .slot{{$index2}}_ok    ( {{.Name}}_ok    ),
+    {{end}}
     // SDRAM controller interface
     .sdram_ack   ( ba_ack[{{.Number}}]  ),
     .sdram_req   ( ba_rd[{{.Number}}]   ),

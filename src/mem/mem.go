@@ -18,9 +18,13 @@
 package mem
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
+	"text/template"
 
 	"github.com/jotego/jtframe/jtfiles"
 
@@ -54,6 +58,12 @@ type MemConfig struct {
 	SDRAM   SDRAMCfg `yaml:"sdram"`
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.
+	// This part does not go in the YAML file
+	// But is acquired from the .def or the Args
+	Core   string
+	Macros map[string]string
+	// Precalculated values
+	Colormsb, Cabmsb, Joymsb int
 }
 
 func Run(args Args) {
@@ -68,8 +78,18 @@ func Run(args Args) {
 	var cfg MemConfig
 	err_yaml := yaml.Unmarshal(buf, &cfg)
 	if err_yaml != nil {
-		//fmt.Println(err_yaml)
 		log.Fatalf("jtframe mem: cannot parse file\n\t%s\n\t%v", filename, err_yaml)
 	}
-	fmt.Println(cfg)
+	if args.Verbose {
+		fmt.Println("jtframe mem: memory configuration:")
+		fmt.Println(cfg)
+	}
+	// Execute the template
+	cfg.Core = args.Core
+	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
+	fmt.Println(tpath)
+	t := template.Must(template.ParseFiles(tpath))
+	var buffer bytes.Buffer
+	t.Execute(&buffer, &cfg)
+	fmt.Println(buffer.String())
 }
