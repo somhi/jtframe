@@ -1,4 +1,4 @@
-//go:build ! pocket
+//go:build !pocket
 
 package mra
 
@@ -14,7 +14,7 @@ func pocket_add(machine *MachineXML, cfg Mame2MRA, args Args, macros map[string]
 	// Does nothing
 }
 
-func pocket_init( cfg Mame2MRA, args Args, macros map[string]string) {
+func pocket_init(cfg Mame2MRA, args Args, macros map[string]string) {
 	// Does nothing
 }
 

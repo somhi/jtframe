@@ -31,7 +31,7 @@ var mraCmd = &cobra.Command{
 	Short: "Parses the core's TOML file to generate MRA files",
 	Long: `Parses the core's TOML file to generate MRA files.
 The TOML file must be stored in the $ROM folder.`,
-	Run:  func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {
 		mra_args.Def_cfg.Core = args[0]
 		mra_args.Toml_path = args[0] + ".toml"
 
@@ -51,9 +51,8 @@ func init() {
 	flag.StringVar(&mra_args.Outdir, "Outdir", "mra", "Output folder")
 	flag.StringVar(&mra_args.Altdir, "Altdir", "", "Output folder for alternatives")
 	flag.StringVar(&mra_args.Year, "year", "", "Year string for MRA file comment")
-	flag.BoolVarP(&mra_args.Verbose, "verbose","v", false, "verbose")
-	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA","s", false, "Do not generate MRA files")
-	flag.BoolVarP(&mra_args.Show_platform, "show_platform","p", false, "Show platform name and quit")
+	flag.BoolVarP(&mra_args.Verbose, "verbose", "v", false, "verbose")
+	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA", "s", false, "Do not generate MRA files")
+	flag.BoolVarP(&mra_args.Show_platform, "show_platform", "p", false, "Show platform name and quit")
 	flag.StringVar(&mra_args.Buttons, "buttons", "", "Buttons used by the game -upto six-")
 }
-

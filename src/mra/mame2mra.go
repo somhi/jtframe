@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	toml "github.com/komkom/toml"
 	"github.com/jotego/jtframe/jtdef"
+	toml "github.com/komkom/toml"
 )
 
 type RegCfg struct {
@@ -152,7 +152,7 @@ type Args struct {
 	Buttons                   string
 	Year                      string
 	Verbose, SkipMRA          bool
-	Show_platform			  bool
+	Show_platform             bool
 }
 
 type XMLAttr struct {
@@ -273,7 +273,7 @@ type ParsedMachine struct {
 	cloneof bool
 }
 
-func Run( args Args ) {
+func Run(args Args) {
 	// parse_args(&args)
 	mra_cfg, macros := parse_toml(args)
 	if args.Verbose {
@@ -282,19 +282,19 @@ func Run( args Args ) {
 	ex := NewExtractor(args.Xml_path)
 	parent_names := make(map[string]string)
 	// Set the RBF Name if blank
-	if mra_cfg.Rbf.Name=="" {
-		mra_cfg.Rbf.Name = "jt"+args.Def_cfg.Core
+	if mra_cfg.Rbf.Name == "" {
+		mra_cfg.Rbf.Name = "jt" + args.Def_cfg.Core
 	}
 	// Set the platform name if blank
-	if mra_cfg.Global.Platform=="" {
+	if mra_cfg.Global.Platform == "" {
 		mra_cfg.Global.Platform = filepath.Base(os.Getenv("JTROOT"))
 	}
 	if args.Show_platform {
-		fmt.Printf("%s",mra_cfg.Global.Platform)
+		fmt.Printf("%s", mra_cfg.Global.Platform)
 		return
 	}
 	var data_queue []ParsedMachine
-	pocket_init( mra_cfg, args, macros)
+	pocket_init(mra_cfg, args, macros)
 extra_loop:
 	for {
 		machine := ex.Extract(mra_cfg.Parse)
@@ -406,7 +406,7 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		log.Fatal(err)
 	}
 	if args.Verbose {
-		fmt.Printf("Dumping to MRA file %s\n",fname)
+		fmt.Printf("Dumping to MRA file %s\n", fname)
 	}
 	dump_str := mra_xml.Dump()
 	file.WriteString(mra_disclaimer(machine, args.Year))
@@ -518,7 +518,7 @@ check_devs:
 			break
 		}
 	}
-	if name=="" {
+	if name == "" {
 		fmt.Printf("\tWarning: no RBF name defined\n")
 	}
 	return root.AddNode("rbf", name)
@@ -541,7 +541,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode {
 	n.AddAttr("twitter", "@topapate")
 	root.AddNode("name", mra_name(machine, cfg)) // machine.Description)
 	root.AddNode("setname", machine.Name)
-	set_rbfname(&root, machine, cfg, args )
+	set_rbfname(&root, machine, cfg, args)
 	root.AddNode("mameversion", Mame_version())
 	root.AddNode("year", machine.Year)
 	root.AddNode("manufacturer", machine.Manufacturer)
@@ -709,10 +709,10 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 		if split.Region != reg && split.Region != "" {
 			continue
 		}
-		if (split.Machine == "" && split.Setname == "" && split.Namehas=="") || // apply to all
+		if (split.Machine == "" && split.Setname == "" && split.Namehas == "") || // apply to all
 			is_family(split.Machine, machine) || // apply to machine
 			(split.Setname == machine.Name) || // exact match
-			(len(split.Namehas)>0 && strings.Contains( machine.Name, split.Namehas ) ) { // name contains substring
+			(len(split.Namehas) > 0 && strings.Contains(machine.Name, split.Namehas)) { // name contains substring
 			offset = split.Offset
 			min_len = split.Min_len
 		}
@@ -960,12 +960,12 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				// Parse ROM splits by marking the dumped ROM above
 				// as only the first half, filling in a blank, and
 				// adding the second half
-				if( pos-start_pos<= split && pos-start_pos+r.Size>split && split_minlen>(r.Size>>1) ) {
-					fmt.Printf("\t-split on single ROM file at %X\n",split)
-					rom_len = r.Size>>1
-					m.AddAttr("length",fmt.Sprintf("0x%X",rom_len))
+				if pos-start_pos <= split && pos-start_pos+r.Size > split && split_minlen > (r.Size>>1) {
+					fmt.Printf("\t-split on single ROM file at %X\n", split)
+					rom_len = r.Size >> 1
+					m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
 					pos += rom_len
-					fill_upto( &pos, pos+split_minlen-rom_len, p )
+					fill_upto(&pos, pos+split_minlen-rom_len, p)
 					// second half
 					if reg_cfg.Reverse {
 						pp := p.AddNode("interleave").AddAttr("output", "16")
@@ -974,8 +974,8 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 					} else {
 						m = add_rom(p, r)
 					}
-					m.AddAttr("length",fmt.Sprintf("0x%X",rom_len))
-					m.AddAttr("offset",fmt.Sprintf("0x%X",rom_len))
+					m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
+					m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
 					pos += rom_len
 				} else {
 					pos += r.Size

@@ -9,3 +9,4 @@ a.out
 *.sim
 src/jtframe
 src/mra/pocket.go
+.DS_Store

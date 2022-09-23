@@ -48,9 +48,9 @@ func init() {
 	flag.StringVar(&cfg.Deffile, "parse", "", "Path to .def file")
 	flag.StringVar(&cfg.Template, "tpl", "", "Path to template file")
 	flag.StringVar(&cfg.Commit, "commit", "nocommit", "Commit ID")
-	flag.StringVarP(&extra_def,"def", "d", "", "Defines macros, separated by comma")
-	flag.StringVarP(&extra_undef,"undef", "u", "", "Undefines macros, separated by comma")
+	flag.StringVarP(&extra_def, "def", "d", "", "Defines macros, separated by comma")
+	flag.StringVarP(&extra_undef, "undef", "u", "", "Undefines macros, separated by comma")
 	flag.StringVar(&cfg.Output, "output", "cfgstr",
 		"Type of output: \n\tcfgstr -> config string\n\tbash -> bash script\n\tquartus -> quartus tcl\n\tsimulator name as specified in jtsim")
-	flag.BoolVarP(&cfg.Verbose, "verbose","v", false, "verbose")
+	flag.BoolVarP(&cfg.Verbose, "verbose", "v", false, "verbose")
 }

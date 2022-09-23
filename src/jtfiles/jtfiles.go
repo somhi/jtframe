@@ -13,7 +13,7 @@
     along with JTFRAME.  If not, see <http://www.gnu.org/licenses/>.
 
     Author: Jose Tejada Gomez. Twitter: @topapate
-    Date: 28-8-20122 */
+    Date: 28-8-2022 */
 
 package jtfiles
 
@@ -108,16 +108,16 @@ func parse_args(args *Args) {
 	}
 }
 
-func get_filename(args Args) string {
+func GetFilename(corename, basename, parsepath string) string {
 	var fname string
-	if len(args.Corename) > 0 {
+	if len(corename) > 0 {
 		cores := os.Getenv("CORES")
 		if len(cores) == 0 {
 			log.Fatal("JTFILES: environment variable CORES is not defined")
 		}
-		fname = cores + "/" + args.Corename + "/hdl/game.yaml"
+		fname = cores + "/" + corename + "/hdl/"+basename+".yaml"
 	} else {
-		fname = args.Parse
+		fname = parsepath
 	}
 	return fname
 }
@@ -195,7 +195,7 @@ func parse_yaml(filename string, files *JTFiles) {
 			log.Printf("Warning: cannot open file %s. YAML processing still used for JTFRAME board.", filename)
 			return
 		} else {
-			log.Fatalf("JTFILES: cannot open referenced file %s", filename)
+			log.Fatalf("jtframe files: cannot open referenced file %s", filename)
 		}
 	}
 	if parsed == nil {
@@ -206,7 +206,7 @@ func parse_yaml(filename string, files *JTFiles) {
 	err_yaml := yaml.Unmarshal(buf, &aux)
 	if err_yaml != nil {
 		//fmt.Println(err_yaml)
-		log.Fatalf("JTFILES: cannot parse file\n\t%s\n\t%v", filename, err_yaml)
+		log.Fatalf("jtframe files: cannot parse file\n\t%s\n\t%v", filename, err_yaml)
 	}
 	other := make([]string, 0)
 	// Parse
@@ -428,7 +428,7 @@ func dump_sim(all []string, args Args, do_target, noclobber bool) {
 func parse_one(path string, dump2target, noclobber bool, skip []string, args Args) (uniq []string) {
 	var files JTFiles
 	if !dump2target {
-		parse_yaml(get_filename(args), &files)
+		parse_yaml(GetFilename(args.Corename, "game", args.Parse), &files)
 	}
 	parse_yaml(path, &files)
 	all := collect_files(files, args.Rel)

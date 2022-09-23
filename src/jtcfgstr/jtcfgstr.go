@@ -34,15 +34,15 @@ import (
 
 // appends non blank arguments to a slice
 func append_args(dst, src []string) []string {
-	for _,each := range(src) {
-		if each!="" {
-			dst = append(dst,each)
+	for _, each := range src {
+		if each != "" {
+			dst = append(dst, each)
 		}
 	}
 	return dst
 }
 
-func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string ) {
+func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string) {
 	switch cfg.Target {
 	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket":
 		break
@@ -59,11 +59,11 @@ func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string 
 		fmt.Println("target=", cfg.Target)
 		fmt.Println("def=", cfg.Deffile)
 	}
-	cfg.Add = append_args(cfg.Add,strings.Split(extra_def,","))
-	cfg.Discard = append_args(cfg.Discard,strings.Split(extra_undef,","))
+	cfg.Add = append_args(cfg.Add, strings.Split(extra_def, ","))
+	cfg.Discard = append_args(cfg.Discard, strings.Split(extra_undef, ","))
 	if cfg.Verbose {
-		fmt.Println("cmd line defs: ", cfg.Add )
-		fmt.Println("cmd line undefs: ", cfg.Discard )
+		fmt.Println("cmd line defs: ", cfg.Add)
+		fmt.Println("cmd line undefs: ", cfg.Discard)
 	}
 	return
 }
@@ -193,8 +193,8 @@ func dump_parameter(def map[string]string, fmtstr string) {
 	}
 }
 
-func Run(cfg jtdef.Config, args []string, extra_def, extra_undef string ) {
-	parse_args( &cfg, args, extra_def, extra_undef)
+func Run(cfg jtdef.Config, args []string, extra_def, extra_undef string) {
+	parse_args(&cfg, args, extra_def, extra_undef)
 	def := jtdef.Make_macros(cfg)
 	if !jtdef.Check_macros(def) {
 		os.Exit(1)
