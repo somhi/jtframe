@@ -2,6 +2,10 @@
 `define JTFRAME_COLORW 4
 `endif
 
+`ifndef JTFRAME_BUTTONS
+`define JTFRAME_BUTTONS 2
+`endif
+
 module jt{{.Core}}_game_sdram(
     input           rst,
     input           clk,
@@ -22,13 +26,15 @@ module jt{{.Core}}_game_sdram(
 `ifdef JTFRAME_4PLAYERS
     input    [ 3:0] start_button,
     input    [ 3:0] coin_input,
-    input    [ 3:0] joystick1,
-    input    [ 3:0] joystick2,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick1,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick2,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick3,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick4,
 `else
     input    [ 1:0] start_button,
     input    [ 1:0] coin_input,
-    input    [ 1:0] joystick1,
-    input    [ 1:0] joystick2,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick1,
+    input    [`JTFRAME_BUTTONS-1+4:0] joystick2,
 `endif
     // SDRAM interface
     input           downloading,
@@ -80,6 +86,19 @@ module jt{{.Core}}_game_sdram(
     // Debug
     input   [ 3:0]  gfx_en
 );
+
+{{- range .SDRAM.Banks}}
+{{- range .Buses}}
+wire [{{.Addr_width}}-1:0] {{.Name}}_addr;
+wire [{{.Data_width}}-1:0] {{.Name}}_data;
+wire {{.Name}}_cs, {{.Name}}_ok;
+{{end}}
+{{- end}}
+wire prom_we;
+
+assign ba_wr      = 0;
+assign ba0_din    = 0;
+assign ba0_din_m  = 3;
 
 jt{{.Core}}_game u_game(
     .rst        ( rst       ),

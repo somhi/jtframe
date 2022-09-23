@@ -71,7 +71,8 @@ func Run(args Args) {
 	filename := jtfiles.GetFilename(args.Core, "mem", "")
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatalf("jtframe mem: cannot open referenced file %s", filename)
+		log.Printf("jtframe mem: cannot open referenced file %s", filename)
+		return
 	}
 	if args.Verbose {
 		fmt.Println("Read ", filename)
@@ -95,9 +96,10 @@ func Run(args Args) {
 	// Execute the template
 	cfg.Core = args.Core
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
-	fmt.Println(tpath)
 	t := template.Must(template.ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &cfg)
-	ioutil.WriteFile( "jt"+args.Core+"_game_sdram.v", buffer.Bytes(), 0644 )
+	outpath := "jt"+args.Core+"_game_sdram.v"
+	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
+	ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
 }
