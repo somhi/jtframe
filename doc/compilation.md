@@ -6,7 +6,7 @@ All JT arcade cores depend on JTFRAME for compilation:
 * [CAPCOM SYSTEM](https://github.com/jotego/jtcps)
 * [Technos Double Dragon 1 & 2](https://github.com/jotego/jtdd) arcade games
 * [Konami Contra](https://github.com/jotego/jtcontra)
-* [Nintendo Popeye](https://github.com/jotego/jtpopeye)
+* [System 16](https://github.com/jotego/jts16)
 * etc.
 
 ## Prerequisites
@@ -110,8 +110,9 @@ cores  | root       | container for each core folder
 foo    | cores      | container for core foo
 hdl    | cores/foo  | HDL files for core foo
 ver    | cores/foo  | verification files. A folder for each test bench
+cfg    | cores/foo  | configuration files (macro, RTL generation...)
 doc    | root       | documentation
-rom    | root       | ROM files used for simulation. MRA scripts
+rom    | root       | ROM files used for simulation. MRA scripts and .toml files
 mra    | rom/mra    | MRA files
 
 Each core can list the files that uses with a file called `jtcore.qip` (like jtgng.qip for the GnG core) or with a YAML file called `game.yaml`

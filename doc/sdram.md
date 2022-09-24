@@ -50,6 +50,49 @@ The MRA file must include `<nvram index="2" size="2048"/>`. MiSTer will create a
 
 At the time of writting, MiSTer firmware doesn't handle correctly NVRAM sizes equal or above 64kB.
 
+# SDRAM RTL Generator
+
+JTFRAME expects the core game module to have the SDRAM interface ports for downloading the game data and accessing the SDRAM during the core operation. There are two different interfaces possible, one that only supports a single SDRAM bank and one that supports the four SDRAM banks (enabled with **JTFRAME_SDRAM_BANKS**). JTFRAME also provides the developer with a series of modules to interface with the SDRAM as easily as possible.
+
+However, making these connections is error prone and also ties the core to a SDRAM memory implementation. Taking the SDRAM out of the game module will make it implementation independent. A game module that just demands data and waits for it can then be connected to a SDRAM, BRAM, DDR or other technology. The problem with this approach is how to make a meaningful data interface for the core.
+
+Another problem with instantiating all the memory modules is simply the verbosity required to do it. Declaring signals, instantiating the right cells, etc. is easy yet error prone.
+
+In order to tackle these two problems, it is possible to create a YAML file called *mem.yaml* in the core's *hdl* folder. JTFRAME will compile a memory interface based on this file. The game module interface must match the one defined in the *mem.yaml*. This is an example from the [kicker](https://github.com/jotego/jtkicker) core:
+
+```
+sdram:
+  preaddr: true
+  noswab: true
+  banks:
+    -
+      buses:
+        -
+          name: scr
+          # 32-bit buses are indexed like
+          # scr_addr[13:1], the LSB (index 0)
+          # is always zero
+          addr_width: 14
+          data_width: 32
+          offset: "`SCR_START >> 1"
+        -
+          name: objrom
+          addr_width: 15
+          data_width: 32
+          offset: "`OBJ_START >> 1"
+        -
+          name: pcm
+          addr_width: 16
+          data_width: 8
+          offset: "`PCM_START >> 1"
+        -
+          name: main
+          addr_width: 16
+          data_width: 8
+```
+
+In this example only one bank is used. You can check the *game_sdram.v* file that is generated to see what JTFRAME does. Another core that uses *mem.yaml* is [Extermination](https://github.com/jotego/jtbubl). Look at the cores using *mem.yaml* and at the Go source code to understand how the *mem.yaml* works.
+
 # SDRAM Timing
 
 SDRAM clock can be shifted with respect to the internal clock (clk_rom in the diagram).

@@ -1,3 +1,9 @@
+# Macro Definition
+
+Macros are expected in the file *cores/corename/cfg/macros.def*. From there, other files can be included. The *macros.def* file accepts target-specific macros. Check for examples in JT cores, such as [kicker](https://github.com/jotego/jtkicker).
+
+Macros can also be defined when invoking *jtcore* or *jtframe* command-line tools.
+
 # Macros for FPGA Synthesis
 
 Macro                    | Target  |  Usage

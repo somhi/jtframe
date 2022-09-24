@@ -115,7 +115,7 @@ func GetFilename(corename, basename, parsepath string) string {
 		if len(cores) == 0 {
 			log.Fatal("JTFILES: environment variable CORES is not defined")
 		}
-		fname = cores + "/" + corename + "/hdl/"+basename+".yaml"
+		fname = cores + "/" + corename + "/cfg/"+basename+".yaml"
 	} else {
 		fname = parsepath
 	}

@@ -145,7 +145,7 @@ func Check_macros(def map[string]string) bool {
 func get_defpath(cfg Config) string {
 	jtroot := os.Getenv("JTROOT")
 	if cfg.Core != "" && jtroot != "" {
-		path := path.Join(jtroot, "cores", cfg.Core, "hdl", "jt"+cfg.Core+".def")
+		path := path.Join(jtroot, "cores", cfg.Core, "cfg", "macros.def")
 		return path
 	} else {
 		return cfg.Deffile
