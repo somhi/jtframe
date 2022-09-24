@@ -109,7 +109,7 @@ assign ba_wr      = 0;
 assign ba0_din    = 0;
 assign ba0_din_m  = 3;
 
-jt{{.Core}}_game u_game(
+jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst        ( rst       ),
     .clk        ( clk       ),
 `ifdef JTFRAME_CLK24
@@ -180,22 +180,36 @@ jt{{.Core}}_game u_game(
 assign dwnld_busy = downloading;
 
 /* verilator lint_off WIDTH */
-jtframe_dwnld #(
 `ifdef BA1_START
-    .BA1_START ( `BA1_START ),
+    localparam [24:0] BA1_START=`BA1_START;
 `endif
 `ifdef BA2_START
-    .BA2_START ( `BA2_START ),
+    localparam [24:0] BA2_START=`BA2_START;
 `endif
 `ifdef BA3_START
-    .BA3_START ( `BA3_START ),
+    localparam [24:0] BA3_START=`BA3_START;
 `endif
 `ifdef PROM_START
-    .PROM_START( `PROM_START ),
+    localparam [24:0] PROM_START=`PROM_START;
+`endif
+
+/* verilator lint_on WIDTH */
+
+jtframe_dwnld #(
+`ifdef BA1_START
+    .BA1_START ( BA1_START ),
+`endif
+`ifdef BA2_START
+    .BA2_START ( BA2_START ),
+`endif
+`ifdef BA3_START
+    .BA3_START ( BA3_START ),
+`endif
+`ifdef PROM_START
+    .PROM_START( PROM_START ),
 `endif
     .SWAB      ( {{if .SDRAM.Noswab }}0{{else}}1{{end}}         )
 ) u_dwnld(
-/* verilator lint_on WIDTH */
     .clk          ( clk            ),
     .downloading  ( downloading    ),
     .ioctl_addr   ( ioctl_addr     ),

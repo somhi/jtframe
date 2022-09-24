@@ -55,10 +55,15 @@ type SDRAMCfg struct {
 	Banks []SDRAMBank `yaml:"banks"`
 }
 
+type Include struct {
+	Game string `yaml:"game"` // if not null, it will load from that game folder
+	File string `yaml:"file"` // if null, mem.yaml will be used
+}
+
 type MemConfig struct {
-	Include []string `yaml:include` // not supported yet
-	PROM_en bool `yaml:"PROM_en"`
-	SDRAM   SDRAMCfg `yaml:"sdram"`
+	Include []Include  `yaml:include`
+	SDRAM     SDRAMCfg `yaml:"sdram"`
+	Game      string   `yaml:"game"`  // optional: Overrides using Core as the jt<core>_game module
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.
 	// This part does not go in the YAML file
@@ -70,8 +75,8 @@ type MemConfig struct {
 	Unused [4]bool // true for unused banks
 }
 
-func Run(args Args) {
-	filename := jtfiles.GetFilename(args.Core, "mem", "")
+func parse_file( core, filename string, cfg *MemConfig, args Args ) {
+	filename = jtfiles.GetFilename(core, filename, "")
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Printf("jtframe mem: cannot open referenced file %s", filename)
@@ -80,15 +85,35 @@ func Run(args Args) {
 	if args.Verbose {
 		fmt.Println("Read ", filename)
 	}
-	var cfg MemConfig
-	err_yaml := yaml.Unmarshal(buf, &cfg)
+	err_yaml := yaml.Unmarshal(buf, cfg)
 	if err_yaml != nil {
 		log.Fatalf("jtframe mem: cannot parse file\n\t%s\n\t%v", filename, err_yaml)
 	}
 	if args.Verbose {
 		fmt.Println("jtframe mem: memory configuration:")
-		fmt.Println(cfg)
+		fmt.Println(*cfg)
 	}
+	include_copy := make( []Include, len(cfg.Include))
+	copy( include_copy, cfg.Include )
+	cfg.Include = nil
+	for _,each := range include_copy {
+		fname := each.File
+		if fname=="" {
+			fname="mem"
+		}
+		parse_file( each.Game, fname, cfg, args )
+		fmt.Println( each.Game, fname )
+	}
+	// Reload the YAML to overwrite values that the included files may have set
+	err_yaml = yaml.Unmarshal(buf, cfg)
+	if err_yaml != nil {
+		log.Fatalf("jtframe mem: cannot parse file\n\t%s\n\t%v for a second time", filename, err_yaml)
+	}
+}
+
+func Run(args Args) {
+	var cfg MemConfig
+	parse_file( args.Core, "mem", &cfg, args )
 	// Check that the arguments make sense
 	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))

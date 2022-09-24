@@ -41,11 +41,12 @@ module jtframe_rom_4slots #(parameter
     SLOT1_OKLATCH= 1,
     SLOT2_OKLATCH= 1,
     SLOT3_OKLATCH= 1,
-
+/* verilator lint_off WIDTH */
     parameter [SDRAMW-1:0] SLOT0_OFFSET = 0,
     parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
     parameter [SDRAMW-1:0] SLOT2_OFFSET = 0,
     parameter [SDRAMW-1:0] SLOT3_OFFSET = 0,
+/* verilator lint_on WIDTH */
     parameter REF_FILE="sdram_bank4.hex"
 )(
     input               rst,
