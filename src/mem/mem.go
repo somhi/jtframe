@@ -40,6 +40,7 @@ type Args struct {
 
 type SDRAMBus struct {
 	Name       string `yaml:"name"`
+	Offset	   string `yaml:"offset"`
 	Addr_width int    `yaml:"addr_width"`
 	Data_width int    `yaml:"data_width"`
 }
@@ -49,6 +50,8 @@ type SDRAMBank struct {
 }
 
 type SDRAMCfg struct {
+	Preaddr bool `yaml:"preaddr"`	// Pass some signals to the game so it can remap the download address
+	Noswab bool `yaml:"noswab"`		// SWAB parameter of jtframe_download
 	Banks []SDRAMBank `yaml:"banks"`
 }
 
