@@ -90,8 +90,12 @@ func Run(args Args) {
 	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))
 	}
-	for k := len(cfg.SDRAM.Banks); k<4; k++ {
-		cfg.Unused[k] = true
+	for k := 0; k<4; k++ {
+		if k < len(cfg.SDRAM.Banks) {
+			cfg.Unused[k] = len(cfg.SDRAM.Banks[k].Buses)==0
+		} else {
+			cfg.Unused[k] = true
+		}
 	}
 	// Execute the template
 	cfg.Core = args.Core
