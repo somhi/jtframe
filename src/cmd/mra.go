@@ -33,7 +33,7 @@ var mraCmd = &cobra.Command{
 The TOML file must be stored in the $ROM folder.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		mra_args.Def_cfg.Core = args[0]
-		mra_args.Toml_path = args[0] + ".toml"
+		// mra_args.Toml_path = args[0] + ".toml"
 
 		mra.Run(mra_args)
 	},
@@ -47,8 +47,8 @@ func init() {
 	mra_args.Def_cfg.Target = "mist"
 	flag.StringVar(&mra_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
 	flag.StringVar(&mra_args.Xml_path, "xml", "mame.xml", "Path to MAME XML file")
-	flag.StringVar(&mra_args.Pocketdir, "Pocketdir", "pocket", "Output folder for Analogue Pocket files")
-	flag.StringVar(&mra_args.Outdir, "Outdir", "mra", "Output folder")
+	flag.StringVar(&mra_args.Pocketdir, "Pocketdir", "", "Output folder for Analogue Pocket files")
+	flag.StringVar(&mra_args.Outdir, "Outdir", "", "Output folder")
 	flag.StringVar(&mra_args.Altdir, "Altdir", "", "Output folder for alternatives")
 	flag.StringVar(&mra_args.Year, "year", "", "Year string for MRA file comment")
 	flag.BoolVarP(&mra_args.Verbose, "verbose", "v", false, "verbose")

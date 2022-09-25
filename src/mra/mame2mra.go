@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -274,7 +273,7 @@ type ParsedMachine struct {
 }
 
 func Run(args Args) {
-	// parse_args(&args)
+	parse_args(&args)
 	mra_cfg, macros := parse_toml(args)
 	if args.Verbose {
 		fmt.Println("Parsing", args.Xml_path)
@@ -1622,6 +1621,10 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 
 	str := jtdef.Replace_Macros(args.Toml_path, macros)
 	str = Replace_Hex(str)
+	if args.Verbose {
+		fmt.Println("TOML file after replacing the macros:")
+		fmt.Println(str)
+	}
 
 	json_enc := toml.New(bytes.NewBufferString(str))
 	dec := json.NewDecoder(json_enc)
@@ -1687,22 +1690,20 @@ var fd1089_bin = [256]byte{
 // Command line arguments
 
 func parse_args(args *Args) {
-	args.Def_cfg.Target = "mist"
-	flag.StringVar(&args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
-	flag.StringVar(&args.Def_cfg.Deffile, "def", "", "Path to macro definition file")
-	flag.StringVar(&args.Def_cfg.Core, "core", "", "Core name, used for path to macro definition file")
-	flag.StringVar(&args.Xml_path, "xml", "mame.xml", "Path to MAME XML file")
-	flag.StringVar(&args.Toml_path, "toml", "", "Path to TOML file defining the conversion")
-	flag.StringVar(&args.Pocketdir, "Pocketdir", "pocket", "Output folder for Analogue Pocket files")
-	flag.StringVar(&args.Outdir, "Outdir", "mra", "Output folder")
-	flag.StringVar(&args.Altdir, "Altdir", "", "Output folder for alternatives")
-	flag.StringVar(&args.Year, "year", "", "Year string for MRA file comment")
-	flag.BoolVar(&args.Verbose, "v", false, "verbose")
-	finfo := flag_info{args}
-	flag.Var(&finfo, "Info", "Information elements as key=value. Define one element per each --Info argument")
-	flag.StringVar(&args.Buttons, "buttons", "", "Buttons used by the game -upto six-")
-	flag.Parse()
 	if args.Toml_path == "" && args.Def_cfg.Core != "" {
-		args.Toml_path = args.Def_cfg.Core + ".toml"
+		cores := os.Getenv("CORES")
+		if len(cores) == 0 {
+			log.Fatal("JTFILES: environment variable CORES is not defined")
+		}
+		args.Toml_path = filepath.Join( cores,args.Def_cfg.Core,"cfg","mame2mra.toml")
+	}
+	if args.Verbose {
+		fmt.Println("Parsing ",args.Toml_path)
+	}
+	if args.Outdir == "" {
+		args.Outdir = filepath.Join( os.Getenv("JTROOT"), "rom", "mra" )
+	}
+	if args.Pocketdir == "" {
+		args.Pocketdir = filepath.Join( os.Getenv("JTROOT"), "rom", "pocket" )
 	}
 }
