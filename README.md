@@ -9,22 +9,30 @@ You can show your appreciation through
 
 # Topics
 
+## Basic Concepts
 * [Compilation](doc/compilation.md)
 * [The command line tool jtframe](doc/jtframe.md)
+* [Simulation](doc/sim.md)
+
+## More Details
 * [MiST derivatives](doc/mist.md)
 * [CPUs](doc/cpus.md)
 * [SDRAM and SD card](doc/sdram.md)
 * [The OSD](doc/osd.md)
-* [Simulation](doc/sim.md)
 * [Clocking](doc/clocks.md)
 * [Video options](doc/video.md)
 * [Audio filters](doc/audio.md)
 * [User inputs](doc/inputs.md)
 * [The credit screen](doc/credits.md)
-* [Debug features](doc/debug.md)
-* [Cheat subsystem](doc/cheat.md)
 * [Compilation macros](doc/macros.md)
 * [IP reference](doc/ip.md)
+
+## Advanced Topics
+* [Debug features](doc/debug.md)
+* [Cheat subsystem](doc/cheat.md)
+
+## Check Lists
+* [Debug checklist](doc/debug_list.md)
 
 # Licensing
 
