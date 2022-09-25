@@ -75,12 +75,14 @@ type MemConfig struct {
 	Unused [4]bool // true for unused banks
 }
 
-func parse_file( core, filename string, cfg *MemConfig, args Args ) {
+func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 	filename = jtfiles.GetFilename(core, filename, "")
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Printf("jtframe mem: cannot open referenced file %s", filename)
-		return
+		if args.Verbose {
+			log.Printf("jtframe mem: no memory file (%s)", filename)
+		}
+		return false
 	}
 	if args.Verbose {
 		fmt.Println("Read ", filename)
@@ -109,11 +111,16 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) {
 	if err_yaml != nil {
 		log.Fatalf("jtframe mem: cannot parse file\n\t%s\n\t%v for a second time", filename, err_yaml)
 	}
+	return true
 }
 
 func Run(args Args) {
 	var cfg MemConfig
-	parse_file( args.Core, "mem", &cfg, args )
+	if !parse_file( args.Core, "mem", &cfg, args ) {
+		// the mem.yaml file does not exist, that's
+		// normally ok
+		return
+	}
 	// Check that the arguments make sense
 	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))
