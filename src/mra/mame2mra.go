@@ -366,9 +366,12 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 	game_name = strings.ReplaceAll(game_name, "/", "-")
 	// Create the output directory
 	if args.Outdir != "." && args.Outdir != "" {
+		if args.Verbose {
+			fmt.Println("Creating folder ", args.Outdir)
+		}
 		err := os.Mkdir(args.Outdir, 0777)
 		if err != nil && !os.IsExist(err) {
-			log.Fatal(err)
+			log.Fatal(err, args.Outdir)
 		}
 	}
 	// Create the directory for alt file
@@ -387,22 +390,16 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		pure_name = strings.TrimSpace(pure_name)
 		fname += "/" + args.Altdir + "/_" + pure_name
 
-		paths := strings.Split(fname, "/")
-		full := ""
-		for _, p := range paths {
-			full += p
-			err := os.Mkdir(full, 0777)
-			if err != nil && !os.IsExist(err) {
-				log.Fatal(err)
-			}
-			full += "/"
+		err := os.MkdirAll(fname, 0777)
+		if err != nil && !os.IsExist(err) {
+			log.Fatal(err, fname)
 		}
 	}
 	fname += "/" + fix_filename(game_name) + ".mra"
 	// fmt.Println("Output to ", fname)
 	file, err := os.Create(fname)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err, " while creating ", fname)
 	}
 	if args.Verbose {
 		fmt.Printf("Dumping to MRA file %s\n", fname)
