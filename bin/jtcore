@@ -284,8 +284,8 @@ if [ $SKIP_COMPILE = FALSE ]; then
     cd $PRJPATH/$TARGET || exit 1
     ############################################
     # Credits via jtframe_credits:
-    if [[ -e $PRJPATH/patrons/msg ]]; then
-        $JTFRAME/bin/msg2hex $PRJPATH/patrons/msg || exit $?
+    if [[ -e $PRJPATH/cfg/msg ]]; then
+        $JTFRAME/bin/msg2hex $PRJPATH/cfg/msg || exit $?
     fi
     # Update Avatars
     if [ -e $PRJPATH/patrons/lut ]; then
