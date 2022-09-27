@@ -50,7 +50,6 @@ reg  [ 8:0] hcnt=0,vcnt=0, htot=9'd256, vtot=9'd256;
 reg         hsl, vsl;
 wire [10:0] addr;
 wire [ 7:0] rom;
-wire        pxl;
 wire [COLORW-1:0] r_in, g_in, b_in;
 reg  [COLORW-1:0] r_out, g_out, b_out;
 
@@ -66,12 +65,11 @@ jtframe_prom #(.synhex("jtframe_logo.hex"),.aw(11)) u_rom(
 );
 
 assign addr = { vcnt[6:4], hcnt[7:0] };
-assign pxl  = rom[ vcnt[3:1] ];
 assign {r_in,g_in,b_in} = rgb_in;
 assign rgb_out = { r_out, g_out, b_out };
 
 function [COLORW-1:0] filter( input [COLORW-1:0] a );
-    filter = show_en ? {COLORW{pxl}} : a;
+    filter = show_en ? {COLORW{rom[ vcnt[3:1] ]}} : a;
 endfunction
 
 always @(posedge clk) if( pxl_cen ) begin
