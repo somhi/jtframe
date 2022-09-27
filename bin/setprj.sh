@@ -16,6 +16,11 @@ PATH=$PATH:.:$JTFRAME/bin
 #unalias jtcore
 alias jtcore="$JTFRAME/bin/jtcore"
 
+# Runs jtframe mra for all core
+function jtmra {
+    for i in $CORES/*; do jtframe mra $(basename $i) $*; done
+}
+
 # derived variables
 if [ -e $JTROOT/cores ]; then
     export CORES=$JTROOT/cores

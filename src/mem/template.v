@@ -158,12 +158,12 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .downloading  ( downloading    ),
     .ioctl_addr   ( ioctl_addr     ),
     .pre_addr     ( pre_addr       ),
-`ifndef PROM_START
+`ifndef JTFRAME_PROM_START
     .prog_addr    ( prog_addr      ),
 `endif
     {{- end }}
     // PROM writting
-`ifdef PROM_START
+`ifdef JTFRAME_PROM_START
     .prog_addr    ( prog_addr      ),
     .prog_data    ( prog_data      ),
     .prog_we      ( prog_we        ),
@@ -189,8 +189,8 @@ assign dwnld_busy = downloading;
 `ifdef BA3_START
     localparam [24:0] BA3_START=`BA3_START;
 `endif
-`ifdef PROM_START
-    localparam [24:0] PROM_START=`PROM_START;
+`ifdef JTFRAME_PROM_START
+    localparam [24:0] PROM_START=`JTFRAME_PROM_START;
 `endif
 
 /* verilator lint_on WIDTH */
@@ -205,7 +205,7 @@ jtframe_dwnld #(
 `ifdef BA3_START
     .BA3_START ( BA3_START ),
 `endif
-`ifdef PROM_START
+`ifdef JTFRAME_PROM_START
     .PROM_START( PROM_START ),
 `endif
     .SWAB      ( {{if .SDRAM.Noswab }}0{{else}}1{{end}}         )
