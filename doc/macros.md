@@ -29,6 +29,7 @@ JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
 JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
+JTFRAME_FORCED_DIPSW     | Pocket  | Forces a fixed value for the DIP switches
 JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
 JTFRAME_INTERPOL2        |         | Enables a x2 FIR interpolation filter for audio. The game 'sample' output must be well defined

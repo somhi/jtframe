@@ -18,6 +18,17 @@ import (
 	toml "github.com/komkom/toml"
 )
 
+type Args struct {
+	Def_cfg                   jtdef.Config
+	Toml_path, Xml_path       string
+	Outdir, Altdir, Pocketdir string
+	Info                      []Info
+	Buttons                   string
+	Year                      string
+	Verbose, SkipMRA          bool
+	Show_platform             bool
+}
+
 type RegCfg struct {
 	Name, Rename,
 	Machine string
@@ -141,17 +152,6 @@ type Mame2MRA struct {
 			Value            string
 		}
 	}
-}
-
-type Args struct {
-	Def_cfg                   jtdef.Config
-	Toml_path, Xml_path       string
-	Outdir, Altdir, Pocketdir string
-	Info                      []Info
-	Buttons                   string
-	Year                      string
-	Verbose, SkipMRA          bool
-	Show_platform             bool
 }
 
 type XMLAttr struct {
@@ -286,7 +286,7 @@ func Run(args Args) {
 	}
 	// Set the platform name if blank
 	if mra_cfg.Global.Platform == "" {
-		mra_cfg.Global.Platform = filepath.Base(os.Getenv("JTROOT"))
+		mra_cfg.Global.Platform = "jt"+args.Def_cfg.Core
 	}
 	if args.Show_platform {
 		fmt.Printf("%s", mra_cfg.Global.Platform)
@@ -339,19 +339,19 @@ extra_loop:
 	}
 	// Dump MRA is delayed for later so we get all the parent names collected
 	fmt.Println("Total: ", len(data_queue), " games")
-	if !args.SkipMRA {
-		for _, d := range data_queue {
-			_, good := parent_names[d.machine.Cloneof]
-			if good || len(d.machine.Cloneof) == 0 {
-				pocket_add(d.machine, mra_cfg, args, macros)
+	for _, d := range data_queue {
+		_, good := parent_names[d.machine.Cloneof]
+		if good || len(d.machine.Cloneof) == 0 {
+			pocket_add(d.machine, mra_cfg, args, macros)
+			if !args.SkipMRA {
 				dump_mra(args, d.machine, d.mra_xml, d.cloneof, parent_names)
-			} else {
-				fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
-					d.machine.Name, d.machine.Cloneof)
 			}
+		} else {
+			fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
+				d.machine.Name, d.machine.Cloneof)
 		}
-		pocket_save()
 	}
+	pocket_save()
 }
 
 ////////////////////////////////////////////////////////////////////////
