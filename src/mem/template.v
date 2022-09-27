@@ -180,14 +180,14 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 assign dwnld_busy = downloading;
 
 /* verilator lint_off WIDTH */
-`ifdef BA1_START
-    localparam [24:0] BA1_START=`BA1_START;
+`ifdef JTFRAME_BA1_START
+    localparam [24:0] BA1_START=`JTFRAME_BA1_START;
 `endif
-`ifdef BA2_START
-    localparam [24:0] BA2_START=`BA2_START;
+`ifdef JTFRAME_BA2_START
+    localparam [24:0] BA2_START=`JTFRAME_BA2_START;
 `endif
-`ifdef BA3_START
-    localparam [24:0] BA3_START=`BA3_START;
+`ifdef JTFRAME_BA3_START
+    localparam [24:0] BA3_START=`JTFRAME_BA3_START;
 `endif
 `ifdef JTFRAME_PROM_START
     localparam [24:0] PROM_START=`JTFRAME_PROM_START;
@@ -196,14 +196,14 @@ assign dwnld_busy = downloading;
 /* verilator lint_on WIDTH */
 
 jtframe_dwnld #(
-`ifdef BA1_START
-    .BA1_START ( BA1_START ),
+`ifdef JTFRAME_BA1_START
+    .BA1_START ( JTFRAME_BA1_START ),
 `endif
-`ifdef BA2_START
-    .BA2_START ( BA2_START ),
+`ifdef JTFRAME_BA2_START
+    .BA2_START ( JTFRAME_BA2_START ),
 `endif
-`ifdef BA3_START
-    .BA3_START ( BA3_START ),
+`ifdef JTFRAME_BA3_START
+    .BA3_START ( JTFRAME_BA3_START ),
 `endif
 `ifdef JTFRAME_PROM_START
     .PROM_START( PROM_START ),

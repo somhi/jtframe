@@ -60,7 +60,6 @@ JTFRAME_OSD_TEST         |         | Test option on OSD
 JTFRAME_OSD_VOL          |         | Show FX volume control on OSD
 JTFRAME_OSDCOLOR         |         | Sets the OSD colour
 JTFRAME_PLL              |         | PLL module name to be used. Defaults to jtframe_pll0
-JTFRAME_PROM_START       | Pocket  | Beyond this address, data is not written to the SDRAM, but to BRAM
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending
@@ -112,6 +111,15 @@ JTFRAME_SDRAM_LARGE      | MiSTer  | Enables 64MB access to SDRAM modules
 JTFRAME_SDRAM_MUXLATCH   |         | Extra latch for SDRAM mux for <64MHz operation
 JTFRAME_SDRAM_NO_DWNRFSH |         | No refresh during download (non-interleaved SDRAM controller)
 JTFRAME_SDRAM_REPACK     |         | Extra latch stage at SDRAM mux output
+
+# SDRAM RTL Generator
+
+Macro                    |  Usage
+-------------------------|----------------------
+JTFRAME_BA1_START        | Start of bank 1
+JTFRAME_BA2_START        | Start of bank 2
+JTFRAME_BA3_START        | Start of bank 3
+JTFRAME_PROM_START       | PROM signals starts here
 
 # SDRAM64
 
