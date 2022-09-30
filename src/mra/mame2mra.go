@@ -1416,6 +1416,7 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
 	base := 0
 	def_cur := 0xff
 	game_bitcnt := cfg.Dipsw.Bitcnt
+	diploop:
 	for _, ds := range machine.Dipswitch {
 		ignore := false
 		for _, del := range cfg.Dipsw.Delete {
@@ -1423,6 +1424,9 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
 				ignore = true
 				break
 			}
+		}
+		if ds.Condition.Tag != "" && ds.Condition.Value==0 {
+			continue diploop // This switch depends on others, skip it
 		}
 		// Rename the DIP
 		for _, each := range cfg.Dipsw.Rename {

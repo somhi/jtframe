@@ -79,6 +79,12 @@ type MachineXML struct {
 		Name        string `xml:"name,attr"`
 		Tag         string `xml:"tag,attr"`
 		Mask        int    `xml:"mask,attr"`
+		Condition   struct { // The meaning of some DIP switches may change upon other switches' value
+			Tag		string `xml:"tag,attr"`
+			Mask	int    `xml:"mask,attr"`
+			Relation string `xml:"relation,attr"`
+			Value   int `xml:"value,attr"`
+		} `xml:"condition"`
 		Diplocation []struct {
 			Name   string `xml:"name,attr"`
 			Number int    `xml:"number,attr"`
