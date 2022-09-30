@@ -27,6 +27,7 @@ type Args struct {
 	Year                      string
 	Verbose, SkipMRA          bool
 	Show_platform             bool
+	Author, URL  		      string
 }
 
 type RegCfg struct {

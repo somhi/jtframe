@@ -55,4 +55,6 @@ func init() {
 	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA", "s", false, "Do not generate MRA files")
 	flag.BoolVarP(&mra_args.Show_platform, "show_platform", "p", false, "Show platform name and quit")
 	flag.StringVar(&mra_args.Buttons, "buttons", "", "Buttons used by the game -upto six-")
+	flag.StringVar(&mra_args.Author, "author", "jotego", "Core author")
+	flag.StringVar(&mra_args.URL, "url", "https://patreon.com/jotego", "Author's URL")
 }
