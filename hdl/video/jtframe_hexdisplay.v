@@ -42,7 +42,7 @@ localparam [8:0] HOVER = H0 + (LENBYTES*2*8);
 assign nibble  = ser[(LENBYTES<<3)-1-:4];
 assign char    = font[ nibble ];
 assign inhzone = hcnt[8:3]<HOVER[8:3] && hcnt[8:3] >= H0[8:3];
-assign invzone = vcnt[8:3]==V0[8:3] && vcnt[2:0]>2;
+assign invzone = vcnt[8:3]==V0[8:3] && vcnt[2:0]<5;
 
 // Inspired by TIC computer 6x6 font by nesbox
 // https://fontstruct.com/fontstructions/show/1334143/tic-computer-6x6-font
@@ -66,7 +66,7 @@ initial begin
 end
 
 always @(posedge clk) begin
-    font_pixel <= { vcnt[2:0]-3'd3, hcnt[1:0] };
+    font_pixel <= { vcnt[2:0], ~hcnt[1:0] };
 
     if( !inhzone )
         ser <= data;
