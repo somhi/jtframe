@@ -37,7 +37,7 @@ wire [ 3:0] nibble;
 wire        inhzone, invzone;
 reg  [(LENBYTES<<3)-1:0] ser;
 
-localparam [8:0] HOVER = H0 + (LENBYTES*2*8);
+localparam [8:0] HOVER = H0 + (LENBYTES<<4);
 
 assign nibble  = ser[(LENBYTES<<3)-1-:4];
 assign char    = font[ nibble ];

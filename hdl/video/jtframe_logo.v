@@ -22,7 +22,6 @@ module jtframe_logo #(parameter
     input        clk,
     input        pxl_cen,
     input        show_en,
-
     // input  [1:0] rotate, //[0] - rotate [1] - left or right
 
     // VGA signals coming from core
@@ -74,9 +73,9 @@ assign addr = { vdiff[6:4], hdiff[7:0] }; // 256x256 (rows duplicated)
 assign {r_in,g_in,b_in} = rgb_in;
 assign rgb_out = { r_out, g_out, b_out };
 
-function [COLORW-1:0] filter( input [COLORW-1:0] a );
-    filter = //!show_en ? a :
-              inzone  ? {COLORW{rom[ vdiff[3:1] ]}} : {COLORW{idpxl}};
+function [COLORW-1:0] filter( input [COLORW-1:0] v );
+    filter = !show_en ? v :                                     // regular video
+              {COLORW{ inzone ? rom[vdiff[3:1]] : idpxl }};     // logo or chip ID
 endfunction
 
 always @(posedge clk) if( pxl_cen ) begin
@@ -109,7 +108,6 @@ always @(posedge clk) if( pxl_cen ) begin
         vover <= vtot<9'd128 ? 9'd0 : (vtot-9'd128)>>1;
     end
 end
-
 
 jtframe_hexdisplay #(.H0(64),.V0(192)) u_hexdisplay(
     .clk     ( clk       ),
