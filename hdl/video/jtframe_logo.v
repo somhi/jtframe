@@ -40,6 +40,8 @@ module jtframe_logo #(parameter
     input [ 7:0] prog_data,
     input        prog_we,
 
+    input [63:0] chipid,
+
     output reg   hs_out,
     output reg   vs_out,
     output reg   lhbl_out,
@@ -54,6 +56,7 @@ reg         lhbl_l, lvbl_l;
 wire [10:0] addr;
 wire [ 7:0] rom;
 wire [COLORW-1:0] r_in, g_in, b_in;
+wire        idpxl;
 reg  [COLORW-1:0] r_out, g_out, b_out;
 reg         inzone;
 
@@ -72,8 +75,8 @@ assign {r_in,g_in,b_in} = rgb_in;
 assign rgb_out = { r_out, g_out, b_out };
 
 function [COLORW-1:0] filter( input [COLORW-1:0] a );
-    filter = !show_en ? a :
-              inzone  ? {COLORW{rom[ vdiff[3:1] ]}} : {COLORW{1'd0}};
+    filter = //!show_en ? a :
+              inzone  ? {COLORW{rom[ vdiff[3:1] ]}} : {COLORW{idpxl}};
 endfunction
 
 always @(posedge clk) if( pxl_cen ) begin
@@ -106,5 +109,15 @@ always @(posedge clk) if( pxl_cen ) begin
         vover <= vtot<9'd128 ? 9'd0 : (vtot-9'd128)>>1;
     end
 end
+
+
+jtframe_hexdisplay #(.H0(64),.V0(192)) u_hexdisplay(
+    .clk     ( clk       ),
+    .pxl_cen ( pxl_cen   ),
+    .hcnt    ( hcnt      ),
+    .vcnt    ( vcnt      ),
+    .data    ( chipid    ),
+    .pxl     ( idpxl     )
+);
 
 endmodule
