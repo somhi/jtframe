@@ -117,16 +117,18 @@ always @(*) begin
 end
 `endif
 
-`ifndef JTFRAME_OSD_NOCREDITS
-    `ifndef MISTER // Only MiST and derivatives can pause via the OSD
-        assign osd_pause   = status[12];
-    `else
-        assign osd_pause   = 1'b0;  // MiSTer relies on the keyboard/gamepad for pause
-    `endif
-`elsif POCKET
+`ifdef POCKET
     assign osd_pause = osd_shown;
 `else
-    assign osd_pause = 1'b0;
+    `ifndef JTFRAME_OSD_NOCREDITS
+        `ifndef MISTER // Only MiST and derivatives can pause via the OSD
+            assign osd_pause   = status[12];
+        `else
+            assign osd_pause   = 1'b0;  // MiSTer relies on the keyboard/gamepad for pause
+        `endif
+    `else
+        assign osd_pause = 1'b0;
+    `endif
 `endif
 
 // Screen or control rotation

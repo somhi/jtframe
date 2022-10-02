@@ -128,15 +128,23 @@ localparam START_BIT  = 6+(BUTTONS-2);
 localparam COIN_BIT   = 7+(BUTTONS-2);
 localparam PAUSE_BIT  = 8+(BUTTONS-2);
 
-reg  last_pause, last_osd_pause, last_joypause, last_reset;
-wire joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT];
-wire vbl_in, vbl_out;
-reg  autofire, vsl, service_l, pause_frame;
+reg        last_pause, last_osd_pause, last_joypause, last_reset;
+wire       joy_pause;
+wire [3:0] joy_start, joy_coin;
+wire       vbl_in, vbl_out;
+reg        autofire, vsl, service_l, pause_frame;
+reg  [2:0] firecnt;
 
-reg [2:0] firecnt;
-
-assign vbl_in  = vs && !vsl;
-assign vbl_out =!vs &&  vsl;
+assign joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT] | joy3_sync[PAUSE_BIT] | joy4_sync[PAUSE_BIT];
+`ifdef POCKET   // The Pocket only uses the two front buttons as coin/start
+    assign joy_start = 0;
+    assign joy_coin  = 0;
+`else
+    assign joy_start = { joy4_sync[START_BIT], joy3_sync[START_BIT], joy2_sync[START_BIT], joy1_sync[START_BIT]};
+    assign joy_coin  = { joy4_sync[COIN_BIT] , joy3_sync[COIN_BIT] , joy2_sync[COIN_BIT] , joy1_sync[COIN_BIT]};
+`endif
+assign vbl_in    = vs && !vsl;
+assign vbl_out   =!vs &&  vsl;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -198,20 +206,15 @@ always @(posedge clk, posedge rst) begin
         // joystick, coin, start and service inputs are inverted
         // as indicated in the instance parameter
 
-        `ifdef SIM_INPUTS
-            game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
-            game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
-            game_joy1 <= {10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] };
-        `else
-        game_joy1 <= apply_rotation( joy1_sync | key_joy1 | { mouse_but_1p, 4'd0}, rot_control, ~dip_flip, autofire );
-        game_coin <= {4{ACTIVE_LOW[0]}} ^
-            ({  joy4_sync[COIN_BIT],joy3_sync[COIN_BIT],
-                joy2_sync[COIN_BIT],joy1_sync[COIN_BIT]} | key_coin | board_coin );
-
-        game_start <= {4{ACTIVE_LOW[0]}} ^
-            ({  joy4_sync[START_BIT],joy3_sync[START_BIT],
-                joy2_sync[START_BIT],joy1_sync[START_BIT]} | key_start | board_start );
-        `endif
+`ifdef SIM_INPUTS
+        game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
+        game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
+        game_joy1  <= {10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] };
+`else
+        game_joy1  <= apply_rotation( joy1_sync | key_joy1 | { mouse_but_1p, 4'd0}, rot_control, ~dip_flip, autofire );
+        game_coin  <= {4{ACTIVE_LOW[0]}} ^ ( joy_coin | key_coin  | board_coin  );
+        game_start <= {4{ACTIVE_LOW[0]}} ^ ( joy_start| key_start | board_start );
+`endif
         game_joy2 <= apply_rotation(joy2_sync | key_joy2 | { mouse_but_2p, 4'd0}, rot_control, ~dip_flip, autofire );
         game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip, autofire );
         game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip, autofire );
@@ -219,7 +222,7 @@ always @(posedge clk, posedge rst) begin
         soft_rst <= key_reset && !last_reset;
 
         // state variables:
-        `ifndef DIP_PAUSE // Forces pause during simulation
+`ifndef DIP_PAUSE // Forces pause during simulation
         if( downloading )
             game_pause<=0;
         else begin// toggle
@@ -237,9 +240,9 @@ always @(posedge clk, posedge rst) begin
                 if(!game_pause) pause_frame <= 0;
             end
         end
-        `else
+`else
         game_pause <= 1'b1;
-        `endif
+`endif
         game_service <= key_service ^ ACTIVE_LOW[0];
 
         // Disable inputs for locked cores
