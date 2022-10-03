@@ -95,6 +95,8 @@ function jtpull {
     cd -
 }
 
+# Displays all available macros
+# The argument is used to filter the output
 function jtmacros {
     if [ ! -z "$1" ]; then
         grep -i "$1" $JTFRAME/doc/macros.md

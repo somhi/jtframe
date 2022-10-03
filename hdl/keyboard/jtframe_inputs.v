@@ -88,9 +88,19 @@ wire [ 2:0] mouse_but_1p, mouse_but_2p;
 always @(posedge clk) begin
     joy1_sync <= { board_joy1[15:4], joy4way1p[3:0] };
     joy2_sync <= { board_joy2[15:4], joy4way2p[3:0] };
-    joy3_sync <= { board_joy3[15:4], joy4way3p[3:0] };
-    joy4_sync <= { board_joy4[15:4], joy4way4p[3:0] };
 end
+
+`ifdef JTFRAME_4PLAYERS
+    always @(posedge clk) begin
+        joy3_sync <= { board_joy3[15:4], joy4way3p[3:0] };
+        joy4_sync <= { board_joy4[15:4], joy4way4p[3:0] };
+    end
+`else
+    initial begin
+        joy3_sync = 0;
+        joy4_sync = 0;
+    end
+`endif
 
 jtframe_4wayjoy u_4way_1p(
     .rst        ( rst               ),
@@ -135,11 +145,12 @@ wire       vbl_in, vbl_out;
 reg        autofire, vsl, service_l, pause_frame;
 reg  [2:0] firecnt;
 
-assign joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT] | joy3_sync[PAUSE_BIT] | joy4_sync[PAUSE_BIT];
-`ifdef POCKET   // The Pocket only uses the two front buttons as coin/start
+`ifdef POCKET   // The Pocket only uses the small buttons at the front for these functions
+    assign joy_pause = 0;
     assign joy_start = 0;
     assign joy_coin  = 0;
 `else
+    assign joy_pause = joy1_sync[PAUSE_BIT] | joy2_sync[PAUSE_BIT] | joy3_sync[PAUSE_BIT] | joy4_sync[PAUSE_BIT];
     assign joy_start = { joy4_sync[START_BIT], joy3_sync[START_BIT], joy2_sync[START_BIT], joy1_sync[START_BIT]};
     assign joy_coin  = { joy4_sync[COIN_BIT] , joy3_sync[COIN_BIT] , joy2_sync[COIN_BIT] , joy1_sync[COIN_BIT]};
 `endif
