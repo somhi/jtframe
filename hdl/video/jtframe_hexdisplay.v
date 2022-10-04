@@ -18,8 +18,8 @@
 
 module jtframe_hexdisplay #(
     parameter [8:0] LENBYTES=8, // Number of bytes to display
-              [8:0] H0,  // Display positions
-              [8:0] V0   // only supports one row
+                    H0,  // Display positions
+                    V0   // only supports one row
 ) (
     input                      clk,
     input                      pxl_cen,
