@@ -168,6 +168,9 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	macros["DATE"] = datestr
 	// Adds the commit
 	macros["COMMIT"] = cfg.Commit
+	if cfg.Commit!="" {
+		macros["JTFRAME_COMMIT"] = fmt.Sprintf("32'h%s",cfg.Commit[0:8]) // the "dirty" text is dropped
+	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
 	// prevent the CORE_OSD from having two ;; in a row or starting with ;
