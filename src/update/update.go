@@ -353,6 +353,7 @@ jobs:
           submodules: true
           repository: $¿¿ github.repository ??
           token: $¿¿ secrets.TOKEN ??
+          persist-credentials: false
       - name: Get YAML package
         run: go get gopkg.in/yaml.v2
       - name: compile for {{.Target}}
