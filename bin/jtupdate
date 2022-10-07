@@ -1,0 +1,95 @@
+#!/bin/bash
+MAX_JOBS=
+DRYRUN=
+NETWORK=
+
+function show_help {
+cat<<HELP
+    JTUPDATE (c) Jose Tejada 2022
+
+    A tool to run parallel compilations of FPGA cores and
+    prepare GitHub actions
+
+    jtupdate is a three layered process:
+        1. A GO program that prepares the list of tasks to run
+        2. A script that calls parallel for each task
+        3. The base jtcore script that runs each compilation
+
+    Arguments to the GO and main scripts are passed directly. Arguments
+    to jtcore are added after a colon.
+
+    The script responds to these arguments:
+
+    -jobs       limits the number of parallel jobs
+    -dry        shows the jobs without running them
+    -network    host name to run the jobs
+    -actions    updates the Github action files
+    -help       shows this help
+
+    Arguments to the GO program can include specific cores after the
+    general arguments and before the colon, like
+
+    jtupdate -all gng 1942 : -q
+
+HELP
+}
+
+function parse_args {
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -jobs)
+                shift
+                MAX_JOBS="--jobs $1"
+                ;;
+            -dry|--dry-run)
+                DRYRUN=--dry-run
+                ;;
+            -network)
+                shift
+                if [ ! -e "$1" ]; then
+                    echo "Specify the name of the hosts file to use after -network"
+                    exit 1
+                fi
+                NETWORK="--sshloginfile $1"
+                ;;
+            -actions)
+                if [ ! -d $JTROOT/.github/workflows ]; then
+                    mkdir -p $JTROOT/.github/workflows
+                fi
+                ACTIONS=yes
+                ;;
+            -h|-help)
+                show_help
+                jtframe update --help
+                exit 1;;
+        esac
+        shift
+    done
+}
+
+parse_args $* || exit $?
+
+TASKS=/tmp/$RANDOM_$RANDOM
+
+if [ -z "$ACTIONS" ]; then
+    jtframe update $* >> $TASKS || exit 1
+else
+    # updates the action files
+    jtframe update $*
+    exit $?
+fi
+
+
+if [ $(cat $TASKS|wc -l) = 0 ]; then
+    echo no jobs
+    exit 1
+fi
+
+if [ -z "$DRYRUN" ]; then
+    rm -f $JTROOT/log/builds.log
+fi
+
+cat $TASKS | parallel --no-run-if-empty --colsep " "  --shuf  --workdir $JTROOT \
+    $DRYRUN $NETWORK $MAX_JOBS\
+    --delay 0.25 $CMD {} $EXTRA $GIT | tee $JTROOT/log/update.log
+
