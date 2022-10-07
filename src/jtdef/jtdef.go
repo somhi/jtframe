@@ -169,7 +169,12 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Adds the commit
 	macros["COMMIT"] = cfg.Commit
 	if cfg.Commit!="" {
-		macros["JTFRAME_COMMIT"] = fmt.Sprintf("32'h%s",cfg.Commit[0:8]) // the "dirty" text is dropped
+		// fmt.Fprintln( os.Stderr, "jtframe cfgstr: using commit ", cfg.Commit)
+		if len(cfg.Commit)>=7 {
+			macros["JTFRAME_COMMIT"] = fmt.Sprintf("32'h%s",cfg.Commit[0:7]) // the "dirty" text is dropped
+		} else {
+			macros["JTFRAME_COMMIT"] = "32'h0"
+		}
 	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
