@@ -348,7 +348,7 @@ jobs:
         with:
           access_token: $¿¿ github.token ??
       - name: check out
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           submodules: true
           repository: $¿¿ github.repository ??
