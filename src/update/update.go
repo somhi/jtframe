@@ -347,15 +347,6 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.0
         with:
           access_token: $¿¿ github.token ??
-      - name: check out
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-          repository: $¿¿ github.repository ??
-          token: $¿¿ secrets.TOKEN ??
-          persist-credentials: false
-      - name: Get YAML package
-        run: go get gopkg.in/yaml.v2
       - name: compile for {{.Target}}
         run: /docked_build.sh {{.Corename}} -{{.Target}} {{.Extra}} {{.Seed}}
 `
