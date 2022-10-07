@@ -25,6 +25,8 @@ import (
 )
 
 var up_cfg update.Config
+var up_targets []string
+var up_all bool
 
 // memCmd represents the mem command
 var updateCmd = &cobra.Command{
@@ -32,6 +34,19 @@ var updateCmd = &cobra.Command{
 	Short: "Updates compiled files for cores or prepares GitHub action files",
 	Long: `Updates compiled files for cores or prepares GitHub action files`,
 	Run: func(cmd *cobra.Command, args []string) {
+		up_cfg.Targets = make(map[string]bool)
+		for _,each := range up_targets {
+			up_cfg.Targets[each] = true
+		}
+		if up_all {
+			up_cfg.Targets["mist"]    = true
+			up_cfg.Targets["sidi"]    = true
+			up_cfg.Targets["pocket"]  = true
+			up_cfg.Targets["mister"]  = true
+			up_cfg.Targets["neptuno"] = true
+			up_cfg.Targets["mcp"]     = true
+			up_cfg.Targets["mc2"]     = true
+		}
 		update.Run( &up_cfg, args)
 	},
 	Args: cobra.MinimumNArgs(1),
@@ -40,10 +55,10 @@ var updateCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(updateCmd)
 	flag := updateCmd.Flags()
-	up_cfg.Targets = make(map[string]bool)
 
 	target_flag := goflag.NewFlagSet("Target parser", goflag.ContinueOnError )
 	target_flag.Func( "target", "Adds a new target", func(t string) error { up_cfg.Targets[t] = true; return nil } )
+	flag.StringSliceVarP( &up_targets, "target","t",[]string{"mist"}, "Comma separated list of targets" )
 
 	flag.AddGoFlagSet( target_flag )
 	flag.BoolVar( &up_cfg.Dryrun,  "dry",     false, "Ignored")
@@ -58,13 +73,5 @@ func init() {
 	flag.StringVar(&up_cfg.Network, "network", "", "Ignored")
 	flag.StringVar(&up_cfg.Group, "group", "", "Core group specified in $JTROOT/.jtupdate")
 	flag.Int64("jobs", 0, "Ignored ")
-	// goflag.Func( "all", "updates all target platforms", func() {
-	// 	up_cfg.Targets["mist"]    = true
-	// 	up_cfg.Targets["sidi"]    = true
-	// 	up_cfg.Targets["pocket"]  = true
-	// 	up_cfg.Targets["mister"]  = true
-	// 	up_cfg.Targets["neptuno"] = true
-	// 	up_cfg.Targets["mcp"]     = true
-	// 	up_cfg.Targets["mc2"]     = true
-	// } )
+	flag.BoolVar( &up_all, "all", false, "updates all target platforms")
 }
