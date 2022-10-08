@@ -312,15 +312,24 @@ extra_loop:
 		if !mra_cfg.Parse.Skip.Bootlegs &&
 			strings.Index(
 				strings.ToLower(machine.Description), "bootleg") != -1 {
-			continue
+			if args.Verbose {
+				fmt.Println("Skipping ", machine.Description)
+			}
+			continue extra_loop
 		}
 		for _, d := range mra_cfg.Parse.Skip.Descriptions {
 			if strings.Index(machine.Description, d) != -1 {
+				if args.Verbose {
+					fmt.Println("Skipping ", machine.Description)
+				}
 				continue extra_loop
 			}
 		}
 		for _, each := range mra_cfg.Parse.Skip.Setnames {
 			if each == machine.Name {
+				if args.Verbose {
+					fmt.Println("Skipping ", machine.Description)
+				}
 				continue extra_loop
 			}
 		}
@@ -548,10 +557,11 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args ) (*XMLNode, string) 
 		root.AddNode("joystick", machine.Input.Control[0].Ways)
 	}
 	n = root.AddNode("rotation")
-	if machine.Display.Rotate != 0 {
-		n.SetText("vertical")
-	} else {
-		n.SetText("horizontal")
+	switch machine.Display.Rotate {
+		// not very sure about which one is cw and which one is ccw
+		case 90:  n.SetText("vertical (ccw)")
+		case 270: n.SetText("vertical (cw)")
+		default:  n.SetText("horizontal")
 	}
 	root.AddNode("region", guess_world_region(machine.Description))
 	// Custom tags, sort them first
