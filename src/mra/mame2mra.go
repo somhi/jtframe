@@ -558,10 +558,9 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args ) (*XMLNode, string) 
 	}
 	n = root.AddNode("rotation")
 	switch machine.Display.Rotate {
-		// not very sure about which one is cw and which one is ccw
-		case 90:  n.SetText("vertical (ccw)")
-		case 270: n.SetText("vertical (cw)")
-		default:  n.SetText("horizontal")
+		case 90:   n.SetText("vertical (cw)")
+		case 270:  n.SetText("vertical (ccw)")
+		default:   n.SetText("horizontal")
 	}
 	root.AddNode("region", guess_world_region(machine.Description))
 	// Custom tags, sort them first
