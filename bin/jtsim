@@ -391,6 +391,9 @@ if ! jtcfgstr cpp > defmacros.h ; then
     exit 1
 fi
 
+# Get the macros into bash
+eval `jtcfgstr bash`
+
 # Non Verilator sims do image conversion via raw2png
 if [[ "$VIDEO_DUMP" = TRUE && $SIMULATOR != verilator ]]; then
     rm -f video.pipe

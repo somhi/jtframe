@@ -103,6 +103,10 @@ TV80S                    |         | Selects verilog version of T80 core
 
 Macro                    | Target  |  Usage
 -------------------------|---------|----------------------
+JTFRAME_BA1_START        |         | Start of bank 1
+JTFRAME_BA2_START        |         | Start of bank 2
+JTFRAME_BA3_START        |         | Start of bank 3
+JTFRAME_PROM_START       |         | PROM signals starts here
 JTFRAME_SDRAM_ADQM       | MiSTer  | A12 and A11 are equal to DQMH/L
 JTFRAME_SDRAM_BWAIT      |         | Adds a wait cycle in the SDRAM
 JTFRAME_SDRAM_CHECK      |         | Double check SDRAM data through modules (slow)
@@ -111,15 +115,6 @@ JTFRAME_SDRAM_LARGE      | MiSTer  | Enables 64MB access to SDRAM modules
 JTFRAME_SDRAM_MUXLATCH   |         | Extra latch for SDRAM mux for <64MHz operation
 JTFRAME_SDRAM_NO_DWNRFSH |         | No refresh during download (non-interleaved SDRAM controller)
 JTFRAME_SDRAM_REPACK     |         | Extra latch stage at SDRAM mux output
-
-# SDRAM RTL Generator
-
-Macro                    |  Usage
--------------------------|----------------------
-JTFRAME_BA1_START        | Start of bank 1
-JTFRAME_BA2_START        | Start of bank 2
-JTFRAME_BA3_START        | Start of bank 3
-JTFRAME_PROM_START       | PROM signals starts here
 
 # SDRAM64
 

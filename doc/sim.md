@@ -1,4 +1,4 @@
-# Simulation setup
+# Simulation Setup
 
 JTFrame supports simulation of the target system top level. In the case of verilator sims, only the *jtgame* module is simulated.
 
@@ -8,7 +8,11 @@ Some target platforms have a top-level test which can be used and that harness a
 
 The simulation script [jtsim](../bin/jtsim) supports several simulators and sets up everything. Installing simulators and running a first successful simulation is complicated and the JTFRAME team does not support users through this process. Yet, all the files needed are here, so with some studying anyone can set up a simulation.
 
-# Cabinet inputs during simulation
+# Core and JTFRAME Macros
+
+All macros defined in the core's *cfg/macros.def* file are parsed by *jtsim* and accessible in simulation. The macros are also available to Verilator in the form of C++ macros.
+
+# Cabinet Inputs During Simulation
 
 You can use a hex file with inputs for simulation. Enable this with the macro
 SIM_INPUTS. The file must be called sim_inputs.hex. Each line has a hexadecimal

@@ -116,7 +116,7 @@ public:
         done = false;
         fin.open("sim_inputs.hex");
         if( fin.bad() ) {
-            cout << "Error: could not open sim_inputs.hex\n";
+            cout << "ERROR: (test.cpp)  could not open sim_inputs.hex\n";
         } else {
             cout << "reading sim_inputs.hex\n";
         }
@@ -341,7 +341,7 @@ void SDRAM::dump() {
         sprintf(fname,"sdram_bank%d.bin",k);
         ofstream fout(fname,ios_base::binary);
         if( !fout.good() ) {
-            cout << "Error creating " << fname << '\n';
+            cout << "ERROR: (test.cpp) creating " << fname << '\n';
         }
         // reverse bytes because 16-bit access operation
         // use the wrong endianness in intel machines
@@ -351,7 +351,7 @@ void SDRAM::dump() {
         }
         fout.write(aux,BANK_LEN);
         if( !fout.good() ) {
-            cout << "Error saving to " << fname << '\n';
+            cout << "ERROR: (test.cpp) saving to " << fname << '\n';
         }
         cout << fname << " dumped\n";
 #ifndef JTFRAME_SDRAM_BANKS
@@ -373,7 +373,7 @@ void SDRAM::update() {
             burst_mask = ~(burst_len-1);
             cout << "SDRAM burst mode changed to " << burst_len << " mask 0x" << hex << burst_mask << '\n';
             if( burst_len>4 ) {
-                throw "\nError: support for bursts larger than 4 is not implemented in test.cpp\n";
+                throw "\nERROR: (test.cpp)  support for bursts larger than 4 is not implemented in test.cpp\n";
             }
         }
         if( !dut.SDRAM_nRAS && dut.SDRAM_nCAS && dut.SDRAM_nWE ) { // Row address - Activate command
@@ -403,7 +403,7 @@ void SDRAM::update() {
             // }
             if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Supports only 32-bit reads
                 if( dqbusy ) {
-                    cout << "WARNING: SDRAM reads clashed\n";
+                    cout << "WARNING: (test.cpp) SDRAM reads clashed\n";
                 }
                 // if( rd_st[k]==burst_len ) printf("Read start\n");
                 auto data_read = read_bank( banks[k], ba_addr[k] );
@@ -430,7 +430,7 @@ void SDRAM::update() {
 int SDRAM::read_offset( int region ) {
     if( region>=32 ) {
         region = 0;
-        printf("ERROR: tried to read past the header\n");
+        printf("ERROR: (test.cpp)  tried to read past the header\n");
         return 0;
     }
     int offset = (((int)header[region]<<8) | ((int)header[region+1]&0xff)) & 0xffff;
@@ -440,6 +440,9 @@ int SDRAM::read_offset( int region ) {
 SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
 #ifdef JTFRAME_SDRAM_BANKS
     cout << "Multibank SDRAM enabled\n";
+    const int MAXBANK=3;
+#else
+    const int MAXBANK=0;
 #endif
     banks[0] = nullptr;
     burst_len= 1;
@@ -471,7 +474,7 @@ SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
             if( pos<BANK_LEN )
                 memset( (void*)&banks[k][pos], 0, BANK_LEN-pos);
         } else {
-            cout << "Skipped " << fname << "\n";
+            if( k<=MAXBANK ) cout << "WARNING: (test.cpp) " << fname << " not found.\n";
         }
     }
 }
@@ -663,7 +666,7 @@ void JTSim::video_dump() {
                             #endif
                                 frame_cnt);
                             if( system(exes) ) {
-                                printf("Warning: convert tool did not succeed\n");
+                                printf("WARNING: (test.cpp) convert tool did not succeed\n");
                             }
                         }
                         exit(0);
@@ -701,7 +704,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-time")==0 ) {
             if( ++k >= argc ) {
-                cout << "ERROR: expecting time after -time argument\n";
+                cout << "ERROR: (test.cpp)  expecting time after -time argument\n";
             } else {
                 finish_time = atol(argv[k]);
             }
@@ -709,7 +712,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-frame")==0 ) {
             if( ++k >= argc ) {
-                cout << "ERROR: expecting frame count after -frame argument\n";
+                cout << "ERROR: (test.cpp)  expecting frame count after -frame argument\n";
             } else {
                 finish_frame = atol(argv[k]);
             }
@@ -795,7 +798,7 @@ int main(int argc, char *argv[]) {
             sim.update_wav(); // Other clock rates will not have exact wav dumps
             if( sim.get_frame()==2 ) {
                 if( sim.activeh != JTFRAME_HEIGHT || sim.activew != JTFRAME_WIDTH ) {
-                    printf("\nError: video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
+                    printf("\nERROR: (test.cpp)  video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
                         JTFRAME_WIDTH, JTFRAME_HEIGHT, sim.activew, sim.activeh );
                     break;
                 }
