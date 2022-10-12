@@ -118,8 +118,8 @@ localparam POCKET=0;
 `endif
 
 generate
-    if( !SIMULATION && POCKET && aw<13 )
-            jtframe_pocket_dualram u_primitive(
+    if( !SIMULATION && POCKET && aw<13 && dw<=8 ) begin
+            jtframe_pocket_dualram u_pocket_ram(
                 .address_a( addr0   ),
                 .address_b( addr1   ),
                 .clock_a  ( clk0    ),
@@ -133,8 +133,7 @@ generate
                 .q_a      ( q0      ),
                 .q_b      ( q1      )
             );
-
-        else begin
+        end else begin
             reg [dw-1:0] qq0, qq1;
             (* ramstyle = "no_rw_check" *) reg [dw-1:0] mem[0:(2**aw)-1];
 
