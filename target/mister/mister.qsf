@@ -70,5 +70,5 @@ set_instance_assignment -name FAST_INPUT_REGISTER ON -to emu:emu|jtframe_mister:
 #set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to *
 set_instance_assignment -name FAST_OUTPUT_ENABLE_REGISTER ON -to SDRAM_DQ[*]
 set_global_assignment -name FORCE_SYNCH_CLEAR ON
-
-# Always leave a blank line at the end
+set_global_assignment -name SEARCH_PATH "../hdl"
+# Leave the blank line

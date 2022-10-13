@@ -172,3 +172,5 @@ set_global_assignment -name VERILOG_MACRO "MIST=1"
 set_global_assignment -name VERILOG_MACRO "NEPTUNO=1"
 
 # set_instance_assignment -name GLOBAL_SIGNAL "GLOBAL CLOCK" -to SPI_SCK
+set_global_assignment -name SEARCH_PATH "../hdl"
+# Leave the blank line

@@ -108,7 +108,7 @@ Folder | Path       | Use
 -------|------------|-----
 cores  | root       | container for each core folder
 foo    | cores      | container for core foo
-hdl    | cores/foo  | HDL files for core foo
+hdl    | cores/foo  | HDL and include files for core foo
 ver    | cores/foo  | verification files. A folder for each test bench
 cfg    | cores/foo  | configuration files (macro, RTL generation...)
 doc    | root       | documentation

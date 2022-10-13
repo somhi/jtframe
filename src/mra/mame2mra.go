@@ -309,29 +309,8 @@ extra_loop:
 		} else {
 			parent_names[machine.Name] = machine.Description
 		}
-		if !mra_cfg.Parse.Skip.Bootlegs &&
-			strings.Index(
-				strings.ToLower(machine.Description), "bootleg") != -1 {
-			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description)
-			}
+		if skip_game( machine, mra_cfg, args ) {
 			continue extra_loop
-		}
-		for _, d := range mra_cfg.Parse.Skip.Descriptions {
-			if strings.Index(machine.Description, d) != -1 {
-				if args.Verbose {
-					fmt.Println("Skipping ", machine.Description)
-				}
-				continue extra_loop
-			}
-		}
-		for _, each := range mra_cfg.Parse.Skip.Setnames {
-			if each == machine.Name {
-				if args.Verbose {
-					fmt.Println("Skipping ", machine.Description)
-				}
-				continue extra_loop
-			}
 		}
 		for _, reg := range mra_cfg.ROM.Regions {
 			for k, r := range machine.Rom {
@@ -363,6 +342,45 @@ extra_loop:
 		}
 	}
 	pocket_save()
+}
+
+func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
+	if !mra_cfg.Parse.Skip.Bootlegs &&
+		strings.Index(
+			strings.ToLower(machine.Description), "bootleg") != -1 {
+		if args.Verbose {
+			fmt.Println("Skipping ", machine.Description)
+		}
+		return true
+	}
+	for _, d := range mra_cfg.Parse.Skip.Descriptions {
+		if strings.Index(machine.Description, d) != -1 {
+			if args.Verbose {
+				fmt.Println("Skipping ", machine.Description)
+			}
+			return true
+		}
+	}
+	for _, each := range mra_cfg.Parse.Skip.Setnames {
+		if each == machine.Name {
+			if args.Verbose {
+				fmt.Println("Skipping ", machine.Description)
+			}
+			return true
+		}
+	}
+	// Parse Must-be conditions
+	skip := len(mra_cfg.Parse.Mustbe.Devices)>0
+	device_check:
+	for _,each := range mra_cfg.Parse.Mustbe.Devices {
+		for _,check := range machine.Devices {
+			if each == check.Name {
+				skip = false
+				break device_check
+			}
+		}
+	}
+	return skip
 }
 
 ////////////////////////////////////////////////////////////////////////

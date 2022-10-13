@@ -109,6 +109,12 @@ type ParseCfg struct {
 		Setnames     []string
 		Bootlegs     bool
 	}
+	Mustbe struct { // If any of these conditions are met, the game will be parsed
+		// empty arrays or strings are not used for comparison
+		// Descriptions []string
+		// Setnames     []string
+		Devices 	 []string	// list of devices the game must contain to be parsed
+	}
 	Parents []struct {
 		Name, Description string
 	}
