@@ -887,13 +887,17 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				mapstr = "0001"
 			}
 			if reg_cfg.Reverse {
-				if reg_cfg.Width == 32 {
-					log.Fatal("Reverse for 64-bit regions is not implemented")
+				step := reg_cfg.Width>>3
+				if step==0 {
+					step = 2
 				}
-				for k := 0; k < len(reg_roms); k += 2 {
-					aux := reg_roms[k]
-					reg_roms[k] = reg_roms[k+1]
-					reg_roms[k+1] = aux
+				for k := 0; k < len(reg_roms); k += step {
+					buf := make( []MameROM, step )
+					copy( buf, reg_roms[k:k+step] )
+					for j,l:=k,step-1; l>=0; j++ {
+						reg_roms[j] = buf[l]
+						l--
+					}
 				}
 			}
 			var n *XMLNode
