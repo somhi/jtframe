@@ -337,7 +337,9 @@ begin
     else
       -- begin of starting the interrupt procedure
                                                       -- saving the old adress
-      if intblock_i = '0' and
+      if intblock_i = '0' and s_instr_category /= IC_RETI and -- fixes bug when
+        -- a higher priority interrupt occurred during the RETI of a lower priority one
+        -- by wickerwaka https://github.com/MiSTer-devel/Arcade-IremM72_MiSTer/commit/2218dc0
          ((s_intpre='1' and state=FETCH) or s_intpre2='1') then
         if state=FETCH then
           s_intpre2_en <= '1';
