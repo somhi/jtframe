@@ -32,7 +32,8 @@ var cfgstrCmd = &cobra.Command{
 	Use:   "cfgstr <core-name>",
 	Short: "Parse core variables",
 	Long: `Parses the jtcore-name.def file in the hdl folder and
-creates input files for simulation or synthesis`,
+creates input files for simulation or synthesis.
+Macro names for C++ include files are prefixed by an underscore _`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg.Core = args[0]
 		jtcfgstr.Run(cfg, args, extra_def, extra_undef)

@@ -34,30 +34,30 @@
     const int DUMP_START=0;
 #endif
 
-#ifndef JTFRAME_COLORW
-    #define JTFRAME_COLORW 4
+#ifndef _JTFRAME_COLORW
+    #define _JTFRAME_COLORW 4
 #endif
 
-#ifdef JTFRAME_CLK96
+#ifdef _JTFRAME_CLK96
     const bool USE_CLK96=true;
 #else
     const bool USE_CLK96=false;
 #endif
 
-#ifndef JTFRAME_GAMEPLL
-    #define JTFRAME_GAMEPLL "jtframe_pll6000"
+#ifndef _JTFRAME_GAMEPLL
+    #define _JTFRAME_GAMEPLL "jtframe_pll6000"
 #endif
 
 using namespace std;
 
-#ifdef JTFRAME_SDRAM_LARGE
+#ifdef _JTFRAME_SDRAM_LARGE
     const int BANK_LEN = 0x100'0000;
 #else
     const int BANK_LEN = 0x080'0000;
 #endif
 
-#ifndef JTFRAME_SIM_DIPS
-    #define JTFRAME_SIM_DIPS 0xffffffff
+#ifndef _JTFRAME_SIM_DIPS
+    #define _JTFRAME_SIM_DIPS 0xffffffff
 #endif
 
 class WaveWritter {
@@ -108,7 +108,7 @@ public:
         dut.coin_input   = 0xf;
         dut.service      = 1;
         dut.dip_test     = 1;
-#ifdef JTFRAME_OSD_FLIP
+#ifdef _JTFRAME_OSD_FLIP
         dut.dip_flip     = 0;
 #endif
 #ifdef SIM_INPUTS
@@ -230,7 +230,7 @@ public:
     }
 };
 
-const int VIDEO_BUFLEN = JTFRAME_WIDTH*JTFRAME_HEIGHT;
+const int VIDEO_BUFLEN = _JTFRAME_WIDTH*_JTFRAME_HEIGHT;
 
 class JTSim {
     vluint64_t simtime;
@@ -280,7 +280,7 @@ class JTSim {
         }
     } dump;
     int color8(int c) {
-        switch(JTFRAME_COLORW) {
+        switch(_JTFRAME_COLORW) {
             case 8: return c;
             case 5: return (c<<3) | ((c>>2)&3);
             case 4: return (c<<4) | c;
@@ -354,7 +354,7 @@ void SDRAM::dump() {
             cout << "ERROR: (test.cpp) saving to " << fname << '\n';
         }
         cout << fname << " dumped\n";
-#ifndef JTFRAME_SDRAM_BANKS
+#ifndef _JTFRAME_SDRAM_BANKS
         break;
 #endif
     }
@@ -438,7 +438,7 @@ int SDRAM::read_offset( int region ) {
 }
 
 SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
-#ifdef JTFRAME_SDRAM_BANKS
+#ifdef _JTFRAME_SDRAM_BANKS
     cout << "Multibank SDRAM enabled\n";
     const int MAXBANK=3;
 #else
@@ -491,10 +491,10 @@ SDRAM::~SDRAM() {
 
 void JTSim::reset( int v ) {
     game.rst = v;
-#ifdef JTFRAME_CLK96
+#ifdef _JTFRAME_CLK96
     game.rst96 = v;
 #endif
-#ifdef JTFRAME_CLK24
+#ifdef _JTFRAME_CLK24
     game.rst24 = v;
 #endif
 }
@@ -505,10 +505,10 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     simtime   = 0;
     frame_cnt = 0;
     last_VS   = 0;
-    // Derive the clock speed from JTFRAME_PLL
-#ifdef JTFRAME_PLL
-    semi_period = (vluint64_t)(1e12/(16.0*JTFRAME_PLL*1000.0));
-#elif JTFRAME_CLK96 || JTFRAME_SDRAM96
+    // Derive the clock speed from _JTFRAME_PLL
+#ifdef _JTFRAME_PLL
+    semi_period = (vluint64_t)(1e12/(16.0*_JTFRAME_PLL*1000.0));
+#elif _JTFRAME_CLK96 || _JTFRAME_SDRAM96
     semi_period = (vluint64_t)(10416/2); // 96MHz
 #else
     semi_period = (vluint64_t)10416; // 48MHz
@@ -531,12 +531,12 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
         tracer = nullptr;
     }
 #endif
-#ifdef JTFRAME_SIM_GFXEN
-    game.gfx_en=JTFRAME_SIM_GFXEN;    // enable selected layers
+#ifdef _JTFRAME_SIM_GFXEN
+    game.gfx_en=_JTFRAME_SIM_GFXEN;    // enable selected layers
 #else
     game.gfx_en=0xf;    // enable all layers
 #endif
-    game.dipsw=JTFRAME_SIM_DIPS;
+    game.dipsw=_JTFRAME_SIM_DIPS;
     reset(0);
     game.sdram_rst = 0;
     clock(48);
@@ -544,7 +544,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     reset(1);
     clock(48);
     game.sdram_rst = 0;
-#ifdef JTFRAME_CLK96
+#ifdef _JTFRAME_CLK96
     game.rst96 = 0;
 #endif
     clock(10);
@@ -566,13 +566,13 @@ void JTSim::clock(int n) {
     while( n-- > 0 ) {
         int cur_dwn = game.downloading | game.dwnld_busy;
         game.clk = 1;
-#ifdef JTFRAME_CLK24    // not supported together with JTFRAME_CLK96
+#ifdef _JTFRAME_CLK24    // not supported together with _JTFRAME_CLK96
         game.clk24 = ticks&1;
 #endif
-#ifdef JTFRAME_CLK48
+#ifdef _JTFRAME_CLK48
         game.clk48 = 1-game.clk48;
 #endif
-#ifdef JTFRAME_CLK96
+#ifdef _JTFRAME_CLK96
         game.clk96 = game.clk;
 #endif
         game.eval();
@@ -591,7 +591,7 @@ void JTSim::clock(int n) {
         if( tracer && dump_ok ) tracer->dump(simtime);
 #endif
         game.clk = 0;
-#ifdef JTFRAME_CLK96
+#ifdef _JTFRAME_CLK96
         game.clk96 = game.clk;
 #endif
         game.eval();
@@ -627,7 +627,7 @@ void JTSim::video_dump() {
     if( game.pxl_cen ) {
         // Dump the video
         if( game.LHBL && game.LVBL && frame_cnt>0 ) {
-            const int MASK = (1<<JTFRAME_COLORW)-1;
+            const int MASK = (1<<_JTFRAME_COLORW)-1;
             int red   = game.red   & MASK;
             int green = game.green & MASK;
             int blue  = game.blue  & MASK;
@@ -659,7 +659,7 @@ void JTSim::video_dump() {
                             sprintf(exes,"convert -filter Point "
                                 "-size %dx%d %s -depth 8 RGBA:frame.raw frame_%d.jpg",
                                 activew, activeh,
-                            #ifdef JTFRAME_VERTICAL
+                            #ifdef _JTFRAME_VERTICAL
                                 "-rotate -90",
                             #else
                                 "",
@@ -797,9 +797,9 @@ int main(int argc, char *argv[]) {
             sim.clock(1'000); // if the clock is 48MHz, this will dump at 48kHz
             sim.update_wav(); // Other clock rates will not have exact wav dumps
             if( sim.get_frame()==2 ) {
-                if( sim.activeh != JTFRAME_HEIGHT || sim.activew != JTFRAME_WIDTH ) {
+                if( sim.activeh != _JTFRAME_HEIGHT || sim.activew != _JTFRAME_WIDTH ) {
                     printf("\nERROR: (test.cpp)  video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
-                        JTFRAME_WIDTH, JTFRAME_HEIGHT, sim.activew, sim.activeh );
+                        _JTFRAME_WIDTH, _JTFRAME_HEIGHT, sim.activew, sim.activeh );
                     break;
                 }
             }

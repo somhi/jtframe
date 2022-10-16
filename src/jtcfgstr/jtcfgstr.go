@@ -135,7 +135,7 @@ func dump_cpp(def map[string]string) {
 			v = strings.TrimPrefix(v, "jtframe_pll")
 		}
 		// Get only the numerical part
-		fmt.Printf("#define %s %s\n", k, v)
+		fmt.Printf("#define _%s %s\n", k, v)
 	}
 }
 
