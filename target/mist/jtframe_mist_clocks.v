@@ -43,6 +43,9 @@ module jtframe_mist_clocks(
     `define JTFRAME_PLL jtframe_pll6000
 `endif
 
+// The PLL for 96MHz has a different phase shift for the SDRAM clock
+// This phase is related to the SDRAM controller configuration set
+// in jtframe_board.
 `ifdef JTFRAME_SDRAM96
     `define JTFRAME_GAMEPLL jtframe_pllgame96
 `else

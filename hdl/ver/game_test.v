@@ -358,7 +358,7 @@ jtframe_sdram64 #(
     // );
 
     `ifdef JTFRAME_SDRAM_STATS
-    jtframe_sdram_stats #(.AW(SDRAMW)) u_stats(
+    jtframe_sdram_stats_sim #(.AW(SDRAMW)) u_stats(
         .rst        ( sdram_rst     ),
         .clk        ( clk_rom       ),
         // SDRAM interface

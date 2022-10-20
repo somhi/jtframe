@@ -18,7 +18,7 @@
 
 `timescale 1ns/1ps
 
-module jtframe_sdram_stats #(
+module jtframe_sdram_stats_sim #(
     parameter AW=22)(
     input               rst,
     input               clk,
