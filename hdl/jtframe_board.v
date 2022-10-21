@@ -331,6 +331,8 @@ jtframe_keyboard u_keyboard(
 );
 
     `ifndef JTFRAME_RELEASE
+        wire [7:0] sys_info;
+
         jtframe_debug #(.COLORW(COLORW)) u_debug(
             .clk         ( clk_sys       ),
             .rst         ( rst           ),
@@ -355,7 +357,18 @@ jtframe_keyboard u_keyboard(
 
             .gfx_en      ( gfx_en        ),
             .debug_bus   ( debug_bus     ),
-            .debug_view  ( debug_view    )
+            .debug_view  ( debug_view    ),
+            .sys_info    ( sys_info      )
+        );
+
+        jtframe_sdram_stats u_stats(
+            .rst        ( rst           ),
+            .clk        ( clk_sys       ),
+            .rd         ( bax_rd        ),
+            .wr         ( bax_wr        ),
+            .LVBL       ( LVBL          ),
+            .st_addr    ( debug_bus[2:0]),
+            .st_dout    ( sys_info      )
         );
     `else
         assign gfx_en    = 4'b1111;
@@ -679,7 +692,7 @@ jtframe_sdram64 #(
     );
 
     `ifdef JTFRAME_SDRAM_STATS
-    jtframe_sdram_stats_sim #(.AW(SDRAMW)) u_stats(
+    jtframe_sdram_stats_sim #(.AW(SDRAMW)) u_stats_sim(
         .rst        ( rst           ),
         .clk        ( clk_rom       ),
         // SDRAM interface

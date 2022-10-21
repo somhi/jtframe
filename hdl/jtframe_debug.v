@@ -44,15 +44,21 @@ module jtframe_debug #(
     // debug features
     output reg [7:0] debug_bus,
     input      [7:0] debug_view, // an 8-bit signal that will be shown over the game image
+    input      [7:0] sys_info,   // system information generated within JTFRAME, not the game
     output reg [3:0] gfx_en
 );
 
 reg        last_p, last_m;
 integer    cnt;
 reg  [3:0] last_gfx;
+reg  [7:0] view_mux;
 reg        last_digit;
+reg        view_sel, vtoggle_l;
+wire       vtoggle;
 
 wire [7:0] step = shift ? 8'd16 : 8'd1;
+
+assign vtoggle = shift & ctrl;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -62,12 +68,17 @@ always @(posedge clk, posedge rst) begin
         last_p     <= 0;
         last_m     <= 0;
         last_gfx   <= 0;
+        view_sel   <= 0;
+        view_mux   <= 0;
     end else begin
-        last_p   <= debug_plus;
-        last_m   <= debug_minus;
-        last_gfx <= key_gfx;
+        last_p     <= debug_plus;
+        last_m     <= debug_minus;
+        last_gfx   <= key_gfx;
         last_digit <= |key_digit;
+        vtoggle_l  <= vtoggle;
 
+        if( vtoggle && !vtoggle_l ) view_sel <= ~view_sel;
+        view_mux <= view_sel ? sys_info : debug_view;
 
         if( ctrl && (debug_plus||debug_minus) ) begin
             debug_bus <= 0;
@@ -107,10 +118,10 @@ always @(posedge clk) if(pxl_cen) begin
         hcnt <= 0;
     else hcnt <= hcnt + 9'd1;
     osd_on  <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
-    view_on <= debug_view != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
+    view_on <= view_mux != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
 
     bus_hex_on  <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
-    view_hex_on <= debug_view != 0 && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
+    view_hex_on <= view_mux != 0 && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
 end
 
 reg [0:19] font [0:15]; // 4x5 font
@@ -141,9 +152,9 @@ wire [3:0] display_bit_bus, display_bit_view, display_nibble_bus, display_nibble
 wire [4:0] font_pixel;
 
 assign display_bit_bus     = { 3'h0, debug_bus[ ~hcnt[5:3] ] };
-assign display_bit_view    = { 3'h0, debug_view[ ~hcnt[5:3] ] };
-assign display_nibble_bus  = hcnt[3] ? debug_bus[3:0]  : debug_bus[7:4];
-assign display_nibble_view = hcnt[3] ? debug_view[3:0] : debug_view[7:4];
+assign display_bit_view    = { 3'h0, view_mux[ ~hcnt[5:3] ] };
+assign display_nibble_bus  = hcnt[3] ? debug_bus[3:0] : debug_bus[7:4];
+assign display_nibble_view = hcnt[3] ? view_mux[3:0]  : view_mux[7:4];
 
 assign font_pixel          = ( ( vcnt[2:0] - 3'd2 ) << 2 ) + ( hcnt[2:0] - 3'd3 );
 
@@ -166,9 +177,9 @@ always @* begin
 
     if( view_on ) begin
         if( hcnt[2:0]!=0 ) begin
-            rout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
-            gout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
-            bout[COLORW-1:COLORW-2] = {2{debug_view[ ~hcnt[5:3] ]}};
+            rout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
+            gout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
+            bout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
         end
         if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
             rout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};

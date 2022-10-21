@@ -25,6 +25,7 @@ jtframe:
     get:
       - jtframe_sdram.v
       - jtframe_sdram64.yaml
+      - jtframe_sdram_stats.v
   - from: ram
     get:
       - jtframe_dual_ram.v
