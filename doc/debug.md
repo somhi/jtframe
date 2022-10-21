@@ -18,6 +18,12 @@ The game must also define an output bus called *debug_view*, which will be shown
 
 It is recommended to remove the *debug_bus* once the core is stable. When the core is compiled with **JTFRAME_RELEASE** the *debug_bus* has a permanent zero value and there is no on-screen debug values.
 
+## System Info
+
+By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_view* to *sys_info*. This 8-bit signals carries information from modules inside JTFRAME, aside from core-specific information. This is available as long as **JTFRAME_RELEASE** was not used for compilation. The *debug_bus* selects which information to display.
+
+At the moment, this can be used to see the number of SDRAM access done in a frame. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details.
+
 ## Generic SDRAM Dump
 
 The SDRAM bank0 can be partially shadowed in BRAM and download as NVRAM via the NVRAM interface. This requires the macros JTFRAME_SHADOW and JTFRAME_SHADOW_LEN to be defined. The MRA file should also enable NVRAM with a statement such as:

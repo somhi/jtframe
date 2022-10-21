@@ -54,11 +54,11 @@ end
 always @(posedge clk) begin
     case( st_addr )
         3'b0_00: st_dout <= req_frame[23-:8];
-        3'b0_01: st_dout <= req_blank[23-:8];
-        3'b0_10: st_dout <= req_active[23-:8];
+        3'b0_01: st_dout <= req_active[23-:8];
+        3'b0_10: st_dout <= req_blank[23-:8];
         3'b1_00: st_dout <= req_frame[15-:8];
-        3'b1_01: st_dout <= req_blank[15-:8];
-        3'b1_10: st_dout <= req_active[15-:8];
+        3'b1_01: st_dout <= req_active[15-:8];
+        3'b1_10: st_dout <= req_blank[15-:8];
         default: st_dout <= 0;
     endcase
 end

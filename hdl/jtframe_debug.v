@@ -121,7 +121,7 @@ always @(posedge clk) if(pxl_cen) begin
     view_on <= view_mux != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
 
     bus_hex_on  <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
-    view_hex_on <= view_mux != 0 && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
+    view_hex_on <= (view_mux != 0 || view_sel) && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
 end
 
 reg [0:19] font [0:15]; // 4x5 font
