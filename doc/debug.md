@@ -22,7 +22,7 @@ It is recommended to remove the *debug_bus* once the core is stable. When the co
 
 By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_view* to *sys_info*. This 8-bit signals carries information from modules inside JTFRAME, aside from core-specific information. This is available as long as **JTFRAME_RELEASE** was not used for compilation. The *debug_bus* selects which information to display.
 
-At the moment, this can be used to see the number of SDRAM access done in a frame. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details.
+At the moment, this can be used to see the number of SDRAM access done in a frame. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details. Note that the access count is divided by 4096, for display convenience.
 
 ## Generic SDRAM Dump
 

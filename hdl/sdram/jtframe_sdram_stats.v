@@ -19,29 +19,25 @@
 module jtframe_sdram_stats(
     input               rst,
     input               clk,
-    input         [3:0] rd,
-    input         [3:0] wr,
+    input         [3:0] rdy,
     input               LVBL,
     input         [2:0] st_addr,
     output reg    [7:0] st_dout
 );
 
 reg        LVBLl;
-reg [23:0] acc_blank, acc_active, 
+reg [19:0] acc_blank, acc_active,
            req_blank, req_active, req_frame;
-reg [ 3:0] rd_l, wr_l;
-wire       rd_done, wr_done, count_up;
+reg [ 3:0] rdy_l;
+wire       count_up;
 
-assign rd_done    = |(~rd & rd_l);
-assign wr_done    = |(~wr & wr_l);
-assign count_up   = rd_done | wr_done;
+assign count_up   = |(rdy & ~rdy_l);
 
 always @(posedge clk) begin
     LVBLl <= LVBL;
-    rd_l  <= rd;
-    wr_l  <= wr;
-    if( count_up &&  LVBL ) acc_active <= acc_active+24'd1;
-    if( count_up && !LVBL ) acc_blank  <= acc_blank+24'd1;
+    rdy_l  <= rdy;
+    if( count_up &&  LVBL ) acc_active <= acc_active+1'd1;
+    if( count_up && !LVBL ) acc_blank  <= acc_blank+1'd1;
     req_frame <= req_blank + req_active;
     if( !LVBL && LVBLl ) begin
         req_blank  <= (req_blank >>1) + (acc_blank >>1);
@@ -53,12 +49,12 @@ end
 
 always @(posedge clk) begin
     case( st_addr )
-        3'b0_00: st_dout <= req_frame[23-:8];
-        3'b0_01: st_dout <= req_active[23-:8];
-        3'b0_10: st_dout <= req_blank[23-:8];
-        3'b1_00: st_dout <= req_frame[15-:8];
-        3'b1_01: st_dout <= req_active[15-:8];
-        3'b1_10: st_dout <= req_blank[15-:8];
+        3'b0_00: st_dout <= req_frame [19:12];
+        3'b0_01: st_dout <= req_active[19:12];
+        3'b0_10: st_dout <= req_blank [19:12];
+        3'b1_00: st_dout <= req_frame [15:8];
+        3'b1_01: st_dout <= req_active[15:8];
+        3'b1_10: st_dout <= req_blank [15:8];
         default: st_dout <= 0;
     endcase
 end

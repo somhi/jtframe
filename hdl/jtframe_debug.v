@@ -164,14 +164,14 @@ always @* begin
     bout = bin;
     if( osd_on ) begin
         if( hcnt[2:0]!=0 ) begin
-            rout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
-            gout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
-            bout[COLORW-1:COLORW-2] = {2{debug_bus[ ~hcnt[5:3] ]}};
+            rout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
+            gout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
+            bout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
         end
         if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
-            rout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
-            gout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
-            bout[COLORW-1:COLORW-2] = {2{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
+            rout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
+            gout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
+            bout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
         end
     end
 

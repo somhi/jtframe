@@ -264,6 +264,12 @@ wire [COLORW-1:0] pre2x_r, pre2x_g, pre2x_b,
                   dbg_r, dbg_g, dbg_b;
 wire              pre2x_LHBL, pre2x_LVBL;
 
+wire [ 3:0] bax_rd, bax_wr, bax_ack;
+wire [15:0] bax_din;
+wire [ 1:0] bax_din_m;
+wire [ 3:0] bax_rdy, bax_dst;
+wire [SDRAMW-1:0] bax_addr;
+
 `ifdef JTFRAME_AUTOFIRE0
     assign autofire0=status[18];
 `else
@@ -364,8 +370,7 @@ jtframe_keyboard u_keyboard(
         jtframe_sdram_stats u_stats(
             .rst        ( rst           ),
             .clk        ( clk_sys       ),
-            .rd         ( bax_rd        ),
-            .wr         ( bax_wr        ),
+            .rdy        ( bax_rdy       ),
             .LVBL       ( LVBL          ),
             .st_addr    ( debug_bus[2:0]),
             .st_dout    ( sys_info      )
@@ -478,13 +483,6 @@ jtframe_dip u_dip(
     .dip_flip   ( dip_flip      ),
     .dip_fxlevel( dip_fxlevel   )
 );
-
-wire [ 3:0] bax_rd, bax_wr, bax_ack;
-wire [15:0] bax_din;
-wire [ 1:0] bax_din_m;
-wire [ 3:0] bax_rdy, bax_dst;
-wire [SDRAMW-1:0] bax_addr;
-
 
 `ifdef JTFRAME_CHEAT
     wire       cheat_rd, cheat_ack, cheat_dst, cheat_rdy, cheat_wr;
