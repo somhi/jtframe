@@ -28,6 +28,10 @@ module jtframe_ram_2slots #(parameter
 
     SLOT1_OKLATCH= 1,
 
+/* verilator lint_off WIDTH */
+    parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
+/* verilator lint_on WIDTH */
+
     parameter REF_FILE="sdram_bank3.hex"
 )(
     input               rst,
@@ -107,7 +111,7 @@ u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot1_clr              ),
-    .offset    ( offset1                ),
+    .offset    ( SLOT1_OFFSET           ),
     .addr      ( slot1_addr             ),
     .addr_ok   ( slot1_cs               ),
     .sdram_addr( slot1_addr_req         ),

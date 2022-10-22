@@ -6,10 +6,10 @@ jtframe:
       - jtframe_sdram64_init.v
       - jtframe_sdram64_rfsh.v
       - jtframe_sdram64_latch.v
-      - jtframe_ram_2slots.v
-      - jtframe_ram_3slots.v
-      - jtframe_ram_4slots.v
-      - jtframe_ram_5slots.v
+      - jtframe_ram1_2slots.v
+      - jtframe_ram1_3slots.v
+      - jtframe_ram1_4slots.v
+      - jtframe_ram1_5slots.v
       - jtframe_ram2_5slots.v
       - jtframe_ram2_6slots.v
       - jtframe_rom_1slot.v

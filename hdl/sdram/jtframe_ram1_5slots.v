@@ -38,6 +38,13 @@ module jtframe_ram_5slots #(parameter
     SLOT3_OKLATCH= 1,
     SLOT4_OKLATCH= 1,
 
+/* verilator lint_off WIDTH */
+    parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT2_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT3_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT4_OFFSET = 0,
+/* verilator lint_on WIDTH */
+
     REF_FILE="sdram_bank3.hex"
 )(
     input               rst,
@@ -141,7 +148,7 @@ u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot1_clr              ),
-    .offset    ( offset1                ),
+    .offset    ( SLOT1_OFFSET           ),
     .addr      ( slot1_addr             ),
     .addr_ok   ( slot1_cs               ),
     .sdram_addr( slot1_addr_req         ),
@@ -161,7 +168,7 @@ u_slot2(
     .clk       ( clk                    ),
     .clr       ( slot2_clr              ),
     .offset    ( offset2                ),
-    .addr      ( slot2_addr             ),
+    .offset    ( SLOT2_OFFSET           ),
     .addr_ok   ( slot2_cs               ),
     .sdram_addr( slot2_addr_req         ),
     .din       ( data_read              ),
@@ -179,7 +186,7 @@ u_slot3(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot3_clr              ),
-    .offset    ( offset3                ),
+    .offset    ( SLOT3_OFFSET           ),
     .addr      ( slot3_addr             ),
     .addr_ok   ( slot3_cs               ),
     .sdram_addr( slot3_addr_req         ),
@@ -198,7 +205,7 @@ u_slot4(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot4_clr              ),
-    .offset    ( offset4                ),
+    .offset    ( SLOT4_OFFSET           ),
     .addr      ( slot4_addr             ),
     .addr_ok   ( slot4_cs               ),
     .sdram_addr( slot4_addr_req         ),

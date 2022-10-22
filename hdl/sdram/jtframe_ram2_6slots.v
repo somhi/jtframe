@@ -42,6 +42,13 @@ module jtframe_ram2_6slots #(parameter
     SLOT4_OKLATCH= 1,
     SLOT5_OKLATCH= 1,
 
+/* verilator lint_off WIDTH */
+    parameter [SDRAMW-1:0] SLOT2_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT3_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT4_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT5_OFFSET = 0,
+/* verilator lint_on WIDTH */
+
     REF_FILE="sdram_bank5.hex"
 )(
     input               rst,
@@ -64,10 +71,6 @@ module jtframe_ram2_6slots #(parameter
 
     input    [SDRAMW-1:0] offset0,
     input    [SDRAMW-1:0] offset1,
-    input    [SDRAMW-1:0] offset2,
-    input    [SDRAMW-1:0] offset3,
-    input    [SDRAMW-1:0] offset4,
-    input    [SDRAMW-1:0] offset5,
 
     input               slot0_cs,
     input               slot1_cs,
@@ -176,7 +179,7 @@ u_slot2(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot2_clr              ),
-    .offset    ( offset2                ),
+    .offset    ( SLOT2_OFFSET           ),
     .addr      ( slot2_addr             ),
     .addr_ok   ( slot2_cs               ),
     .sdram_addr( slot2_addr_req         ),
@@ -195,7 +198,7 @@ u_slot3(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot3_clr              ),
-    .offset    ( offset3                ),
+    .offset    ( SLOT3_OFFSET           ),
     .addr      ( slot3_addr             ),
     .addr_ok   ( slot3_cs               ),
     .sdram_addr( slot3_addr_req         ),
@@ -214,7 +217,7 @@ u_slot4(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot4_clr              ),
-    .offset    ( offset4                ),
+    .offset    ( SLOT4_OFFSET           ),
     .addr      ( slot4_addr             ),
     .addr_ok   ( slot4_cs               ),
     .sdram_addr( slot4_addr_req         ),
@@ -234,7 +237,7 @@ u_slot5(
     .clk       ( clk                    ),
     .clr       ( slot5_clr              ),
     .offset    ( offset5                ),
-    .addr      ( slot5_addr             ),
+    .offset    ( SLOT5_OFFSET           ),
     .addr_ok   ( slot5_cs               ),
     .sdram_addr( slot5_addr_req         ),
     .din       ( data_read              ),

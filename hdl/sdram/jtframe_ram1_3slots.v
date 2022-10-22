@@ -16,24 +16,28 @@
     Version: 1.0
     Date: 1-12-2020 */
 
-module jtframe_ram_4slots #(parameter
+// SDRAM access multiplexer, 2 -> 1
+
+module jtframe_ram_3slots #(parameter
     SDRAMW = 22,
-    SLOT0_DW = 8, SLOT1_DW = 8, SLOT2_DW = 8, SLOT3_DW = 8,
-    SLOT0_AW = 8, SLOT1_AW = 8, SLOT2_AW = 8, SLOT3_AW = 8,
+    SLOT0_DW =16, SLOT1_DW = 8, SLOT2_DW = 8,
+    SLOT0_AW = 8, SLOT1_AW = 8, SLOT2_AW = 8,
 
     SLOT1_LATCH  = 0,
     SLOT2_LATCH  = 0,
-    SLOT3_LATCH  = 0,
 
     SLOT1_DOUBLE = 0,
     SLOT2_DOUBLE = 0,
-    SLOT3_DOUBLE = 0,
 
     SLOT1_OKLATCH= 1,
     SLOT2_OKLATCH= 1,
-    SLOT3_OKLATCH= 1,
 
-    REF_FILE="sdram_bank3.hex"
+/* verilator lint_off WIDTH */
+    parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT2_OFFSET = 0,
+/* verilator lint_on WIDTH */
+
+    parameter REF_FILE="sdram_bank3.hex"
 )(
     input               rst,
     input               clk,
@@ -41,52 +45,46 @@ module jtframe_ram_4slots #(parameter
     input  [SLOT0_AW-1:0] slot0_addr,
     input  [SLOT1_AW-1:0] slot1_addr,
     input  [SLOT2_AW-1:0] slot2_addr,
-    input  [SLOT3_AW-1:0] slot3_addr,
 
     //  output data
     output [SLOT0_DW-1:0] slot0_dout,
     output [SLOT1_DW-1:0] slot1_dout,
     output [SLOT2_DW-1:0] slot2_dout,
-    output [SLOT3_DW-1:0] slot3_dout,
 
     input    [SDRAMW-1:0] offset0,
     input    [SDRAMW-1:0] offset1,
     input    [SDRAMW-1:0] offset2,
-    input    [SDRAMW-1:0] offset3,
 
     input               slot0_cs,
     input               slot1_cs,
     input               slot2_cs,
-    input               slot3_cs,
 
     output              slot0_ok,
     output              slot1_ok,
     output              slot2_ok,
-    output              slot3_ok,
 
     // Slot 0 accepts 16-bit writes
     input               slot0_wen,
     input  [SLOT0_DW-1:0] slot0_din,
     input  [1:0]        slot0_wrmask,
 
-    // Slot 1-3 cache can be cleared
+    // Slot 1/2 cache can be cleared
     input               slot1_clr,
     input               slot2_clr,
-    input               slot3_clr,
 
     // SDRAM controller interface
     input               sdram_ack,
     output  reg         sdram_rd,
     output  reg         sdram_wr,
     output  reg [SDRAMW-1:0] sdram_addr,
-    input               data_rdy,
     input               data_dst,
+    input               data_rdy,
     input       [15:0]  data_read,
     output  reg [15:0]  data_write,  // only 16-bit writes
     output  reg [ 1:0]  sdram_wrmask // each bit is active low
 );
 
-localparam SW=4;
+localparam SW=3;
 
 wire [SW-1:0] req, slot_ok;
 reg  [SW-1:0] slot_sel;
@@ -95,13 +93,11 @@ wire [SW-1:0] active = ~slot_sel & req;
 
 wire [SDRAMW-1:0] slot0_addr_req,
                   slot1_addr_req,
-                  slot2_addr_req,
-                  slot3_addr_req;
+                  slot2_addr_req;
 
 assign slot0_ok = slot_ok[0];
 assign slot1_ok = slot_ok[1];
 assign slot2_ok = slot_ok[2];
-assign slot3_ok = slot_ok[3];
 
 jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW)) u_slot0(
     .rst       ( rst                    ),
@@ -128,7 +124,7 @@ u_slot1(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot1_clr              ),
-    .offset    ( offset1                ),
+    .offset    ( SLOT1_OFFSET           ),
     .addr      ( slot1_addr             ),
     .addr_ok   ( slot1_cs               ),
     .sdram_addr( slot1_addr_req         ),
@@ -147,7 +143,7 @@ u_slot2(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot2_clr              ),
-    .offset    ( offset2                ),
+    .offset    ( SLOT2_OFFSET           ),
     .addr      ( slot2_addr             ),
     .addr_ok   ( slot2_cs               ),
     .sdram_addr( slot2_addr_req         ),
@@ -158,25 +154,6 @@ u_slot2(
     .req       ( req[2]                 ),
     .data_ok   ( slot_ok[2]             ),
     .we        ( slot_sel[2]            )
-);
-
-jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT3_AW),.DW(SLOT3_DW),
-    .LATCH(SLOT3_LATCH),.DOUBLE(SLOT3_DOUBLE),.OKLATCH(SLOT3_OKLATCH))
-u_slot3(
-    .rst       ( rst                    ),
-    .clk       ( clk                    ),
-    .clr       ( slot3_clr              ),
-    .offset    ( offset3                ),
-    .addr      ( slot3_addr             ),
-    .addr_ok   ( slot3_cs               ),
-    .sdram_addr( slot3_addr_req         ),
-    .din       ( data_read              ),
-    .din_ok    ( data_rdy               ),
-    .dst       ( data_dst               ),
-    .dout      ( slot3_dout             ),
-    .req       ( req[3]                 ),
-    .data_ok   ( slot_ok[3]             ),
-    .we        ( slot_sel[3]            )
 );
 
 always @(posedge clk) begin
@@ -198,7 +175,7 @@ always @(posedge clk) begin
             sdram_wrmask <= 2'b11;
             if( active[0] ) begin
                 sdram_addr  <= slot0_addr_req;
-                data_write  <= slot0_din;
+                data_write  <= {(SLOT0_DW==8?2:1){slot0_din}};
                 sdram_wrmask<= slot0_wrmask;
                 sdram_rd    <= req_rnw;
                 sdram_wr    <= ~req_rnw;
@@ -213,11 +190,6 @@ always @(posedge clk) begin
                 sdram_rd    <= 1;
                 sdram_wr    <= 0;
                 slot_sel[2] <= 1;
-            end else if( active[3]) begin
-                sdram_addr  <= slot3_addr_req;
-                sdram_rd    <= 1;
-                sdram_wr    <= 0;
-                slot_sel[3] <= 1;
             end
         end
     end
