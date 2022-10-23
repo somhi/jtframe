@@ -98,11 +98,11 @@ In this example only one bank is used. You can check the *game_sdram.v* file tha
 The memory ports are automatically added to the core game module by adding this at the bottom of the port list:
 
 ```
-    (* jtframe_mem_ports *)
+    /* jtframe mem_ports */
 );
 ```
 
-Note that no ports should be added manually after the `jtframe_mem_ports` line.
+Note that no ports should be added manually after the `jtframe mem_ports` line.
 
 Following the standard naming convention for memories, 8-bit memory ports start at memory address 0, 16-bit ports at 1 and 32-bit ports at 2.
 

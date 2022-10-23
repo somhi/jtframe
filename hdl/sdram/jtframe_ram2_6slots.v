@@ -43,10 +43,10 @@ module jtframe_ram2_6slots #(parameter
     SLOT5_OKLATCH= 1,
 
 /* verilator lint_off WIDTH */
-    parameter [SDRAMW-1:0] SLOT2_OFFSET = 0,
-    parameter [SDRAMW-1:0] SLOT3_OFFSET = 0,
-    parameter [SDRAMW-1:0] SLOT4_OFFSET = 0,
-    parameter [SDRAMW-1:0] SLOT5_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT2_OFFSET = {SDRAMW{1'b0}},
+    parameter [SDRAMW-1:0] SLOT3_OFFSET = {SDRAMW{1'b0}},
+    parameter [SDRAMW-1:0] SLOT4_OFFSET = {SDRAMW{1'b0}},
+    parameter [SDRAMW-1:0] SLOT5_OFFSET = {SDRAMW{1'b0}},
 /* verilator lint_on WIDTH */
 
     REF_FILE="sdram_bank5.hex"

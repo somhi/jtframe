@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 1-12-2020 */
 
-module jtframe_ram_4slots #(parameter
+module jtframe_ram1_4slots #(parameter
     SDRAMW = 22,
     SLOT0_DW = 8, SLOT1_DW = 8, SLOT2_DW = 8, SLOT3_DW = 8,
     SLOT0_AW = 8, SLOT1_AW = 8, SLOT2_AW = 8, SLOT3_AW = 8,

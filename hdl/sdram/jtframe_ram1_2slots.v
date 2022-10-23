@@ -18,7 +18,7 @@
 
 // SDRAM access multiplexer, 2 -> 1
 
-module jtframe_ram_2slots #(parameter
+module jtframe_ram1_2slots #(parameter
     SDRAMW = 22,
     SLOT0_DW =16, SLOT1_DW = 8, SLOT2_DW = 8,
     SLOT0_AW = 8, SLOT1_AW = 8, SLOT2_AW = 8,

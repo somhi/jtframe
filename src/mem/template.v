@@ -124,6 +124,21 @@ module jt{{.Core}}_game_sdram(
     input   [ 3:0]  gfx_en
 );
 
+/* verilator lint_off WIDTH */
+`ifdef JTFRAME_BA1_START
+    localparam [24:0] BA1_START=`JTFRAME_BA1_START;
+`endif
+`ifdef JTFRAME_BA2_START
+    localparam [24:0] BA2_START=`JTFRAME_BA2_START;
+`endif
+`ifdef JTFRAME_BA3_START
+    localparam [24:0] BA3_START=`JTFRAME_BA3_START;
+`endif
+`ifdef JTFRAME_PROM_START
+    localparam [24:0] PROM_START=`JTFRAME_PROM_START;
+`endif
+/* verilator lint_on WIDTH */
+
 {{ range .Params }}
 parameter [24:0] {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 {{- end}}
@@ -243,22 +258,6 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
 
-/* verilator lint_off WIDTH */
-`ifdef JTFRAME_BA1_START
-    localparam [24:0] BA1_START=`JTFRAME_BA1_START;
-`endif
-`ifdef JTFRAME_BA2_START
-    localparam [24:0] BA2_START=`JTFRAME_BA2_START;
-`endif
-`ifdef JTFRAME_BA3_START
-    localparam [24:0] BA3_START=`JTFRAME_BA3_START;
-`endif
-`ifdef JTFRAME_PROM_START
-    localparam [24:0] PROM_START=`JTFRAME_PROM_START;
-`endif
-
-/* verilator lint_on WIDTH */
-
 jtframe_dwnld #(
 `ifdef JTFRAME_HEADER
     .HEADER    ( `JTFRAME_HEADER   ),
@@ -303,7 +302,7 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     // {{.Name}}
     {{- if not .Rw }}
     {{- with .Offset }}
-    .SLOT{{$index}}_OFFSET({{.}}),{{end}}{{end}}
+    .SLOT{{$index}}_OFFSET({{.}}[21:0]),{{end}}{{end}}
     .SLOT{{$index}}_AW({{ slot_addr_width . }}),
     .SLOT{{$index}}_DW({{ printf "%2d" .Data_width}})
 {{- end}}

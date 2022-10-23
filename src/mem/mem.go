@@ -204,7 +204,7 @@ func add_game_ports( args Args, cfg *MemConfig) {
 			bout.WriteString(line)
 			bout.WriteByte(byte(0xA))
 		}
-		if !found && strings.Index( line, "(* jtframe_mem_ports *)")>=0 { // simple comparison for now, change to regex in future
+		if !found && strings.Index( line, "/* jtframe mem_ports */")>=0 { // simple comparison for now, change to regex in future
 			found = true
 			bout.Write(buffer.Bytes())
 			ignore = true	// will not copy lines until ); is found

@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 1-12-2020 */
 
-module jtframe_ram_5slots #(parameter
+module jtframe_ram1_5slots #(parameter
     SDRAMW = 22,
     SLOT0_FASTWR = 0,
 
