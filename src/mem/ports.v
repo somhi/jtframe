@@ -9,7 +9,7 @@
     input    {{ data_range . }} {{.Name}}_data,{{if not .Cs}}
 {{- if .Rw }}
     output          {{.Name}}_we,
-    output   {{ data_range . }} {{.Name}}_dout,
+    output   {{ data_range . }} {{.Name}}_din,
     output   [ 1:0] {{.Name}}_dsn,{{end}}
     output          {{.Name}}_cs,{{end}}
     input           {{.Name}}_ok{{end}}

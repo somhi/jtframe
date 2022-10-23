@@ -101,7 +101,7 @@ module jtframe_sdram_mux #(parameter
     input               downloading,
     input               loop_rst,
     input               sdram_ack,
-    output  reg         sdram_req,
+    output  reg         sdram_rd,
     output  reg         sdram_rnw,
     output  reg         refresh_en,
     output  reg [21:0]  sdram_addr,
@@ -326,14 +326,14 @@ if( rst || loop_rst || downloading ) begin
     sdram_addr <= 22'd0;
     ready_cnt  <=  4'd0;
     ready      <=  1'b0;
-    sdram_req  <=  1'b0;
+    sdram_rd  <=  1'b0;
     data_sel   <= 10'd0;
     refresh_en <=  1'b1;
     slot_we    <= 10'd0;
 end else begin
     {ready, ready_cnt}  <= {ready_cnt, 1'b1};
     if( sdram_ack ) begin
-        sdram_req <= 1'b0;
+        sdram_rd <= 1'b0;
         wait_cycle <= 1'b0;
     end
 
@@ -341,7 +341,7 @@ end else begin
     // accept a new request
     slot_we <= data_sel;
     if( data_sel==10'd0 || (data_rdy&&!wait_cycle) ) begin
-        sdram_req <= |active;
+        sdram_rd <= |active;
         wait_cycle<= |active;
         data_sel  <= 10'd0;
         sdram_wrmask <= 2'b11;

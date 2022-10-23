@@ -660,7 +660,13 @@ jtframe_board #(
     .ba_rdy     ( ba_rdy        ),
     .ba_ack     ( ba_ack        ),
     .ba0_din    ( ba0_din       ),
-    .ba0_din_m  ( ba0_din_m     ),  // write mask
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     // ROM-load interface
     .prog_addr  ( prog_addr     ),
@@ -668,7 +674,7 @@ jtframe_board #(
     .prog_rd    ( prog_rd       ),
     .prog_we    ( prog_we       ),
     .prog_data  ( prog_data     ),
-    .prog_mask  ( prog_mask     ),
+    .prog_dsn   ( prog_mask     ),
     .prog_rdy   ( prog_rdy      ),
     .prog_dst   ( prog_dst      ),
     .prog_dok   ( prog_dok      ),

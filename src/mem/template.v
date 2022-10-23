@@ -17,6 +17,10 @@ module jt{{.Core}}_game_sdram(
     input           rst24,
     input           clk24,
 `endif
+`ifdef JTFRAME_CLK48
+    input           rst48,
+    input           clk48,
+`endif
     output          pxl2_cen,   // 12   MHz
     output          pxl_cen,    //  6   MHz
     output   [`JTFRAME_COLORW-1:0]  red,
@@ -39,6 +43,14 @@ module jt{{.Core}}_game_sdram(
     input    [ 1:0] coin_input,
     input    [`JTFRAME_BUTTONS-1+4:0] joystick1,
     input    [`JTFRAME_BUTTONS-1+4:0] joystick2,
+`endif
+`ifdef JTFRAME_ANALOG
+    input   [15:0]  joyana_l1,
+    input   [15:0]  joyana_l2,
+    `ifdef JTFRAME_ANALOG_DUAL
+    input   [15:0]  joyana_r1,
+    input   [15:0]  joyana_r2,
+    `endif
 `endif
     // SDRAM interface
     input           downloading,
@@ -90,7 +102,12 @@ module jt{{.Core}}_game_sdram(
     input           dip_test,
     input   [ 1:0]  dip_fxlevel,
     // Sound output
+`ifdef JTFRAME_STEREO
+    output  signed [15:0] snd_left,
+    output  signed [15:0] snd_right,
+`else
     output  signed [15:0] snd,
+`endif
     output          sample,
     output          game_led,
     input           enable_psg,
@@ -99,6 +116,10 @@ module jt{{.Core}}_game_sdram(
 `ifdef JTFRAME_DEBUG
     input   [ 7:0]  debug_bus,
     output  [ 7:0]  debug_view,
+`endif
+`ifdef JTFRAME_STATUS
+    input   [ 7:0]  st_addr,
+    output  [ 7:0]  st_dout,
 `endif
     input   [ 3:0]  gfx_en
 );
@@ -115,7 +136,7 @@ wire {{ data_range . }} {{.Name}}_data;
 wire        {{.Name}}_cs, {{.Name}}_ok;
 {{- if .Rw }}
 wire        {{.Name}}_we;
-wire {{ data_range . }} {{.Name}}_dout;
+wire {{ data_range . }} {{.Name}}_din;
 wire [ 1:0] {{.Name}}_dsn;
 {{end}}{{end}}
 {{- end}}
@@ -128,6 +149,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 `ifdef JTFRAME_CLK24
     .rst24      ( rst24     ),
     .clk24      ( clk24     ),
+`endif
+`ifdef JTFRAME_CLK48
+    .rst48      ( rst48     ),
+    .clk48      ( clk48     ),
 `endif
     .pxl2_cen       ( pxl2_cen      ),
     .pxl_cen        ( pxl_cen       ),
@@ -143,6 +168,14 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .coin_input     ( coin_input    ),
     .joystick1      ( joystick1     ),
     .joystick2      ( joystick2     ),
+`ifdef JTFRAME_ANALOG
+    .joyana_l1      ( joyana_l1     ),
+    .joyana_l2      ( joyana_l2     ),
+`ifdef JTFRAME_ANALOG_DUAL
+    .joyana_r1      ( joyana_r1     ),
+    .joyana_r2      ( joyana_r2     ),
+`endif
+`endif
     // DIP switches
     .status         ( status        ),
     .dipsw          ( dipsw         ),
@@ -152,7 +185,12 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .dip_test       ( dip_test      ),
     .dip_fxlevel    ( dip_fxlevel   ),
     // Sound output
+`ifdef JTFRAME_STEREO
+    .snd_left       ( snd_left      ),
+    .snd_right      ( snd_right     ),
+`else
     .snd            ( snd           ),
+`endif
     .sample         ( sample        ),
     .game_led       ( game_led      ),
     .enable_psg     ( enable_psg    ),
@@ -170,7 +208,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- if .Rw }}
     .{{.Name}}_we   ( {{.Name}}_we   ),
     .{{.Name}}_dsn  ( {{.Name}}_dsn  ),
-    .{{.Name}}_dout ( {{.Name}}_dout ),
+    .{{.Name}}_din  ( {{.Name}}_din  ),
     {{- end}}
     {{end}}
     {{- end}}
@@ -195,6 +233,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 `ifdef JTFRAME_DEBUG
     .debug_bus    ( debug_bus      ),
     .debug_view   ( debug_view     ),
+`endif
+`ifdef JTFRAME_STATUS
+    .st_addr      ( st_addr        ),
+    .st_dout      ( st_dout        ),
 `endif
     .gfx_en       ( gfx_en         )
 );
@@ -282,10 +324,10 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     .slot{{$index2}}_addr  ( {{.Name}}_addr  ),
     {{- end }}
     {{- if .Rw }}
-    .slot{{$index2}}_wen   ( {{.Name}}_wen   ),
-    .slot{{$index2}}_din   ( {{.Name}}_dout  ),
+    .slot{{$index2}}_wen   ( {{.Name}}_we    ),
+    .slot{{$index2}}_din   ( {{.Name}}_din   ),
     .slot{{$index2}}_wrmask( {{.Name}}_dsn   ),
-    {{with .Offset }}.slot{{$index2}}_offset( {{.}} ), {{end}}
+    {{with .Offset }}.slot{{$index2}}_offset( {{.}}[21:0] ), {{end}}
     {{- else }}
     {{- if not $is_rom }}
     .slot{{$index2}}_clr   ( 1'b0       ), // only 1'b0 supported in mem.yaml
@@ -296,7 +338,7 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     {{end}}
     // SDRAM controller interface
     .sdram_ack   ( ba_ack[{{$bank}}]  ),
-    .sdram_req   ( ba_rd[{{$bank}}]   ),
+    .sdram_rd    ( ba_rd[{{$bank}}]   ),
     .sdram_addr  ( ba{{$bank}}_addr   ),
 {{- if not $is_rom }}
     .sdram_wr    ( ba_wr[{{$bank}}]   ),

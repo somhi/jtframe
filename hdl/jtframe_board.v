@@ -74,7 +74,7 @@ module jtframe_board #(parameter
     // ROM programming
     input  [SDRAMW-1:0] prog_addr,
     input        [15:0] prog_data,
-    input        [ 1:0] prog_mask,
+    input        [ 1:0] prog_dsn,
     input        [ 1:0] prog_ba,
     input               prog_we,
     input               prog_rd,
@@ -666,7 +666,7 @@ jtframe_sdram64 #(
     .prog_rd    ( prog_rd       ),
     .prog_wr    ( prog_we       ),
     .prog_din   ( prog_data     ),
-    .prog_din_m ( prog_mask     ),
+    .prog_dsn   ( prog_dsn      ),
     .prog_rdy   ( prog_rdy      ),
     .prog_dst   ( prog_dst      ),
     .prog_dok   ( prog_dok      ),

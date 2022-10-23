@@ -408,7 +408,7 @@ jtframe_board #(
     .prog_rd    ( prog_rd       ),
     .prog_we    ( prog_we       ),
     .prog_data  ( prog_data     ),
-    .prog_mask  ( prog_mask     ),
+    .prog_dsn   ( prog_mask     ),
     .prog_rdy   ( prog_rdy      ),
     .prog_dst   ( prog_dst      ),
     .prog_dok   ( prog_dok      ),

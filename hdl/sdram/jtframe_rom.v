@@ -89,7 +89,7 @@ module jtframe_rom #(parameter
     output              slot8_ok,
     // SDRAM controller interface
     input               sdram_ack,
-    output  reg         sdram_req,
+    output  reg         sdram_rd,
     output  reg [21:0]  sdram_addr,
     input               data_dst,
     input               data_rdy,
@@ -293,13 +293,13 @@ wire [8:0] active = ~data_sel & req;
 always @(posedge clk, posedge rst)
 if( rst ) begin
     sdram_addr <= 22'd0;
-    sdram_req  <=  1'b0;
+    sdram_rd  <=  1'b0;
     data_sel   <=  9'd0;
 end else begin
-    if( sdram_ack ) sdram_req <= 1'b0;
+    if( sdram_ack ) sdram_rd <= 1'b0;
     // accept a new request
     if( data_sel==9'd0 || data_rdy ) begin
-        sdram_req <= |active;
+        sdram_rd <= |active;
         data_sel  <= 9'd0;
         case( 1'b1 )
             active[0]: begin

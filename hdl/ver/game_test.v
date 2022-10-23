@@ -193,14 +193,9 @@ wire [SDRAMW-1:0] ba1_addr;
 wire [SDRAMW-1:0] ba2_addr;
 wire [SDRAMW-1:0] ba3_addr;
 wire [SDRAMW-1:0] prog_addr;
-wire [15:0] ba0_din;
-wire [ 1:0] ba0_din_m;  // write mask
-wire [ 3:0] ba_rd;
-wire        ba_wr;
-wire [ 3:0] ba_ack;
-wire [ 3:0] ba_dst;
-wire [ 3:0] ba_dok;
-wire [ 3:0] ba_rdy;
+wire [15:0] ba0_din, ba1_din, ba2_din, ba3_din;
+wire [ 1:0] ba0_dsn, ba1_dsn, ba2_dsn, ba3_dsn;
+wire [ 3:0] ba_rd, ba_wr, ba_ack, ba_dst, ba_dok, ba_rdy;
 
 wire [15:0] prog_data;
 wire [ 1:0] prog_mask;
@@ -307,9 +302,15 @@ jtframe_sdram64 #(
     .ba3_addr   ( ba3_addr      ),
 
     .rd         ( ba_rd         ),
-    .wr         ( {3'b0,ba_wr}  ),
-    .din        ( ba0_din       ),
-    .din_m      ( ba0_din_m     ),  // write mask
+    .wr         ( ba_wr         ),
+    .ba0_din    ( ba0_din       ),
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     .rdy        ( ba_rdy        ),
     .ack        ( ba_ack        ),
@@ -323,7 +324,7 @@ jtframe_sdram64 #(
     .prog_rd    ( prog_rd       ),
     .prog_wr    ( prog_we       ),
     .prog_din   ( prog_data     ),
-    .prog_din_m ( prog_mask     ),
+    .prog_dsn   ( prog_mask     ),
     .prog_rdy   ( prog_rdy      ),
     .prog_dst   ( prog_dst      ),
     .prog_dok   ( prog_dok      ),
@@ -463,7 +464,13 @@ u_game(
     .ba_rdy     ( ba_rdy        ),
     .ba_ack     ( ba_ack        ),
     .ba0_din    ( ba0_din       ),
-    .ba0_din_m  ( ba0_din_m     ),  // write mask
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     .prog_ba    ( prog_ba       ),
     .prog_rdy   ( prog_rdy      ),

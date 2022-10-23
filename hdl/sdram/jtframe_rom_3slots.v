@@ -66,7 +66,7 @@ module jtframe_rom_3slots #(parameter
     output              slot2_ok,
     // SDRAM controller interface
     input               sdram_ack,
-    output  reg         sdram_req,
+    output  reg         sdram_rd,
     output  reg [SDRAMW-1:0] sdram_addr,
     input               data_dst,
     input               data_rdy,
@@ -149,13 +149,13 @@ wire [SW-1:0] active = ~slot_sel & req;
 always @(posedge clk, posedge rst)
 if( rst ) begin
     sdram_addr <= 0;
-    sdram_req  <= 0;
+    sdram_rd  <= 0;
     slot_sel   <= 0;
 end else begin
-    if( sdram_ack ) sdram_req <= 0;
+    if( sdram_ack ) sdram_rd <= 0;
     // accept a new request
     if( slot_sel==0 || data_rdy ) begin
-        sdram_req <= |active;
+        sdram_rd <= |active;
         slot_sel  <= {SW{1'b0}};
         if( active[0] ) begin
             sdram_addr <= slot0_addr_req;

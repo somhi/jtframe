@@ -51,9 +51,7 @@ module jtframe_ram_3slots #(parameter
     output [SLOT1_DW-1:0] slot1_dout,
     output [SLOT2_DW-1:0] slot2_dout,
 
-    input    [SDRAMW-1:0] offset0,
-    input    [SDRAMW-1:0] offset1,
-    input    [SDRAMW-1:0] offset2,
+    input    [SDRAMW-1:0] slot0_offset,
 
     input               slot0_cs,
     input               slot1_cs,
@@ -104,7 +102,7 @@ jtframe_ram_rq #(.SDRAMW(SDRAMW),.AW(SLOT0_AW),.DW(SLOT0_DW)) u_slot0(
     .clk       ( clk                    ),
     .addr      ( slot0_addr             ),
     .addr_ok   ( slot0_cs               ),
-    .offset    ( offset0                ),
+    .offset    ( slot0_offset           ),
     .wrdata    ( slot0_din              ),
     .wrin      ( slot0_wen              ),
     .req_rnw   ( req_rnw                ),

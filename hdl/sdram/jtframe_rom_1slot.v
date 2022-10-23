@@ -40,7 +40,7 @@ module jtframe_rom_1slot #(parameter
     output              slot0_ok,
     // SDRAM controller interface
     input               sdram_ack,
-    output              sdram_req,
+    output              sdram_rd,
     output [SDRAMW-1:0] sdram_addr,
     input               data_dst,
     input               data_rdy,
@@ -73,7 +73,7 @@ jtframe_rom_2slots #(
     .slot1_ok  (            ),
     // SDRAM controller interface
     .sdram_ack ( sdram_ack  ),
-    .sdram_req ( sdram_req  ),
+    .sdram_rd ( sdram_rd  ),
     .sdram_addr( sdram_addr ),
     .data_dst  ( data_dst   ),
     .data_rdy  ( data_rdy   ),
