@@ -62,7 +62,13 @@ module jtframe_board #(parameter
     output        [3:0] ba_dst,
     output        [3:0] ba_dok,
     input        [15:0] ba0_din,
-    input        [ 1:0] ba0_din_m,  // write mask
+    input        [ 1:0] ba0_dsn,  // write mask
+    input        [15:0] ba1_din,
+    input        [ 1:0] ba1_dsn,
+    input        [15:0] ba2_din,
+    input        [ 1:0] ba2_dsn,
+    input        [15:0] ba3_din,
+    input        [ 1:0] ba3_dsn,
 
     output       [15:0] sdram_dout,
     // ROM programming
@@ -266,7 +272,7 @@ wire              pre2x_LHBL, pre2x_LVBL;
 
 wire [ 3:0] bax_rd, bax_wr, bax_ack;
 wire [15:0] bax_din;
-wire [ 1:0] bax_din_m;
+wire [ 1:0] bax_dsn;
 wire [ 3:0] bax_rdy, bax_dst;
 wire [SDRAMW-1:0] bax_addr;
 
@@ -520,7 +526,7 @@ jtframe_dip u_dip(
         .ba0_rdy    ( bax_rdy[0]),
         .ba0_ack    ( bax_ack[0]),
         .ba0_din    ( bax_din   ),
-        .ba0_din_m  ( bax_din_m ),
+        .ba0_din_m  ( bax_dsn ),
         .data_read  ( sdram_dout),
 
         .flags      ( cheat     ),
@@ -572,7 +578,7 @@ jtframe_dip u_dip(
     assign bax_rd    = ba_rd;
     assign bax_wr    = ba_wr;
     assign bax_din   = ba0_din;
-    assign bax_din_m = ba0_din_m;
+    assign bax_dsn = ba0_din_m;
     assign bax_addr  = ba0_addr;
     assign ba_ack    = bax_ack;
     assign ba_rdy    = bax_rdy;
@@ -639,8 +645,14 @@ jtframe_sdram64 #(
 
     .rd         ( bax_rd        ),
     .wr         ( bax_wr        ),
-    .din        ( bax_din       ),
-    .din_m      ( bax_din_m     ),  // write mask
+    .ba0_din    ( bax_din       ),
+    .ba0_dsn    ( bax_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     .rdy        ( bax_rdy       ),
     .ack        ( bax_ack       ),

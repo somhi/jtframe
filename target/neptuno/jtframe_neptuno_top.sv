@@ -165,10 +165,9 @@ wire          prog_we, prog_rd, prog_rdy, prog_ack, prog_dst, prog_dok;
 
 // ROM access from game
 wire [SDRAMW-1:0] ba0_addr, ba1_addr, ba2_addr, ba3_addr;
-wire [ 3:0] ba_rd, ba_rdy, ba_ack, ba_dst, ba_dok;
-wire        ba_wr;
-wire [15:0] ba0_din;
-wire [ 1:0] ba0_din_m;
+wire [ 3:0] ba_rd, ba_rdy, ba_ack, ba_dst, ba_dok, ba_wr;
+wire [15:0] ba0_din, ba1_din, ba2_din, ba3_din;
+wire [ 1:0] ba0_dsn, ba1_dsn, ba2_dsn, ba3_dsn;
 wire [15:0] sdram_dout;
 
 `ifndef JTFRAME_COLORW
@@ -300,7 +299,13 @@ localparam DIPBASE=16;
     assign ba_rd[3:1] = 0;
     assign ba_wr      = 0;
     assign ba0_din    = 0;
-    assign ba0_din_m  = 3;
+    assign ba0_dsn    = 3;
+    assign ba1_din    = 0;
+    assign ba1_dsn    = 3;
+    assign ba2_din    = 0;
+    assign ba2_dsn    = 3;
+    assign ba3_din    = 0;
+    assign ba3_dsn    = 3;
 `endif
 
 assign game_led[1] = 1'b0; // Let system LED info go through too
@@ -378,13 +383,19 @@ u_frame(
     .ba2_addr   ( ba2_addr      ),
     .ba3_addr   ( ba3_addr      ),
     .ba_rd      ( ba_rd         ),
-    .ba_wr      ({ 3'd0, ba_wr }),
+    .ba_wr      ( ba_wr         ),
     .ba_dst     ( ba_dst        ),
     .ba_dok     ( ba_dok        ),
     .ba_rdy     ( ba_rdy        ),
     .ba_ack     ( ba_ack        ),
     .ba0_din    ( ba0_din       ),
-    .ba0_din_m  ( ba0_din_m     ),  // write mask
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     // ROM-load interface
     .prog_addr  ( prog_addr     ),
@@ -581,7 +592,13 @@ u_game(
     .ba_rdy     ( ba_rdy        ),
     .ba_ack     ( ba_ack        ),
     .ba0_din    ( ba0_din       ),
-    .ba0_din_m  ( ba0_din_m     ),  // write mask
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     .prog_ba    ( prog_ba       ),
     .prog_rdy   ( prog_rdy      ),

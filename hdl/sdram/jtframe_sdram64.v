@@ -50,8 +50,14 @@ module jtframe_sdram64 #(
     input      [AW-1:0] ba3_addr,
     input         [3:0] rd,
     input         [3:0] wr,
-    input        [15:0] din,
-    input        [ 1:0] din_m,  // write mask
+    input        [15:0] ba0_din,
+    input        [ 1:0] ba0_dsn,  // write mask
+    input        [15:0] ba1_din,
+    input        [ 1:0] ba1_dsn,
+    input        [15:0] ba2_din,
+    input        [ 1:0] ba2_dsn,
+    input        [15:0] ba3_din,
+    input        [ 1:0] ba3_dsn,
 
     // programming
     input               prog_en,
@@ -59,7 +65,7 @@ module jtframe_sdram64 #(
     input               prog_rd,
     input               prog_wr,
     input        [15:0] prog_din,
-    input        [ 1:0] prog_din_m,
+    input        [ 1:0] prog_dsn,
     input        [ 1:0] prog_ba,
     output  reg         prog_dst,
     output  reg         prog_dok,
@@ -123,6 +129,7 @@ reg  [14:0] prio_lfsr;
 wire [12:0] bx0_a, bx1_a, bx2_a, bx3_a, init_a, next_a, rfsh_a,
             ba0_row, ba1_row, ba2_row, ba3_row;
 wire [ 1:0] next_ba, prio;
+wire [15:0] din;
 
 wire [AW-1:0] ba0_addr_l, ba1_addr_l, ba2_addr_l, ba3_addr_l;
 wire    [3:0] rd_l, wr_l;
@@ -157,7 +164,8 @@ assign {next_ba, next_cmd, next_a } =
                                { 2'd0, bx0_cmd, bx0_a } )))));
 
 assign prio     = prio_lfsr[1:0];
-assign mask_mux = prog_en ? prog_din_m : din_m;
+assign mask_mux = prog_en ? prog_dsn : bg[0] ? ba0_dsn : bg[1] ? ba1_dsn : bg[2] ? ba2_dsn : ba3_dsn;
+assign din      = bg[0]   ? ba0_din : bg[1] ? ba1_din : bg[2] ? ba2_din : ba3_din;
 
 `ifndef VERILATOR
 reg  [15:0] dq_pad;

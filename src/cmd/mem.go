@@ -46,13 +46,5 @@ func init() {
 
 	// mem_args.Def_cfg.Target = "mist"
 	// flag.StringVar(&mem_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
-	// flag.StringVar(&mem_args.Xml_path, "xml", "mame.xml", "Path to MAME XML file")
-	// flag.StringVar(&mem_args.Pocketdir, "Pocketdir", "pocket", "Output folder for Analogue Pocket files")
-	// flag.StringVar(&mem_args.Outdir, "Outdir", "mem", "Output folder")
-	// flag.StringVar(&mem_args.Altdir, "Altdir", "", "Output folder for alternatives")
-	// flag.StringVar(&mem_args.Year, "year", "", "Year string for mem file comment")
 	flag.BoolVarP(&mem_args.Verbose, "verbose","v", false, "verbose")
-	// flag.BoolVarP(&mem_args.Skipmem, "skipmem","s", false, "Do not generate mem files")
-	// flag.BoolVarP(&mem_args.Show_platform, "show_platform","p", false, "Show platform name and quit")
-	// flag.StringVar(&mem_args.Buttons, "buttons", "", "Buttons used by the game -upto six-")
 }

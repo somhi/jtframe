@@ -41,12 +41,16 @@ type Args struct {
 type SDRAMBus struct {
 	Name       string `yaml:"name"`
 	Offset	   string `yaml:"offset"`
-	Addr_width int    `yaml:"addr_width"`
+	Addr_width int    `yaml:"addr_width"`	// Width for counting all *bytes*
 	Data_width int    `yaml:"data_width"`
+	Rw         bool   `yaml:"rw"`
+	Cs		   string `yaml:"cs"`
 }
 
 type SDRAMBank struct {
 	Buses  []SDRAMBus `yaml:"buses"`
+	// Precalculated values
+	MemType string
 }
 
 type SDRAMCfg struct {
@@ -60,9 +64,22 @@ type Include struct {
 	File string `yaml:"file"` // if null, mem.yaml will be used
 }
 
+type Param struct {
+	Name string `yaml:"name"`
+	Value string `yaml:"value"`	// if null, the value will be a macro of the same name
+								// use "..." if the value starts by ` because of a macro calling
+}
+
+type Ports struct {
+	// Inputs []string `yaml:"inputs"`
+	Outputs []string `yaml:"outputs"`
+}
+
 type MemConfig struct {
-	Include []Include  `yaml:include`
+	Include []Include  `yaml:"include"`
 	SDRAM     SDRAMCfg `yaml:"sdram"`
+	Params  []Param   `yaml:"params"`
+	Ports     Ports   `yaml:"ports"`
 	Game      string   `yaml:"game"`  // optional: Overrides using Core as the jt<core>_game module
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.
@@ -73,6 +90,28 @@ type MemConfig struct {
 	// Precalculated values
 	Colormsb int
 	Unused [4]bool // true for unused banks
+}
+
+func addr_range( bus SDRAMBus ) string {
+	return fmt.Sprintf("[%2d:%d]",bus.Addr_width-1,bus.Data_width>>4)
+}
+
+func data_range( bus SDRAMBus ) string {
+	return fmt.Sprintf("[%2d:0]",bus.Data_width-1)
+}
+
+func slot_addr_width( bus SDRAMBus ) string {
+	if bus.Data_width==8 {
+		return fmt.Sprintf("%2d",bus.Addr_width)
+	} else {
+		return fmt.Sprintf("%2d",bus.Addr_width-1)
+	}
+}
+
+var funcMap = template.FuncMap{
+    "addr_range": addr_range,
+    "data_range": data_range,
+    "slot_addr_width": slot_addr_width,
 }
 
 func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
@@ -111,6 +150,20 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 	if err_yaml != nil {
 		log.Fatalf("jtframe mem: cannot parse file\n\t%s\n\t%v for a second time", filename, err_yaml)
 	}
+	// Update the MemType strings
+	for k, bank := range cfg.SDRAM.Banks {
+		ram_cnt := 0
+		for _, each := range bank.Buses {
+			if each.Rw  {
+				ram_cnt++
+			}
+		}
+		if ram_cnt > 0 {
+			cfg.SDRAM.Banks[k].MemType = fmt.Sprintf("ram%d",ram_cnt)
+		} else {
+			cfg.SDRAM.Banks[k].MemType = "rom"
+		}
+	}
 	return true
 }
 
@@ -135,7 +188,7 @@ func Run(args Args) {
 	// Execute the template
 	cfg.Core = args.Core
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
-	t := template.Must(template.ParseFiles(tpath))
+	t := template.Must(template.New("template.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &cfg)
 	outpath := "jt"+args.Core+"_game_sdram.v"

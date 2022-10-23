@@ -73,7 +73,13 @@ module jtframe_mist #(parameter
     output        [3:0] ba_dst,
     output        [3:0] ba_dok,
     input        [15:0] ba0_din,
-    input        [ 1:0] ba0_din_m,  // write mask
+    input        [ 1:0] ba0_dsn,  // write mask
+    input        [15:0] ba1_din,
+    input        [ 1:0] ba1_dsn,
+    input        [15:0] ba2_din,
+    input        [ 1:0] ba2_dsn,
+    input        [15:0] ba3_din,
+    input        [ 1:0] ba3_dsn,
     output       [15:0] sdram_dout,
     // UART
     input           uart_rx,
@@ -388,7 +394,13 @@ jtframe_board #(
     .ba_rdy     ( ba_rdy        ),
     .ba_ack     ( ba_ack        ),
     .ba0_din    ( ba0_din       ),
-    .ba0_din_m  ( ba0_din_m     ),  // write mask
+    .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ),
+    .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ),
+    .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ),
+    .ba3_dsn    ( ba3_dsn       ),
 
     // ROM-load interface
     .prog_addr  ( prog_addr     ),

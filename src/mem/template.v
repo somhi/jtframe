@@ -50,9 +50,17 @@ module jt{{.Core}}_game_sdram(
     output   [21:0] ba2_addr,
     output   [21:0] ba3_addr,
     output   [ 3:0] ba_rd,
-    output          ba_wr,
+    // Write signals
+    output   [ 3:0] ba_wr,
     output   [15:0] ba0_din,
-    output   [ 1:0] ba0_din_m,  // write mask
+    output   [ 1:0] ba0_dsn,  // write mask
+    output   [15:0] ba1_din,
+    output   [ 1:0] ba1_dsn,
+    output   [15:0] ba2_din,
+    output   [ 1:0] ba2_dsn,
+    output   [15:0] ba3_din,
+    output   [ 1:0] ba3_dsn,
+
     input    [ 3:0] ba_ack,
     input    [ 3:0] ba_dst,
     input    [ 3:0] ba_dok,
@@ -95,19 +103,24 @@ module jt{{.Core}}_game_sdram(
     input   [ 3:0]  gfx_en
 );
 
-{{- range .SDRAM.Banks}}
-{{- range .Buses}}
-wire [{{.Addr_width}}-1:{{- with eq .Data_width 32}}1{{else}}0{{end}}] {{.Name}}_addr;
-wire [{{.Data_width}}-1:0] {{.Name}}_data;
-wire {{.Name}}_cs, {{.Name}}_ok;
-{{end}}
+{{ range .Params }}
+parameter [24:0] {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 {{- end}}
-wire prom_we;
-{{with .SDRAM.Preaddr }}wire [21:0] pre_addr;{{end}}
 
-assign ba_wr      = 0;
-assign ba0_din    = 0;
-assign ba0_din_m  = 3;
+{{range .Ports.Outputs}}wire {{.}};{{end}}
+{{ range .SDRAM.Banks}}
+{{- range .Buses}}
+wire {{ addr_range . }} {{.Name}}_addr;
+wire {{ data_range . }} {{.Name}}_data;
+wire        {{.Name}}_cs, {{.Name}}_ok;
+{{- if .Rw }}
+wire        {{.Name}}_we;
+wire {{ data_range . }} {{.Name}}_dout;
+wire [ 1:0] {{.Name}}_dsn;
+{{end}}{{end}}
+{{- end}}
+wire        prom_we, header;
+{{with .SDRAM.Preaddr }}wire [21:0] pre_addr;{{end}}
 
 jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst        ( rst       ),
@@ -116,22 +129,22 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst24      ( rst24     ),
     .clk24      ( clk24     ),
 `endif
-    .pxl2_cen   ( pxl2_cen  ),   // 12   MHz
-    .pxl_cen    ( pxl_cen   ),    //  6   MHz
-    .red        ( red       ),
-    .green      ( green     ),
-    .blue       ( blue      ),
-    .LHBL       ( LHBL      ),
-    .LVBL       ( LVBL      ),
-    .HS         ( HS        ),
-    .VS         ( VS        ),
+    .pxl2_cen       ( pxl2_cen      ),
+    .pxl_cen        ( pxl_cen       ),
+    .red            ( red           ),
+    .green          ( green         ),
+    .blue           ( blue          ),
+    .LHBL           ( LHBL          ),
+    .LVBL           ( LVBL          ),
+    .HS             ( HS            ),
+    .VS             ( VS            ),
     // cabinet I/O
     .start_button   ( start_button  ),
     .coin_input     ( coin_input    ),
     .joystick1      ( joystick1     ),
     .joystick2      ( joystick2     ),
     // DIP switches
-    .status         ( status        ),     // only bits 31:16 are looked at
+    .status         ( status        ),
     .dipsw          ( dipsw         ),
     .service        ( service       ),
     .dip_pause      ( dip_pause     ),
@@ -145,12 +158,20 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .enable_psg     ( enable_psg    ),
     .enable_fm      ( enable_fm     ),
     // Memory interface
+    {{- range .Ports.Outputs}}
+    .{{.}}   ( {{.}} ),
+    {{end}}
     {{- range .SDRAM.Banks}}
     {{- range .Buses}}
-    .{{.Name}}_addr ( {{.Name}}_addr ),
-    .{{.Name}}_cs   ( {{.Name}}_cs   ),
+    .{{.Name}}_addr ( {{.Name}}_addr ),{{ if not .Cs}}
+    .{{.Name}}_cs   ( {{.Name}}_cs   ),{{end}}
     .{{.Name}}_ok   ( {{.Name}}_ok   ),
     .{{.Name}}_data ( {{.Name}}_data ),
+    {{- if .Rw }}
+    .{{.Name}}_we   ( {{.Name}}_we   ),
+    .{{.Name}}_dsn  ( {{.Name}}_dsn  ),
+    .{{.Name}}_dout ( {{.Name}}_dout ),
+    {{- end}}
     {{end}}
     {{- end}}
     {{- with .SDRAM.Preaddr }}
@@ -164,10 +185,13 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end }}
     // PROM writting
 `ifdef JTFRAME_PROM_START
-    .prog_addr    ( prog_addr      ),
-    .prog_data    ( prog_data      ),
-    .prog_we      ( prog_we        ),
+    .prog_addr    ( header ? ioctl_addr[21:0] : prog_addr      ),
+    .prog_data    ( header ? ioctl_dout       : prog_data[7:0] ),
+    .prog_we      ( header ? ioctl_wr         : prog_we        ),
     .prom_we      ( prom_we        ),
+`endif
+`ifdef JTFRAME_HEADER
+    .header       ( header         ),
 `endif
     // Debug  
 `ifdef JTFRAME_DEBUG
@@ -177,7 +201,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .gfx_en       ( gfx_en         )
 );
 
-assign dwnld_busy = downloading;
+assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
 
 /* verilator lint_off WIDTH */
 `ifdef JTFRAME_BA1_START
@@ -196,6 +220,9 @@ assign dwnld_busy = downloading;
 /* verilator lint_on WIDTH */
 
 jtframe_dwnld #(
+`ifdef JTFRAME_HEADER
+    .HEADER    ( `JTFRAME_HEADER   ),
+`endif
 `ifdef JTFRAME_BA1_START
     .BA1_START ( JTFRAME_BA1_START ),
 `endif
@@ -222,23 +249,31 @@ jtframe_dwnld #(
     .prog_rd      ( prog_rd        ),
     .prog_ba      ( prog_ba        ),
     .prom_we      ( prom_we        ),
-    .header       (                ),
+    .header       ( header         ),
     .sdram_ack    ( prog_ack       )
 );
 
 {{ range $bank, $each:=.SDRAM.Banks }}
 {{- if gt (len .Buses) 0 }}
 /* verilator tracing_off */
-jtframe_rom_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
+jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
 {{- $first := true}}
 {{- range $index, $each:=.Buses}}
     {{- if $first}}{{$first = false}}{{else}}, {{end}}
     // {{.Name}}
+    {{- if not .Rw }}
     {{- with .Offset }}
-    .SLOT{{$index}}_OFFSET({{.}}),{{end}}
-    .SLOT{{$index}}_DW({{.Data_width}}),
-    .SLOT{{$index}}_AW({{.Addr_width}})
+    .SLOT{{$index}}_OFFSET({{.}}),{{end}}{{end}}
+    .SLOT{{$index}}_AW({{ slot_addr_width . }}),
+    .SLOT{{$index}}_DW({{ printf "%2d" .Data_width}})
 {{- end}}
+`ifdef JTFRAME_BA2_LEN
+{{- range $index, $each:=.Buses}}
+    {{- if not .Rw}}
+    ,.SLOT{{$index}}_DOUBLE(1){{ end }}
+{{- end}}
+`endif
+{{- $is_rom := eq .MemType "rom" }}
 ) u_bank{{$bank}}(
     .rst         ( rst        ),
     .clk         ( clk        ),
@@ -248,24 +283,59 @@ jtframe_rom_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     {{- else }}
     .slot{{$index2}}_addr  ( {{.Name}}_addr  ),
     {{- end }}
+    {{- if .Rw }}
+    .slot{{$index2}}_wen   ( {{.Name}}_wen   ),
+    .slot{{$index2}}_din   ( {{.Name}}_dout  ),
+    .slot{{$index2}}_wrmask( {{.Name}}_dsn   ),
+    {{with .Offset }}.slot{{$index2}}_offset( {{.}} ), {{end}}
+    {{- else }}
+    {{- if not $is_rom }}
+    .slot{{$index2}}_clr   ( 1'b0       ), // only 1'b0 supported in mem.yaml
+    {{- end }}{{- end}}
     .slot{{$index2}}_dout  ( {{.Name}}_data  ),
-    .slot{{$index2}}_cs    ( {{.Name}}_cs    ),
+    .slot{{$index2}}_cs    ( {{ if .Cs }}{{.Cs}}{{else}}{{.Name}}_cs{{end}}    ),
     .slot{{$index2}}_ok    ( {{.Name}}_ok    ),
     {{end}}
     // SDRAM controller interface
     .sdram_ack   ( ba_ack[{{$bank}}]  ),
     .sdram_req   ( ba_rd[{{$bank}}]   ),
     .sdram_addr  ( ba{{$bank}}_addr   ),
+{{- if not $is_rom }}
+    .sdram_wr    ( ba_wr[{{$bank}}]   ),
+    .sdram_wrmask( ba{{$bank}}_dsn    ),
+    .data_write  ( ba{{$bank}}_din    ),{{end}}
     .data_dst    ( ba_dst[{{$bank}}]  ),
     .data_rdy    ( ba_rdy[{{$bank}}]  ),
     .data_read   ( data_read  )
 );
-{{- end }}{{end}}
+
+{{- if $is_rom }}
+assign ba_wr[{{$bank}}] = 0;
+assign ba{{$bank}}_din  = 0;
+assign ba{{$bank}}_dsn  = 3;
+{{- end}}{{- end }}{{end}}
 
 {{ range $index, $each:=.Unused }}
 {{- with . -}}
 assign ba{{$index}}_addr = 0;
 assign ba_rd[{{$index}}] = 0;
 {{ end -}}
-{{ end }}
+{{ end -}}
 endmodule
+
+/* Expected interface ports in the game
+{{range .Ports.Outputs}}    output          {{.}},{{end}}
+{{ range .SDRAM.Banks}}
+{{- range .Buses}}
+    output {{ addr_range . }} {{.Name}}_addr,
+    input  {{ data_range . }} {{.Name}}_data,{{if not .Cs}}
+    output        {{.Name}}_cs,{{end}}
+    input         {{.Name}}_ok,
+{{- if .Rw }}
+    output        {{.Name}}_we,
+    output {{ data_range . }} {{.Name}}_dout,
+    output [ 1:0] {{.Name}}_dsn,
+{{end}}
+{{end}}
+{{- end}}
+*/

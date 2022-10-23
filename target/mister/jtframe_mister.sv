@@ -137,7 +137,13 @@ module jtframe_mister #(parameter
     output        [3:0] ba_dst,
     output        [3:0] ba_dok,
     input        [15:0] ba0_din,
-    input        [ 1:0] ba0_din_m,  // write mask
+    input        [ 1:0] ba0_dsn,  // write mask
+    input        [15:0] ba1_din,
+    input        [ 1:0] ba1_dsn,
+    input        [15:0] ba2_din,
+    input        [ 1:0] ba2_dsn,
+    input        [15:0] ba3_din,
+    input        [ 1:0] ba3_dsn,
     output       [15:0] sdram_dout,
 //////////// board
     output          rst,      // synchronous reset
