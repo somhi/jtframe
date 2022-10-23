@@ -36,10 +36,19 @@ SED="sed -i"
 
 rm -f macros.f
 
+# sed and stat are different for MacOS and GNU
 if [ `uname` = Darwin ]; then
     MACOS=YES
     # BSD version for sed command
-    SED="sed -i bak"
+    if ! sed --version > /dev/null; then
+        SED="sed -i bak"
+    fi
+fi
+
+if ! stat --version > /dev/null; then
+    GAME_ROM_LEN=$(stat -L -f %z rom.bin)
+else
+    GAME_ROM_LEN=$(stat -L -c%s rom.bin)
 fi
 
 # set blank .f files
@@ -346,11 +355,6 @@ if [ ! -e ${TARGET}_dump.v ]; then
 fi
 FILES="$FILES ${TARGET}_dump.v"
 
-if [ $MACOS = YES ]; then
-    GAME_ROM_LEN=$(stat -L -f %z rom.bin)
-else
-    GAME_ROM_LEN=$(stat -L -c%s rom.bin)
-fi
 add_macro GAME_ROM_LEN=${GAME_ROM_LEN}
 
 # Use this function to create

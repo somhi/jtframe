@@ -51,11 +51,22 @@ module jt{{.Core}}_game_sdram(
     input   [15:0]  joyana_r1,
     input   [15:0]  joyana_r2,
     `endif
+    `ifdef JTFRAME_4PLAYERS
+    input   [15:0]  joyana_l3,
+    input   [15:0]  joyana_l4,
+        `ifdef JTFRAME_ANALOG_DUAL
+    input   [15:0]  joyana_r3,
+    input   [15:0]  joyana_r4,
+        `endif
+    `endif
 `endif
     // SDRAM interface
     input           downloading,
     output          dwnld_busy,
-
+`ifdef JTFRAME_IOCTL_RD
+    input           ioctl_ram,
+    output   [ 7:0] ioctl_din,
+`endif
     // Bank 0: allows R/W
     output   [21:0] ba0_addr,
     output   [21:0] ba1_addr,
@@ -183,13 +194,25 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .coin_input     ( coin_input    ),
     .joystick1      ( joystick1     ),
     .joystick2      ( joystick2     ),
+    `ifdef JTFRAME_4PLAYERS
+    .joystick3      ( joystick3     ),
+    .joystick4      ( joystick4     ),
+    `endif
 `ifdef JTFRAME_ANALOG
-    .joyana_l1      ( joyana_l1     ),
-    .joyana_l2      ( joyana_l2     ),
-`ifdef JTFRAME_ANALOG_DUAL
-    .joyana_r1      ( joyana_r1     ),
-    .joyana_r2      ( joyana_r2     ),
-`endif
+    .joyana_l1    ( joyana_l1        ),
+    .joyana_l2    ( joyana_l2        ),
+    `ifdef JTFRAME_ANALOG_DUAL
+        .joyana_r1    ( joyana_r1        ),
+        .joyana_r2    ( joyana_r2        ),
+    `endif
+    `ifdef JTFRAME_4PLAYERS
+        .joyana_l3( joyana_l3        ),
+        .joyana_l4( joyana_l4        ),
+        `ifdef JTFRAME_ANALOG_DUAL
+            .joyana_r3( joyana_r3        ),
+            .joyana_r4( joyana_r4        ),
+        `endif
+    `endif
 `endif
     // DIP switches
     .status         ( status        ),
