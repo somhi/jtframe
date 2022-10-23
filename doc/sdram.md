@@ -98,7 +98,7 @@ In this example only one bank is used. You can check the *game_sdram.v* file tha
 The memory ports are automatically added to the core game module by adding this at the bottom of the port list:
 
 ```
-    (* jtframe: mem_ports *)
+    (* jtframe_mem_ports *)
 );
 ```
 

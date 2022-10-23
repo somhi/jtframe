@@ -190,9 +190,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .prog_we      ( header ? ioctl_wr         : prog_we        ),
     .prom_we      ( prom_we        ),
 `endif
-`ifdef JTFRAME_HEADER
     .header       ( header         ),
-`endif
     // Debug  
 `ifdef JTFRAME_DEBUG
     .debug_bus    ( debug_bus      ),
@@ -224,13 +222,13 @@ jtframe_dwnld #(
     .HEADER    ( `JTFRAME_HEADER   ),
 `endif
 `ifdef JTFRAME_BA1_START
-    .BA1_START ( JTFRAME_BA1_START ),
+    .BA1_START ( BA1_START ),
 `endif
 `ifdef JTFRAME_BA2_START
-    .BA2_START ( JTFRAME_BA2_START ),
+    .BA2_START ( BA2_START ),
 `endif
 `ifdef JTFRAME_BA3_START
-    .BA3_START ( JTFRAME_BA3_START ),
+    .BA3_START ( BA3_START ),
 `endif
 `ifdef JTFRAME_PROM_START
     .PROM_START( PROM_START ),

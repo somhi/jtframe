@@ -204,14 +204,18 @@ func add_game_ports( args Args, cfg *MemConfig) {
 			bout.WriteString(line)
 			bout.WriteByte(byte(0xA))
 		}
-		if !found && strings.Index( line, "(* jtframe: mem_ports *)")>=0 { // simple comparison for now, change to regex in future
+		if !found && strings.Index( line, "(* jtframe_mem_ports *)")>=0 { // simple comparison for now, change to regex in future
 			found = true
 			bout.Write(buffer.Bytes())
 			ignore = true	// will not copy lines until ); is found
 		}
 	}
 	f.Close()
-	ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
+	if found {
+		ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
+	} else {
+		log.Println("jtframe mem: the game file was not updated. jtframe_mem_ports line not found.")
+	}
 }
 
 func Run(args Args) {

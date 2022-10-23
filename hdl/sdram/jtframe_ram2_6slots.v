@@ -236,7 +236,6 @@ u_slot5(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( slot5_clr              ),
-    .offset    ( offset5                ),
     .offset    ( SLOT5_OFFSET           ),
     .addr_ok   ( slot5_cs               ),
     .sdram_addr( slot5_addr_req         ),

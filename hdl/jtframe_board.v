@@ -578,7 +578,7 @@ jtframe_dip u_dip(
     assign bax_rd    = ba_rd;
     assign bax_wr    = ba_wr;
     assign bax_din   = ba0_din;
-    assign bax_dsn = ba0_din_m;
+    assign bax_dsn   = ba0_dsn;
     assign bax_addr  = ba0_addr;
     assign ba_ack    = bax_ack;
     assign ba_rdy    = bax_rdy;
