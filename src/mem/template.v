@@ -154,6 +154,10 @@ module jt{{.Core}}_game_sdram(
 parameter [24:0] {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 {{- end}}
 
+`ifndef JTFRAME_IOCTL_RD
+wire ioctl_ram = 0;
+`endif
+
 {{range .Ports.Outputs}}wire {{.}};{{end}}
 {{ range .SDRAM.Banks}}
 {{- range .Buses}}
@@ -261,10 +265,14 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end }}
     // PROM writting
 `ifdef JTFRAME_PROM_START
-    .prog_addr    ( header ? ioctl_addr[21:0] : prog_addr      ),
+    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : prog_addr      ),
     .prog_data    ( header ? ioctl_dout       : prog_data[7:0] ),
     .prog_we      ( header ? ioctl_wr         : prog_we        ),
     .prom_we      ( prom_we        ),
+`endif
+`ifdef JTFRAME_IOCTL_RD
+    // input           ioctl_ram,
+    .ioctl_din    ( ioctl_din      ),
 `endif
     .header       ( header         ),
     // Debug  

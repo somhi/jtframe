@@ -1,4 +1,8 @@
     input           header,
+`ifdef JTFRAME_IOCTL_RD
+    // input           ioctl_ram,
+    output   [ 7:0] ioctl_din,
+`endif
 {{ $first := true}}
 {{- range .Ports.Outputs}}    output          {{.}},{{end -}}
 {{ range .SDRAM.Banks}}

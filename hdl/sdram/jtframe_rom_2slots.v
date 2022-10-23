@@ -36,8 +36,8 @@ module jtframe_rom_2slots #(parameter
     SLOT0_OKLATCH= 1,
     SLOT1_OKLATCH= 1,
 /* verilator lint_off WIDTH */
-    parameter [SDRAMW-1:0] SLOT0_OFFSET = 0,
-    parameter [SDRAMW-1:0] SLOT1_OFFSET = 0,
+    parameter [SDRAMW-1:0] SLOT0_OFFSET = {SDRAMW{1'b0}},
+    parameter [SDRAMW-1:0] SLOT1_OFFSET = {SDRAMW{1'b0}},
 /* verilator lint_on WIDTH */
     parameter REF_FILE="sdram_bank3.hex"
 )(
