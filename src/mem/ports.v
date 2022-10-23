@@ -1,4 +1,11 @@
+`ifdef JTFRAME_HEADER
     input           header,
+`endif
+{{- if .SDRAM.Preaddr }}
+    input   [24:0] ioctl_addr,
+    input   [21:0] pre_addr,
+    output  [21:0] post_addr
+{{end}}
 `ifdef JTFRAME_IOCTL_RD
     // input           ioctl_ram,
     output   [ 7:0] ioctl_din,

@@ -151,7 +151,7 @@ module jt{{.Core}}_game_sdram(
 /* verilator lint_on WIDTH */
 
 {{ range .Params }}
-parameter [24:0] {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
+parameter {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 {{- end}}
 
 `ifndef JTFRAME_IOCTL_RD
@@ -171,7 +171,7 @@ wire [ 1:0] {{.Name}}_dsn;
 {{end}}{{end}}
 {{- end}}
 wire        prom_we, header;
-{{with .SDRAM.Preaddr }}wire [21:0] pre_addr;{{end}}
+{{with .SDRAM.Preaddr }}wire [21:0] pre_addr, post_addr;{{end}}
 
 jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst        ( rst       ),
@@ -256,16 +256,15 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end}}
     {{- with .SDRAM.Preaddr }}
     // SDRAM address mapper during downloading
-    .downloading  ( downloading    ),
     .ioctl_addr   ( ioctl_addr     ),
     .pre_addr     ( pre_addr       ),
-`ifndef JTFRAME_PROM_START
-    .prog_addr    ( prog_addr      ),
-`endif
+    .post_addr    ( post_addr      ),
     {{- end }}
     // PROM writting
 `ifdef JTFRAME_PROM_START
-    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : prog_addr      ),
+    {{- if .SDRAM.Preaddr }}
+    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : post_addr      ),{{else}}
+    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : prog_addr      ),{{end}}
     .prog_data    ( header ? ioctl_dout       : prog_data[7:0] ),
     .prog_we      ( header ? ioctl_wr         : prog_we        ),
     .prom_we      ( prom_we        ),
@@ -274,7 +273,9 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     // input           ioctl_ram,
     .ioctl_din    ( ioctl_din      ),
 `endif
+`ifdef JTFRAME_HEADER
     .header       ( header         ),
+`endif
     // Debug  
 `ifdef JTFRAME_DEBUG
     .debug_bus    ( debug_bus      ),
@@ -288,6 +289,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
+{{if .SDRAM.Preaddr }}assign prog_addr = post_addr;{{end}}
 
 jtframe_dwnld #(
 `ifdef JTFRAME_HEADER
@@ -389,6 +391,9 @@ assign ba{{$bank}}_dsn  = 3;
 {{- with . -}}
 assign ba{{$index}}_addr = 0;
 assign ba_rd[{{$index}}] = 0;
+assign ba_wr[{{$index}}] = 0;
+assign ba{{$index}}_dsn  = 3;
+assign ba{{$index}}_din  = 0;
 {{ end -}}
 {{ end -}}
 endmodule
