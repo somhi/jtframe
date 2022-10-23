@@ -19,11 +19,13 @@ package mem
 
 import (
 	"bytes"
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/jotego/jtframe/jtfiles"
@@ -167,6 +169,51 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 	return true
 }
 
+func make_sdram( args Args, cfg *MemConfig) {
+	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
+	t := template.Must(template.New("template.v").Funcs(funcMap).ParseFiles(tpath))
+	var buffer bytes.Buffer
+	t.Execute(&buffer, cfg)
+	outpath := "jt"+args.Core+"_game_sdram.v"
+	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
+	ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
+}
+
+func add_game_ports( args Args, cfg *MemConfig) {
+	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "ports.v")
+	t := template.Must(template.New("ports.v").Funcs(funcMap).ParseFiles(tpath))
+	var buffer bytes.Buffer
+	t.Execute(&buffer, cfg)
+	outpath := "jt"+args.Core+"_game.v"
+	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
+	f, err := os.Open( outpath )
+	if err != nil {
+		log.Println("jtframe mem: cannot update file ",outpath)
+		return
+	}
+	scanner := bufio.NewScanner(f)
+	var bout bytes.Buffer
+	found := false
+	ignore := false
+	for scanner.Scan() {
+		line := scanner.Text()
+		if ignore && strings.Index(line, ");")>=0 {
+			ignore = false
+		}
+		if !ignore {
+			bout.WriteString(line)
+			bout.WriteByte(byte(0xA))
+		}
+		if !found && strings.Index( line, "(* jtframe: mem_ports *)")>=0 { // simple comparison for now, change to regex in future
+			found = true
+			bout.Write(buffer.Bytes())
+			ignore = true	// will not copy lines until ); is found
+		}
+	}
+	f.Close()
+	ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
+}
+
 func Run(args Args) {
 	var cfg MemConfig
 	if !parse_file( args.Core, "mem", &cfg, args ) {
@@ -187,11 +234,6 @@ func Run(args Args) {
 	}
 	// Execute the template
 	cfg.Core = args.Core
-	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
-	t := template.Must(template.New("template.v").Funcs(funcMap).ParseFiles(tpath))
-	var buffer bytes.Buffer
-	t.Execute(&buffer, &cfg)
-	outpath := "jt"+args.Core+"_game_sdram.v"
-	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
-	ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
+	make_sdram( args, &cfg )
+	add_game_ports( args, &cfg )
 }

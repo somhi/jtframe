@@ -93,6 +93,19 @@ sdram:
 
 In this example only one bank is used. You can check the *game_sdram.v* file that is generated to see what JTFRAME does. Another core that uses *mem.yaml* is [Extermination](https://github.com/jotego/jtbubl). Look at the cores using *mem.yaml* and at the Go source code to understand how the *mem.yaml* works.
 
+## Ports in the Game Module
+
+The memory ports are automatically added to the core game module by adding this at the bottom of the port list:
+
+```
+    (* jtframe: mem_ports *)
+);
+```
+
+Note that no ports should be added manually after the `jtframe_mem_ports` line.
+
+Following the standard naming convention for memories, 8-bit memory ports start at memory address 0, 16-bit ports at 1 and 32-bit ports at 2.
+
 # SDRAM Timing
 
 SDRAM clock can be shifted with respect to the internal clock (clk_rom in the diagram).
