@@ -95,7 +95,7 @@ In this example only one bank is used. You can check the *game_sdram.v* file tha
 
 ## Ports in the Game Module
 
-The memory ports are automatically added to the core game module by adding this at the bottom of the port list:
+The memory ports can be taken into the design by including the file `mem_ports.inc`, which will be created if the include state is found. The ports can be automatically added to the core game module by adding this at the bottom of the port list:
 
 ```
     /* jtframe mem_ports */

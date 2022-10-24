@@ -37,6 +37,7 @@ type Args struct {
 	Core    string
 	CfgFile string
 	Verbose bool
+	Make_inc bool
 	// The memory selection (SDRAM, DDR, BRAM...) will be here
 }
 
@@ -194,6 +195,7 @@ func add_game_ports( args Args, cfg *MemConfig) {
 	scanner := bufio.NewScanner(f)
 	var bout bytes.Buffer
 	found := false
+	make_inc := false
 	ignore := false
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -209,12 +211,21 @@ func add_game_ports( args Args, cfg *MemConfig) {
 			bout.Write(buffer.Bytes())
 			ignore = true	// will not copy lines until ); is found
 		}
+		if strings.Index( line, "`include \"mem_ports.inc\"")>=0 {
+			make_inc = true
+			break
+		}
 	}
 	f.Close()
 	if found {
 		ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
-	} else {
-		log.Println("jtframe mem: the game file was not updated. jtframe_mem_ports line not found.")
+	}
+	if make_inc || args.Make_inc {
+		outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl/mem_ports.inc")
+		ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
+	}
+	if !found && !make_inc {
+		log.Println("jtframe mem: the game file was not updated. jtframe_mem_ports line not found. Declare /* jtframe_mem_ports */ right before the end of the port list in the game module or include mem_ports.inc in the port list.")
 	}
 }
 

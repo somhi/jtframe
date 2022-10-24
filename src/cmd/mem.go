@@ -47,4 +47,5 @@ func init() {
 	// mem_args.Def_cfg.Target = "mist"
 	// flag.StringVar(&mem_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
 	flag.BoolVarP(&mem_args.Verbose, "verbose","v", false, "verbose")
+	flag.BoolVarP(&mem_args.Make_inc, "inc","i", false, "always creates mem_ports.inc")
 }
