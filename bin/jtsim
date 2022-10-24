@@ -552,9 +552,11 @@ verilator)
     fi
     # Import macros for simulation
     echo "// Macros from command line " >> defmacros.h
-    cat macros.f >> defmacros.h
-    $SED "s/$MACROPREFIX/#define /" defmacros.h
-    $SED "s/=/ /" defmacros.h
+    cp macros.f macros.f2
+    $SED "s/=/ /" macros.f2
+    $SED "s/$MACROPREFIX/#define /" macros.f2
+    cat macros.f2 >> defmacros.h
+    rm macros.f2
     # Convert " to \" so verilator parses string macros correctly
     $SED 's/"/\\"/g' filtered.f
     # verilog to C++ conversion

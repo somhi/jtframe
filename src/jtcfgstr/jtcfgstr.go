@@ -130,12 +130,26 @@ func dump_bash(def map[string]string) {
 }
 
 func dump_cpp(def map[string]string) {
+	expected := map[string]bool{
+		"JTFRAME_CLK24": false,
+		"JTFRAME_CLK48": false,
+		"JTFRAME_CLK96": false,
+		"JTFRAME_CLK6":  false,
+		"JTFRAME_SDRAM96": false,
+	}
 	for k, v := range def {
 		if k == "JTFRAME_PLL" {
 			v = strings.TrimPrefix(v, "jtframe_pll")
 		}
 		// Get only the numerical part
 		fmt.Printf("#define _%s %s\n", k, v)
+		_, exists := expected[k]
+		if exists {
+			expected[k] = true
+		}
+	}
+	for k,v := range expected {
+		fmt.Printf("const bool %s = %t;\n", k, v)
 	}
 }
 

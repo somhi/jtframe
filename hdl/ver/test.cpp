@@ -38,11 +38,6 @@
     #define _JTFRAME_COLORW 4
 #endif
 
-#ifdef _JTFRAME_CLK96
-    const bool USE_CLK96=true;
-#else
-    const bool USE_CLK96=false;
-#endif
 
 #ifndef _JTFRAME_GAMEPLL
     #define _JTFRAME_GAMEPLL "jtframe_pll6000"
@@ -567,7 +562,7 @@ void JTSim::clock(int n) {
         int cur_dwn = game.downloading | game.dwnld_busy;
         game.clk = 1;
 #ifdef _JTFRAME_CLK24    // not supported together with _JTFRAME_CLK96
-        game.clk24 = ticks&1;
+        game.clk24 = (ticks & ((JTFRAME_CLK96||JTFRAME_SDRAM96) ? 2 : 1)) == 0 ? 0 : 1;
 #endif
 #ifdef _JTFRAME_CLK48
         game.clk48 = 1-game.clk48;
