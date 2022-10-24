@@ -213,6 +213,12 @@ always @* begin
             bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
         end
     end
+
+    // system info is shown reddish
+    if( (view_on | view_hex_on) & view_sel ) begin
+        gout[COLORW-1] = 0;
+        bout[COLORW-1] = 0;
+    end
 end
 
 endmodule
