@@ -512,11 +512,23 @@ module mt48lc16m16a2 (Dq, Addr, Ba, Clk, Cke, Cs_n, Ras_n, Cas_n, We_n, Dqm,
         // Active Block (Latch Bank Address and Row Address)
         if (Active_enable === 1'b1) begin
             // Activate an open bank can corrupt data
-            if ((Ba === 2'b00 && Act_b0 === 1'b1) || (Ba === 2'b01 && Act_b1 === 1'b1) ||
-                (Ba === 2'b10 && Act_b2 === 1'b1) || (Ba === 2'b11 && Act_b3 === 1'b1)) begin
-                $display ("%m : at time %t ERROR: Bank already activated -- data can be corrupted", $time);
+            if ( Ba === 2'b00 && Act_b0 === 1'b1  ) begin
+                $display ("%m : at time %t ERROR: Bank 0 already activated -- data can be corrupted", $time);
                 #1000 $finish;
             end
+            if ( Ba === 2'b01 && Act_b1 === 1'b1 ) begin
+                $display ("%m : at time %t ERROR: Bank 1 already activated -- data can be corrupted", $time);
+                #1000 $finish;
+            end
+            if ( Ba === 2'b10 && Act_b2 === 1'b1 ) begin
+                $display ("%m : at time %t ERROR: Bank 2 already activated -- data can be corrupted", $time);
+                #1000 $finish;
+            end
+            if ( Ba === 2'b11 && Act_b3 === 1'b1 ) begin
+                $display ("%m : at time %t ERROR: 3 Bank already activated -- data can be corrupted", $time);
+                #1000 $finish;
+            end
+
 
             // Activate Bank 0
             if (Ba === 2'b00 && Pc_b0 === 1'b1) begin
