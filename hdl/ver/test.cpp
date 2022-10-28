@@ -396,7 +396,8 @@ void SDRAM::update() {
             //  case 2: dut.SDRAM_BA_ADDR2 = ba_addr[2]; break;
             //  case 3: dut.SDRAM_BA_ADDR3 = ba_addr[3]; break;
             // }
-            if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Supports only 32-bit reads
+            if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Tested with 32 and 64-bit reads (JTFRAME_BAx_LEN=64)
+                // May fail when using 96MHz for SDRAM. Needs investigation
                 if( dqbusy ) {
                     cout << "WARNING: (test.cpp) SDRAM reads clashed\n";
                 }
