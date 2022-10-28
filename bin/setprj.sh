@@ -41,12 +41,9 @@ else
 fi
 
 export ROM=$JTROOT/rom
-CC=$JTROOT/cc
+export MRA=$ROM/mra
 DOC=$JTROOT/doc
-MRA=$ROM/mra
 export MODULES=$JTROOT/modules
-JT12=$MODULES/jt12
-JT51=$MODULES/jt51
 
 function swcore {
     IFS=/ read -ra string <<< $(pwd)

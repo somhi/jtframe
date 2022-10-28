@@ -107,6 +107,8 @@ end
 // Video overlay
 reg [8:0] vcnt,hcnt;
 reg       lhbl_l, osd_on, view_on, bus_hex_on, view_hex_on;
+reg       show_view;
+
 
 always @(posedge clk) if(pxl_cen) begin
     lhbl_l <= lhbl;
@@ -117,11 +119,14 @@ always @(posedge clk) if(pxl_cen) begin
     if(!lhbl)
         hcnt <= 0;
     else hcnt <= hcnt + 9'd1;
-    osd_on  <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
-    view_on <= view_mux != 0 && vcnt[8:3]==6'h1A && hcnt[8:6] == 3'b010;
+    // display of debug_bus
+    osd_on     <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
+    bus_hex_on <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
 
-    bus_hex_on  <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
-    view_hex_on <= (view_mux != 0 || view_sel) && vcnt[8:3] == 6'h1A && hcnt[8:4] == 5'b01101;
+    // display of debug_view
+    show_view   <= (view_mux!=0 || view_sel || debug_bus!=0) && vcnt[8:3] == 6'h1A;
+    view_on     <= show_view && hcnt[8:6] == 3'b010;
+    view_hex_on <= show_view && hcnt[8:4] == 5'b01101;
 end
 
 reg [0:19] font [0:15]; // 4x5 font
