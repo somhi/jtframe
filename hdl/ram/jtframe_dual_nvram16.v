@@ -17,7 +17,7 @@
     Date: 25-1-2021 */
 
 // Dual port 16-bit memory, where one port has full 16-bit RW access
-// but the second is divided in an
+// but the second is divided in a
 // - 1A port, 16-bit read only
 // - 1B port,  8-bit read/write
 
@@ -26,21 +26,21 @@ module jtframe_dual_nvram16 #(parameter aw=10,
     simfile_hi="", simhexfile_hi=""
 )(
     // Port 0 - full RW, 16-bit access
-    input            clk0,
-    input   [  15:0] data0,
-    input   [aw-1:0] addr0,
-    input   [   1:0] we0,
-    output  [  15:0] q0,
+    input          clk0,
+    input   [15:0] data0,
+    input   [aw:1] addr0,
+    input   [ 1:0] we0,
+    output  [15:0] q0,
     // Port 1 -- RO, 16-bit access AND RW, 8-bit access
-    input            clk1,
-    input   [aw-1:0] addr1a,
-    output  [  15:0] q1a,
+    input          clk1,
+    input   [aw:1] addr1a,
+    output  [15:0] q1a,
     // 8-bit, RW access
-    input   [   7:0] data1,  // note it's only 8 bits
-    input   [  aw:0] addr1b, // note the extra bit
-    input            we1b,   // note single bit
-    input            sel_b,
-    output  [   7:0] q1b
+    input   [ 7:0] data1,  // note it's only 8 bits
+    input   [aw:0] addr1b, // note the extra bit
+    input          we1b,   // note single bit
+    input          sel_b,
+    output  [ 7:0] q1b
 );
 
 wire [1:0] we1;

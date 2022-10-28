@@ -26,11 +26,11 @@ module jtframe_ram16 #(parameter aw=10,
     simfile_lo="", simhexfile_lo="",
     simfile_hi="", simhexfile_hi=""
 )(
-    input            clk ,
-    input   [  15:0] data,
-    input   [aw-1:0] addr,
-    input   [   1:0] we,
-    output  [  15:0] q
+    input          clk,
+    input   [15:0] data,
+    input   [aw:1] addr,
+    input   [ 1:0] we,
+    output  [15:0] q
 );
 
 jtframe_ram #(
