@@ -23,8 +23,8 @@ JTFRAME uses a submodule to give support to the *Analogue Pocket* target. This s
 These are the minimum compilation steps, using _Pirate Ship Higemaru_ as the example core
 
 ```
-> git clone --recursive https://github.com/jotego/jt_gng
-> cd jt_gng
+> git clone --recursive https://github.com/jotego/jtgng
+> cd jtgng
 > source setprj.sh
 > cd $JTFRAME/cc && make && cd -
 > jtcore hige
@@ -64,7 +64,24 @@ Run `jtcore -h` to get help on the commands.
 
 jtcore can also program the FPGA (MiST or MiSTer) with the ```-p``` option. In order to use an USB Blaster cable in Ubuntu you need to setup two urules files. The script **jtblaster** does that for you.
 
-## Macro definition
+
+## Folder and file locations
+
+JTFRAME expects a specific environment. The following folders should exist:
+
+Folder | Path       | Use
+-------|------------|-----
+cores  | root       | container for each core folder
+foo    | cores      | container for core foo
+hdl    | cores/foo  | HDL and include files for core foo
+ver    | cores/foo  | verification files. A folder for each test bench
+cfg    | cores/foo  | configuration files (macros, RTL generation...)
+doc    | root       | documentation
+rom    | root       | ROM files used for simulation. MRA scripts and .toml files
+mra    | rom/mra    | MRA files
+pocket | rom/pocket | PocketFPGA JSON files
+
+### Macro definition
 
 Macros for each core are defined in a **.def** file. This file is expected to be in the **hdl** folder. The syntax is:
 
@@ -100,24 +117,7 @@ Will include the file *common.def*, then define several macros and concatenate m
 
 Macros are evaluated with `jtframe cfgstr <corename>`
 
-## Folder and file locations
-
-JTFRAME expects a specific environment. The following folders should exist:
-
-Folder | Path       | Use
--------|------------|-----
-cores  | root       | container for each core folder
-foo    | cores      | container for core foo
-hdl    | cores/foo  | HDL and include files for core foo
-ver    | cores/foo  | verification files. A folder for each test bench
-cfg    | cores/foo  | configuration files (macro, RTL generation...)
-doc    | root       | documentation
-rom    | root       | ROM files used for simulation. MRA scripts and .toml files
-mra    | rom/mra    | MRA files
-
-Each core can list the files that uses with a file called `jtcore.qip` (like jtgng.qip for the GnG core) or with a YAML file called `game.yaml`
-
-### YAML files
+### Design Source Files
 
 As QIP files are cumbersome and specific to Quartus only, it is possible to bypass them and use a YAML format, like this:
 
@@ -165,3 +165,11 @@ To get the simulation files call jtfiles as:
 `jtframe files sim corename --target mister`
 
 From the folder where you want the files game.f and target.f to be produced.
+
+### Other Configuration Files
+
+The game memory interface can be described in the file mem.yaml, described [here](sdram.md). Using a *mem.yaml* file will generate all the RTL for the SDRAM controller automatically.
+
+The generation of MRA files from MAME's database is done by defining the translation in the file *cfg/mame2mra.toml* and using `jtframe mra <corename>`. This will also generate the PocketFPGA files is the Pocket submodule is available.
+
+The pause screen message is defined in the *cfg/msg* file.
