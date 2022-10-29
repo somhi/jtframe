@@ -558,7 +558,9 @@ func mra_name(machine *MachineXML, cfg Mame2MRA) string {
 	return machine.Description
 }
 
-func make_mra(machine *MachineXML, cfg Mame2MRA, args Args ) (*XMLNode, string) {
+// Do not pass the macros to make_mra, but instead modifiy the configuration
+// based on the macros in parse_toml
+func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 	root := XMLNode{name: "misterromdescription"}
 	n := root.AddNode("about").AddAttr("author", "jotego")
 	n.AddAttr("webpage", "https://patreon.com/jotego")
@@ -1670,8 +1672,13 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 		log.Fatal(err)
 	}
 	// Add the NVRAM section if it was in the .def file
-	if mra_cfg.Features.Nvram == 0 && macros["JTFRAME_IOCTL_RD"] != "" {
-		mra_cfg.Features.Nvram, err = strconv.Atoi(macros["JTFRAME_IOCTL_RD"])
+	if macros["JTFRAME_IOCTL_RD"] != "" {
+		if mra_cfg.Features.Nvram != 0 {
+			log.Printf(`The use of nvram in the TOML file is deprecated. Just define the macro
+	JTFRAME_IOCTL_RD in macros.def instead.\nFound nvram=%d`,mra_cfg.Features.Nvram)
+		}
+		aux, err := strconv.ParseInt(macros["JTFRAME_IOCTL_RD"],0,32)
+		mra_cfg.Features.Nvram = int(aux)
 		if err != nil {
 			fmt.Println("JTFRAME_IOCTL_RD was ill defined")
 			fmt.Println(err)
