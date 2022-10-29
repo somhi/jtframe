@@ -310,7 +310,7 @@ jtframe_dwnld #(
     .SWAB      ( {{if .SDRAM.Noswab }}0{{else}}1{{end}}         )
 ) u_dwnld(
     .clk          ( clk            ),
-    .downloading  ( downloading    ),
+    .downloading  ( downloading & ~ioctl_ram    ),
     .ioctl_addr   ( ioctl_addr     ),
     .ioctl_dout   ( ioctl_dout     ),
     .ioctl_wr     ( ioctl_wr       ),
