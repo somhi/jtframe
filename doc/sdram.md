@@ -100,6 +100,11 @@ The memory ports can be taken into the design by including the file `mem_ports.i
 ```
     /* jtframe mem_ports */
 );
+
+or
+
+    `include "mem_ports.inc"
+);
 ```
 
 Note that no ports should be added manually after the `jtframe mem_ports` line.

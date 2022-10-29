@@ -181,6 +181,9 @@ func make_sdram( args Args, cfg *MemConfig) {
 }
 
 func add_game_ports( args Args, cfg *MemConfig) {
+	make_inc := false
+	found := false
+
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "ports.v")
 	t := template.Must(template.New("ports.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
@@ -190,35 +193,35 @@ func add_game_ports( args Args, cfg *MemConfig) {
 	f, err := os.Open( outpath )
 	if err != nil {
 		log.Println("jtframe mem: cannot update file ",outpath)
-		return
-	}
-	scanner := bufio.NewScanner(f)
-	var bout bytes.Buffer
-	found := false
-	make_inc := false
-	ignore := false
-	for scanner.Scan() {
-		line := scanner.Text()
-		if ignore && strings.Index(line, ");")>=0 {
-			ignore = false
+		make_inc = true
+	} else {
+		make_inc = false
+		scanner := bufio.NewScanner(f)
+		var bout bytes.Buffer
+		ignore := false
+		for scanner.Scan() {
+			line := scanner.Text()
+			if ignore && strings.Index(line, ");")>=0 {
+				ignore = false
+			}
+			if !ignore {
+				bout.WriteString(line)
+				bout.WriteByte(byte(0xA))
+			}
+			if !found && strings.Index( line, "/* jtframe mem_ports */")>=0 { // simple comparison for now, change to regex in future
+				found = true
+				bout.Write(buffer.Bytes())
+				ignore = true	// will not copy lines until ); is found
+			}
+			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 {
+				make_inc = true
+				break
+			}
 		}
-		if !ignore {
-			bout.WriteString(line)
-			bout.WriteByte(byte(0xA))
+		f.Close()
+		if found {
+			ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
 		}
-		if !found && strings.Index( line, "/* jtframe mem_ports */")>=0 { // simple comparison for now, change to regex in future
-			found = true
-			bout.Write(buffer.Bytes())
-			ignore = true	// will not copy lines until ); is found
-		}
-		if strings.Index( line, "`include \"mem_ports.inc\"")>=0 {
-			make_inc = true
-			break
-		}
-	}
-	f.Close()
-	if found {
-		ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
 	}
 	if make_inc || args.Make_inc {
 		outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl/mem_ports.inc")
