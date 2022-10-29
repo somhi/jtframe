@@ -1,3 +1,4 @@
+    // From this line down, do not modify ports manually:
 `ifdef JTFRAME_HEADER
     input           header,
 `endif
@@ -7,7 +8,7 @@
     output  [21:0] post_addr
 {{end}}
 `ifdef JTFRAME_IOCTL_RD
-    // input           ioctl_ram,
+    input           ioctl_ram,
     output   [ 7:0] ioctl_din,
 `endif
 {{ $first := true}}

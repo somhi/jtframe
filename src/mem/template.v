@@ -270,7 +270,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .prom_we      ( prom_we        ),
 `endif
 `ifdef JTFRAME_IOCTL_RD
-    // input           ioctl_ram,
+    .ioctl_ram    ( ioctl_ram      ),
     .ioctl_din    ( ioctl_din      ),
 `endif
 `ifdef JTFRAME_HEADER

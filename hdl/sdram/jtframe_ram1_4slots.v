@@ -39,7 +39,7 @@ module jtframe_ram1_4slots #(parameter
     parameter [SDRAMW-1:0] SLOT3_OFFSET = {SDRAMW{1'b0}},
 /* verilator lint_on WIDTH */
 
-    REF_FILE="sdram_bank3.hex"
+    parameter REF_FILE="sdram_bank3.hex"
 )(
     input               rst,
     input               clk,

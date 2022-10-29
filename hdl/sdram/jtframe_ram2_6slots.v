@@ -49,7 +49,7 @@ module jtframe_ram2_6slots #(parameter
     parameter [SDRAMW-1:0] SLOT5_OFFSET = {SDRAMW{1'b0}},
 /* verilator lint_on WIDTH */
 
-    REF_FILE="sdram_bank5.hex"
+    parameter REF_FILE="sdram_bank5.hex"
 )(
     input               rst,
     input               clk,

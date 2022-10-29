@@ -35,7 +35,9 @@ The write operation is triggered from the OSD *save settings* (MiSTer) or *Save 
 
 ### Automatic SDRAM Dump
 
-A fraction of bank zero's SDRAM contents can be dumped to the micro SD card on MiSTer using the NVRAM interface. You have to define two macros:
+A fraction of bank zero's SDRAM contents can be dumped to the micro SD card on **MiSTer** using the NVRAM interface. The underlying implementation consists of using BRAM to make a *shadow* copy of the SDRAM contents. Because BRAM is scarce in most FPGA devices, this approach is only valid for MiSTer.
+
+You have to define two macros in macros.def:
 
 ```
 JTFRAME_SHADOW=0x10_0000
