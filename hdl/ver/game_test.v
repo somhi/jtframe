@@ -282,7 +282,8 @@ jtframe_sdram64 #(
     .MISTER       ( 0             ),
 `ifdef JTFRAME_SDRAM96
     .HF(1),
-    .SHIFTED(0)
+    .SHIFTED(1)     // This is different from jtframe_board's in order to work
+                    // in the verilator test bench
 `else
     .HF(0),
     `ifdef JTFRAME_180SHIFT
