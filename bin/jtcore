@@ -30,33 +30,42 @@ JTCORE compilation tool. (c) Jose Tejada 2019, @topapate
                     JTFRAME_SCAN2X      uses simple scan doubler from JTFRAME
                     MISTER_DEBUG_NOHDMI skips MiSTer HDMI related logic. Speeds up compilation.
     Target options
-    -mister     compiles the MiSTer version
     -mist       compiles the MiST version. This is the default
+    -mister     compiles the MiSTer version
     -sidi       compiles the SIDI version. This uses MiST's folders and settings but different pinout
     -neptuno    compiles the NeptUNO version
     -mc2        compiles the MultiCore2  version
     -mcp        compiles the MultiCore2+ version
-    -core       compiles the Analogue Pocket version
+    -pocket     compiles the PocketFPGA version
 
-    -seed       sets random seed for compilation
-    -rename     name used for copying the RBF file into the SD card
-    -help       displays this message
+    --program | -p  programs the FPGA via JTAG
+    --seed          sets random seed for compilation
+    --target|-t <target>
+                    specifies the target platform
+    --rename        name used for copying the RBF file into the SD card
+    --help          displays this message
+    --verbose | -v  verbose
 EOF
    exit 0
 }
 
-SIM=FALSE
-TARGET=mist
-SKIP_COMPILE=FALSE
-RENAME=
-FAIL=0
 EXT=rbf
-
-# Verilog macros
+FAIL=0
 MACROS=
-SEED=1
 OUTPUTDIR=output_files
 PRJ=
+PROG=FALSE
+RENAME=
+SEED=1
+SIM=FALSE
+SKIP_COMPILE=FALSE
+TARGET=mist
+
+# Device names for JTAG programming
+# Only MiST programming is fully implemented
+DEVICE_MIST=EP3C25E144
+DEVICE_POCKET=5CEBA4F23C8
+DEVICE=$DEVICE_MIST
 
 # Define colours if running on a terminal
 if [ -n "$TERM" ]; then
@@ -75,21 +84,31 @@ fi
 function parse_args {
     while [ $# -gt 0 ]; do
         case "$1" in
+            --skip | -s) SKIP_COMPILE=TRUE;;
+            --prog | -p) PROG=TRUE;;
+            --prog-only | -w)
+                PROG=TRUE
+                SKIP_COMPILE=TRUE;;
             -mister | -mr)
                 TARGET=mister;;
             -mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
                 TARGET=${1:1};;
+            --target|-t)
+                shift
+                TARGET=$1;;
             -d)
                 shift
                 MACROS="$1 $MACROS"
                 ;;
-            -rename)
+            --rename)
                 shift
                 RENAME=$1;;
-            -seed)
+            --seed)
                 shift
                 SEED=$1;;
-            -help | -h)
+            --verbose | -v)
+                VERBOSE=-v;;
+            --help | -h)
                 show_usage;;
             *)  if [ -z "$PRJ" ]; then
                     PRJ=$1
@@ -432,8 +451,44 @@ fi
 
 cp $RBF releases/$TARGET/$RELEASE.$EXT
 
-END_TIME=$(date +%s)
+if [ $PROG = TRUE ]; then
+    if [ $TARGET = mister ]; then
+        CABLE="DE-SoC"
+        cd $PRJPATH/mister
+        FILE=jtag.cdf
+    else
+        # if the cable is not recognized, run quartus_pgm -l
+        # and copy the cable name here
+        # this is not done automatically to speed up compilation
+        # as this rarely changes
+        CABLE=$(jtagconfig | grep -o "USB-Blaster.*")
+        FILE=$PRJPATH/${TARGET}/jt$PRJ.cdf
+        cat > $FILE << EOF
+JedecChain;
+    FileRevision(JESD32A);
+    DefaultMfr(6E);
+    P ActionCode(Cfg)
+        Device PartName($DEVICE) Path("") File("jt$PRJ.sof") MfrSpec(OpMask(1));
+ChainEnd;
 
+AlteraBegin;
+    ChainType(JTAG);
+AlteraEnd;
+EOF
+    fi
+    PROGRETRY=2
+    while ! quartus_pgm -c "$CABLE" $FILE; do
+        PROGRETRY=$((PROGRETRY-1))
+        if [ $PROGRETRY -lt 0 ]; then
+            echo "Failed to program the device $DEVICE"
+            echo "See file $FILE for programming details"
+            break;
+        fi
+    done
+fi
+
+# Show compilation  time
+END_TIME=$(date +%s)
 COMPILE_TIME=$[$END_TIME - $START_TIME]
 MINUTES=$[$COMPILE_TIME / 60]
 SECONDS=$[$COMPILE_TIME % 60]
