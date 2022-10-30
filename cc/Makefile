@@ -5,8 +5,6 @@ all: $(programs)
 
 bin2m:
 
-msg2hex:
-
 lut2hex:
 
 reverse_bits:
