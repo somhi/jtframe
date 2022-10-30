@@ -19,17 +19,20 @@
 
 function show_usage() {
     cat << EOF
-JTCORE compilation tool. (c) Jose Tejada 2019, @topapate
-    Argument without - is the project name, like gng, or 1943
+JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
+    Argument without - is the core name, like gng, or 1943
 
-    -d          Defines a verilog macro. Macros are removed from qsf file after
-                compilation.
-                Useful macros:
-                    NOSOUND             the core is compiled without sound (faster)
-                    MISTER_VIDEO_MIXER  uses the Mr video modules
-                    JTFRAME_SCAN2X      uses simple scan doubler from JTFRAME
-                    MISTER_DEBUG_NOHDMI skips MiSTer HDMI related logic. Speeds up compilation.
-    Target options
+    Macro definition
+    --def | -d   Defines a verilog macro. Macros are removed from qsf file after
+                 compilation.
+                 Useful macros:
+                   NOSOUND             the core is compiled without sound (faster)
+                   MISTER_VIDEO_MIXER  uses the Mr video modules
+                   JTFRAME_SCAN2X      uses simple scan doubler from JTFRAME
+                   MISTER_DEBUG_NOHDMI skips MiSTer HDMI related logic. Speeds up compilation.
+    --undef | -u Undefines a macro
+
+    Target selection
     -mist       compiles the MiST version. This is the default
     -mister     compiles the MiSTer version
     -sidi       compiles the SIDI version. This uses MiST's folders and settings but different pinout
@@ -38,8 +41,15 @@ JTCORE compilation tool. (c) Jose Tejada 2019, @topapate
     -mcp        compiles the MultiCore2+ version
     -pocket     compiles the PocketFPGA version
 
+    General options
+    --arc           Converts the first MRA found that uses this core to ARC
+                    and copies it to /media/$USER/MIST/core.arc
     --program | -p  programs the FPGA via JTAG
+    --quick|-q      quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
+                    Disables JTFRAME_CREDITS and HQ2X.
+    --quicker|-qq   same as -q but it also disabled HDMI output and sets MiSTer as target
     --seed          sets random seed for compilation
+    --skip | -s     skips the compilation but executes the rest of the commands
     --target|-t <target>
                     specifies the target platform
     --rename        name used for copying the RBF file into the SD card
@@ -49,8 +59,10 @@ EOF
    exit 0
 }
 
+ARC=FALSE
 EXT=rbf
 FAIL=0
+GIT=FALSE
 MACROS=
 OUTPUTDIR=output_files
 PRJ=
@@ -60,6 +72,7 @@ SEED=1
 SIM=FALSE
 SKIP_COMPILE=FALSE
 TARGET=mist
+UNMACROS=
 
 # Device names for JTAG programming
 # Only MiST programming is fully implemented
@@ -84,11 +97,25 @@ fi
 function parse_args {
     while [ $# -gt 0 ]; do
         case "$1" in
-            --skip | -s) SKIP_COMPILE=TRUE;;
+            --arc) ARC=TRUE;;
+            --def|-d)
+                shift
+                MACROS="$1 $MACROS"
+                ;;
             --prog | -p) PROG=TRUE;;
             --prog-only | -w)
                 PROG=TRUE
                 SKIP_COMPILE=TRUE;;
+            --quick|-q)
+                MACROS="$MACROS NOSOUND JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X"
+                UNMACROS="$UNMACROS JTFRAME_CREDITS"
+                GIT=FALSE;;
+            --skip | -s) SKIP_COMPILE=TRUE;;
+            --quicker|-qq)
+                MACROS="$MACROS NOSOUND JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI"
+                UNMACROS="$UNMACROS JTFRAME_CREDITS"
+                TARGET=mister
+                GIT=FALSE;;
             -mister | -mr)
                 TARGET=mister;;
             -mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
@@ -96,16 +123,16 @@ function parse_args {
             --target|-t)
                 shift
                 TARGET=$1;;
-            -d)
-                shift
-                MACROS="$1 $MACROS"
-                ;;
             --rename)
                 shift
                 RENAME=$1;;
             --seed)
                 shift
                 SEED=$1;;
+            --undef|-u)
+                shift
+                UNMACROS="$1 $UNMACROS"
+                ;;
             --verbose | -v)
                 VERBOSE=-v;;
             --help | -h)
@@ -184,6 +211,11 @@ else
 fi
 shift
 
+if [ -z "$CORE_FOLDER" ]; then
+    CORE_FOLDER=$(basename $JTROOT)
+    CORE_FOLDER=${CORE_FOLDER^^}
+fi
+
 OUTPUTDIR=output_files
 
 # Check Quartus path
@@ -220,7 +252,14 @@ function parse_macros {
     if [ ! -z "$MM" ]; then
         MM="--def $MM"
     fi
-    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit $PRJCOMMIT $MM --output $1
+    local UM=""
+    for i in $UNMACROS; do
+        UM="$i,$UM"
+    done
+    if [ ! -z "$UM" ]; then
+        UM="--undef $UM"
+    fi
+    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit $PRJCOMMIT $MM $UM --output $*
 }
 
 # qsf line to disable SOUND synthesis
@@ -451,6 +490,56 @@ fi
 
 cp $RBF releases/$TARGET/$RELEASE.$EXT
 
+######################################################################################
+# Copy the file to the SD card. The SD card must have the same name as the target platform
+if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
+    cd $JTROOT
+    if [ -z "$RENAME" ]; then
+        RENAME=JT${PRJ^^}.$EXT
+    else
+        RENAME=$RENAME.$EXT
+    fi
+    # copy the file in three forms:
+    # with full date for reference, as core.rbf to start up with it
+    # and inside its own folder for use with ARC files
+    #cp -v $RELEASE.rbf /media/$USER/${TARGET^^}
+    cp -v $RBF /media/$USER/${TARGET^^}/${SHORT^^}.$EXT
+    # Copy the file to the core folder so it can be used by ARC files
+    if [ -d /media/$USER/${TARGET^^}/$CORE_FOLDER ]; then
+        cp -v $RBF /media/$USER/${TARGET^^}/$CORE_FOLDER/$RENAME
+        # Make the folder visible by MiST firmware
+        fatattr +s /media/$USER/${TARGET^^}/$CORE_FOLDER
+    fi
+    # Copy the MRA file as ARC
+    if [[ $ARC = TRUE ]]; then
+        pushd . >/dev/null
+        cd $MRA
+        FIRSTMRA=$(find -maxdepth 1 -name "*.mra" -print0 | xargs -0 grep --files-with-matches "<rbf>jt$PRJ</rbf>" | head -n 1)
+        if [ -e "$FIRSTMRA" ]; then
+            mra -A -s "$FIRSTMRA"
+            FIRSTARC=$(basename "$FIRSTMRA" .mra)
+            if [ -e "$FIRSTARC".arc ]; then
+                cp -v "$FIRSTARC".arc /media/$USER/MIST/core.arc
+                mv -v "$FIRSTARC".arc /media/$USER/MIST/JT${PRJ^^}.arc
+            else
+                if [ $(ls *.arc | wc -l) = 1 ]; then
+                    cp -v *.arc /media/$USER/MIST/core.arc
+                    mv -v *.arc /media/$USER/MIST/JT${PRJ^^}.arc
+                else
+                    echo "Cannot find the ARC file $FIRSTARC".arc
+                    echo MRA file was "$FIRSTMRA"
+                    ls *.arc
+                fi
+            fi
+        fi
+        popd >/dev/null
+    fi
+elif [ $TARGET != pocket ]; then
+    echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
+fi
+
+###########################################
+## Program the target device via JTAG
 if [ $PROG = TRUE ]; then
     if [ $TARGET = mister ]; then
         CABLE="DE-SoC"
