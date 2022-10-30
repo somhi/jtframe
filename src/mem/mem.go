@@ -171,8 +171,8 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 }
 
 func make_sdram( args Args, cfg *MemConfig) {
-	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "template.v")
-	t := template.Must(template.New("template.v").Funcs(funcMap).ParseFiles(tpath))
+	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "game_sdram.v")
+	t := template.Must(template.New("game_sdram.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, cfg)
 	outpath := "jt"+args.Core+"_game_sdram.v"
