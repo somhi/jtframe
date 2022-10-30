@@ -6,7 +6,21 @@ if [ -z "$JTFRAME" ]; then
     exit 1
 fi
 
+RECOMPILE=FALSE
+
 if [ ! -e $JTFRAME/src/jtframe ]; then
+    RECOMPILE=TRUE
+else
+    # Find out whether the jtframe file is older
+    # than the commit
+    COMMIT_DATE=`date -d "$(git show -s --format=%ci)" +"%s"`
+    COMPILED_DATE=`stat -c %Y $JTFRAME/src/jtframe`
+    if [ $COMPILED_DATE -lt $COMMIT_DATE ]; then
+        RECOMPILE=TRUE
+    fi
+fi
+
+if [ $RECOMPILE = TRUE ]; then
     if [ -e $JTFRAME/target/pocket/pocket.go ]; then
         ln -sf $JTFRAME/target/pocket/pocket.go $JTFRAME/src/mra/pocket.go
         POCKET="-tags pocket"
