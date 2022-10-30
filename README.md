@@ -28,6 +28,7 @@ You can show your appreciation through
 * [The credit screen](doc/credits.md)
 * [Compilation macros](doc/macros.md)
 * [IP reference](doc/ip.md)
+* [Style guidelnes](doc/style.md)
 
 ## Advanced Topics
 * [Debug features](doc/debug.md)
