@@ -18,6 +18,10 @@
 
 `timescale 1ns/1ps
 
+`ifndef SDRAM_DELAY
+    `define SDRAM_DELAY 1
+`endif
+
 // 96 MHz PLL model
 // The simulator must have defined JTFRAME_PLLSIM to the period in ns
 // of c0, the rest of the outputs are derived
@@ -48,13 +52,11 @@ module jtframe_pll0(
         {c4,nc,c3,c1} <= {c4,nc,c3,c1} + 1'b1;
     end
 
-    `ifdef SDRAM_DELAY
     real sdram_delay = `SDRAM_DELAY;
-    initial $display("INFO: SDRAM_CLK delay set to %f ns",sdram_delay);
-    assign #sdram_delay c2 = c1;
+    `ifdef JTFRAME_SDRAM96
+        assign #sdram_delay c2 = c0;    // use the high speed clock
     `else
-    initial $display("INFO: SDRAM_CLK delay set to 1 ns");
-    assign #1 c2 = c1;
+        assign #sdram_delay c2 = c1;
     `endif
 
 endmodule

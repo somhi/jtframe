@@ -417,6 +417,13 @@ done
 add_macro SIM_MS=$SIM_MS
 add_macro SIMULATION
 
+if [ -e $MODULES/fx68k ]; then
+    # These files are read by the FX68K module but they must be in the
+    # simulation folder. Forgetting to have them there results in X everywhere
+    ln -sf $MODULES/fx68k/microrom.mem
+    ln -sf $MODULES/fx68k/nanorom.mem
+fi
+
 if [ $GATES = NO ]; then
     # Prepare all file lists
     jtframe mem $SYSNAME || exit $?
@@ -564,8 +571,9 @@ verilator)
     if [ -e game.vlt ]; then
         GAME_VLT=game.vlt
     fi
-    # Ignore FX68k in Verilator sims
-    $SED '/fx68k/d' filtered.f
+    # Ignore FX68k in Verilator sims with this:
+    # $SED '/fx68k/d' filtered.f
+    # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
     $SHOWCMD verilator -I../../hdl --timescale 1ps/1ps \
         game_test.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
