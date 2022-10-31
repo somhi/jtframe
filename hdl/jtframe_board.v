@@ -610,6 +610,11 @@ jtframe_dip u_dip(
 // support for 48MHz
 // Above 64MHz HF should be 1. SHIFTED depends on whether the SDRAM
 // clock is shifted or not.
+// Writting on each bank must be selectively enabled with macros
+// in order to ease the placing of the SDRAM data signals in pad registers
+// MiSTer can place them in the pads if only one bank is used for writting
+// Not placing them in pads may create timing problems, especially at 96MHz
+// ie, the core may compile correctly but data transfer may fail.
 jtframe_sdram64 #(
     .AW           ( SDRAMW        ),
     .BA0_LEN      ( BA0_LEN       ),
@@ -620,6 +625,12 @@ jtframe_sdram64 #(
     .BA1_AUTOPRECH( BA1_AUTOPRECH ),
     .BA2_AUTOPRECH( BA2_AUTOPRECH ),
     .BA3_AUTOPRECH( BA3_AUTOPRECH ),
+`ifdef JTFRAME_BA1_WEN
+    .BA1_WEN      ( 1             ), `endif
+`ifdef JTFRAME_BA2_WEN
+    .BA2_WEN      ( 1             ), `endif
+`ifdef JTFRAME_BA3_WEN
+    .BA3_WEN      ( 1             ), `endif
     .PROG_LEN     ( PROG_LEN      ),
     .MISTER       ( MISTER        ),
 `ifdef JTFRAME_SDRAM96

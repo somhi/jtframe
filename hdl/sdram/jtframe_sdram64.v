@@ -29,6 +29,13 @@ module jtframe_sdram64 #(
               BA3_LEN =64,
               PROG_LEN=64,
 
+              // Selectively enable write operation in banks
+              // Selecting the minimum needed set eases timing and placing
+              BA0_WEN = 1,
+              BA1_WEN = 0,
+              BA2_WEN = 0,
+              BA3_WEN = 0,
+
               BA0_AUTOPRECH=0,
               BA1_AUTOPRECH=0,
               BA2_AUTOPRECH=0,
@@ -164,8 +171,14 @@ assign {next_ba, next_cmd, next_a } =
                                { 2'd0, bx0_cmd, bx0_a } )))));
 
 assign prio     = prio_lfsr[1:0];
-assign mask_mux = prog_en ? prog_dsn : bg[0] ? ba0_dsn : bg[1] ? ba1_dsn : bg[2] ? ba2_dsn : ba3_dsn;
-assign din      = bg[0]   ? ba0_din : bg[1] ? ba1_din : bg[2] ? ba2_din : ba3_din;
+assign mask_mux = prog_en ? prog_dsn :
+                  (bg[3] && BA3_WEN) ? ba3_dsn :
+                  (bg[2] && BA2_WEN) ? ba2_dsn :
+                  (bg[2] && BA1_WEN) ? ba1_dsn : ba0_dsn;
+
+assign din      = (bg[3] && BA3_WEN) ? ba3_din :
+                  (bg[2] && BA2_WEN) ? ba2_din :
+                  (bg[2] && BA1_WEN) ? ba1_din : ba0_din;
 
 `ifndef VERILATOR
 reg  [15:0] dq_pad;

@@ -106,6 +106,9 @@ Macro                    | Target  |  Usage
 JTFRAME_BA1_START        |         | Start of bank 1
 JTFRAME_BA2_START        |         | Start of bank 2
 JTFRAME_BA3_START        |         | Start of bank 3
+JTFRAME_BA1_WEN          |         | Enables writting on bank 1
+JTFRAME_BA2_WEN          |         | Enables writting on bank 2
+JTFRAME_BA3_WEN          |         | Enables writting on bank 3
 JTFRAME_PROM_START       |         | PROM signals starts here
 JTFRAME_SDRAM_ADQM       | MiSTer  | A12 and A11 are equal to DQMH/L
 JTFRAME_SDRAM_BWAIT      |         | Adds a wait cycle in the SDRAM
