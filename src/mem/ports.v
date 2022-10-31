@@ -1,18 +1,17 @@
     // From this line down, do not modify ports manually:
-`ifdef JTFRAME_PROM_START
     input   [21:0]  prog_addr,
     input   [ 7:0]  prog_data,
     input           prog_we,
+`ifdef JTFRAME_PROM_START
     input           prom_we,
 `endif
+{{- if .SDRAM.Post_addr }}
+    input      [24:0] ioctl_addr,
+    output reg [21:0] post_addr,
+{{end}}
 `ifdef JTFRAME_HEADER
     input           header,
 `endif
-{{- if .SDRAM.Preaddr }}
-    input      [24:0] ioctl_addr,
-    input      [21:0] pre_addr,
-    output reg [21:0] post_addr,
-{{end}}
 `ifdef JTFRAME_IOCTL_RD
     input           ioctl_ram,
     output   [ 7:0] ioctl_din,

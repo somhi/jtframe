@@ -171,7 +171,7 @@ wire [ 1:0] {{.Name}}_dsn;
 {{end}}{{end}}
 {{- end}}
 wire        prom_we, header;
-{{with .SDRAM.Preaddr }}wire [21:0] pre_addr, post_addr;{{end}}
+wire [21:0] raw_addr, post_addr;
 
 jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst        ( rst       ),
@@ -254,27 +254,24 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end}}
     {{end}}
     {{- end}}
-    {{- with .SDRAM.Preaddr }}
+    // PROM writting
+    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : raw_addr      ),
+    .prog_data    ( header ? ioctl_dout : prog_data[7:0] ),
+    .prog_we      ( header ? ioctl_wr   : prog_we        ),
+`ifdef JTFRAME_PROM_START
+    .prom_we      ( prom_we        ),
+`endif
+    {{- with .SDRAM.Post_addr }}
     // SDRAM address mapper during downloading
     .ioctl_addr   ( ioctl_addr     ),
-    .pre_addr     ( pre_addr       ),
     .post_addr    ( post_addr      ),
     {{- end }}
-    // PROM writting
-`ifdef JTFRAME_PROM_START
-    {{- if .SDRAM.Preaddr }}
-    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : post_addr      ),{{else}}
-    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : prog_addr      ),{{end}}
-    .prog_data    ( header ? ioctl_dout       : prog_data[7:0] ),
-    .prog_we      ( header ? ioctl_wr         : prog_we        ),
-    .prom_we      ( prom_we        ),
+`ifdef JTFRAME_HEADER
+    .header       ( header         ),
 `endif
 `ifdef JTFRAME_IOCTL_RD
     .ioctl_ram    ( ioctl_ram      ),
     .ioctl_din    ( ioctl_din      ),
-`endif
-`ifdef JTFRAME_HEADER
-    .header       ( header         ),
 `endif
     // Debug  
 `ifdef JTFRAME_DEBUG
@@ -289,7 +286,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
-{{if .SDRAM.Preaddr }}assign prog_addr = post_addr;{{end}}
+assign prog_addr = {{if .SDRAM.Post_addr }}post_addr{{else}}raw_addr{{end}};
 
 jtframe_dwnld #(
 `ifdef JTFRAME_HEADER
@@ -314,7 +311,7 @@ jtframe_dwnld #(
     .ioctl_addr   ( ioctl_addr     ),
     .ioctl_dout   ( ioctl_dout     ),
     .ioctl_wr     ( ioctl_wr       ),
-    .prog_addr    ( {{with .SDRAM.Preaddr}}pre_addr   {{else}}prog_addr{{end}}    ),
+    .prog_addr    ( raw_addr       ),
     .prog_data    ( prog_data      ),
     .prog_mask    ( prog_mask      ), // active low
     .prog_we      ( prog_we        ),

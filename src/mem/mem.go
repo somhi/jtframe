@@ -57,7 +57,7 @@ type SDRAMBank struct {
 }
 
 type SDRAMCfg struct {
-	Preaddr bool `yaml:"preaddr"`	// Pass some signals to the game so it can remap the download address
+	Post_addr bool `yaml:"post_addr"`	// Pass some signals to the game so it can remap the download address
 	Noswab bool `yaml:"noswab"`		// SWAB parameter of jtframe_download
 	Banks []SDRAMBank `yaml:"banks"`
 }
