@@ -9,6 +9,9 @@
     input      [24:0] ioctl_addr,
     output reg [21:0] post_addr,
 {{end}}
+{{- if .SDRAM.Post_data }}
+    output reg [21:0] post_data,
+{{end}}
 `ifdef JTFRAME_HEADER
     input           header,
 `endif
