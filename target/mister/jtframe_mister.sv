@@ -444,7 +444,7 @@ assign joystick2 = joyusb_2;
         .ba0_addr   ( ba0_addr      ),
         .wr0        ( ba_wr[0]      ),
         .din        ( ba0_din       ),
-        .din_m      ( ba0_din_m     ),  // write mask -active low
+        .din_m      ( ba0_dsn       ),  // write mask -active low
 
         // Let data be dumped via NVRAM interface
         .ioctl_addr ( ioctl_addr    ),
