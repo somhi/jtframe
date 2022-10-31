@@ -10,7 +10,7 @@
     output reg [21:0] post_addr,
 {{end}}
 {{- if .SDRAM.Post_data }}
-    output reg [21:0] post_data,
+    output reg [ 7:0] post_data,
 {{end}}
 `ifdef JTFRAME_HEADER
     input           header,
