@@ -498,7 +498,7 @@ iverilog)
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
         -f target.f \
         -s $TOP -o $SIMEXE \
-        -DIVERILOG $EXTRA \
+        -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl \
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
     || exit 1
     $SHOWCMD $SIMEXE -lxt
