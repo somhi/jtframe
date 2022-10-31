@@ -378,7 +378,7 @@ jtframe_keyboard u_keyboard(
             .clk        ( clk_sys       ),
             .rdy        ( bax_rdy       ),
             .LVBL       ( LVBL          ),
-            .st_addr    ( debug_bus[2:0]),
+            .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )
         );
     `else
