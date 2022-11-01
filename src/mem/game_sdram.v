@@ -171,7 +171,8 @@ wire [ 1:0] {{.Name}}_dsn;
 {{end}}{{end}}
 {{- end}}
 wire        prom_we, header;
-wire [21:0] raw_addr, post_addr, pre_addr, dwnld_addr;
+wire [21:0] raw_addr, post_addr;
+wire [24:0] pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
 
