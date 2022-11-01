@@ -109,7 +109,16 @@ or
 
 Note that no ports should be added manually after the `jtframe mem_ports` line.
 
-Following the standard naming convention for memories, 8-bit memory ports start at memory address 0, 16-bit ports at 1 and 32-bit ports at 2.
+Following the standard [naming convention](style.md) for memories, 8-bit memory ports start at memory address 0, 16-bit ports at 1 and 32-bit ports at 2.
+
+## Address Mapping and Data Transformation during Downloading
+
+The lines in and out of the automatic jtframe_dwnld instance can be send through the game module in order to change the address mapping or modify the data bits. An example of this situation is _jtmikie_ in the [jtkicker](https://github.com/jotego/jtkicker) repository.
+
+The following diagram shows how three _virtual_ multiplexers can be individually enabled in the *mem.yaml* file in order to manipulate the SDRAM programming signals.
+
+![Multiplexers around jtframe_dwnld](ioctl_filter.svg)
+
 
 # SDRAM Timing
 

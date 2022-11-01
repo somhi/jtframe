@@ -2,12 +2,15 @@
     input   [21:0]  prog_addr,
     input   [ 7:0]  prog_data,
     input           prog_we,
+    input      [24:0] ioctl_addr,
 `ifdef JTFRAME_PROM_START
     input           prom_we,
 `endif
 {{- if .SDRAM.Post_addr }}
-    input      [24:0] ioctl_addr,
     output reg [21:0] post_addr,
+{{end}}
+{{- if .SDRAM.Pre_addr }}
+    output reg [21:0] pre_addr,
 {{end}}
 {{- if .SDRAM.Post_data }}
     output reg [ 7:0] post_data,

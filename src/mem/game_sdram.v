@@ -171,7 +171,7 @@ wire [ 1:0] {{.Name}}_dsn;
 {{end}}{{end}}
 {{- end}}
 wire        prom_we, header;
-wire [21:0] raw_addr, post_addr;
+wire [21:0] raw_addr, post_addr, pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
 
@@ -257,15 +257,19 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{end}}
     {{- end}}
     // PROM writting
+    .ioctl_addr   ( ioctl_addr     ),
     .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : raw_addr      ),
     .prog_data    ( header ? ioctl_dout : raw_data[7:0] ),
     .prog_we      ( header ? ioctl_wr   : prog_we  ),
 `ifdef JTFRAME_PROM_START
     .prom_we      ( prom_we        ),
 `endif
+    {{- with .SDRAM.Pre_addr }}
+    // SDRAM address mapper during downloading
+    .pre_addr     ( pre_addr       ),
+    {{- end }}
     {{- with .SDRAM.Post_addr }}
     // SDRAM address mapper during downloading
-    .ioctl_addr   ( ioctl_addr     ),
     .post_addr    ( post_addr      ),
     {{- end }}
     {{- with .SDRAM.Post_data }}
@@ -291,6 +295,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
+assign dwnld_addr = {{if .SDRAM.Pre_addr }}pre_addr{{else}}ioctl_addr{{end}};
 assign prog_addr = {{if .SDRAM.Post_addr }}post_addr{{else}}raw_addr{{end}};
 assign prog_data = {{if .SDRAM.Post_data }}{2{post_data}}{{else}}raw_data{{end}};
 
@@ -314,7 +319,7 @@ jtframe_dwnld #(
 ) u_dwnld(
     .clk          ( clk            ),
     .downloading  ( downloading & ~ioctl_ram    ),
-    .ioctl_addr   ( ioctl_addr     ),
+    .ioctl_addr   ( dwnld_addr     ),
     .ioctl_dout   ( ioctl_dout     ),
     .ioctl_wr     ( ioctl_wr       ),
     .prog_addr    ( raw_addr       ),
