@@ -10,6 +10,7 @@ jtframe:
       - jtframe_ram1_3slots.v
       - jtframe_ram1_4slots.v
       - jtframe_ram1_5slots.v
+      - jtframe_ram2_4slots.v
       - jtframe_ram2_5slots.v
       - jtframe_ram2_6slots.v
       - jtframe_rom_1slot.v
