@@ -56,11 +56,14 @@ type SDRAMBank struct {
 	MemType string
 }
 
-type SDRAMCfg struct {
+type DownloadCfg struct {
 	Pre_addr  bool `yaml:"pre_addr"`	// Pass some signals to the game so it can remap the download address
 	Post_addr bool `yaml:"post_addr"`	// Pass some signals to the game so it can remap the download address
 	Post_data bool `yaml:"post_data"`	// Pass some signals to the game so it can remap the download data
 	Noswab bool `yaml:"noswab"`		// SWAB parameter of jtframe_download
+}
+
+type SDRAMCfg struct {
 	Banks []SDRAMBank `yaml:"banks"`
 }
 
@@ -82,6 +85,7 @@ type Ports struct {
 
 type MemConfig struct {
 	Include []Include  `yaml:"include"`
+	Download  DownloadCfg `yaml:"download"`
 	SDRAM     SDRAMCfg `yaml:"sdram"`
 	Params  []Param   `yaml:"params"`
 	Ports     Ports   `yaml:"ports"`

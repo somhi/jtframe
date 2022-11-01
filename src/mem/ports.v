@@ -6,13 +6,13 @@
 `ifdef JTFRAME_PROM_START
     input           prom_we,
 `endif
-{{- if .SDRAM.Post_addr }}
+{{- if .Download.Post_addr }}
     output reg [21:0] post_addr,
 {{end}}
-{{- if .SDRAM.Pre_addr }}
+{{- if .Download.Pre_addr }}
     output reg [21:0] pre_addr,
 {{end}}
-{{- if .SDRAM.Post_data }}
+{{- if .Download.Post_data }}
     output reg [ 7:0] post_data,
 {{end}}
 `ifdef JTFRAME_HEADER

@@ -264,15 +264,15 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 `ifdef JTFRAME_PROM_START
     .prom_we      ( prom_we        ),
 `endif
-    {{- with .SDRAM.Pre_addr }}
+    {{- with .Download.Pre_addr }}
     // SDRAM address mapper during downloading
     .pre_addr     ( pre_addr       ),
     {{- end }}
-    {{- with .SDRAM.Post_addr }}
+    {{- with .Download.Post_addr }}
     // SDRAM address mapper during downloading
     .post_addr    ( post_addr      ),
     {{- end }}
-    {{- with .SDRAM.Post_data }}
+    {{- with .Download.Post_data }}
     .post_data    ( post_data      ),
     {{- end }}
 `ifdef JTFRAME_HEADER
@@ -295,9 +295,9 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
-assign dwnld_addr = {{if .SDRAM.Pre_addr }}pre_addr{{else}}ioctl_addr{{end}};
-assign prog_addr = {{if .SDRAM.Post_addr }}post_addr{{else}}raw_addr{{end}};
-assign prog_data = {{if .SDRAM.Post_data }}{2{post_data}}{{else}}raw_data{{end}};
+assign dwnld_addr = {{if .Download.Pre_addr }}pre_addr{{else}}ioctl_addr{{end}};
+assign prog_addr = {{if .Download.Post_addr }}post_addr{{else}}raw_addr{{end}};
+assign prog_data = {{if .Download.Post_data }}{2{post_data}}{{else}}raw_data{{end}};
 
 jtframe_dwnld #(
 `ifdef JTFRAME_HEADER
@@ -315,7 +315,7 @@ jtframe_dwnld #(
 `ifdef JTFRAME_PROM_START
     .PROM_START( PROM_START ),
 `endif
-    .SWAB      ( {{if .SDRAM.Noswab }}0{{else}}1{{end}}         )
+    .SWAB      ( {{if .Download.Noswab }}0{{else}}1{{end}}         )
 ) u_dwnld(
     .clk          ( clk            ),
     .downloading  ( downloading & ~ioctl_ram    ),
