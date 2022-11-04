@@ -16,7 +16,7 @@
     Version: 1.0
     Date: 30-10-2022 */
 
-// Frame buffer via (SDRAM) memory
+// Frame buffer built on top of two line buffers
 // the frame buffer is assumed to be done on a 16-bit memory
 // It uses 4x lines of internal BRAM.
 // The idea is to use a regular object double line buffer to collect the line from the object processing unit
@@ -25,26 +25,26 @@
 // the previous line is dumped from the same line buffer to the screen
 
 // This module is not fully tested yet
-module jtframe_framebuf #(parameter
+module jtframe_lbuf_fbuf #(parameter
     DW      =  16,
     VW      =   8,
     HW      =   9,
-    VSTART  =   0,
-    VEND    = 224, // VEND is not drawn
     HSTART  =   0,
     HEND    = 255,
     ALPHA   =   0
 )(
-    input            clk,
-    input            pxl_cen,
+    input               clk,
+    input               pxl_cen,
 
-    output reg          fake_hs,
-    output reg [VW-1:0] fake_v,
+    output reg          fb_hs,
+    output reg [VW-1:0] fb_v,
     input      [VW-1:0] vrender,
     input               vs,     // vertical sync, the buffer is swapped here
+    input               lvbl,   // vertical blank, active low
+    input               lhbl,   // vertical blank, active low
 
     // data writting
-    input               obj_done,
+    input               ln_done,
     input      [HW-1:0] ln_addr,
     input      [DW-1:0] ln_data,
     input               ln_we,
@@ -74,7 +74,7 @@ reg           frame, vsl, hsl, line=0,
               lwr_done, lrd_done, lwr_wt,
               fwr_done, fwr_done_l;
 
-reg  [VW-1:0] v2fb;
+reg  [VW-1:0] v2fb, vstart=0, vend=0;
 reg  [HW-1:0] h2fb, fb2h;
 wire          fb2h_we, dln_rd;
 
@@ -93,33 +93,40 @@ initial begin
 end
 `endif
 
+// Capture the vstart/vend values
+always @(posedge clk) begin
+    lvbl_l <= lvbl;
+    if( !lvbl &&  lvbl_l ) vend   <= vrender;
+    if(  lvbl && !lvbl_l ) vstart <= vrender;
+end
+
 // count lines so objects get drawn in the line buffer
 // and dumped from there to the SDRAM
 always @(posedge clk) begin
-    fake_hs <= 0;
+    fb_hs <= 0;
     vsl     <= vs;
     fwr_done_l <= fwr_done;
-    if( !lwr_done ) lwr_wt <= 0; // prevents counting fake_v up twice
+    if( !lwr_done ) lwr_wt <= 0; // prevents counting fb_v up twice
     if( vs && !vsl ) begin
         frame    <= ~frame;
-        fake_v   <= VSTART;
+        fb_v   <= vstart;
         fwr_done <= 0;
-        v2fb     <= VEND;
+        v2fb     <= vend;
     end
-    if( lwr_done && obj_done && !fwr_done_l && !lwr_wt ) begin
-        fake_v <= fake_v + 1'd1;
-        v2fb   <= fake_v;
+    if( lwr_done && ln_done && !fwr_done_l && !lwr_wt ) begin
+        fb_v <= fb_v + 1'd1;
+        v2fb   <= fb_v;
         lwr_wt <= 1;
-        if( fake_v == VEND )
+        if( fb_v == vend )
             fwr_done <= 1;
         else
-            fake_hs <= 1;
+            fb_hs <= 1;
     end
 end
 
 // Read the line buffer to dump to the frame buffer
 always @(posedge clk) begin
-    if( fake_hs && !fwr_done ) begin
+    if( fb_hs && !fwr_done ) begin
         h2fb     <= 0;
         lwr_done <= 0;
     end
@@ -169,7 +176,7 @@ jtframe_obj_buffer #(
     .ALPHA  (  ALPHA  )
 ) u_linein(
     .clk        ( clk       ),
-    .LHBL       ( fake_hs   ),
+    .LHBL       ( fb_hs     ),
     .flip       ( 1'b0      ),
     // New data writes
     .wr_data    ( ln_data   ),
