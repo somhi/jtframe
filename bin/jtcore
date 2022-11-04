@@ -339,7 +339,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     ############################################
     # Credits via jtframe_credits:
     if [[ -e $PRJPATH/cfg/msg ]]; then
-        jtframe msg $PRJ || exit $?
+        jtframe msg $PRJ --commit $PRJCOMMIT || exit $?
     fi
     # Update Avatars
     if [ -e $PRJPATH/patrons/lut ]; then

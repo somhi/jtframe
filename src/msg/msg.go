@@ -23,10 +23,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type Args struct {
 	Core    string
+	Commit  string
+	Verbose bool
 }
 
 func Run(args Args) {
@@ -36,6 +39,7 @@ func Run(args Args) {
 		log.Fatal("jtframe msg: error opening ", msgpath, " file. ", err)
 	}
 	defer fmsg.Close()
+	datestr := fmt.Sprintf("%d-%d-%d", time.Now().Year(), time.Now().Month(), time.Now().Day())
 	scanner := bufio.NewScanner(fmsg)
 	data := make([]int16,0,1024)
 	for scanner.Scan() {
@@ -44,7 +48,11 @@ func Run(args Args) {
 		cnt := 0
 		line_data := make([]int16,32)
 		k := 0
+		line_loop:
 		for _, c := range scanner.Text() {
+			if k==32 {
+				break
+			}
 			if c == '\\' {
 				escape = true
 				continue
@@ -55,6 +63,32 @@ func Run(args Args) {
 					case 'G': pal=1
 					case 'B': pal=2
 					case 'W': pal=3
+					// add the date
+					case 'D': {
+						if args.Verbose {
+							fmt.Print(datestr)
+						}
+						for _,x := range datestr {
+							line_data[k] = int16(x)-0x20
+							k++
+							if k==32 {
+								break line_loop
+							}
+						}
+					}
+					// add the commit
+					case 'C': {
+						if args.Verbose {
+							fmt.Print(args.Commit)
+						}
+						for _,x := range args.Commit {
+							line_data[k] = int16(x)-0x20
+							k++
+							if k==32 {
+								break line_loop
+							}
+						}
+					}
 					default: log.Fatal("ERROR: invalid palette code")
 				}
 				escape = false
@@ -64,6 +98,9 @@ func Run(args Args) {
 				log.Fatal("ERROR: line is longer than 32 characters")
 			}
 			cnt++
+			if args.Verbose {
+				fmt.Printf("%c",c)
+			}
 			coded := int(c)
 			if coded <0x20 || coded>0x7f {
 				log.Fatal("character code out of range ")
@@ -73,6 +110,9 @@ func Run(args Args) {
 			k++
 		}
 		data = append(data, line_data... )
+		if args.Verbose {
+			fmt.Println()
+		}
 	}
 	// Save the files
 	fhex, err := os.Create("msg.hex")

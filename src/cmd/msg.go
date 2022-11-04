@@ -43,4 +43,8 @@ The msg file gets parsed into two files: msg.hex and msg.bin, placed in the curr
 
 func init() {
 	rootCmd.AddCommand(msgCmd)
+	flag := msgCmd.Flags()
+
+	flag.StringVarP(&msg_args.Commit, "commit", "c", "", "Commit ID")
+	flag.BoolVarP(&msg_args.Verbose, "verbose", "v", false, "verbose")
 }
