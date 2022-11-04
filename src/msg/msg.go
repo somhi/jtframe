@@ -42,6 +42,8 @@ func Run(args Args) {
 		escape := false
 		pal := 3
 		cnt := 0
+		line_data := make([]int16,32)
+		k := 0
 		for _, c := range scanner.Text() {
 			if c == '\\' {
 				escape = true
@@ -56,6 +58,7 @@ func Run(args Args) {
 					default: log.Fatal("ERROR: invalid palette code")
 				}
 				escape = false
+				continue
 			}
 			if cnt>31 {
 				log.Fatal("ERROR: line is longer than 32 characters")
@@ -66,8 +69,10 @@ func Run(args Args) {
 				log.Fatal("character code out of range ")
 			}
 			coded = (pal<<7) | ( (coded-0x20)&0x7f)
-			data = append(data,int16(coded))
+			line_data[k] = int16(coded)
+			k++
 		}
+		data = append(data, line_data... )
 	}
 	// Save the files
 	fhex, err := os.Create("msg.hex")
