@@ -187,7 +187,7 @@ u_slot3(
 
 jtframe_romrq #(.SDRAMW(SDRAMW),.AW(SLOT4_AW),.DW(SLOT4_DW),
     .LATCH(SLOT4_LATCH),.DOUBLE(SLOT4_DOUBLE),.OKLATCH(SLOT4_OKLATCH))
-u_slot3(
+u_slot4(
     .rst       ( rst                    ),
     .clk       ( clk                    ),
     .clr       ( 1'd0                   ),
