@@ -61,14 +61,14 @@ module jtframe_rom_5slots #(parameter
     input  [SLOT1_AW-1:0] slot1_addr,
     input  [SLOT2_AW-1:0] slot2_addr,
     input  [SLOT3_AW-1:0] slot3_addr,
-    input  [SLOT3_AW-1:0] slot4_addr,
+    input  [SLOT4_AW-1:0] slot4_addr,
 
     //  output data
     output [SLOT0_DW-1:0] slot0_dout,
     output [SLOT1_DW-1:0] slot1_dout,
     output [SLOT2_DW-1:0] slot2_dout,
     output [SLOT3_DW-1:0] slot3_dout,
-    output [SLOT3_DW-1:0] slot4_dout,
+    output [SLOT4_DW-1:0] slot4_dout,
 
     input               slot0_cs,
     input               slot1_cs,
