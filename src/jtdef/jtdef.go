@@ -176,6 +176,11 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			macros["JTFRAME_COMMIT"] = "32'h0"
 		}
 	}
+	// Adds the CORENAME if missing. This macro is expected to exist in macros.def
+	_, exists := macros["CORENAME"]
+	if ! exists {
+		macros["CORENAME"] = cfg.Core
+	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
 	// prevent the CORE_OSD from having two ;; in a row or starting with ;
