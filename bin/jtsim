@@ -326,6 +326,12 @@ case "$1" in
         JTFRAME_HEIGHT=$1
         ;;
     -load)
+        # Moves away the old files to prevent mistakes
+        if [[ -e sdram_bank0.bin || -e sdram_bank0.hex ]]; then
+            echo "Moving old sdram_bank files to sdram.old"
+            mkdir -p sdram.old
+            mv sdram_bank?.* sdram.old > /dev/null
+        fi
         add_macro LOADROM
         echo ROM load through SPI enabled
         ;;
