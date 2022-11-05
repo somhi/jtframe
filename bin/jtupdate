@@ -92,4 +92,3 @@ fi
 cat $TASKS | parallel --no-run-if-empty --colsep " "  --shuf  --workdir $JTROOT \
     $DRYRUN $NETWORK $MAX_JOBS\
     --delay 0.25 $CMD {} $EXTRA $GIT | tee $JTROOT/log/update.log
-

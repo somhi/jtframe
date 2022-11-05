@@ -147,7 +147,7 @@ func update_actions(jtroot string, cfg Config) {
 			for cnt := 0; cnt < 5; cnt++ {
 			    var buffer bytes.Buffer
                 if cfg.Seed {
-				    data.Seed = fmt.Sprintf("-seed %d", rand.Int31())
+				    data.Seed = fmt.Sprintf("--seed %d", rand.Int31())
                 }
 				err := t.Execute(&buffer, data)
 				if err != nil {
