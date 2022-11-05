@@ -30,7 +30,7 @@ var up_all bool
 
 // memCmd represents the mem command
 var updateCmd = &cobra.Command{
-	Use:   "update <core-name> <-target mist|mister...>",
+	Use:   "update --cores core1,core2,... <--target mist|mister...>",
 	Short: "Updates compiled files for cores or prepares GitHub action files",
 	Long: `Updates compiled files for cores or prepares GitHub action files`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -49,7 +49,7 @@ var updateCmd = &cobra.Command{
 		}
 		update.Run( &up_cfg, args)
 	},
-	Args: cobra.MinimumNArgs(1),
+	// Args: cobra.MinimumNArgs(1),
 }
 
 func init() {
@@ -71,6 +71,7 @@ func init() {
 	flag.BoolVar( &up_cfg.Seed,    "private", false, "Build for JTALPHA team")
 	flag.BoolVar( &up_cfg.Actions, "actions", false, "Updates GitHub actions")
 	flag.StringVar(&up_cfg.Network, "network", "", "Ignored")
+	flag.StringVar(&up_cfg.CoreList, "cores", "", "Comma separated list of cores")
 	flag.StringVar(&up_cfg.Group, "group", "", "Core group specified in $JTROOT/.jtupdate")
 	flag.Int64("jobs", 0, "Ignored ")
 	flag.BoolVar( &up_all, "all", false, "updates all target platforms")

@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 	"time"
@@ -22,6 +23,7 @@ type Config struct {
 	Dryrun, Debug, Nogit, Nohdmi, Nosnd, Actions, Seed, Private bool
 	Network, Group, extra  string
 	cores                  []string
+	CoreList			   string
 	Targets                map[string]bool
 	// enabled platforms
 	groups                 Groups
@@ -200,7 +202,7 @@ func dump_output(cfg Config) {
 			}
 			jtcore := fmt.Sprintf("%s %s -%s %s %s", cmd, c, target, cfg.customs[key], cfg.extra)
 			if cfg.Private {
-				jtcore = jtcore + " -private"
+				jtcore = jtcore + " --private"
 			}
 			if cfg.Nohdmi {
 				jtcore = jtcore + " -d MISTER_DEBUG_NOHDMI"
@@ -210,7 +212,17 @@ func dump_output(cfg Config) {
 			}
 			if !cfg.Private && !cfg.Debug && !cfg.Nogit {
 				jtcore = jtcore + " -d JTFRAME_RELEASE"
-				jtcore = jtcore + " -git"
+				jtcore = jtcore + " --git"
+			}
+			copy := false
+			for _,each := range os.Args {
+				if each=="--" {
+					copy=true
+					continue
+				}
+				if copy {
+					jtcore += " " + each
+				}
 			}
 			fmt.Println(jtcore)
 		}
@@ -234,18 +246,40 @@ func parse_args(cfg *Config, cores_folder string, all_args []string ) {
 	flag.Parse()
 
 	for k, arg := range all_args {
-		if arg == ":" {
+		if arg == "--" {
 			for j := k + 1; j < len(all_args); j++ {
 				cfg.extra += all_args[j] + " "
 			}
 			break
 		}
-		// try to append name as core
-		require_folder(cores_folder + "/" + arg)
-		if cfg.cores == nil {
-			cfg.cores = make([]string, 0)
+	}
+	for _,each := range strings.Split(cfg.CoreList,",") {
+		if each=="" {
+			continue
 		}
-		cfg.cores = append(cfg.cores, arg)
+		// try to append name as core
+		require_folder( filepath.Join(cores_folder,each,"cfg" ) )
+		cfg.cores = append(cfg.cores, each)
+	}
+	if cfg.cores==nil {
+		// Get all folders in $JTROOT/cores
+		f,err := os.Open( cores_folder )
+		if err != nil {
+			log.Fatal("jtframe update:", err)
+		}
+		folders, err := f.ReadDir(-1)
+		if err != nil {
+			log.Fatal("jtframe update:", err)
+		}
+		for _,each := range folders {
+			if folder_exists( filepath.Join(cores_folder,each.Name(),"cfg" ) ) {
+				cfg.cores = append(cfg.cores, each.Name())
+			}
+		}
+		f.Close()
+	}
+	if cfg.cores==nil {
+		log.Fatal("jtframe update: no cores Specified")
 	}
 }
 
@@ -272,7 +306,7 @@ func Run( cfg *Config, all_args []string ) {
 
 	// Some checks on the arguments
 	if cfg.Private && cfg.Debug {
-		log.Fatal("jtupdate: cannot specify -private and -debug together")
+		log.Fatal("jtupdate: cannot specify --private and --debug together")
 	}
 	// parse .jtupdate file
 	file, err := os.Open(jtroot + "/.jtupdate")

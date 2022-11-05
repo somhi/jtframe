@@ -16,7 +16,7 @@ cat<<HELP
         3. The base jtcore script that runs each compilation
 
     Arguments to the GO and main scripts are passed directly. Arguments
-    to jtcore are added after a colon.
+    to jtcore are added after --.
 
     The script responds to these arguments:
 
@@ -27,9 +27,9 @@ cat<<HELP
     -h, --help       shows this help
 
     Arguments to the GO program can include specific cores after the
-    general arguments and before the colon, like
+    general arguments and before the --, like
 
-    jtupdate -all gng 1942 : -q
+    jtupdate --all gng 1942 -- -q
 
 HELP
 }
@@ -41,7 +41,7 @@ function parse_args {
                 shift
                 MAX_JOBS="--jobs $1"
                 ;;
-            -d|--dry|--dry-run)
+            --dry|--dry-run)
                 DRYRUN=--dry-run
                 ;;
             -n|--network)

@@ -322,7 +322,7 @@ function copy_templates {
     datestr=$(date "+%H:%M:%S %B %e, %Y")
     # Replace core name and path to modules
     # do not leave a space in the line below sedstr!
-    CORENAME=`echo $CORENAME | tr [:upper:] [:lower:]`
+    CORENAME=${CORENAME,,}
     sedstr='s/${CORENAME}/'${CORENAME}'/g;s/${DATE}/'${datestr}'/g;s/${MODULES}/'$(escape_bars ${MODULES})'/g;s/${PRJPATH}/'$(escape_bars ${PRJPATH})'/g;'\
 's/${OUTPUTDIR}/'${OUTPUTDIR}'/g'
     sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qpf > $PRJPATH/$TARGET/${CORENAME}.qpf
@@ -380,6 +380,8 @@ echo -e "${wBG}jt$PRJ $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(da
 if [ "$MACROS" != "" ]; then
     echo Explicit macros: $MACROS
 fi
+
+`eval parse_macros bash | grep CORENAME | tr -d \" `
 
 ################ compilation
 if [ $SKIP_COMPILE = FALSE ]; then
@@ -441,7 +443,6 @@ if [ $SKIP_COMPILE = FALSE ]; then
     mkdir -p $JTROOT/log/$TARGET
     LOG="$JTROOT/log/$TARGET/jt$PRJ.log"
     echo Log file: $LOG
-    `eval parse_macros bash | grep CORENAME | tr -d \" `
     copy_templates
     echo -e "\nset_global_assignment -name seed $SEED" >> jt$PRJ.qsf
     if [ $SIM = FALSE ]; then
@@ -511,7 +512,7 @@ esac
 cd $JTROOT
 mkdir -p releases/$TARGET
 if [ -z $RENAME ]; then
-    SHORT=${CORENAME}
+    SHORT=${CORENAME,,}
 else
     SHORT=$RENAME
 fi
@@ -577,7 +578,6 @@ if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
     # copy the file in three forms:
     # with full date for reference, as core.rbf to start up with it
     # and inside its own folder for use with ARC files
-    #cp -v $RELEASE.rbf /media/$USER/${TARGET^^}
     cp -v $RBF /media/$USER/${TARGET^^}/${SHORT^^}.$EXT
     # Copy the file to the core folder so it can be used by ARC files
     if [ -d /media/$USER/${TARGET^^}/$CORE_FOLDER ]; then
@@ -631,7 +631,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
         BINRBF=$JTBIN/$TARGET/${SHORT}.$EXT
         mkdir -p $BINFOLDER
     fi
-    cp $RELEASE.rbf $BINRBF -v
+    cp $RBF $BINRBF -v || exit 1
     # if [ -n "$SEED_SUFFIX" ]; then
     #     cp $RELEASE.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
     # fi
@@ -640,7 +640,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
     if [ -e $BINFOLDER/version.log ]; then
         sed -i /$RELEASE/d  $BINFOLDER/version.log
     fi
-    echo -e ${RELEASE}"\t"$PRJCOMMIT >> $BINFOLDER/version.log
+    printf "%-24s %s\n" ${RELEASE} $PRJCOMMIT >> $BINFOLDER/version.log
     # Add to git but don't commit
     cd $JTBIN
     git add -f $BINRBF
