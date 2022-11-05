@@ -222,8 +222,12 @@ assign SDRAM_DQM= { SDRAM_DQMH, SDRAM_DQML };
     assign ba1_addr   = 0;
     assign ba2_addr   = 0;
     assign ba3_addr   = 0;
-    assign ba0_din    = 0;
-    assign ba0_din_m  = 3;
+    assign ba1_din    = 0;
+    assign ba1_dsn    = 3;
+    assign ba2_din    = 0;
+    assign ba2_dsn    = 3;
+    assign ba3_din    = 0;
+    assign ba3_dsn    = 3;
 `endif
 
 localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
