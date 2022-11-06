@@ -195,6 +195,12 @@ function add_macro {
     echo ${MACROPREFIX}$1 >> macros.f
 }
 
+function set_mist_as_target {
+    TOP=mist_test
+    TARGET=mist
+    add_macro MIST
+}
+
 while [ $# -gt 0 ]; do
 case "$1" in
     -showcmd) SHOWCMD="echo";;
@@ -257,9 +263,7 @@ case "$1" in
         ;;
     #################### MiST setup
     -mist)
-        TOP=mist_test
-        TARGET=mist
-        add_macro MIST
+        set_mist_as_target
         ;;
     #################### MiSTer setup
     -mister|-mr)
@@ -338,6 +342,10 @@ esac
     shift
     ARGNUMBER=$((ARGNUMBER+1))
 done
+
+if [ -z "$TARGET" ]; then
+    set_mist_as_target
+fi
 
 if [ -z "$SYSNAME" ]; then
     AUX=`pwd`
