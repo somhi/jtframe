@@ -41,7 +41,7 @@ jtframe_ram #(.aw(SW),.synfile("msg.hex"),.simfile("msg.bin")) u_char_msg(
     .q      ( mem_msg     )
 );
 
-`ifdef AVATARS
+`ifdef JTFRAME_AVATARS
 wire [4:0] av_sel0 = VERTICAL ? scan[9:5] : scan[4:0];
 wire [4:0] av_sel1  = VERTICAL ? scan[4:0] : scan[9:5];
 localparam [4:0] AVPOS = VERTICAL ? 5'd8 : 5'd22;
