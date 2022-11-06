@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -155,6 +156,9 @@ func get_defpath(cfg Config) string {
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
 	parse_def(get_defpath(cfg), cfg, &macros)
+	f, e := os.Open( filepath.Join(os.Getenv("CORES"), cfg.Core,"cfg","mem.yaml") )
+	f.Close()
+	mem_managed := e == nil // Using RTL generation for the memory
 	switch cfg.Target {
 	case "mist", "sidi", "neptuno":
 		macros["SEPARATOR"] = ""
@@ -180,6 +184,20 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	_, exists := macros["CORENAME"]
 	if ! exists {
 		macros["CORENAME"] = cfg.Core
+	}
+	// Derives the GAMETOP module from the CORENAME if unspecified
+	_, exists = macros["GAMETOP"]
+	if ! exists {
+		if !mem_managed {
+			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game")
+		} else {
+			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game_sdram")
+		}
+	}
+	// Memory templates require JTFRAME_SDRAM_BANKS
+	_, exists = macros["JTFRAME_SDRAM_BANKS"]
+	if !exists && mem_managed {
+		macros["JTFRAME_SDRAM_BANKS"] = ""
 	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())

@@ -45,12 +45,6 @@ if [ `uname` = Darwin ]; then
     fi
 fi
 
-if ! stat --version > /dev/null; then
-    GAME_ROM_LEN=$(stat -L -f %z rom.bin)
-else
-    GAME_ROM_LEN=$(stat -L -c%s rom.bin)
-fi
-
 # set blank .f files
 echo -n > jtsim_vhdl.f
 echo -n > jtsim.f
@@ -61,6 +55,8 @@ trap "rm -f video.raw video.pipe" EXIT
 function show_help {
         cat << EOF
 JTFRAME simulation tool. (c) Jose Tejada 2019-2022, @topapate
+Please support the development: https://patreon.com/jotego
+
     -d         Add specific Verilog macros for the simulation.
                Call jtmacros to display all macros.
     -deep      Save all signals for scope verification. See -w below.
@@ -192,23 +188,12 @@ function require {
 }
 
 preparse_args $*
-require "$SYSNAME" "JTSIM: Missing core name. Specify it with -sysname"
 require "$JTFRAME" "You need to source the project setprj.sh"
 require "$MODULES" "Missing the modules path. You need to source the project setprj.sh"
-
-if [ -z "$GAMETOP" ]; then
-    GAMETOP=jt${SYSNAME}_game
-    echo Using $GAMETOP as top module
-fi
 
 function add_macro {
     echo ${MACROPREFIX}$1 >> macros.f
 }
-
-if [ ! -e "rom.bin" ]; then
-    echo "Error: cannot find ROM file rom.bin"
-    exit 1
-fi
 
 while [ $# -gt 0 ]; do
 case "$1" in
@@ -344,7 +329,7 @@ case "$1" in
     -ncverilog|-verilator|-synap|-modelsim|-iverilog|-questasim)
         # This is parsed in the first argument loop
         ;;
-    -help)
+    -help|-h|--help)
         show_help
         exit 0
         ;;
@@ -354,12 +339,38 @@ esac
     ARGNUMBER=$((ARGNUMBER+1))
 done
 
+if [ -z "$SYSNAME" ]; then
+    AUX=`pwd`
+    AUX=${AUX%/ver/game}
+    SYSNAME=`basename $AUX`
+    if [ -d $CORES/$SYSNAME/ver/game ]; then
+        echo "JTSIM: using $SYSNAME as the system name"
+    else
+        SYSNAME=
+    fi
+fi
+require "$SYSNAME" "JTSIM: Missing core name. Specify it with -sysname"
+
 # Add a local copy of the dump file if it doesn't exist
 if [ ! -e ${TARGET}_dump.v ]; then
     cp $JTFRAME/target/$TARGET/ver/${TARGET}_dump.v .
     git add -v ${TARGET}_dump.v
 fi
 FILES="$FILES ${TARGET}_dump.v"
+
+if [ -e rom.bin ]; then
+    if [ ! stat --version > /dev/null ]; then
+        GAME_ROM_LEN=$(stat -L -f %z rom.bin)
+    else
+        GAME_ROM_LEN=$(stat -L -c%s rom.bin)
+    fi
+else
+    GAME_ROM_LEN=0
+fi
+
+if [ $GAME_ROM_LEN -eq 0 ]; then
+    echo "JTSIM: rom.bin not found or empty"
+fi
 
 add_macro GAME_ROM_LEN=${GAME_ROM_LEN}
 
@@ -382,8 +393,6 @@ if [ ! -z "$MEM_CHECK_TIME" ]; then
     add_macro MEM_CHECK_TIME=$MEM_CHECK_TIME
 fi
 
-add_macro SYSTOP=jt${SYSNAME}_mist
-
 function jtcfgstr {
     jtframe cfgstr $SYSNAME --target=$TARGET --output=$1
 }
@@ -401,8 +410,13 @@ if ! jtcfgstr cpp > defmacros.h ; then
     exit 1
 fi
 
-# Get the macros into bash
+# Get the macros in cfg/macros.def into bash
 eval `jtcfgstr bash`
+
+if [ -z "$GAMETOP" ]; then
+    GAMETOP=${CORENAME,,}_game
+    echo Using $GAMETOP as top module
+fi
 
 # Non Verilator sims do image conversion via raw2png
 if [[ "$VIDEO_DUMP" = TRUE && $SIMULATOR != verilator ]]; then
@@ -463,7 +477,7 @@ if [ $GATES = NO ]; then
     rm -f game_env.f tmp.f
 else
     # Gate-level simulation uses the synthesis output directly
-    GATENETLIST=$CORES/$SYSNAME/mist/simulation/ncsim/jt${SYSNAME}_8_1200mv_85c_slow.vo
+    GATENETLIST=$CORES/$SYSNAME/mist/simulation/ncsim/${CORENAME,,}_8_1200mv_85c_slow.vo
     if [ ! -e "$GATENETLIST" ]; then
         echo "Error: cannot open the gate-level netlist. Looking for file"
         echo "$GATENETLIST"

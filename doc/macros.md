@@ -4,6 +4,17 @@ Macros are expected in the file *cores/corename/cfg/macros.def*. From there, oth
 
 Macros can also be defined when invoking *jtcore* or *jtframe* command-line tools.
 
+# System Name
+
+There are two macros that define the core name the FPGA will use when communicating with the rest of the target platform. This is the name that MiST(er) display in the side of the OSD menu under some circumstances. It is also the name used for compilation files and the RBF file name. If undefined, the core folder name will be used. CORENAME is a way of using a different name for the core folder and the core itself.
+
+The core's game module that connects to the target top module is set by GAMETOP. If undefined, it will default to $CORENAME_game (or $CORENAME_game_sdram when cfg/mem.yaml exists). $CORENAME is used in lower case for the GAMETOP.
+
+Macro         |  Usage                  | Default Value
+--------------|-------------------------|------------------
+CORENAME      | Core name               | Core's folder name
+GAMETOP       | Core's game module name | $CORENAME_game(_sdram)
+
 # Macros for FPGA Synthesis
 
 Macro                    | Target  |  Usage
