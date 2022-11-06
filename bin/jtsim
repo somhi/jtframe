@@ -359,7 +359,7 @@ fi
 FILES="$FILES ${TARGET}_dump.v"
 
 if [ -e rom.bin ]; then
-    if [ ! stat --version > /dev/null ]; then
+    if ! stat --version > /dev/null; then
         GAME_ROM_LEN=$(stat -L -f %z rom.bin)
     else
         GAME_ROM_LEN=$(stat -L -c%s rom.bin)
