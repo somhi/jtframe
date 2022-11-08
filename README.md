@@ -12,6 +12,7 @@ You can show your appreciation through
 # Topics
 
 ## Basic Concepts
+* [Folder setup](doc/folders.md)
 * [Compilation](doc/compilation.md)
 * [The command line tool jtframe](doc/jtframe.md)
 * [Simulation](doc/sim.md)
