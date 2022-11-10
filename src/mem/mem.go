@@ -249,7 +249,36 @@ func Run(args Args) {
 	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))
 	}
+	// Check that the required files are available
+	for k,each := range cfg.SDRAM.Banks {
+		total_slots := len(each.Buses)
+		total_ram := 0
+		for _,bus := range each.Buses {
+			if bus.Rw {
+				total_ram++
+			}
+		}
+		filename := "jtframe_"
+		if total_ram > 0 {
+			filename += fmt.Sprintf("ram%d_", total_ram )
+		}
+		filename += fmt.Sprintf("%dslot",total_slots)
+		if total_slots > 1 {
+			filename += "s"
+		}
+		filename += ".v"
+		// Check that the file exists
+		f,err := os.Open(filepath.Join(os.Getenv("$JTFRAME"),"hdl","sdram",filename))
+		if err != nil {
+			log.Fatalf("jtframe mem: mem.yaml requires the file %s. But this module doesn't exist.",filename)
+		}
+		if total_ram > 4 {
+			log.Printf("jtframe mem: bank %d uses %d slots. For better performance balances the load so no bank gets more than 4 slots.", k, total_slots)
+		}
+		f.Close()
+	}
 	for k := 0; k<4; k++ {
+		// Mark each bank as used or unused
 		if k < len(cfg.SDRAM.Banks) {
 			cfg.Unused[k] = len(cfg.SDRAM.Banks[k].Buses)==0
 		} else {
