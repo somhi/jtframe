@@ -261,6 +261,8 @@ func Run(args Args) {
 		filename := "jtframe_"
 		if total_ram > 0 {
 			filename += fmt.Sprintf("ram%d_", total_ram )
+		} else {
+			filename += "rom_"
 		}
 		filename += fmt.Sprintf("%dslot",total_slots)
 		if total_slots > 1 {
@@ -268,9 +270,11 @@ func Run(args Args) {
 		}
 		filename += ".v"
 		// Check that the file exists
-		f,err := os.Open(filepath.Join(os.Getenv("$JTFRAME"),"hdl","sdram",filename))
+		fullname := filepath.Join(os.Getenv("JTFRAME"),"hdl","sdram",filename)
+		f,err := os.Open(fullname)
 		if err != nil {
-			log.Fatalf("jtframe mem: mem.yaml requires the file %s. But this module doesn't exist.",filename)
+			log.Fatalf("jtframe mem: mem.yaml requires the file %s. But this module doesn't exist.\nChecked in %s",
+				filename, fullname)
 		}
 		if total_ram > 4 {
 			log.Printf("jtframe mem: bank %d uses %d slots. For better performance balances the load so no bank gets more than 4 slots.", k, total_slots)
