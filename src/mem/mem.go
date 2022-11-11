@@ -252,6 +252,9 @@ func Run(args Args) {
 	// Check that the required files are available
 	for k,each := range cfg.SDRAM.Banks {
 		total_slots := len(each.Buses)
+		if total_slots==0 {
+			continue
+		}
 		total_ram := 0
 		for _,bus := range each.Buses {
 			if bus.Rw {
