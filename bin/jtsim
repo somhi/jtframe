@@ -20,7 +20,7 @@
 DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
-SIMULATOR=modelsim
+SIMULATOR=verilator
 TOP=game_test
 TARGET=
 FILES=
