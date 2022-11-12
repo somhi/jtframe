@@ -28,10 +28,16 @@ var msg_args msg.Args
 var msgCmd = &cobra.Command{
 	Use:   "msg <core-name>",
 	Short: "Parses the core's msg file to generate a pause screen message",
-	Long: `Parses the core's msg file in the config folder to generate a message. The message will be shown during the pause screen when the core is compiled with JTFRAME credits.
-The lines cannot be longer than 32 characters.
-There are four colours available: red, green, blue and white. Each line starts as white and the colour is changed by using a escape character and the colour first letter in capitals: \R for red, etc.
-The msg file gets parsed into two files: msg.hex and msg.bin, placed in the current directory.
+	Long: `Parses the core's msg file in the config folder to generate a message.
+The message will be shown during the pause screen when macro JTFRAME_CREDITS is set.
+Two output files are generated: msg.hex and msg.bin
+
+Message text:
+- lines cannot be longer than 32 characters.
+- Four colours available: red, green, blue and white. Each line starts as white.
+  The colour is changed by using \R (red) \G (green) \B (blue) or \W (white)
+- \D is replaced by the current date in year-month-day format
+- \C is replaced by the string in the --commit argument
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		msg_args.Core = args[0]
