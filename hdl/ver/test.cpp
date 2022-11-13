@@ -609,6 +609,9 @@ void JTSim::clock(int n) {
             if( !(frame_cnt & 0x3f) ) cout << '\n';
             cout.flush();
             sim_inputs.next();
+#ifdef JTFRAME_SIM_DEBUG
+            game.debug_bus++;
+#endif
         }
         last_VS = game.VS;
 
