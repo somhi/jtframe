@@ -17,6 +17,8 @@
 # Author: Jose Tejada Gomez. Twitter: @topapate
 # Date: 20-8-2022
 
+echo "=========== JTSIM starts ==========="
+
 DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
@@ -33,6 +35,7 @@ TESTCPP=
 GATES=NO
 MACOS=NO
 SED="sed -i"
+START_TIME=$(date +%s)
 
 rm -f macros.f
 
@@ -352,12 +355,12 @@ if [ -z "$SYSNAME" ]; then
     AUX=${AUX%/ver/game}
     SYSNAME=`basename $AUX`
     if [ -d $CORES/$SYSNAME/ver/game ]; then
-        echo "JTSIM: using $SYSNAME as the system name"
+        echo "Using $SYSNAME as the system name"
     else
         SYSNAME=
     fi
 fi
-require "$SYSNAME" "JTSIM: Missing core name. Specify it with -sysname"
+require "$SYSNAME" "Missing core name. Specify it with -sysname"
 
 # Add a local copy of the dump file if it doesn't exist
 if [ ! -e ${TARGET}_dump.v ]; then
@@ -643,3 +646,11 @@ if [ -e sound.raw ]; then
     $JTUTIL/bin/raw2wav $SAMPLING_RATE < sound.raw
     rm -f sound.raw
 fi
+
+# Show simulation time
+END_TIME=$(date +%s)
+COMPILE_TIME=$[$END_TIME - $START_TIME]
+MINUTES=$[$COMPILE_TIME / 60]
+SECONDS=$[$COMPILE_TIME % 60]
+
+echo "====== JTSIM finished in "$MINUTES\'$SECONDS\"" ======"
