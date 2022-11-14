@@ -69,7 +69,7 @@ bit     |  meaning                | Enabled with macro
 0       | Reset in MiST           |
 1       | Flip screen             | JTFRAME_VERTICAL && JTFRAME_OSD_FLIP
 2       | Rotate controls         | JTFRAME_VERTICAL (MiST)
-2       | Rotate screen           | JTFRAME_VERTICAL, visibiliy masked (MiSTer)
+2       | Rotate screen           | JTFRAME_VERTICAL, visibility masked (MiSTer/Pocket)
 3-4     | Scan lines              | Scan-line mode (MiST only)
 3-5     | Scandoubler Fx          | Scan line mode and HQ2X enable (MiSTer only)
 6-7     | FX Volume (00=lowest)   | JTFRAME_OSD_VOL

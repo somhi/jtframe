@@ -541,11 +541,24 @@ if [ $TARGET = pocket ]; then
     # The Pocket must have something misconnected inside
     # and it requires the bit order in each RBF byte to
     # be reversed
-    $JTFRAME/bin/reverse_bits $RBF /tmp/reverse.rbf_r
-    cp /tmp/reverse.rbf_r $RBF
+    if [ ! -e $JTFRAME/bin/reverse_bits ]; then
+        echo "Compiling reverse_bits"
+        cd $JTFRAME/cc
+        make
+        cd -
+    fi
+    $JTFRAME/bin/reverse_bits $RBF ${RBF}_r
+    cp ${RBF}_r releases/$TARGET/$RELEASE.$EXT
+    if [ -e $ROM/pocket/Cores/jotego.jt$PRJ ]; then
+        cp ${RBF}_r $ROM/pocket/Cores/jotego.jt$PRJ
+        if [ -d /media/$USER/POCKET  ]; then
+            cp -v ${RBF}_r /media/$USER/POCKET/Cores/jotego.jt$PRJ
+        fi
+    fi
+else
+    cp $RBF $RELEASE.rbf
+    cp $RELEASE.rbf releases/$TARGET/$RELEASE.$EXT
 fi
-
-cp $RBF releases/$TARGET/$RELEASE.$EXT
 
 ######################################################################################
 # Adds the file to the JTALPHA folder if it is a succesful compilation for MiSTer
