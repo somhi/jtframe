@@ -17,7 +17,21 @@
 # Author: Jose Tejada Gomez. Twitter: @topapate
 # Date: 20-8-2022
 
-echo "=========== JTSIM starts ==========="
+# Define colours if running on a terminal
+if [ -n "$TERM" ]; then
+    red=`tput setaf 1`
+    green=`tput setaf 2`
+    blue=`tput setaf 4`
+    white=`tput setaf 7`
+    rBG=`tput setab 1; tput setaf 7`
+    gBG=`tput setab 2; tput setaf 7`
+    bBG=`tput setab 4; tput setaf 7`
+    yBG=`tput setab 3; tput setaf 7`
+    wBG=`tput setab 7; tput setaf 0`
+    NC=`tput sgr0`
+fi
+
+echo "${wBG}=========== JTSIM starts ===========${NC}"
 
 DUMP=
 SIM_MS=1
@@ -112,7 +126,7 @@ EOF
 
 function add_dir {
     if [ ! -d "$1" ]; then
-        echo "ERROR: add_dir (sim.sh) failed because $1 is not a directory" 1>&2
+        echo "${rBG}Error:${NC} add_dir (sim.sh) failed because $1 is not a directory" 1>&2
         exit 1
     fi
     processF=no
@@ -185,7 +199,7 @@ function preparse_args {
 
 function require {
     if [ -z "$1" ]; then
-        echo "$2"
+        echo "${rBG}Error:${NC} $2"
         exit 1
     fi
 }
@@ -229,7 +243,7 @@ case "$1" in
     -gates)
         GATES=YES
         if [ $SIMULATOR = verilator ]; then
-            echo "Verilator cannot be used for gate-level sims"
+            echo "${rBG}Error:${NC} Verilator cannot be used for gate-level sims"
             exit 1
         fi
         ;;
@@ -244,7 +258,7 @@ case "$1" in
     -frame)
         shift
         if [ "$1" = "" ]; then
-            echo "Must specify number of frames to simulate"
+            echo "${rBG}Error:${NC} Must specify the number of frames to simulate"
             exit 1
         fi
         add_macro MAXFRAME=$1
@@ -253,7 +267,7 @@ case "$1" in
     -srate)
         shift
         if [ "$1" = "" ]; then
-            echo "Must specify the sampling rate"
+            echo "${rBG}Error:${NC} Must specify the sampling rate"
             exit 1
         fi
         SAMPLING_RATE="-s $1"
@@ -285,7 +299,7 @@ case "$1" in
     -time)
         shift
         if [ "$1" = "" ]; then
-            echo "Must specify number of milliseconds to simulate"
+            echo "${rBG}Error:${NC} Must specify number of milliseconds to simulate"
             exit 1
         fi
         SIM_MS="$1"
@@ -340,7 +354,7 @@ case "$1" in
         show_help
         exit 0
         ;;
-    *) echo "Unknown option $1. Use -help to see the list of options"; exit 1;;
+    *) echo "${rBG}Error:${NC} Unknown option $1. Use -help to see the list of options"; exit 1;;
 esac
     shift
     ARGNUMBER=$((ARGNUMBER+1))
@@ -490,19 +504,19 @@ else
     # Gate-level simulation uses the synthesis output directly
     GATENETLIST=$CORES/$SYSNAME/mist/simulation/ncsim/${CORENAME,,}_8_1200mv_85c_slow.vo
     if [ ! -e "$GATENETLIST" ]; then
-        echo "Error: cannot open the gate-level netlist. Looking for file"
+        echo "${rBG}Error:${NC} cannot open the gate-level netlist. Looking for file"
         echo "$GATENETLIST"
         echo "Generate it using Quartus II, for the MiST core files"
         exit 1
     fi
     QPATH=`which quartus`
     if [[ -z "$QPATH" ]]; then
-        echo "Error: Quartus is not in the PATH"
+        echo "${rBG}Error:${NC} Quartus is not in the PATH"
         exit 1
     fi
     QPATH=${QPATH%quartus/bin/quartus}/modelsim_ae/altera/verilog/src
     if [ ! -d "$QPATH" ]; then
-        echo "Cannot find the path to Quartus simulation files"
+        echo "${rBG}Error:${NC} cannot find the path to Quartus simulation files"
         echo Looking at "$QPATH"
         exit 1
     fi
