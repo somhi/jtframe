@@ -375,7 +375,7 @@ function report {
 }
 
 START_TIME=$(date +%s)
-echo ==============================================
+echo =============== JTCORE =======================
 echo -e "${wBG}jt$PRJ $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(date +%T)${NC}${wBG} with seed ${red}$SEED${NC}${wBG} on $(hostname)${NC}"
 if [ "$MACROS" != "" ]; then
     echo Explicit macros: $MACROS

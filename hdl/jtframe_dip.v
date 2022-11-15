@@ -60,11 +60,8 @@ module jtframe_dip(
 // "OAB,FX volume, high, very high, very low, low;",
 // core-specific settings should start at letter G (i.e. 16)
 
-`ifdef MISTER
-localparam MISTER=1;
-`else
-localparam MISTER=0;
-`endif
+localparam MISTER= `ifdef MISTER 1 `else 0 `endif;
+localparam POCKET= `ifdef POCKET 1 `else 0 `endif;
 
 `ifdef JTFRAME_ARX
 localparam [12:0] ARX = `JTFRAME_ARX;
@@ -137,18 +134,21 @@ end
     //             = 1 vertical game
     // status[13]  = 0 Rotate screen
     //             = 1 no rotation
-    `ifdef MISTER
+    wire tate;
+generate
+    if ( MISTER || POCKET ) begin
         `ifdef JTFRAME_ROTATE
             wire status_roten= status[40:39]==0;
         `else
             wire status_roten= ~status[2];
         `endif
-        wire tate = status_roten & core_mod[0]; // 1 if screen is vertical (tate in Japanese)
+        assign tate = (!MISTER || status_roten) && core_mod[0]; // 1 if screen is vertical (tate in Japanese)
         assign rot_control = 1'b0;
-    `else
-        wire   tate   = 1'b1 & core_mod[0];      // MiST is always vertical
+    end else begin // MiST derivativatives are always vertical
+        assign tate   = 1'b1 & core_mod[0];
         assign rot_control = status[2];
-    `endif
+    end
+endgenerate
     wire   swap_ar = ~tate | ~core_mod[0];
 `else
     wire   tate   = 1'b0;
