@@ -749,7 +749,7 @@ video_freak u_crop(
 wire rot_clk;
 
 `ifdef JTFRAME_VERTICAL
-    `ifdef JTFRAME_MR_ROTCCW
+    `ifdef JTFRAME_ROTCCW
     localparam ROTCCW=1;
     `else
     localparam ROTCCW=0;
