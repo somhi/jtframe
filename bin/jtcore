@@ -74,8 +74,6 @@ EXT=rbf
 FAIL=0
 GIT=FALSE
 MACROS=
-MISTERPASSWD=1
-MRHOST=MiSTer.home
 OUTPUTDIR=output_files
 PRIVATE=0
 PRJ=
@@ -628,8 +626,10 @@ fi
 
 # If Mr is online, copy the file to the _Arcade/cores folder using MiSTer's SSH password
 if [ $TARGET = mister ]; then
+    if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
+    if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
     if ping $MRHOST -w 1 -c 1 > /dev/null; then
-        sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${HOST}:/media/fat/_${FTP_FOLDER}/cores
+        sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores
     fi
 fi
 

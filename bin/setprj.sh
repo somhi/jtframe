@@ -95,12 +95,35 @@ function jtpull {
 # Displays all available macros
 # The argument is used to filter the output
 function jtmacros {
-    if [ ! -z "$1" ]; then
-        grep -i "$1" $JTFRAME/doc/macros.md
-    else
-        cat $JTFRAME/doc/macros.md
-        echo
-    fi
+    case "$1" in
+        --using|-u)
+            for i in `find $CORES -name "*.def" | xargs grep --files-with-matches "$2"`; do
+                i=`dirname $i`
+                i=${i##$CORES/}
+                i=${i%%/cfg}
+                len0=${#i}
+                i=${i%%/ver/game}
+                len1=${#i}
+                if [ $len0 = $len1 ]; then echo $i; fi
+            done;;
+        --help|-h)
+            cat<<EOF
+jtmacros shows macro related information.
+Usage:
+    --using|-u name     shows all cores using a given macro
+    --help|-h           shows this screen
+    name                shows the description of macro "name"
+    no arguments        shows the description of all macros
+EOF
+        ;;
+        *)
+            if [ ! -z "$1" ]; then
+                grep -i "$1" $JTFRAME/doc/macros.md
+            else
+                cat $JTFRAME/doc/macros.md
+                echo
+            fi;;
+    esac
 }
 
 function lnrom {
