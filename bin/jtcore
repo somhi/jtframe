@@ -442,7 +442,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     LOG="$JTROOT/log/$TARGET/jt$PRJ.log"
     echo Log file: $LOG
     copy_templates
-    echo -e "\nset_global_assignment -name seed $SEED" >> jt$PRJ.qsf
+    echo -e "\nset_global_assignment -name seed $SEED" >> $CORENAME.qsf
     if [ $SIM = FALSE ]; then
         # Create the QIP file
         jtframe mem $PRJ || exit $?
