@@ -876,6 +876,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				m.AddAttr("map", mapstr)
 				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
 				m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
+				pos += r.Size
 			}
 		}
 		// Regular interleave case
