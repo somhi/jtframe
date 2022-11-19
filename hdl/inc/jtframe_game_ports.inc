@@ -71,8 +71,8 @@
 `endif
     input   [3:0]   gfx_en,
 `ifdef JTFRAME_DEBUG
-    input   [7:0]   debug_bus,
-    output  [7:0]   debug_view,
+    input      [7:0] debug_bus,
+    output reg [7:0] debug_view, // the most common case is the register
 `endif
     // Memory ports
 `ifndef JTFRAME_MEMGEN // If the game does not use mem.yaml
