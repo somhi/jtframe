@@ -550,7 +550,7 @@ iverilog)
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
         -f target.f \
         -s $TOP -o $SIMEXE \
-        -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl \
+        -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc\
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
     || exit 1
     $SHOWCMD $SIMEXE -lxt
@@ -560,6 +560,7 @@ modelsim|questasim)
     $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
         +initwireX \
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         $SIMARGS -f target.f \
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
@@ -577,6 +578,7 @@ synapticad)
     $SHOWCMD simx +access+r +define+SYNAPTICAD +timescale+1ns/1ps\
         -f filtered.f -f target.f $FILES \
         +scd_top+$TOP \
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         $SIMARGS \
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $EXTRA -l /dev/null || exit $?;;
@@ -587,6 +589,7 @@ ncverilog)
         -sysv -f jtsim_vhdl.f -f target.f \
         -disable_sem2009 $FILES \
         +nctop+$TOP \
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         -ncvhdl_args,-V93 \
         $SIMARGS \
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
@@ -619,7 +622,7 @@ verilator)
     # Ignore FX68k in Verilator sims with this:
     # $SED '/fx68k/d' filtered.f
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
-    $SHOWCMD verilator -I../../hdl --timescale 1ps/1ps \
+    $SHOWCMD verilator -I../../hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
         game_test.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
