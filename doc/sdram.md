@@ -93,6 +93,8 @@ sdram:
 
 In this example only one bank is used. You can check the *game_sdram.v* file that is generated to see what JTFRAME does. Another core that uses *mem.yaml* is [Extermination](https://github.com/jotego/jtbubl). Look at the cores using *mem.yaml* and at the Go source code to understand how the *mem.yaml* works.
 
+When a *mem.yaml* file exists, *jtframe* automatically declares the **JTFRAME_SDRAM_BANKS** and **JTFRAME_MEMGEN** macros.
+
 ## Ports in the Game Module
 
 The memory ports can be taken into the design by including the file `mem_ports.inc`, which will be created if the include state is found. The ports can be automatically added to the core game module by adding this at the bottom of the port list:

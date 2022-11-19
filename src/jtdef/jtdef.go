@@ -194,10 +194,13 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game_sdram")
 		}
 	}
-	// Memory templates require JTFRAME_SDRAM_BANKS
-	_, exists = macros["JTFRAME_SDRAM_BANKS"]
-	if !exists && mem_managed {
-		macros["JTFRAME_SDRAM_BANKS"] = ""
+	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
+	if mem_managed {
+		_, exists = macros["JTFRAME_SDRAM_BANKS"]
+		if !exists && mem_managed {
+			macros["JTFRAME_SDRAM_BANKS"] = ""
+		}
+		macros["JTFRAME_MEMGEN"] = ""
 	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())

@@ -219,7 +219,12 @@ func add_game_ports( args Args, cfg *MemConfig) {
 				bout.Write(buffer.Bytes())
 				ignore = true	// will not copy lines until ); is found
 			}
-			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 {
+			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 || // manually added
+			   strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 /* in main JTFRAME include */ {
+				make_inc = true
+				break
+			}
+			if strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 {
 				make_inc = true
 				break
 			}
