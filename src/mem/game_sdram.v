@@ -124,13 +124,24 @@ module jt{{.Core}}_game_sdram(
     input           enable_psg,
     input           enable_fm,
     // Debug
+`ifdef JTFRAME_STATUS
+    input   [ 7:0]  st_addr,
+    output  [ 7:0]  st_dout,
+`endif
 `ifdef JTFRAME_DEBUG
     input   [ 7:0]  debug_bus,
     output  [ 7:0]  debug_view,
 `endif
-`ifdef JTFRAME_STATUS
-    input   [ 7:0]  st_addr,
-    output  [ 7:0]  st_dout,
+`ifdef JTFRAME_LF_BUFFER
+    output   [ 7:0] game_vrender,
+    output   [ 8:0] game_hdump,
+    output   [ 8:0] ln_addr,
+    output   [15:0] ln_data,
+    output          ln_done,
+    input           ln_hs,
+    input    [15:0] ln_pxl,
+    input    [ 7:0] ln_v,
+    output          ln_we,
 `endif
     input   [ 3:0]  gfx_en
 );
@@ -293,7 +304,18 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .st_addr      ( st_addr        ),
     .st_dout      ( st_dout        ),
 `endif
-    .gfx_en       ( gfx_en         )
+`ifdef JTFRAME_LF_BUFFER
+    .game_vrender( game_vrender  ),
+    .game_hdump  ( game_hdump    ),
+    .ln_addr     ( ln_addr       ),
+    .ln_data     ( ln_data       ),
+    .ln_done     ( ln_done       ),
+    .ln_hs       ( ln_hs         ),
+    .ln_pxl      ( ln_pxl        ),
+    .ln_v        ( ln_v          ),
+    .ln_we       ( ln_we         ),
+`endif
+    .gfx_en      ( gfx_en        )
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims

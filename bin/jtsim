@@ -102,6 +102,7 @@ Please support the development: https://patreon.com/jotego
     -ncverilog Select NCVerilog as the simulator
     -nosnd     Disable SOUND hardware. Speeds up simulation a lot!
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
+    -pocket    Select PocketFPGA as target platform
     -questasim Use QuestaSim as the simulator
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis

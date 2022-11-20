@@ -74,6 +74,20 @@
     input      [7:0] debug_bus,
     output reg [7:0] debug_view, // the most common case is the register
 `endif
+    // Line-frame buffer for object drawing, supported only
+    // on PocketFPGA and MiSTer. It could be added to NeptUNO too
+`ifdef JTFRAME_LF_BUFFER
+    output   [ 7:0] game_vrender,
+    output   [ 8:0] game_hdump,
+    output   [ 8:0] ln_addr,
+    output   [15:0] ln_data,
+    output          ln_done,
+    input           ln_hs,
+    input    [15:0] ln_pxl,
+    input    [ 7:0] ln_v,
+    output          ln_we,
+`endif
+
     // Memory ports
 `ifndef JTFRAME_MEMGEN // If the game does not use mem.yaml
     input   [24:0]  ioctl_addr,
