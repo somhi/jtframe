@@ -88,15 +88,17 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         frame <= 0;
         ln_hs <= 0;
+        ln_v  <= 0;
         done  <= 0;
     end else begin
         ln_hs <= 0;
         if( vs && !vsl ) begin
-            frame      <= ~frame;
-            ln_v       <= vstart;
-            done <= 0;
+            frame <= ~frame;
+            ln_v  <= vstart;
+            ln_hs <= 1;
+            done  <= 0;
         end
-        if( fb_done ) begin
+        if( fb_done && !done ) begin
             ln_v <= ln_v + 1'd1;
             if( ln_v == vend )
                 done <= 1;

@@ -127,7 +127,8 @@ always @( posedge clk, posedge rst ) begin
         cr_oen  <= 1;
         cr_cre  <= 0;
         cen     <= 1;
-        fb_done <= 0;
+        fb_done <= 1;
+        fb_addr <= 0;
     end else begin
         fb_done <= 0;
         cr_advn <= 1;
