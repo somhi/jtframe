@@ -40,6 +40,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mc2        compiles the MultiCore2  version
     -mcp        compiles the MultiCore2+ version
     -pocket     compiles the PocketFPGA version
+    -folder     any folder present in $JTFRAME/target/folder can be used as the target
 
     General options
 
@@ -136,8 +137,6 @@ function parse_args {
                 GIT=FALSE;;
             -mr)
                 TARGET=mister;;
-            -mister|-mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
-                TARGET=${1:1};;
             --mrpasswd)
                 shift
                 MISTERPASSWD=$1;;
@@ -163,6 +162,10 @@ function parse_args {
                 SHOWMACROS=1;;
             --target|-t)
                 shift
+                if [ ! -d "$JTFRAME/target/$1" ]; then
+                    echo "Target $1 does not exist in $JTFRAME/target"
+                    exit 1
+                fi
                 TARGET=$1;;
             --rename)
                 shift
@@ -178,8 +181,11 @@ function parse_args {
                 VERBOSE=-v;;
             --help | -h)
                 show_usage;;
-            *)  if [ -z "$PRJ" ]; then
+            *)  if [[ -z "$PRJ" && ${1:0:1} != - ]]; then
                     PRJ=$1
+                elif [ -d "$JTFRAME/target/${1:1}" ]; then
+                    # the name is a valid target because there was a folder for it in $JTFRAME/target
+                    TARGET=${1:1}
                 else
                     echo "Project name had already been defined to " $PRJ
                     echo -e "${rBG}ERROR:${NC}${wBG} Unknown option ${red}$1${NC}";
