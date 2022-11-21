@@ -47,7 +47,7 @@ module jtframe_lfbuf_ctrl #(parameter
     output              cr_clk,
     output reg          cr_advn,
     output reg          cr_cre,
-    output     [   1:0] cr_cen,
+    output     [   1:0] cr_cen, // chip enable
     output reg          cr_oen,
     output reg          cr_wen,
     output     [   1:0] cr_dsn
@@ -56,7 +56,7 @@ module jtframe_lfbuf_ctrl #(parameter
 reg  [ 3:0] st;
 reg  [15:0] adq_reg;
 reg         lhbl_l, do_rd, do_wr,
-            cen;
+            csn, ln_done_l;
 
 localparam [3:0] INIT       = 0,
                  WAIT_CFG   = 1,
@@ -101,7 +101,7 @@ localparam [21:0] BUS_CFG = {
                2'd3   // 1/8 the array (512k x 16 bits)
 };
 
-assign cr_cen = { 1'b1, cen };
+assign cr_cen = { 1'b1, csn }; // I call it csn to avoid the confusion with the common cen (clock enable) signal
 assign cr_dsn = 0;
 assign fb_dout  = cr_oen ? 16'd0 : cr_adq;
 assign cr_adq = cr_oen ? adq_reg : 16'hzzzz;
@@ -112,10 +112,11 @@ always @( posedge clk, posedge rst ) begin
         do_rd <= 0;
         do_wr <= 0;
     end else begin
-        lhbl_l <= lhbl;
+        lhbl_l    <= lhbl;
+        ln_done_l <= ln_done;
         if( lhbl_l & ~lhbl ) do_rd <= 1;
         if( st==READ_LINE  ) do_rd <= 0;
-        if( ln_done & ~ln_done ) do_wr <= 1;
+        if( ln_done & ~ln_done_l ) do_wr <= 1;
         if( fb_done ) do_wr <= 0;
     end
 end
@@ -126,16 +127,17 @@ always @( posedge clk, posedge rst ) begin
         cr_advn <= 0;
         cr_oen  <= 1;
         cr_cre  <= 0;
-        cen     <= 1;
+        csn     <= 1;
         fb_done <= 1;
         fb_addr <= 0;
+        scr_we  <= 0;
     end else begin
         fb_done <= 0;
         cr_advn <= 1;
         case( st )
             INIT: begin
                 { cr_addr, adq_reg } <= BUS_CFG;
-                cen     <= 0;
+                csn     <= 0;
                 cr_advn <= 0;
                 cr_cre  <= 1;
                 cr_oen  <= 1;
@@ -144,14 +146,14 @@ always @( posedge clk, posedge rst ) begin
             end
             WAIT_CFG: begin
                 if( cr_wait ) begin
-                    cen    <= 1;
+                    csn    <= 1;
                     cr_wen <= 1;
                     st     <= SET_REF;
                 end
             end
             SET_REF: begin
                 { cr_addr, adq_reg } <= REF_CFG;
-                cen     <= 0;
+                csn     <= 0;
                 cr_advn <= 0;
                 cr_cre  <= 1;
                 cr_oen  <= 1;
@@ -160,19 +162,19 @@ always @( posedge clk, posedge rst ) begin
             end
             WAIT_REF: begin
                 if( cr_wait ) begin
-                    cen    <= 1;
+                    csn    <= 1;
                     cr_wen <= 1;
                     st     <= IDLE;
                 end
             end
     // Wait for requests
             IDLE: begin
-                cen    <= 1;
+                csn    <= 1;
                 fb_clr <= 0;
                 cr_wen <= 1;
                 cr_cre <= 0;
                 if( do_rd ) begin
-                    cen     <= 0;
+                    csn     <= 0;
                     adq_reg <= { vrender[VW-6:0], {16+5-VW{1'b0}} };
                     cr_addr <= 0;
                     fb_addr <= 0;
@@ -180,7 +182,7 @@ always @( posedge clk, posedge rst ) begin
                     cr_oen  <= 1;
                     st      <= READ_LINE;
                 end else if( do_wr ) begin
-                    cen     <= 0;
+                    csn     <= 0;
                     adq_reg <= { ln_v[VW-6:0], {16+5-VW{1'b0}} };
                     cr_addr <= 0;
                     fb_addr <= 0;
@@ -190,7 +192,7 @@ always @( posedge clk, posedge rst ) begin
                 end
             end
             BREAK: begin
-                cen             <= 0;
+                csn             <= 0;
                 adq_reg[15-:VW-5] <= cr_wen ? ln_v[VW-6:0] : vrender[VW-6:0];
                 adq_reg[HW-1:0] <= fb_addr;
                 st              <= cr_wen ? READ_LINE : WRITE_LINE;
@@ -206,9 +208,9 @@ always @( posedge clk, posedge rst ) begin
             end
             WRITEOUT: begin
                 fb_addr <= fb_addr + 1'd1;
-                if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep CEN low for less than 4us
-                    cen <= 1;
-                    st  <= &fb_addr /* full line read */ ? CLEAR : BREAK;
+                if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
+                    csn    <= 1;
+                    st     <= &fb_addr /* full line read */ ? CLEAR : BREAK;
                 end
             end
             CLEAR: begin
@@ -235,8 +237,8 @@ always @( posedge clk, posedge rst ) begin
             end
             READIN: begin
                 fb_addr <= fb_addr + 1'd1;
-                if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep CEN low for less than 4us
-                    cen    <= 1;
+                if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
+                    csn    <= 1;
                     cr_oen <= 1;
                     scr_we <= 0;
                     st     <= &fb_addr /* full line read */ ? IDLE : BREAK;

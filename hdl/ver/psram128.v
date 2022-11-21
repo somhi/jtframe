@@ -77,25 +77,27 @@ module psram64(
     inout    [15:0] adq
 );
 
-reg [15:0] mem[0:2**22-1];
-reg [21:0] addr;
-reg [ 2:0] wtk;
-reg [ 3:0] st;
-reg        wt_reg, do_rd, do_cfg;
+reg  [15:0] mem[0:2**22-1];
+reg  [21:0] addr;
+reg  [ 2:0] wtk;
+reg  [ 3:0] st;
+reg         wt_reg, do_rd, do_cfg;
+wire [15:0] cur_mem;
 
 localparam [3:0] IDLE  = 0,
                  WAIT  = 1,
                  READ  = 2,
                  WRITE = 3;
 
-assign adq = (!oen && !cen) ? mem[addr] : 16'hzzzz;
+assign cur_mem = mem[addr];
+assign adq = (!oen && !cen && st==READ) ? cur_mem : 16'hzzzz;
 assign wt  = cen ? 1'bz : wt_reg;
 
 integer k;
 initial begin
     wt_reg <= 0;
     st <= IDLE;
-    for(k=0;k<2*22-1;k++) mem[k] = 0;
+    for(k=0;k<2**22-1;k++) mem[k] = 0;
 end
 
 always @(posedge clk) begin
@@ -133,7 +135,7 @@ always @(posedge clk) begin
             if( cen ) 
                 st <= IDLE;
             else
-                mem[addr] <= { ubn ? mem[addr][15:8] : adq[15:8], lbn ? mem[addr][7:0] : adq[7:0] };
+                mem[addr] <= { ubn ? cur_mem[15:8] : adq[15:8], lbn ? cur_mem[7:0] : adq[7:0] };
         end
     endcase
 end

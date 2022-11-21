@@ -79,7 +79,7 @@ initial begin
     HS       = 0;
     VS       = 0;
     H        = 0;
-    vrender1 = 0;
+    vrender1 = 220;
     vrender  = 0;
     vdump    = 0;
 
