@@ -60,7 +60,6 @@ set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_
 set_global_assignment -name QIP_FILE target.qip
 set_global_assignment -name QIP_FILE game.qip
 
-set_global_assignment -name VERILOG_MACRO "MISTER=<None>"
 set_global_assignment -name VERILOG_MACRO "ARCADE_SYS=1"
 set_global_assignment -name VERILOG_MACRO "USE_SDRAM=1"
 

@@ -166,6 +166,8 @@ func Make_macros(cfg Config) (macros map[string]string) {
 		macros["SEPARATOR"] = "-;"
 	}
 	macros["TARGET"] = cfg.Target
+	// Adds a macro with the target name
+	macros[ strings.ToUpper(cfg.Target) ] = "1"
 	// Adds the date
 	year, month, day := time.Now().Date()
 	datestr := fmt.Sprintf("%d%02d%02d", year%100, month, day)
