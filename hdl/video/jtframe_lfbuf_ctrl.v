@@ -38,6 +38,8 @@ module jtframe_lfbuf_ctrl #(parameter
     // data read from external memory to screen buffer
     // during h blank
     output     [  15:0] fb_dout,
+    output reg [HW-1:0] rd_addr,
+    output reg          line,
     output reg          scr_we,
 
     // cell RAM (PSRAM) signals
@@ -57,6 +59,7 @@ reg  [ 3:0] st;
 reg  [15:0] adq_reg;
 reg         lhbl_l, do_rd, do_wr,
             csn, ln_done_l;
+wire        fb_over;
 
 localparam [3:0] INIT       = 0,
                  WAIT_CFG   = 1,
@@ -67,7 +70,7 @@ localparam [3:0] INIT       = 0,
                  WRITE_LINE = 6,
                  WRITE_WAIT = 7,
                  WRITEOUT   = 8,
-                 CLEAR      = 9,
+                 // CLEAR      = 9,
                  READ_LINE  = 10,
                  READ_WAIT  = 11,
                  READIN     = 12;
@@ -101,11 +104,12 @@ localparam [21:0] BUS_CFG = {
                2'd3   // 1/8 the array (512k x 16 bits)
 };
 
-assign cr_cen = { 1'b1, csn }; // I call it csn to avoid the confusion with the common cen (clock enable) signal
-assign cr_dsn = 0;
-assign fb_dout  = cr_oen ? 16'd0 : cr_adq;
-assign cr_adq = cr_oen ? adq_reg : 16'hzzzz;
-assign cr_clk = clk;
+assign cr_cen  = { 1'b1, csn }; // I call it csn to avoid the confusion with the common cen (clock enable) signal
+assign cr_dsn  = 0;
+assign fb_dout = cr_oen ? 16'd0 : cr_adq;
+assign cr_adq  = cr_oen ? adq_reg : 16'hzzzz;
+assign cr_clk  = clk;
+assign fb_over = &fb_addr;
 
 always @( posedge clk, posedge rst ) begin
     if( rst ) begin
@@ -115,9 +119,9 @@ always @( posedge clk, posedge rst ) begin
         lhbl_l    <= lhbl;
         ln_done_l <= ln_done;
         if( lhbl_l & ~lhbl ) do_rd <= 1;
-        if( st==READ_LINE  ) do_rd <= 0;
-        if( ln_done & ~ln_done_l ) do_wr <= 1;
-        if( fb_done ) do_wr <= 0;
+        if( st==READIN && (&rd_addr)) do_rd <= 0;
+        if( ln_done & ~ln_done_l    ) do_wr <= 1;
+        if( st==WRITEOUT && fb_over ) do_wr <= 0;
     end
 end
 
@@ -128,12 +132,23 @@ always @( posedge clk, posedge rst ) begin
         cr_oen  <= 1;
         cr_cre  <= 0;
         csn     <= 1;
-        fb_done <= 1;
         fb_addr <= 0;
+        fb_clr  <= 0;
+        fb_done <= 1;
+        rd_addr <= 0;
         scr_we  <= 0;
+        line    <= 0;
     end else begin
         fb_done <= 0;
         cr_advn <= 1;
+        if( fb_clr ) begin
+            // the line is cleared outside the state machine so a
+            // do_rd operation can happen independently
+            fb_addr <= fb_addr + 1'd1;
+            if( fb_over ) begin
+                fb_clr  <= 0;
+            end
+        end
         case( st )
             INIT: begin
                 { cr_addr, adq_reg } <= BUS_CFG;
@@ -170,18 +185,17 @@ always @( posedge clk, posedge rst ) begin
     // Wait for requests
             IDLE: begin
                 csn    <= 1;
-                fb_clr <= 0;
                 cr_wen <= 1;
                 cr_cre <= 0;
                 if( do_rd ) begin
                     csn     <= 0;
                     adq_reg <= { vrender[VW-6:0], {16+5-VW{1'b0}} };
                     cr_addr <= 0;
-                    fb_addr <= 0;
+                    rd_addr <= 0;
                     cr_addr <= { frame, vrender[VW-1-:5] };
                     cr_oen  <= 1;
                     st      <= READ_LINE;
-                end else if( do_wr ) begin
+                end else if( do_wr && !fb_clr ) begin
                     csn     <= 0;
                     adq_reg <= { ln_v[VW-6:0], {16+5-VW{1'b0}} };
                     cr_addr <= 0;
@@ -210,16 +224,10 @@ always @( posedge clk, posedge rst ) begin
                 fb_addr <= fb_addr + 1'd1;
                 if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
                     csn    <= 1;
-                    st     <= &fb_addr /* full line read */ ? CLEAR : BREAK;
-                end
-            end
-            CLEAR: begin
-                fb_clr <= 1;
-                if( fb_clr ) begin
-                    fb_addr <= fb_addr + 1'd1;
-                    if( &fb_addr ) begin
-                        fb_clr  <= 0;
-                        st      <= IDLE;
+                    st     <= fb_over /* full line read */ ? IDLE : BREAK;
+                    if( fb_over ) begin
+                        fb_clr  <= 1;
+                        line    <= ~line;
                         fb_done <= 1;
                     end
                 end
@@ -236,12 +244,12 @@ always @( posedge clk, posedge rst ) begin
                 if( cr_wait ) st <= READIN;
             end
             READIN: begin
-                fb_addr <= fb_addr + 1'd1;
-                if( &fb_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
+                rd_addr <= rd_addr + 1'd1;
+                if( &rd_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
                     csn    <= 1;
                     cr_oen <= 1;
                     scr_we <= 0;
-                    st     <= &fb_addr /* full line read */ ? IDLE : BREAK;
+                    st     <= &rd_addr /* full line read */ ? IDLE : BREAK;
                 end
             end
             default: st <= IDLE;

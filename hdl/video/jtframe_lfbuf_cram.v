@@ -57,8 +57,8 @@ module jtframe_lfbuf_cram #(parameter
     output              cr_wen
 );
 
-wire          frame, fb_clr, fb_done, scr_we;
-wire [HW-1:0] fb_addr;
+wire          frame, fb_clr, fb_done, line, scr_we;
+wire [HW-1:0] fb_addr, rd_addr;
 wire [  15:0] fb_din, fb_dout;
 
 jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
@@ -72,6 +72,7 @@ jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     // data written to external memory
     .frame      ( frame     ),
     .fb_addr    ( fb_addr   ),
+    .rd_addr    ( rd_addr   ),
     .fb_din     ( fb_din    ),
     .fb_dout    ( fb_dout   ),
     .fb_clr     ( fb_clr    ),
@@ -79,6 +80,7 @@ jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
 
     // data read from external memory to screen buffer
     // during h blank
+    .line       ( line      ),
     .scr_we     ( scr_we    ),
 
     // cell RAM (PSRAM) signals
@@ -114,6 +116,7 @@ jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(
     // data written to external memory
     .frame      ( frame     ),
     .fb_addr    ( fb_addr   ),
+    .rd_addr    ( rd_addr   ),
     .fb_din     ( fb_din    ),
     .fb_dout    ( fb_dout   ),
     .fb_clr     ( fb_clr    ),
@@ -121,7 +124,8 @@ jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(
 
     // data read from external memory to screen buffer
     // during h blank
-    .scr_we     ( scr_we        )
+    .line       ( line      ),
+    .scr_we     ( scr_we    )
 );
 
 endmodule

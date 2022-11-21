@@ -49,6 +49,7 @@ module jtframe_lfbuf_line #(parameter
     // data written to external memory
     output reg          frame,
     input      [HW-1:0] fb_addr,
+    input      [HW-1:0] rd_addr,
     output     [  15:0] fb_din,
     input               fb_clr,
     input               fb_done,
@@ -56,6 +57,7 @@ module jtframe_lfbuf_line #(parameter
     // data read from external memory to screen buffer
     // during h blank
     input      [  15:0] fb_dout,
+    input               line,
     input               scr_we
 );
 
@@ -109,17 +111,17 @@ always @(posedge clk, posedge rst) begin
 end
 
 // collect input data
-jtframe_dual_ram #(.dw(16),.aw(HW)) u_linein(
+jtframe_dual_ram #(.dw(16),.aw(HW+1)) u_linein(
     // Write to SDRAM and delete
     .clk0   ( clk           ),
     .data0  ( 16'd0         ), // might need to ~16'd0 depending on the core
-    .addr0  ( fb_addr       ),
+    .addr0  ( { line^fb_clr, fb_addr } ),
     .we0    ( fb_clr        ),
     .q0     ( fb_din        ),
     // Get new pixels from core
     .clk1   ( clk           ),
     .data1  ( { {16-DW{1'b0}}, ln_data } ),
-    .addr1  ( ln_addr       ),
+    .addr1  ( { line, ln_addr } ),
     .we1    ( ln_we         ), // the core should not send transparent pixels
     .q1     (               )
 );
@@ -128,7 +130,7 @@ jtframe_dual_ram #(.dw(16),.aw(HW)) u_lineout(
     // Read from SDRAM, write to line buffer
     .clk0   ( clk           ),
     .data0  ( fb_dout       ),
-    .addr0  ( fb_addr       ),
+    .addr0  ( rd_addr       ),
     .we0    ( scr_we        ),
     .q0     (               ),
     // Read from line buffer to screen
