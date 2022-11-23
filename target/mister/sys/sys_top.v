@@ -394,6 +394,7 @@ always@(posedge clk_sys) begin
 				acy2 <= -24'd2023767;
 				areset <= 1;
 			end
+			if(io_din[7:0] == 'h20) io_dout_sys <= 1;
 `ifndef MISTER_DEBUG_NOHDMI
 			if(io_din[7:0] == 'h40) io_dout_sys <= fb_crc;
 `endif
@@ -409,14 +410,14 @@ always@(posedge clk_sys) begin
 				cfg_set <= 0;
 				if(cnt<8) begin
 					case(cnt[2:0])
-						0: WIDTH      <= io_din[11:0];
-						1: HFP        <= io_din[11:0];
-						2: HS         <= {io_din[15], io_din[11:0]};
-						3: HBP        <= io_din[11:0];
-						4: HEIGHT     <= io_din[11:0];
-						5: VFP        <= io_din[11:0];
-						6: VS         <= {io_din[15],io_din[11:0]};
-						7: VBP        <= io_din[11:0];
+						0: {HDMI_PR,WIDTH} <= {io_din[15], io_din[11:0]};
+						1: HFP             <= io_din[11:0];
+						2: HS              <= {io_din[15], io_din[11:0]};
+						3: HBP             <= io_din[11:0];
+						4: HEIGHT          <= io_din[11:0];
+						5: VFP             <= io_din[11:0];
+						6: VS              <= {io_din[15],io_din[11:0]};
+						7: VBP             <= io_din[11:0];
 					endcase
 `ifndef MISTER_DEBUG_NOHDMI
 					if(cnt == 1) begin
@@ -874,7 +875,7 @@ always @(posedge clk_vid) begin
 	reg  [2:0] state;
 
 	hdmi_height <= (VSET && (VSET < HEIGHT)) ? VSET : HEIGHT;
-	hdmi_width  <= (HSET && (HSET < WIDTH))  ? HSET : WIDTH;
+	hdmi_width  <= (HSET && (HSET < WIDTH))  ? HSET << HDMI_PR : WIDTH << HDMI_PR;
 
 	if(!ARY) begin
 		if(ARX == 1) begin
@@ -943,7 +944,7 @@ always @(posedge clk_vid) begin
 			end
 
 		6: begin
-				videow <= (wcalc > hdmi_width)  ? hdmi_width  : wcalc[11:0];
+				videow <= (wcalc > hdmi_width)  ? (hdmi_width >> HDMI_PR)  : (wcalc[11:0] >> HDMI_PR);
 				videoh <= (hcalc > hdmi_height) ? hdmi_height : hcalc[11:0];
 			end
 
@@ -1017,14 +1018,15 @@ pll_hdmi pll_hdmi
 `endif
 
 //1920x1080@60 PCLK=148.5MHz CEA
-reg  [11:0] WIDTH  = 1920;
-reg  [11:0] HFP    = 88;
-reg  [12:0] HS     = 48;
-reg  [11:0] HBP    = 148;
-reg  [11:0] HEIGHT = 1080;
-reg  [11:0] VFP    = 4;
-reg  [12:0] VS     = 5;
-reg  [11:0] VBP    = 36;
+reg	[11:0]	WIDTH   = 1920;
+reg	[11:0]	HFP     = 88;
+reg	[12:0]	HS      = 48;
+reg	[11:0]	HBP     = 148;
+reg	[11:0]	HEIGHT  = 1080;
+reg	[11:0]	VFP     = 4;
+reg	[12:0]	VS      = 5;
+reg	[11:0]	VBP     = 36;
+reg			HDMI_PR = 0;
 
 wire [63:0] reconfig_to_pll;
 wire [63:0] reconfig_from_pll;

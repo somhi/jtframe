@@ -182,7 +182,9 @@ func make_sdram( args Args, cfg *MemConfig) {
 	var buffer bytes.Buffer
 	t.Execute(&buffer, cfg)
 	outpath := "jt"+args.Core+"_game_sdram.v"
-	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
+	hdl_path := filepath.Join( os.Getenv("CORES"),args.Core,"hdl" )
+	os.MkdirAll( hdl_path, 0777 ) // derivative cores may not have a permanent hdl folder
+	outpath = filepath.Join( hdl_path, outpath )
 	ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
 }
 
@@ -219,7 +221,12 @@ func add_game_ports( args Args, cfg *MemConfig) {
 				bout.Write(buffer.Bytes())
 				ignore = true	// will not copy lines until ); is found
 			}
-			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 {
+			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 || // manually added
+			   strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 /* in main JTFRAME include */ {
+				make_inc = true
+				break
+			}
+			if strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 {
 				make_inc = true
 				break
 			}

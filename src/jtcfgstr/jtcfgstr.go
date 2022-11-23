@@ -43,15 +43,11 @@ func append_args(dst, src []string) []string {
 }
 
 func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string) {
-	switch cfg.Target {
-	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket","sockit":
-		break
-	default:
-		{
-			fmt.Printf("Unsupported target '%s'\n", cfg.Target)
-			os.Exit(1)
-		}
-	}
+    folderInfo, err := os.Stat(filepath.Join(os.Getenv("JTFRAME"),"target",cfg.Target))
+    if os.IsNotExist(err) || !folderInfo.IsDir() {
+		fmt.Printf("jtframe cfgstr: unsupported target '%s'\n", cfg.Target)
+		os.Exit(1)
+    }
 	if len(cfg.Core) > 0 {
 		cfg.Deffile = filepath.Join(os.Getenv("CORES"), cfg.Core, "/hdl/jt"+cfg.Core+".def")
 	}

@@ -115,6 +115,10 @@ module jtframe_pll6000(
     jtframe_pll0 pll(
         .inclk0 ( inclk0    ),
         .c0     ( c0        ),
+        .c1     (           ),
+        .c2     (           ),
+        .c3     (           ),
+        .c4     (           ),
         .locked ( locked    )
     );
 endmodule

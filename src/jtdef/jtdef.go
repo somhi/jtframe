@@ -166,6 +166,8 @@ func Make_macros(cfg Config) (macros map[string]string) {
 		macros["SEPARATOR"] = "-;"
 	}
 	macros["TARGET"] = cfg.Target
+	// Adds a macro with the target name
+	macros[ strings.ToUpper(cfg.Target) ] = "1"
 	// Adds the date
 	year, month, day := time.Now().Date()
 	datestr := fmt.Sprintf("%d%02d%02d", year%100, month, day)
@@ -184,6 +186,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	_, exists := macros["CORENAME"]
 	if ! exists {
 		macros["CORENAME"] = cfg.Core
+		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s", cfg.Core)
 	}
 	// Derives the GAMETOP module from the CORENAME if unspecified
 	_, exists = macros["GAMETOP"]
@@ -194,10 +197,13 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game_sdram")
 		}
 	}
-	// Memory templates require JTFRAME_SDRAM_BANKS
-	_, exists = macros["JTFRAME_SDRAM_BANKS"]
-	if !exists && mem_managed {
-		macros["JTFRAME_SDRAM_BANKS"] = ""
+	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
+	if mem_managed {
+		_, exists = macros["JTFRAME_SDRAM_BANKS"]
+		if !exists && mem_managed {
+			macros["JTFRAME_SDRAM_BANKS"] = ""
+		}
+		macros["JTFRAME_MEMGEN"] = ""
 	}
 	// Adds the timestamp
 	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
