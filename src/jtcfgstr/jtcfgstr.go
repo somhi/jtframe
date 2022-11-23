@@ -44,7 +44,7 @@ func append_args(dst, src []string) []string {
 
 func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string) {
 	switch cfg.Target {
-	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket":
+	case "mist", "mister", "sidi", "neptuno", "mc2", "mcp", "pocket","sockit":
 		break
 	default:
 		{

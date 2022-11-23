@@ -40,6 +40,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mc2        compiles the MultiCore2  version
     -mcp        compiles the MultiCore2+ version
     -pocket     compiles the PocketFPGA version
+    -sockit     compiles the Arrow SoCKit version
 
     General options
 
@@ -136,7 +137,7 @@ function parse_args {
                 GIT=FALSE;;
             -mr)
                 TARGET=mister;;
-            -mister|-mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
+            -mister|-mist|-sidi|-neptuno|-mc2|-mcp|-pocket|-sockit)
                 TARGET=${1:1};;
             --mrpasswd)
                 shift
@@ -272,7 +273,7 @@ OUTPUTDIR=output_files
 
 # Check Quartus path
 case $TARGET in
-    mister)
+    mister|sockit)
         if ! (which quartus_sh|grep intelFPGA_lite -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
             if [ -d /opt/intelFPGA_lite ]; then
@@ -347,17 +348,17 @@ function copy_templates {
         parse_macros cfgstr > $JTROOT/log/$TARGET/cfgstr || exit $?
     fi
     # Copy SDC file and SDRAM constraints
-    if [ $TARGET = mister ]; then
+    if [ $TARGET = mister ] | [ $TARGET = sockit ]; then
         if grep JTFRAME_SDRAM96 $QSF; then
             cp $JTFRAME/target/mister/sys/sdram_clk96.sdc $PRJPATH/$TARGET/sys_top.sdc
         else
             cp $JTFRAME/target/mister/sys/sdram_clk48.sdc $PRJPATH/$TARGET/sys_top.sdc
             cat $JTFRAME/target/mister/slew_rate.tcl >> $QSF
         fi
-        cat $JTFRAME/target/mister/sys/sys_top.sdc >> $PRJPATH/$TARGET/sys_top.sdc
+        cat $JTFRAME/target/$TARGET/sys/sys_top.sdc >> $PRJPATH/$TARGET/sys_top.sdc
         # Adds local SDC file if exists (only MiSTer)
-        if [ -e $PRJPATH/mister/${CORENAME}.sdc ]; then
-            cat <(echo -e "\n") $PRJPATH/mister/${CORENAME}.sdc >> $PRJPATH/$TARGET/sys_top.sdc
+        if [ -e $PRJPATH/$TARGET/${CORENAME}.sdc ]; then
+            cat <(echo -e "\n") $PRJPATH/$TARGET/${CORENAME}.sdc >> $PRJPATH/$TARGET/sys_top.sdc
         fi
     fi
 }
@@ -389,7 +390,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
         exit 1
     fi
     # Create MiST(er) folders if they don't exist
-    mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp,pocket}
+    mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp,pocket,sockit}
     cd $PRJPATH/$TARGET || exit 1
     ############################################
     # Credits via jtframe_credits:
@@ -517,14 +518,14 @@ fi
 
 # date stamp is only added to MiSTer output
 RELEASE=${SHORT}
-if [ $TARGET = mister ]; then
+if [ $TARGET = mister ] | [ $TARGET = sockit ]; then
     RELEASE=${RELEASE}_$CORESTAMP
 fi
 
 if [ $SEED != 1 ]; then
     SEED_SUFFIX=_$SEED
 fi
-if [ $TARGET = mister ]; then
+if [ $TARGET = mister ] | [ $TARGET = sockit ]; then
     RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/jt$PRJ.rbf
 else
     RBF=$PRJPATH/${TARGET}/jt$PRJ.rbf
@@ -635,7 +636,7 @@ fi
 
 # Copy to JTBIN
 if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
-    if [[ $TARGET = mister ]]; then
+    if [ $TARGET = mister ] | [ $TARGET = sockit ]; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
         BINRBF=$BINFOLDER/releases/${RELEASE}.$EXT
         mkdir -p $BINFOLDER/releases
@@ -657,7 +658,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
     # Add to git but don't commit
     cd $JTBIN
     git add -f $BINRBF
-    if [ $TARGET = mister ]; then
+    if [ $TARGET = mister ] | [ $TARGET = sockit ]; then
         OTHER=$(append_if_exists rom/{$PRJ/build_rom.sh,$PRJ/build_rom.ini,build_rom_$PRJ.bat} doc/jt$PRJ.txt )
         OTHER="$OTHER $(append_if_exists $JTROOT/doc/jt$PRJ.md $JTROOT/README.md $JTROOT/README.txt )"
         # remove blanks
