@@ -46,6 +46,7 @@ var updateCmd = &cobra.Command{
 			up_cfg.Targets["neptuno"] = true
 			up_cfg.Targets["mcp"]     = true
 			up_cfg.Targets["mc2"]     = true
+			up_cfg.Targets["sockit"]  = true
 		}
 		update.Run( &up_cfg, args)
 	},

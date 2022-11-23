@@ -40,6 +40,8 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mc2        compiles the MultiCore2  version
     -mcp        compiles the MultiCore2+ version
     -pocket     compiles the PocketFPGA version
+    -sockit     compiles the Arrow SoCKit version
+    -folder     any folder present in $JTFRAME/target/folder can be used as the target
 
     General options
 
@@ -105,6 +107,14 @@ if [ -n "$TERM" ]; then
     NC=`tput sgr0`
 fi
 
+function is_mister_family {
+    if [[ $TARGET = mister || $TARGET = sockit ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 function parse_args {
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -136,8 +146,6 @@ function parse_args {
                 GIT=FALSE;;
             -mr)
                 TARGET=mister;;
-            -mister|-mist|-sidi|-neptuno|-mc2|-mcp|-pocket)
-                TARGET=${1:1};;
             --mrpasswd)
                 shift
                 MISTERPASSWD=$1;;
@@ -163,6 +171,10 @@ function parse_args {
                 SHOWMACROS=1;;
             --target|-t)
                 shift
+                if [ ! -d "$JTFRAME/target/$1" ]; then
+                    echo "Target $1 does not exist in $JTFRAME/target"
+                    exit 1
+                fi
                 TARGET=$1;;
             --rename)
                 shift
@@ -178,8 +190,11 @@ function parse_args {
                 VERBOSE=-v;;
             --help | -h)
                 show_usage;;
-            *)  if [ -z "$PRJ" ]; then
+            *)  if [[ -z "$PRJ" && ${1:0:1} != - ]]; then
                     PRJ=$1
+                elif [ -d "$JTFRAME/target/${1:1}" ]; then
+                    # the name is a valid target because there was a folder for it in $JTFRAME/target
+                    TARGET=${1:1}
                 else
                     echo "Project name had already been defined to " $PRJ
                     echo -e "${rBG}ERROR:${NC}${wBG} Unknown option ${red}$1${NC}";
@@ -272,7 +287,7 @@ OUTPUTDIR=output_files
 
 # Check Quartus path
 case $TARGET in
-    mister)
+    mister|sockit)
         if ! (which quartus_sh|grep intelFPGA_lite -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
             if [ -d /opt/intelFPGA_lite ]; then
@@ -320,21 +335,20 @@ function copy_templates {
     datestr=$(date "+%H:%M:%S %B %e, %Y")
     # Replace core name and path to modules
     # do not leave a space in the line below sedstr!
-    CORENAME=${CORENAME,,}
-    sedstr='s/${CORENAME}/'${CORENAME}'/g;s/${DATE}/'${datestr}'/g;s/${MODULES}/'$(escape_bars ${MODULES})'/g;s/${PRJPATH}/'$(escape_bars ${PRJPATH})'/g;'\
+    sedstr='s/${CORENAME}/'$corename'/g;s/${DATE}/'${datestr}'/g;s/${MODULES}/'$(escape_bars ${MODULES})'/g;s/${PRJPATH}/'$(escape_bars ${PRJPATH})'/g;'\
 's/${OUTPUTDIR}/'${OUTPUTDIR}'/g'
-    sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qpf > $PRJPATH/$TARGET/${CORENAME}.qpf
-    sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qsf > $PRJPATH/$TARGET/${CORENAME}.qsf
+    sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qpf > $PRJPATH/$TARGET/$corename.qpf
+    sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qsf > $PRJPATH/$TARGET/$corename.qsf
     # TCL in HDL folder is always appended
-    TCL=$PRJPATH/cfg/${CORENAME}.tcl
+    TCL=$PRJPATH/cfg/$corename.tcl
     MACROS_FILE=$PRJPATH/cfg/macros.def
-    QSF=$PRJPATH/$TARGET/${CORENAME}.qsf
+    QSF=$PRJPATH/$TARGET/$corename.qsf
     if [ -e $TCL ]; then
         cat $TCL >> $QSF
     fi
     # TCL in platform folder is added if it exists
-    if [ -e $PRJPATH/$TARGET/${CORENAME}.tcl ]; then
-        cat $PRJPATH/$TARGET/${CORENAME}.tcl >> $QSF
+    if [ -e $PRJPATH/$TARGET/$corename.tcl ]; then
+        cat $PRJPATH/$TARGET/$corename.tcl >> $QSF
     fi
     # Add definitions in "macros" files
     if [ -e $MACROS_FILE ]; then
@@ -347,17 +361,17 @@ function copy_templates {
         parse_macros cfgstr > $JTROOT/log/$TARGET/cfgstr || exit $?
     fi
     # Copy SDC file and SDRAM constraints
-    if [ $TARGET = mister ]; then
+    if is_mister_family; then
         if grep JTFRAME_SDRAM96 $QSF; then
-            cp $JTFRAME/target/mister/sys/sdram_clk96.sdc $PRJPATH/$TARGET/sys_top.sdc
+            cp $JTFRAME/target/$TARGET/sys/sdram_clk96.sdc $PRJPATH/$TARGET/sys_top.sdc
         else
-            cp $JTFRAME/target/mister/sys/sdram_clk48.sdc $PRJPATH/$TARGET/sys_top.sdc
-            cat $JTFRAME/target/mister/slew_rate.tcl >> $QSF
+            cp $JTFRAME/target/$TARGET/sys/sdram_clk48.sdc $PRJPATH/$TARGET/sys_top.sdc
+            cat $JTFRAME/target/$TARGET/slew_rate.tcl >> $QSF
         fi
-        cat $JTFRAME/target/mister/sys/sys_top.sdc >> $PRJPATH/$TARGET/sys_top.sdc
+        cat $JTFRAME/target/$TARGET/sys/sys_top.sdc >> $PRJPATH/$TARGET/sys_top.sdc
         # Adds local SDC file if exists (only MiSTer)
-        if [ -e $PRJPATH/mister/${CORENAME}.sdc ]; then
-            cat <(echo -e "\n") $PRJPATH/mister/${CORENAME}.sdc >> $PRJPATH/$TARGET/sys_top.sdc
+        if [ -e $PRJPATH/$TARGET/$corename.sdc ]; then
+            cat <(echo -e "\n") $PRJPATH/$TARGET/$corename.sdc >> $PRJPATH/$TARGET/sys_top.sdc
         fi
     fi
 }
@@ -374,12 +388,15 @@ function report {
 
 START_TIME=$(date +%s)
 echo =============== JTCORE =======================
-echo -e "${wBG}jt$PRJ $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(date +%T)${NC}${wBG} with seed ${red}$SEED${NC}${wBG} on $(hostname)${NC}"
+echo -e "${wBG}$CORENAME $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(date +%T)${NC}${wBG} with seed ${red}$SEED${NC}${wBG} on $(hostname)${NC}"
 if [ "$MACROS" != "" ]; then
     echo Explicit macros: $MACROS
 fi
 
+# Define the CORENAME macro
 `eval parse_macros bash | grep CORENAME | tr -d \" `
+# lower case version
+corename=${CORENAME,,}
 
 ################ compilation
 if [ $SKIP_COMPILE = FALSE ]; then
@@ -388,8 +405,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
         echo -e "      ${wBG} to the PATH environment variable${NC}"
         exit 1
     fi
-    # Create MiST(er) folders if they don't exist
-    mkdir -p $PRJPATH/{mist,mister,sidi,neptuno,mc2,mcp,pocket}
+    mkdir -p $PRJPATH/$TARGET
     cd $PRJPATH/$TARGET || exit 1
     ############################################
     # Credits via jtframe_credits:
@@ -439,29 +455,29 @@ if [ $SKIP_COMPILE = FALSE ]; then
     # Recompile
     rm -rf db incremental_db output_files
     mkdir -p $JTROOT/log/$TARGET
-    LOG="$JTROOT/log/$TARGET/jt$PRJ.log"
+    LOG="$JTROOT/log/$TARGET/$corename.log"
     echo Log file: $LOG
     copy_templates
-    echo -e "\nset_global_assignment -name seed $SEED" >> $CORENAME.qsf
+    echo -e "\nset_global_assignment -name seed $SEED" >> $corename.qsf
     if [ $SIM = FALSE ]; then
         # Create the QIP file
         jtframe mem $PRJ || exit $?
         jtframe files syn $PRJ --target=$TARGET
         # Compilation
-        quartus_sh --flow compile jt$PRJ > "$LOG"
+        quartus_sh --flow compile $corename > "$LOG"
         if ! grep "Full Compilation was successful" "$LOG"; then
             grep -i error "$LOG" -A 2
             echo -e "${rBG}ERROR:${NC}${wBG} while compiling the project. ${red}Aborting${NC}"
             report FAIL
             exit 1
         fi
-        if [ ! -e jt$PRJ.map.rpt ]; then
+        if [ ! -e $corename.map.rpt ]; then
             RPTPATH=$OUTPUTDIR
         else
             RPTPATH=.
         fi
-        grep "SDRAM_.* is stuck" $RPTPATH/jt$PRJ.map.rpt | grep "SDRAM_[^\"]*" -o > $RPTPATH/sdram_stuck.rpt
-        gawk -f $JTFRAME/bin/jtioreg.awk $RPTPATH/jt$PRJ.fit.rpt > $RPTPATH/sdram_io.rpt
+        grep "SDRAM_.* is stuck" $RPTPATH/$corename.map.rpt | grep "SDRAM_[^\"]*" -o > $RPTPATH/sdram_stuck.rpt
+        gawk -f $JTFRAME/bin/jtioreg.awk $RPTPATH/$corename.fit.rpt > $RPTPATH/sdram_io.rpt
         cat $RPTPATH/sdram_stuck.rpt $RPTPATH/sdram_io.rpt | sort | uniq --unique > sdram_badio.rpt
         if [ -s sdram_badio.rpt ]; then
             echo -e "${yBG}WARNING:${NC}${wBG} some SDRAM signals are not IO registers${NC}"
@@ -480,7 +496,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
         # Simulation
         echo Preparing simulation netlist. Logfile:
         echo $LOG
-        quartus_map jt$PRJ --64bit --parallel=1 --efort=fast > "$LOG"
+        quartus_map $CORENAME --64bit --parallel=1 --efort=fast > "$LOG"
         exit $?
     fi
 fi
@@ -510,24 +526,24 @@ esac
 cd $JTROOT
 mkdir -p releases/$TARGET
 if [ -z $RENAME ]; then
-    SHORT=${CORENAME,,}
+    SHORT=$corename
 else
     SHORT=$RENAME
 fi
 
-# date stamp is only added to MiSTer output
+# date stamp is only added to MiSTer (and family) output
 RELEASE=${SHORT}
-if [ $TARGET = mister ]; then
+if is_mister_family; then
     RELEASE=${RELEASE}_$CORESTAMP
 fi
 
 if [ $SEED != 1 ]; then
     SEED_SUFFIX=_$SEED
 fi
-if [ $TARGET = mister ]; then
-    RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/jt$PRJ.rbf
+if is_mister_family; then
+    RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/$corename.rbf
 else
-    RBF=$PRJPATH/${TARGET}/jt$PRJ.rbf
+    RBF=$PRJPATH/${TARGET}/$corename.rbf
 fi
 
 if [ ! -e $RBF ]; then
@@ -547,10 +563,12 @@ if [ $TARGET = pocket ]; then
     fi
     $JTFRAME/bin/reverse_bits $RBF ${RBF}_r
     cp ${RBF}_r releases/$TARGET/$RELEASE.$EXT
-    if [ -e $ROM/pocket/Cores/jotego.jt$PRJ ]; then
-        cp ${RBF}_r $ROM/pocket/Cores/jotego.jt$PRJ
+    if [ -e $ROM/pocket/Cores/jotego.$corename ]; then
+        cp ${RBF}_r $ROM/pocket/Cores/jotego.$corename
         if [ -d /media/$USER/POCKET  ]; then
-            cp -v ${RBF}_r /media/$USER/POCKET/Cores/jotego.jt$PRJ
+            cp -v ${RBF}_r /media/$USER/POCKET/Cores/jotego.$corename
+        else
+            echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
         fi
     fi
 else
@@ -565,7 +583,7 @@ if [[ $FAIL = 0 && -n "$JTALPHA" && -d "$JTALPHA" && $TARGET == mister && \
       $MACROS != *MISTER_DEBUG_NOHDMI* && $PRIVATE = 1 ]]; then
     JTALPHA_OUTPUT=$JTALPHA/$PRJ/cores/$PRJCOMMIT
     mkdir -p $JTALPHA_OUTPUT
-    cp $RELEASE.rbf $JTALPHA_OUTPUT/jt$PRJ.$EXT -v
+    cp $RELEASE.rbf $JTALPHA_OUTPUT/$corename.$EXT -v
     echo git tag -f alpha_$RELEASE
     git tag -f alpha_$RELEASE
     cd $JTALPHA
@@ -600,7 +618,7 @@ if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
     if [[ $ARC = TRUE ]]; then
         pushd . >/dev/null
         cd $MRA
-        FIRSTMRA=$(find -maxdepth 1 -name "*.mra" -print0 | xargs -0 grep --files-with-matches "<rbf>jt$PRJ</rbf>" | head -n 1)
+        FIRSTMRA=$(find -maxdepth 1 -name "*.mra" -print0 | xargs -0 grep --files-with-matches "<rbf>$corename</rbf>" | head -n 1)
         if [ -e "$FIRSTMRA" ]; then
             mra -A -s "$FIRSTMRA"
             FIRSTARC=$(basename "$FIRSTMRA" .mra)
@@ -635,7 +653,7 @@ fi
 
 # Copy to JTBIN
 if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
-    if [[ $TARGET = mister ]]; then
+    if is_mister_family; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
         BINRBF=$BINFOLDER/releases/${RELEASE}.$EXT
         mkdir -p $BINFOLDER/releases
@@ -657,19 +675,18 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
     # Add to git but don't commit
     cd $JTBIN
     git add -f $BINRBF
-    if [ $TARGET = mister ]; then
-        OTHER=$(append_if_exists rom/{$PRJ/build_rom.sh,$PRJ/build_rom.ini,build_rom_$PRJ.bat} doc/jt$PRJ.txt )
-        OTHER="$OTHER $(append_if_exists $JTROOT/doc/jt$PRJ.md $JTROOT/README.md $JTROOT/README.txt )"
+    if is_mister_family; then
+        OTHER=$(append_if_exists $JTROOT/doc/$corename.md $JTROOT/README.md $JTROOT/README.txt )
         # remove blanks
         OTHER=${OTHER## }
         if [ -n "$OTHER" ]; then
             cp $OTHER $BINFOLDER;
         fi
         # Add the main MRA file to git too
-        MAINMRA=$(grep --files-with-matches jt$PRJ $MRA/*.mra | head -n 1)
+        MAINMRA=$(grep --files-with-matches $corename $MRA/*.mra | head -n 1)
         MRACNT=$(find $BINFOLDER/releases -name "*mra" | wc -l)
         if [[ -z "$MAINMRA" && $MRACNT = 0 ]]; then
-            echo "Warning: No MRA for jt$PRJ found in $MRA and no MRA files in $(pwd)"
+            echo "Warning: No MRA for $CORENAME found in $MRA and no MRA files in $(pwd)"
         else
             NEWMRA="$BINFOLDER"/releases/$(basename "$MAINMRA")
             pwd
@@ -697,13 +714,13 @@ if [ $PROG = TRUE ]; then
         # this is not done automatically to speed up compilation
         # as this rarely changes
         CABLE=$(jtagconfig | grep -o "USB-Blaster.*")
-        FILE=$PRJPATH/${TARGET}/jt$PRJ.cdf
+        FILE=$PRJPATH/${TARGET}/$corename.cdf
         cat > $FILE << EOF
 JedecChain;
     FileRevision(JESD32A);
     DefaultMfr(6E);
     P ActionCode(Cfg)
-        Device PartName($DEVICE) Path("") File("jt$PRJ.sof") MfrSpec(OpMask(1));
+        Device PartName($DEVICE) Path("") File("$corename.sof") MfrSpec(OpMask(1));
 ChainEnd;
 
 AlteraBegin;
