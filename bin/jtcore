@@ -557,6 +557,8 @@ if [ $TARGET = pocket ]; then
         cp ${RBF}_r $ROM/pocket/Cores/jotego.jt$PRJ
         if [ -d /media/$USER/POCKET  ]; then
             cp -v ${RBF}_r /media/$USER/POCKET/Cores/jotego.jt$PRJ
+        else
+            echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
         fi
     fi
 else

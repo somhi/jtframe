@@ -31,8 +31,6 @@ if [ -n "$TERM" ]; then
     NC=`tput sgr0`
 fi
 
-echo "${wBG}=========== JTSIM starts ===========${NC}"
-
 DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
@@ -216,7 +214,6 @@ function add_macro {
 function set_mist_as_target {
     TOP=mist_test
     TARGET=mist
-    add_macro MIST
 }
 
 while [ $# -gt 0 ]; do
@@ -277,7 +274,6 @@ case "$1" in
     -pocket)
         TOP=test
         TARGET=pocket
-        add_macro POCKET
         ;;
     #################### MiST setup
     -mist)
@@ -287,7 +283,6 @@ case "$1" in
     -mister|-mr)
         TOP=mister_test
         TARGET=mister
-        add_macro MISTER
         # Generate a fake build_id.v file
         echo "\`define BUILD_DATE \"190311\"" > build_id.v
         echo "\`define BUILD_TIME \"190311\"" >> build_id.v
@@ -364,6 +359,8 @@ done
 if [ -z "$TARGET" ]; then
     set_mist_as_target
 fi
+
+echo "${wBG}=========== JTSIM starts for $TARGET ===========${NC}"
 
 if [ -z "$SYSNAME" ]; then
     AUX=`pwd`
@@ -624,7 +621,7 @@ verilator)
     # $SED '/fx68k/d' filtered.f
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
     $SHOWCMD verilator -I../../hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
-        game_test.v $SIMARGS \
+        game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
          $EXTRA $TRACE --prefix UUT --assert \

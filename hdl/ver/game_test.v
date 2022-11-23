@@ -110,6 +110,17 @@ module game_test(
     // input  [21:0]   SDRAM_BA_ADDR2,
     // input  [21:0]   SDRAM_BA_ADDR3,
 
+    // JTFRAME_LF_BUFFER
+    // output   [ 7:0] game_vrender,
+    // output   [ 8:0] game_hdump,
+    // output   [ 8:0] ln_addr,
+    // output   [15:0] ln_data,
+    // output          ln_done,
+    // input           ln_hs,
+    // input    [15:0] ln_pxl,
+    // input    [ 7:0] ln_v,
+    // output          ln_we,
+
     // Debug
     input   [3:0]   gfx_en,
     input   [7:0]   st_addr,
@@ -378,7 +389,76 @@ jtframe_sdram64 #(
     `endif
 `endif
 /* verilator tracing_on */
+`ifdef JTFRAME_SDRAM_BANKS
+    wire [21:16] cr_addr;
+    wire [ 15:0] cr_adq;
+    wire         cr_advn;
+    wire [  1:0] cr_cen;
+    wire         cr_clk;
+    wire         cr_cre;
+    wire [  1:0] cr_dsn;
+    wire         cr_oen;
+    wire         cr_wait;
+    wire         cr_wen;
 
+    wire  [ 7:0] game_vrender;
+    wire  [ 8:0] game_hdump;
+    wire  [ 8:0] ln_addr;
+    wire  [15:0] ln_data;
+    wire         ln_done;
+    wire         ln_hs;
+    wire  [15:0] ln_pxl;
+    wire  [ 7:0] ln_v;
+    wire         ln_we;
+
+    jtframe_lfbuf_cram u_lf_buf(
+        .rst        ( rst           ),
+        .clk        ( clk_rom       ),
+
+        .vs         ( VS            ),
+        .lvbl       ( LVBL          ),
+        .lhbl       ( LHBL          ),
+        .vrender    ( game_vrender  ),
+        .hdump      ( game_hdump    ),
+
+        // interface with the game core
+        .ln_addr    ( ln_addr       ),
+        .ln_data    ( ln_data       ),
+        .ln_done    ( ln_done       ),
+        .ln_hs      ( ln_hs         ),
+        .ln_pxl     ( ln_pxl        ),
+        .ln_v       ( ln_v          ),
+        .ln_we      ( ln_we         ),
+
+        // PSRAM chip 0
+        .cr_addr    ( cr_addr       ),
+        .cr_adq     ( cr_adq        ),
+        .cr_advn    ( cr_advn       ),
+        .cr_cen     ( cr_cen        ),
+        .cr_clk     ( cr_clk        ),
+        .cr_cre     ( cr_cre        ),
+        .cr_dsn     ( cr_dsn        ),
+        .cr_oen     ( cr_oen        ),
+        .cr_wait    ( cr_wait       ),
+        .cr_wen     ( cr_wen        )
+    );
+
+    psram128 u_cram0(
+        .a      ( cr_addr        ),
+        .adq    ( cr_adq         ),
+        .advn   ( cr_advn        ),
+        .cen    ( cr_cen         ),
+        .clk    ( cr_clk         ),
+        .cre    ( cr_cre         ),
+        .lbn    ( cr_dsn[0]      ),
+        .ubn    ( cr_dsn[1]      ),
+        .oen    ( cr_oen         ),
+        .wt     ( cr_wait        ),
+        .wen    ( cr_wen         )
+    );
+`endif
+
+//////// GAME MODULE
 `GAMETOP
 u_game(
     .rst         ( rst            ),
@@ -511,6 +591,18 @@ u_game(
 `ifdef JTFRAME_GAME_UART
     .uart_tx     ( UART_TX        ),
     .uart_rx     ( UART_RX        ),
+`endif
+
+`ifdef JTFRAME_LF_BUFFER
+    .game_vrender( game_vrender   ),
+    .game_hdump  ( game_hdump     ),
+    .ln_addr     ( ln_addr        ),
+    .ln_data     ( ln_data        ),
+    .ln_done     ( ln_done        ),
+    .ln_hs       ( ln_hs          ),
+    .ln_pxl      ( ln_pxl         ),
+    .ln_v        ( ln_v           ),
+    .ln_we       ( ln_we          ),
 `endif
 
     // sound

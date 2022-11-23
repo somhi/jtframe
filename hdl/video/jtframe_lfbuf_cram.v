@@ -102,7 +102,7 @@ jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(
     // video status
     .vrender    ( vrender   ),
     .hdump      ( hdump     ),
-    .vs         ( vs        ),     // vertical sync, the buffer is swapped here
+    .vs         ( vs        ),   // vertical sync, the buffer is swapped here
     .lvbl       ( lvbl      ),   // vertical blank, active low
 
     // core interface

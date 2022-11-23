@@ -82,7 +82,7 @@ reg  [21:0] addr;
 reg  [ 2:0] wtk;
 reg  [ 3:0] st;
 reg         wt_reg, do_rd, do_cfg;
-wire [15:0] cur_mem;
+wire [15:0] cur_mem, wrq;
 
 localparam [3:0] IDLE  = 0,
                  WAIT  = 1,
@@ -92,11 +92,12 @@ localparam [3:0] IDLE  = 0,
 assign cur_mem = mem[addr];
 assign adq = (!oen && !cen && st==READ) ? cur_mem : 16'hzzzz;
 assign wt  = cen ? 1'bz : wt_reg;
+assign wrq = { ubn ? cur_mem[15:8] : adq[15:8], lbn ? cur_mem[7:0] : adq[7:0] };
 
 integer k;
 initial begin
-    wt_reg <= 0;
-    st <= IDLE;
+    wt_reg = 0;
+    st = IDLE;
     for(k=0;k<2**22-1;k++) mem[k] = 0;
 end
 
@@ -127,6 +128,7 @@ always @(posedge clk) begin
         READ: begin
             wt_reg <= 0;
             addr   <= addr + 1'd1;
+            if(mem[addr]!=0) $display("PSRAM: read %4X to %8X", mem[addr], addr);
             if( cen ) st <= IDLE;
         end
         WRITE: begin
@@ -134,9 +136,12 @@ always @(posedge clk) begin
             addr   <= addr + 1'd1;
             if( cen ) 
                 st <= IDLE;
-            else
-                mem[addr] <= { ubn ? cur_mem[15:8] : adq[15:8], lbn ? cur_mem[7:0] : adq[7:0] };
+            else begin
+                mem[addr] <= wrq;
+                if(wrq!=0) $display("PSRAM: written %4X to %8X", wrq, addr);
+            end
         end
+        default:;
     endcase
 end
 

@@ -56,6 +56,7 @@ module jtframe_lfbuf_ctrl #(parameter
 );
 
 reg  [ 3:0] st;
+wire [ 7:0] vram; // current row (v) being processed through the external RAM
 reg  [15:0] adq_reg;
 reg         lhbl_l, do_rd, do_wr,
             csn, ln_done_l;
@@ -106,10 +107,21 @@ localparam [21:0] BUS_CFG = {
 
 assign cr_cen  = { 1'b1, csn }; // I call it csn to avoid the confusion with the common cen (clock enable) signal
 assign cr_dsn  = 0;
-assign fb_dout = cr_oen ? 16'd0 : cr_adq;
-assign cr_adq  = cr_oen ? adq_reg : 16'hzzzz;
+assign fb_dout =  cr_oen ? 16'd0 : cr_adq;
+assign cr_adq  = !cr_advn ? adq_reg : !cr_oen ? 16'hzzzz : fb_din;
 assign cr_clk  = clk;
 assign fb_over = &fb_addr;
+assign vram    = do_rd ? vrender : ln_v;
+
+`ifdef SIMULATION
+wire bad_rd = do_rd & lhbl;
+always @(posedge clk) begin
+    if( bad_rd ) begin
+        $display("%m read from PSRAM extended over active line period");
+        //$finish;
+    end
+end
+`endif
 
 always @( posedge clk, posedge rst ) begin
     if( rst ) begin
@@ -184,32 +196,29 @@ always @( posedge clk, posedge rst ) begin
             end
     // Wait for requests
             IDLE: begin
-                csn    <= 1;
-                cr_wen <= 1;
-                cr_cre <= 0;
+                csn     <= 1;
+                cr_wen  <= 1;
+                cr_cre  <= 0;
+                adq_reg <= { vram[VW-6:0], {16+5-VW{1'b0}} };
+                cr_addr <= { do_rd ^ frame, vram[VW-1-:5]  };
                 if( do_rd ) begin
+                    // it doesn't matter if vrender changes after do_rd
+                    // is set as it is latched in { cr_addr, adq_reg }
                     csn     <= 0;
-                    adq_reg <= { vrender[VW-6:0], {16+5-VW{1'b0}} };
-                    cr_addr <= 0;
                     rd_addr <= 0;
-                    cr_addr <= { frame, vrender[VW-1-:5] };
                     cr_oen  <= 1;
                     st      <= READ_LINE;
                 end else if( do_wr && !fb_clr ) begin
                     csn     <= 0;
-                    adq_reg <= { ln_v[VW-6:0], {16+5-VW{1'b0}} };
-                    cr_addr <= 0;
                     fb_addr <= 0;
-                    cr_addr <= { ~frame, ln_v[VW-1-:5] };
                     cr_oen  <= 1;
                     st      <= WRITE_LINE;
                 end
             end
             BREAK: begin
-                csn             <= 0;
-                adq_reg[15-:VW-5] <= cr_wen ? ln_v[VW-6:0] : vrender[VW-6:0];
-                adq_reg[HW-1:0] <= fb_addr;
-                st              <= cr_wen ? READ_LINE : WRITE_LINE;
+                adq_reg[HW-1:0] <= do_wr ? fb_addr : rd_addr;
+                csn <= 0;
+                st  <= cr_wen ? READ_LINE : WRITE_LINE;
             end
     ////////////// Write line from internal BRAM to PSRAM
             WRITE_LINE: begin
