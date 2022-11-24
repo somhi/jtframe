@@ -27,6 +27,7 @@ module jtframe_lfbuf_cram #(parameter
 )(
     input               rst,     // hold in reset for >150 us
     input               clk,
+    input               pxl_cen,
 
     // video status
     input      [VW-1:0] vrender,
@@ -64,12 +65,12 @@ wire [  15:0] fb_din, fb_dout;
 jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     .rst        ( rst       ),
     .clk        ( clk       ),
+    .pxl_cen    ( pxl_cen   ),
 
     .lhbl       ( lhbl      ),
     .ln_done    ( ln_done   ),
     .vrender    ( vrender   ),
     .ln_v       ( ln_v      ),
-    .hdump      ( hdump     ),
     // data written to external memory
     .frame      ( frame     ),
     .fb_addr    ( fb_addr   ),

@@ -414,6 +414,7 @@ jtframe_sdram64 #(
     jtframe_lfbuf_cram u_lf_buf(
         .rst        ( rst           ),
         .clk        ( clk_rom       ),
+        .pxl_cen    ( pxl_cen       ),
 
         .vs         ( VS            ),
         .lvbl       ( LVBL          ),
