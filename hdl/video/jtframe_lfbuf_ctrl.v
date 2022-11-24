@@ -27,6 +27,7 @@ module jtframe_lfbuf_ctrl #(parameter
     input               lhbl,
     input               ln_done,
     input      [VW-1:0] vrender,
+    input      [HW-1:0] hdump,
     input      [VW-1:0] ln_v,
     // data written to external memory
     input               frame,
@@ -208,7 +209,8 @@ always @( posedge clk, posedge rst ) begin
                     rd_addr <= 0;
                     cr_oen  <= 1;
                     st      <= READ_LINE;
-                end else if( do_wr && !fb_clr ) begin
+                end else if( do_wr && !fb_clr &&
+                    hdump<9'h180 ) begin // do not start too late so it doesn't run over H blanking
                     csn     <= 0;
                     fb_addr <= 0;
                     cr_oen  <= 1;

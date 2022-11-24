@@ -69,6 +69,7 @@ jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     .ln_done    ( ln_done   ),
     .vrender    ( vrender   ),
     .ln_v       ( ln_v      ),
+    .hdump      ( hdump     ),
     // data written to external memory
     .frame      ( frame     ),
     .fb_addr    ( fb_addr   ),
