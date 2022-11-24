@@ -162,7 +162,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	switch cfg.Target {
 	case "mist", "sidi", "neptuno":
 		macros["SEPARATOR"] = ""
-	case "mister":
+	case "mister", "sockit":
 		macros["SEPARATOR"] = "-;"
 	}
 	macros["TARGET"] = cfg.Target
@@ -186,6 +186,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	_, exists := macros["CORENAME"]
 	if ! exists {
 		macros["CORENAME"] = cfg.Core
+		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s", cfg.Core)
 	}
 	// Derives the GAMETOP module from the CORENAME if unspecified
 	_, exists = macros["GAMETOP"]
@@ -244,7 +245,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	_, isbeta := macros["BETA"]
 	if isbeta {
 		_, cheatok := macros["JTFRAME_CHEAT"]
-		if !cheatok && cfg.Target == "mister" {
+		if !cheatok && (cfg.Target == "mister" || cfg.Target == "sockit") {
 			fmt.Fprintln(os.Stderr, "Compiling a BETA for MiSTer but JTFRAME_CHEAT was not set\nAdding it now automatically.")
 			macros["JTFRAME_CHEAT"] = ""
 		}
