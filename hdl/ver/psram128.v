@@ -106,16 +106,15 @@ always @(posedge clk) begin
         IDLE: begin
             do_rd  <= 0;
             do_cfg <= 0;
+            wt_reg <= 0;      // just a work around so it won't halt the sim
             if( !cen && !advn && !cre ) begin
                 do_rd <= wen;
                 addr  <= { a, adq };
-                wt_reg<= 0;
                 wtk   <= 3;
                 st    <= WAIT;
             end
             if( !cen && !advn && cre ) begin
                 do_cfg <= 1;   // the cre function isn't implemented
-                wt_reg<= 0;     // just a work around so it won't halt the sim
                 wtk   <= 3;
                 st    <= WAIT;
             end
@@ -128,7 +127,6 @@ always @(posedge clk) begin
         READ: begin
             wt_reg <= 0;
             addr   <= addr + 1'd1;
-            if(mem[addr]!=0) $display("PSRAM: read %4X to %8X", mem[addr], addr);
             if( cen ) st <= IDLE;
         end
         WRITE: begin
@@ -138,7 +136,6 @@ always @(posedge clk) begin
                 st <= IDLE;
             else begin
                 mem[addr] <= wrq;
-                if(wrq!=0) $display("PSRAM: written %4X to %8X", wrq, addr);
             end
         end
         default:;

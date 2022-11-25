@@ -86,7 +86,7 @@ localparam [21:0] BUS_CFG = {
     2'd2, // bus configuration register
     2'd0, // reserved
     1'b0, // synchronous burst access
-    1'b1, // variable latency
+    1'b0, // variable latency
     3'd3, // default latency counter
     1'b1, // wait is active high
     1'b0, // reserved
