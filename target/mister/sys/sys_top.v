@@ -39,6 +39,10 @@
 	`define USE_DDRAM
 `endif
 
+`ifdef JTFRAME_LF_BUFFER
+	`define USE_DDRAM
+`endif
+
 module sys_top
 (
 	/////////// CLOCK //////////

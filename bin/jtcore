@@ -217,14 +217,17 @@ if [ "$JTROOT" = "" ]; then
         source setprj.sh --quiet
     else
         echo -e "${yBG}WARNING:${NC}${wBG} cannot find setprj.sh in ${red}$(pwd)${NC}"
+        exit 1
     fi
 fi
 
 if [ "$JTROOT" = "" ]; then
-    echo -e "${rBG}ERROR:${NC}${wBG} Missing JTROOT environment variable. Define it to${NC}"
-    echo -e "      ${wBG} point to the root folder of the project to compile.${NC}"
+    echo -e "${rBG}ERROR:${NC}${wBG} Missing JTROOT environment variable.${NC}"
+    echo -e "      ${wBG}Source JTFRAME/bin/setprj.sh in bash before compiling.${NC}"
     exit 1
 fi
+
+if [ -e $JTROOT/.jtcore ]; then source $JTROOT/.jtcore; fi
 
 # The FTP folder can be set in the project's $JTROOT/setprj.sh file
 # This is the MiSTer folder to which files will be copied to via ssh
@@ -638,7 +641,7 @@ if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
         fi
         popd >/dev/null
     fi
-elif [ $TARGET != pocket ]; then
+elif [[ $TARGET != pocket && $TARGET != mister && $TARGET != sockit ]]; then
     echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
 fi
 
@@ -647,7 +650,17 @@ if [ $TARGET = mister ]; then
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
     if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
     if ping $MRHOST -w 1 -c 1 > /dev/null; then
-        sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores
+        if sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+            echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
+        else
+            echo "Network copy to MiSTer failed"
+        fi
+    else
+        echo "MiSTer is not online or unreachable"
+    fi
+    if [ -d /media/$USER/MiSTer_Data ]; then
+        mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
+        cp $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
     fi
 fi
 
@@ -694,6 +707,10 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
                 # There was no MRA or the file present was older
                 cp -v "$MAINMRA" "$NEWMRA"
                 git add "$NEWMRA"
+            fi
+            # Always copy it to the SD card
+            if [ -d /media/$USER/MiSTer_Data/_$FTP_FOLDER ]; then
+                cp -v "$MAINMRA" /media/$USER/MiSTer_Data/_$FTP_FOLDER
             fi
         fi
     fi

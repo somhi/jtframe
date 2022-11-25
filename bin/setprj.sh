@@ -15,7 +15,6 @@ export JTFRAME=$JTROOT/modules/jtframe
 PATH=$PATH:.:$JTFRAME/bin
 #unalias jtcore
 alias jtcore="$JTFRAME/bin/jtcore"
-if [ -e $JTROOT/.jtcore ]; then source $JTROOT/.jtcore; fi
 
 # Runs jtframe mra for all core
 function jtmra {
