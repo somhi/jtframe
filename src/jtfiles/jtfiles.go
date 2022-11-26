@@ -27,6 +27,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jotego/jtframe/jtdef"
 	"gopkg.in/yaml.v2"
 )
 
@@ -75,6 +76,7 @@ type Args struct {
 var parsed []string
 var CWD string
 var args Args
+var macros map[string]string
 
 func parse_args(args *Args) {
 	flag.Usage = func() {
@@ -130,10 +132,9 @@ func append_filelist(dest *[]FileList, src []FileList, other *[]string, origin O
 		*dest = make([]FileList, 0)
 	}
 	for _, each := range src {
-		// If an environment variable exists with the
-		// name set at "unless", the section is skipped
+		// If a matching macro exists, the section is skipped
 		if each.Unless != "" {
-			_, exists := os.LookupEnv(each.Unless)
+			_, exists := macros[each.Unless]
 			if exists {
 				continue
 			}
@@ -458,6 +459,10 @@ func Run(args Args) {
 	CWD, _ = os.Getwd()
 
 	game_files := parse_one(os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", false, false, nil, args)
+	var def_cfg jtdef.Config
+	def_cfg.Target = args.Target
+	def_cfg.Core = args.Corename
+	macros = jtdef.Make_macros(def_cfg)
 
 	if args.Target != "" {
 		target_files := parse_one(os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", true, false, game_files, args)
