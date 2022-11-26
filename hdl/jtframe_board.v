@@ -186,6 +186,7 @@ module jtframe_board #(parameter
     input      [31:0] cheat,
     output     [ 7:0] st_addr,
     input      [ 7:0] st_dout,
+    input      [ 7:0] target_info,
     input      [31:0] timestamp,
     // GFX enable
     output     [3:0]  gfx_en,
@@ -252,7 +253,7 @@ wire  [ 2:0] scanlines;
 wire         bw_en, blend_en;
 wire         en_mixing;
 wire         osd_pause;
-wire         debug_plus, debug_minus, key_shift, key_ctrl;
+wire         debug_plus, debug_minus, key_shift, key_ctrl, key_alt;
 
 wire         key_reset, key_pause, key_test, rot_control;
 wire         game_pause, soft_rst, game_test;
@@ -337,6 +338,7 @@ jtframe_keyboard u_keyboard(
 
     .shift       ( key_shift     ),
     .ctrl        ( key_ctrl      ),
+    .alt         ( key_alt       ),
     .key_gfx     ( key_gfx       ),
     .debug_plus  ( debug_plus    ),
     .debug_minus ( debug_minus   )
@@ -351,6 +353,7 @@ jtframe_keyboard u_keyboard(
 
             .shift       ( key_shift     ),
             .ctrl        ( key_ctrl      ),
+            .alt         ( key_alt       ),
             .key_gfx     ( key_gfx       ),
             .key_digit   ( key_digit     ),
             .debug_plus  ( debug_plus    ),
@@ -370,7 +373,8 @@ jtframe_keyboard u_keyboard(
             .gfx_en      ( gfx_en        ),
             .debug_bus   ( debug_bus     ),
             .debug_view  ( debug_view    ),
-            .sys_info    ( sys_info      )
+            .sys_info    ( sys_info      ),
+            .target_info ( target_info   )
         );
 
         jtframe_sdram_stats u_stats(

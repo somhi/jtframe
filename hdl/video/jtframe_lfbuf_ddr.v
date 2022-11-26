@@ -55,7 +55,10 @@ module jtframe_lfbuf_ddr #(parameter
     output              ddram_rd,
     output     [63:0]   ddram_din,
     output      [7:0]   ddram_be,
-    output              ddram_we
+    output              ddram_we,
+    // Status
+    input       [7:0]   st_addr,
+    output      [7:0]   st_dout
 );
 
 wire          frame, fb_clr, fb_done, line, scr_we;
@@ -94,7 +97,9 @@ jtframe_lfbuf_ddr_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     .ddram_be   ( ddram_be      ),
     .ddram_we   ( ddram_we      ),
     .ddram_burstcnt  ( ddram_burstcnt    ),
-    .ddram_dout_ready( ddram_dout_ready  )
+    .ddram_dout_ready( ddram_dout_ready  ),
+    .st_addr    ( st_addr       ),
+    .st_dout    ( st_dout       )
 );
 
 jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(

@@ -245,6 +245,7 @@ wire        force_scan2x, direct_video;
 wire        video_rotated;
 
 wire [ 6:0] core_mod;
+wire [ 7:0] st_lpbuf;
 // Mouse support
 wire [24:0] ps2_mouse;
 reg         ps2_mouse_l;
@@ -714,6 +715,7 @@ jtframe_board #(
     .ioctl_addr     ( ioctl_addr[7:0] ),
     .st_addr        ( st_addr         ),
     .st_dout        ( st_dout         ),
+    .target_info    ( st_lpbuf        ),
     // Base video
     .osd_rotate     ( rotate          ),
     .game_r         ( hsize_r         ),
@@ -843,7 +845,9 @@ wire rot_clk;
         .ddram_be   ( DDRAM_BE      ),
         .ddram_we   ( DDRAM_WE      ),
         .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
-        .ddram_dout_ready( DDRAM_DOUT_READY  )
+        .ddram_dout_ready( DDRAM_DOUT_READY  ),
+        .st_addr    ( st_addr       ),
+        .st_dout    ( st_lpbuf      )
     );
 `else
     jtframe_mr_ddrmux u_ddrmux(

@@ -506,7 +506,9 @@ jtframe_sdram64 #(
             .ddram_be   ( DDRAM_BE      ),
             .ddram_we   ( DDRAM_WE      ),
             .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
-            .ddram_dout_ready( DDRAM_DOUT_READY  )
+            .ddram_dout_ready( DDRAM_DOUT_READY  ),
+            .st_addr    ( 8'd0 ),
+            .st_dout    (      )
         );
     `endif
 `endif
@@ -722,7 +724,7 @@ module jtframe_ddr_model(
         end
     end
 
-    assign busy = busy_cnt!=0 && cnt==0;
+    assign busy = busy_cnt!=0 && !(rding || wring);
 
     always @(posedge clk) begin
         busy_cnt <= busy_cnt+1'd1;
@@ -732,7 +734,7 @@ module jtframe_ddr_model(
             wring <= 0;
             dout_ready <= 0;
         end
-        if( (rd || we) && busy_cnt==0 ) begin
+        if( (rd || we) && !busy ) begin
             cnt      <= burstcnt;
             areg     <= addr[SW-1:0];
             rding    <= rd;

@@ -40,6 +40,7 @@ module jtframe_keyboard(
 
     output     shift,
     output     ctrl,
+    output     alt,
     // debug features
     output reg [3:0] key_gfx,
     output reg       debug_plus,
@@ -60,6 +61,7 @@ reg [7:0] ps2byte;
 
 assign shift = key_joy1[7] | key_joy3[5];
 assign ctrl  = key_joy1[4] | key_joy3[4];
+assign alt   = key_joy1[5];
 
 assign key_digit = { key_coin, key_start };
 
