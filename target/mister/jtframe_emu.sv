@@ -395,6 +395,12 @@ assign prog_data = {2{prog_data8}};
 
 reg pxl1_cen;
 
+// Line-Frame buffer
+wire [ 8:0] game_hdump, ln_addr;
+wire [ 7:0] game_vrender, ln_v;
+wire        ln_done, ln_hs, ln_we;
+wire [15:0] ln_pxl, ln_data;
+
 // this places the pxl1_cen in the pixel centre
 always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
 
@@ -445,6 +451,17 @@ u_frame(
     .snd_sample     ( sample         ),
     .snd_rout       ( AUDIO_R        ),
     .snd_lout       ( AUDIO_L        ),
+
+    // line-frame buffer
+    .game_vrender   ( game_vrender   ),
+    .game_hdump     ( game_hdump     ),
+    .ln_addr        ( ln_addr        ),
+    .ln_data        ( ln_data        ),
+    .ln_done        ( ln_done        ),
+    .ln_hs          ( ln_hs          ),
+    .ln_pxl         ( ln_pxl         ),
+    .ln_v           ( ln_v           ),
+    .ln_we          ( ln_we          ),
 
     `ifdef JTFRAME_VERTICAL
     // Screen rotation
@@ -684,6 +701,19 @@ assign sim_pxl_cen = pxl_cen;
 `ifdef JTFRAME_IOCTL_RD
     .ioctl_ram    ( ioctl_ram        ),
     .ioctl_din    ( ioctl_din        ),
+`endif
+
+`ifdef JTFRAME_LF_BUFFER
+    // line-frame buffer
+    .game_vrender ( game_vrender     ),
+    .game_hdump   ( game_hdump       ),
+    .ln_addr      ( ln_addr          ),
+    .ln_data      ( ln_data          ),
+    .ln_done      ( ln_done          ),
+    .ln_hs        ( ln_hs            ),
+    .ln_pxl       ( ln_pxl           ),
+    .ln_v         ( ln_v             ),
+    .ln_we        ( ln_we            ),
 `endif
 
     // ROM load

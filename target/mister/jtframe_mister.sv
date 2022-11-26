@@ -71,6 +71,17 @@ module jtframe_mister #(parameter
     input           SDRAM_CLK,      // SDRAM Clock
     output          SDRAM_CKE,      // SDRAM Clock Enable
 
+    // line-frame buffer
+    input        [ 7:0] game_vrender,
+    input        [ 8:0] game_hdump,
+    input        [ 8:0] ln_addr,
+    input        [15:0] ln_data,
+    input               ln_done,
+    output              ln_hs,
+    output       [15:0] ln_pxl,
+    output       [ 7:0] ln_v,
+    input               ln_we,
+
     // Signals to rotate the screen
 `ifdef JTFRAME_VERTICAL
     output          FB_EN,
@@ -804,13 +815,13 @@ wire rot_clk;
 `ifdef JTFRAME_LF_BUFFER
     // line-frame buffer. This won't work with fast DDR load or vertical games
     jtframe_lfbuf_ddr u_lf_buf(
-        .rst        ( sdram_init    ),
+        .rst        ( rst           ),
         .clk        ( clk_rom       ),
         .pxl_cen    ( pxl_cen       ),
 
-        .vs         ( base_vs       ),
-        .lvbl       ( base_LVBL     ),
-        .lhbl       ( base_LHBL     ),
+        .vs         ( vs            ),
+        .lvbl       ( LVBL          ),
+        .lhbl       ( LHBL          ),
         .vrender    ( game_vrender  ),
         .hdump      ( game_hdump    ),
 
