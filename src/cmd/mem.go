@@ -30,10 +30,11 @@ var memCmd = &cobra.Command{
 	Use:   "mem <core-name>",
 	Short: "Parses the core's YAML file to generate RTL files",
 	Long: `Parses the core's YAML file to generate RTL files.
-The YAML file name must be mem.yaml and be stored in cores/hdl/corename`,
+The YAML file name must be mem.yaml and be stored in cores/corename/cfg
+The output files are stored in cores/corename/target where target is
+one of the names in the $JTFRAME/target folder (mist, mister, etc.)`,
 	Run: func(cmd *cobra.Command, args []string) {
 		mem_args.Core = args[0]
-		mem_args.CfgFile = args[0] + ".yaml"
 
 		mem.Run(mem_args)
 	},
@@ -47,5 +48,6 @@ func init() {
 	// mem_args.Def_cfg.Target = "mist"
 	// flag.StringVar(&mem_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
 	flag.BoolVarP(&mem_args.Verbose, "verbose","v", false, "verbose")
+	flag.StringVarP(&mem_args.Target, "target", "t", "mist", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVarP(&mem_args.Make_inc, "inc","i", false, "always creates mem_ports.inc")
 }

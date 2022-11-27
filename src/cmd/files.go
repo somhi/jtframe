@@ -43,7 +43,7 @@ func init() {
 	flag := filesCmd.Flags()
 
 	flag.StringVar(&files_args.Output, "output", "", "Output file name with no extension. Default is 'game'")
-	flag.StringVar(&files_args.Target, "target", "", "Target platform: mist, mister, pocket, etc.")
+	flag.StringVarP(&files_args.Target, "target", "t", "", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVar(&files_args.Rel, "rel", false, "Output relative paths")
 	flag.BoolVar(&files_args.SkipVHDL, "novhdl", false, "Skip VHDL files")
 }

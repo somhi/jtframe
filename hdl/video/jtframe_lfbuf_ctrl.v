@@ -69,6 +69,8 @@ localparam [5:0] INIT       = { 3'd0, 3'd0 },
                  WAIT_CFG   = { 3'd0, 3'd1 },
                  WAIT_REF   = { 3'd0, 3'd2 },
                  SET_REF    = { 3'd0, 3'd3 },
+                 FAKE_READ  = { 3'd0, 3'd4 },
+                 FAKE_WAIT  = { 3'd0, 3'd5 },
                  IDLE       = { 3'd1, 3'd0 },
                  WRITE_LINE = { 3'd2, 3'd0 },
                  WRITE_WAIT = { 3'd2, 3'd1 },
@@ -93,7 +95,7 @@ localparam [21:0] BUS_CFG = {
     1'b1, // asserted one data cycle before delay (default)
     2'd0, // reserved
     2'd1, // drive strength (default)
-    1'b1, // burst wrap
+    1'b1, // no burst wrap
     3'd7  // continuous burst
 }, REF_CFG = {
     2'd0, // reserved
@@ -151,7 +153,7 @@ always @( posedge clk, posedge rst ) begin
     if( rst ) begin
         st      <= INIT;
         cr_advn <= 0;
-        cr_oen  <= 1;
+        cr_oen  <= 0;
         cr_cre  <= 0;
         csn     <= 1;
         fb_addr <= 0;
@@ -182,10 +184,14 @@ always @( posedge clk, posedge rst ) begin
                 st      <= WAIT_CFG;
             end
             WAIT_CFG: begin
+                cr_advn <= 1;
+                cr_wen  <= 1;
+                cr_cre  <= 0;
                 if( cr_wait ) begin
                     csn    <= 1;
-                    cr_wen <= 1;
-                    st     <= SET_REF;
+                    // st     <= SET_REF;
+                    st <= FAKE_READ;
+                    rd_addr<= 0;
                 end
             end
             SET_REF: begin
@@ -198,11 +204,31 @@ always @( posedge clk, posedge rst ) begin
                 st      <= WAIT_REF;
             end
             WAIT_REF: begin
+                cr_advn <= 1;
+                cr_wen  <= 1;
+                cr_cre  <= 0;
                 if( cr_wait ) begin
                     csn    <= 1;
-                    cr_wen <= 1;
                     st     <= IDLE;
                 end
+            end
+            FAKE_READ: begin
+                csn     <= 0;
+                cr_advn <= 0;
+                cr_wen  <= 1;
+                cr_oen  <= 1;
+                cr_cre  <= 0;
+                st      <= FAKE_WAIT;
+            end
+            FAKE_WAIT: begin
+                cr_advn <= 1;
+                cr_oen  <= 0;
+                if( cr_wait ) begin
+                    cr_oen <= 1;
+                    csn    <= 1;
+                    st     <= IDLE;
+                end
+
             end
     // Wait for requests
             IDLE: begin

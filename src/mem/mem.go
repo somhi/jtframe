@@ -34,9 +34,9 @@ import (
 )
 
 type Args struct {
-	Core    string
-	CfgFile string
-	Verbose bool
+	Core     string
+	Target   string
+	Verbose  bool
 	Make_inc bool
 	// The memory selection (SDRAM, DDR, BRAM...) will be here
 }

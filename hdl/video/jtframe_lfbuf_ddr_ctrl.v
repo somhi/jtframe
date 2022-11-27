@@ -29,6 +29,7 @@ module jtframe_lfbuf_ddr_ctrl #(parameter
     input               ln_done,
     input      [VW-1:0] vrender,
     input      [VW-1:0] ln_v,
+    input               vs,
     // data written to external memory
     input               frame,
     output reg [HW-1:0] fb_addr,
@@ -59,13 +60,13 @@ module jtframe_lfbuf_ddr_ctrl #(parameter
     output reg  [7:0]   st_dout
 );
 
-localparam [31:3] DDRAM_OFFSET = 29'h24000000; // same as the vertical frame buffer used in the screen_rotate module
+localparam [31:3] DDRAM_OFFSET = 29'h30000000; // same as the vertical frame buffer used in the screen_rotate module
 
 reg    [ 3:0] st;
 wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 reg  [HW-1:0] hblen, hlim, hcnt;
 reg           lhbl_l, do_wr, do_rd,
-              ln_done_l;
+              ln_done_l, ever_rdy, readyl, busyl;
 wire          fb_over;
 wire          rding, wring;
 
@@ -87,13 +88,16 @@ assign fb_over        = &fb_addr;
 assign vram           = lhbl ? ln_v : vrender;
 
 always @(posedge clk) begin
+    readyl <= ddram_dout_ready;
+    busyl  <= ddram_busy;
     case( st_addr[2:0] )
-        0: st_dout <= { |fb_din, &fb_din, |fb_dout, &fb_dout, // show whether there is activity
+        0: st_dout <= { ever_rdy, 3'd0,
                         st };
         1: st_dout <= { 3'd0, ddram_busy, 3'd0,ddram_dout_ready };
         2: st_dout <= { 3'd0, ddram_we, 3'd0, ddram_rd };
         3: st_dout <= rd_addr[7:0];
         4: st_dout <= fb_addr[7:0];
+        5: st_dout <= {3'd0, busyl, 3'd0, readyl };
         default: st_dout <= 0;
     endcase
 end
@@ -140,6 +144,7 @@ always @( posedge clk, posedge rst ) begin
         scr_we     <= 0;
         line       <= 0;
         do_rd      <= 0;
+        ever_rdy   <= 0;
     end else begin
         fb_done <= 0;
         if (lhbl_l & ~lhbl & ~rding) do_rd <= 1;
@@ -152,11 +157,11 @@ always @( posedge clk, posedge rst ) begin
             end
         end
         if( !ddram_busy ) begin
-            case( st )
+            ddram_rd <= 0;
+            ddram_we <= 0;
+            if(st_addr[7]) case( st )
                 IDLE: begin
                     ddram_addr <= DDRAM_OFFSET | { {28-HW-VW{1'b0}}, lhbl ^ frame, vram, {HW{1'b0}} };
-                    ddram_rd   <= 0;
-                    ddram_we   <= 0;
                     if( do_rd ) begin
                         // it doesn't matter if vrender changes after the LHBL edge
                         ddram_rd <= 1;
@@ -179,7 +184,6 @@ always @( posedge clk, posedge rst ) begin
                 end
                 WRITEOUT: begin
                     fb_addr  <= fb_addr + 1'd1;
-                    ddram_we <= 0;
                     if( &fb_addr[6:0] ) begin
                         st  <= fb_over /* full line read */ ? IDLE : WRITE_WAIT;
                         if( fb_over ) begin
@@ -197,8 +201,8 @@ always @( posedge clk, posedge rst ) begin
                     scr_we   <= 1;
                 end
                 READIN: begin
-                    ddram_rd <= 0;
                     if( ddram_dout_ready ) begin
+                        ever_rdy <= 1;
                         rd_addr <= rd_addr + 1'd1;
                         if( &rd_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
                             scr_we <= 0;
