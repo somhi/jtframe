@@ -60,8 +60,6 @@ module jtframe_lfbuf_ddr_ctrl #(parameter
     output reg  [7:0]   st_dout
 );
 
-localparam [31:3] DDRAM_OFFSET = 29'h30000000; // same as the vertical frame buffer used in the screen_rotate module
-
 reg    [ 3:0] st;
 wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 reg  [HW-1:0] hblen, hlim, hcnt;
@@ -161,7 +159,9 @@ always @( posedge clk, posedge rst ) begin
             ddram_we <= 0;
             if(st_addr[7]) case( st )
                 IDLE: begin
-                    ddram_addr <= DDRAM_OFFSET | { {28-HW-VW{1'b0}}, lhbl ^ frame, vram, {HW{1'b0}} };
+                    ddram_addr <= 0;
+                    ddram_addr[31-:7] <= 7'b0010010;
+                    ddram_addr[3+:1+HW+VW] <= { lhbl ^ frame, vram, {HW{1'b0}} };
                     if( do_rd ) begin
                         // it doesn't matter if vrender changes after the LHBL edge
                         ddram_rd <= 1;
