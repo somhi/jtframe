@@ -56,6 +56,7 @@ module emu
     output        VGA_F1,
     output  [1:0] VGA_SL,
     output        VGA_SCALER,
+    output        VGA_DISABLE, // analog out is off
 
     input  [11:0] HDMI_WIDTH,
     input  [11:0] HDMI_HEIGHT,
@@ -76,12 +77,23 @@ module emu
     // I/O board button press simulation (active high)
     // b[1]: user button
     // b[0]: osd button
-    // output  [1:0] BUTTONS,
+    output  [1:0] BUTTONS,
 
     input         CLK_AUDIO,
     output reg [15:0] AUDIO_L,
     output reg [15:0] AUDIO_R,
     output        AUDIO_S,   // 1 - signed audio samples, 0 - unsigned
+    output  [1:0] AUDIO_MIX, // 0 - no mix, 1 - 25%, 2 - 50%, 3 - 100% (mono)
+
+    //ADC
+    inout   [3:0] ADC_BUS,
+
+    //SD-SPI
+    output        SD_SCK,
+    output        SD_MOSI,
+    input         SD_MISO,
+    output        SD_CS,
+    input         SD_CD,
 
     //SDRAM interface with lower latency
     output        SDRAM_CLK,
@@ -95,6 +107,13 @@ module emu
     output        SDRAM_nCAS,
     output        SDRAM_nRAS,
     output        SDRAM_nWE,
+
+    input         UART_CTS,
+    output        UART_RTS,
+    input         UART_RXD,
+    output        UART_TXD,
+    output        UART_DTR,
+    input         UART_DSR,
 
     `ifdef JTFRAME_VERTICAL
     output        FB_EN,
@@ -136,7 +155,8 @@ module emu
     output  [6:0] USER_OUT,
     output        db15_en,
     output        uart_en,
-    output        show_osd
+    output        show_osd,
+    input         OSD_STATUS
     `ifdef SIMULATION
     ,output       sim_pxl_cen,
     output        sim_pxl_clk,
@@ -158,8 +178,14 @@ wire   field;
 assign VGA_F1=field;
 `endif
 
-assign VGA_SCALER = 0;
+// unused features
+assign VGA_SCALER  = 0;
+assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
+assign AUDIO_MIX   = 0;
+assign BUTTONS     = 0;
+assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 
 wire [3:0] hoffset, voffset;
 
