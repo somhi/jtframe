@@ -62,7 +62,6 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --showmacros    Shows the macros used for compilation and exits
     --target|-t <target>
                     specifies the target platform
-    --rename        name used for copying the RBF file into the SD card
     --verbose | -v  verbose
 
     --help          displays this message
@@ -80,7 +79,6 @@ OUTPUTDIR=output_files
 PRIVATE=0
 PRJ=
 PROG=FALSE
-RENAME=
 SEED=1
 SIM=FALSE
 SKIP_COMPILE=FALSE
@@ -176,9 +174,6 @@ function parse_args {
                     exit 1
                 fi
                 TARGET=$1;;
-            --rename)
-                shift
-                RENAME=$1;;
             --seed)
                 shift
                 SEED=$1;;
@@ -538,11 +533,7 @@ esac
 # Rename output file
 cd $JTROOT
 mkdir -p releases/$TARGET
-if [ -z $RENAME ]; then
-    SHORT=$corename
-else
-    SHORT=$RENAME
-fi
+SHORT=$corename
 
 # date stamp is only added to MiSTer (and family) output
 RELEASE=${SHORT}
@@ -612,11 +603,7 @@ fi
 # Copy the file to the SD card. The SD card must have the same name as the target platform
 if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
     cd $JTROOT
-    if [ -z "$RENAME" ]; then
-        RENAME=JT${PRJ^^}.$EXT
-    else
-        RENAME=$RENAME.$EXT
-    fi
+    RENAME=${CORENAME^^}.$EXT
     # copy the file in three forms:
     # with full date for reference, as core.rbf to start up with it
     # and inside its own folder for use with ARC files
