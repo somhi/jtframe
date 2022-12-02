@@ -113,7 +113,7 @@ end
 
 endmodule
 
-module jtframe_z80wait #(parameter devcnt=2)(
+module jtframe_z80wait #(parameter DEVCNT=2)(
     input       rst_n,
     input       clk,
     input       cen_in,
@@ -124,7 +124,7 @@ module jtframe_z80wait #(parameter devcnt=2)(
     input       iorq_n,
     input       busak_n,
     // manage access to shared memory
-    input  [devcnt-1:0] dev_busy,
+    input  [DEVCNT-1:0] dev_busy,
     // manage access to ROM data from SDRAM
     input       rom_cs,
     input       rom_ok
@@ -135,7 +135,7 @@ module jtframe_z80wait #(parameter devcnt=2)(
 reg last_rom_cs;
 wire rom_cs_posedge = !last_rom_cs && rom_cs;
 
-reg        locked, rec, start;
+reg        locked, rec, start, cen_l;
 wire       rom_bad, rec_en;
 reg  [3:0] miss_cnt;
 
@@ -143,13 +143,18 @@ reg  [3:0] miss_cnt;
 
 assign gate    = !(rom_bad || dev_busy || locked );
 assign rom_bad = (rom_cs && !rom_ok) || rom_cs_posedge;
-assign rec_en  = 0; //&{mreq_n, iorq_n, busak_n};
+assign rec_en  = &{mreq_n, iorq_n, busak_n };
 
 always @(*) begin
     rec = 0;
-    if( miss_cnt!=0 && !cen_in && rec_en )
+    // two cen pulses in a row will break most systems
+    // probably because of memory delays. That's why cen_l
+    // is used too
+    if( miss_cnt!=0 && !cen_in && rec_en && !cen_l )
         rec = 1;
 end
+
+always @(posedge clk) cen_l <= cen_out;
 
 always @(posedge clk, negedge rst_n) begin
     if( !rst_n ) begin

@@ -24,20 +24,6 @@
 // depending on whether we are running simulations
 // or synthesis
 
-// By default use tv80s for simulation only.
-// This can be overridden by defining VHDLZ80 or TV80S explicitly
-`ifndef VHDLZ80
-`ifndef TV80S
-
-`ifdef SIMULATION
-      `define TV80S
-`else
-      `define VHDLZ80
-`endif
-
-`endif
-`endif
-
 /* verilator tracing_off */
 
 // This is a wrapper for jtframe_sysz80_nvram, for volatile RAM
@@ -397,6 +383,23 @@ module jtframe_z80 (
     input  [7:0]  din,
     output [7:0]  dout
 );
+
+// By default use tv80s for simulation only.
+// This can be overridden by defining VHDLZ80 or TV80S explicitly
+`ifndef VHDLZ80
+`ifndef TV80S
+`ifndef MODELSIM
+
+`ifdef SIMULATION
+      `define TV80S
+      initial $display("WARNING: Using Verilog version of T80 for simulation.");
+`else
+      `define VHDLZ80
+`endif
+
+`endif
+`endif
+`endif
 
 `ifdef VHDLZ80
 T80s u_cpu(
