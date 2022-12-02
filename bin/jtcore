@@ -533,10 +533,9 @@ esac
 # Rename output file
 cd $JTROOT
 mkdir -p releases/$TARGET
-SHORT=$corename
 
 # date stamp is only added to MiSTer (and family) output
-RELEASE=${SHORT}
+RELEASE=$corename
 if is_mister_family; then
     RELEASE=${RELEASE}_$CORESTAMP
 fi
@@ -607,7 +606,7 @@ if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
     # copy the file in three forms:
     # with full date for reference, as core.rbf to start up with it
     # and inside its own folder for use with ARC files
-    cp -v $RBF /media/$USER/${TARGET^^}/${SHORT^^}.$EXT
+    cp -v $RBF /media/$USER/${TARGET^^}/$CORENAME.$EXT
     # Copy the file to the core folder so it can be used by ARC files
     if [ -d /media/$USER/${TARGET^^}/$CORE_FOLDER ]; then
         cp -v $RBF /media/$USER/${TARGET^^}/$CORE_FOLDER/$RENAME
@@ -669,10 +668,29 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
         mkdir -p $BINFOLDER/releases
     else
         BINFOLDER=$JTBIN/$TARGET
-        BINRBF=$JTBIN/$TARGET/${SHORT}.$EXT
-        mkdir -p $BINFOLDER
+        if [ $TARGET = pocket ]; then
+            BINFOLDER=$BINFOLDER/Cores/jotego.$corename
+        fi
+        BINRBF=$BINFOLDER/$corename.$EXT
     fi
+    mkdir -p $(dirname $BINRBF)
     cp $RBF $BINRBF -v || exit 1
+    if [ $TARGET = pocket ]; then
+        # Copy the JSON files
+        if [ -e $CORES/$PRJ/cfg/mame2mra.toml ]; then
+            cd $ROM
+            # if ! jtframe mra --skipMRA $PRJ > mra.log; then cat mra.log; exit 1; fi
+            for i in Cores Presets; do
+                mkdir -p $JTBIN/pocket/$i
+                cp -rv pocket/$i/jotego.$corename $JTBIN/pocket/$i
+                cp -v pocket/$corename.txt $JTBIN/pocket
+            done
+            cp -rv pocket/Assets/$corename $JTBIN/pocket/Assets/$corename
+            rm -f $JTBIN/pocket/Assets/$corename/common/*.rom
+        else
+            echo "Skipping JSON file update because the core doesn't have a mame2mra.toml file"
+        fi
+    fi
     # if [ -n "$SEED_SUFFIX" ]; then
     #     cp $RELEASE.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
     # fi
