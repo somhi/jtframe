@@ -685,10 +685,10 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
                 cp -rv pocket/$i/jotego.$corename $JTBIN/pocket/$i
                 cp -v pocket/$corename.txt $JTBIN/pocket
             done
-            cp -rv pocket/Assets/$corename $JTBIN/pocket/Assets/$corename
+            cp -rv pocket/Assets/$corename $JTBIN/pocket/Assets
             cp -rv pocket/Platforms/$corename.json $JTBIN/pocket/Platforms
             cp -rv pocket/Platforms/_images/$corename.bin $JTBIN/pocket/Platforms/_images
-            rm -f $JTBIN/pocket/Assets/$corename/common/*.rom
+            find $JTBIN/pocket -name "*.rom" -delete
         else
             echo "Skipping JSON file update because the core doesn't have a mame2mra.toml file"
         fi
