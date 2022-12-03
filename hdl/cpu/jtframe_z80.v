@@ -24,7 +24,9 @@
 // depending on whether we are running simulations
 // or synthesis
 
+`ifndef VERILATOR_KEEP_CPU
 /* verilator tracing_off */
+`endif
 
 // This is a wrapper for jtframe_sysz80_nvram, for volatile RAM
 module jtframe_sysz80(

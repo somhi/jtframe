@@ -370,6 +370,16 @@ module tv80_core (/*AUTOARG*/
         Save_Mux = ALU_Q;
     end // always @ *
 
+  `ifdef SIM_TRACE_Z80
+    reg [15:0] PCl = 16'hffff;
+    always @(posedge clk) if(!m1_n) begin
+      PCl <= PC;
+      if( PC != PCl ) begin
+        $display("%m PC = %04X, SP=%04X, HL=%04X, A=%02X",PC, SP, {RegDIH,RegDIL}, ACC);
+      end
+    end
+  `endif
+
   always @ (posedge clk or negedge reset_n)
     begin
       if (reset_n == 1'b0 )

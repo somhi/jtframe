@@ -171,7 +171,7 @@ generate
                             if( fcnt[7:0]==8'h39 ) begin
                                 fcnt[15-:8] <= fcnt[15-:8]==8'h39 ? 8'h30 : fcnt[15-:8]+1'd1;
                                 if( fcnt[15-:8]==8'h39 ) begin
-                                    fcnt[23-:8] <= fcnt[23:8]==8'h39 ? 8'h30 : fcnt[23:8]+1'd1;
+                                    fcnt[23-:8] <= fcnt[23-:8]==8'h39 ? 8'h30 : fcnt[23-:8]+1'd1;
                                 end
                             end
                         end

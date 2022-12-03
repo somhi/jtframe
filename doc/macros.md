@@ -37,7 +37,6 @@ JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
 JTFRAME_COLORW           |         | Sets the number of bits per color component (default=4)
 JTFRAME_DEBUG            |         | Enables the debug_bus signal connection to the game instance
 JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
-JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_FORCED_DIPSW     | Pocket  | Forces a fixed value for the DIP switches
@@ -145,6 +144,7 @@ Macro                    | Target  |  Usage
 -------------------------|---------|---------------------------------------------
 DUMP_VIDEO               |         | Enables video dump to a file
 DUMP_VIDEO_FNAME         |         | Internal. Do not assign.
+JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_SAVESDRAM        |         | Saves SDRAM contents at the end of each frame (slow)
 JTFRAME_SDRAM_STATS      |         | Produce SDRAM usage data during simulation
 JTFRAME_SIM_DIPS         |         | Define DIP switch values during simulation
@@ -155,6 +155,7 @@ JTFRAME_SIM_DEBUG        |verilator| debug_bus is increased by one each frame. S
 SIMULATION               |         | Enables simulation features
 VIDEO_START              |         | First frame for which video output is provided use it to prevent a split first frame
 DUMP_6809                |         | Generates a m6809.log during simulation with register dumps
+VERILATOR_KEEP_CPU       |verilator| Keeps Z80 signals during simulation
 
 # ROM Downloading
 
