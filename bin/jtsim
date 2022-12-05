@@ -48,6 +48,8 @@ GATES=NO
 MACOS=NO
 SED="sed -i"
 START_TIME=$(date +%s)
+# Extra arguments for the simulator, passed with -args
+SIMULATOR_EXTRA=
 
 rm -f macros.f
 
@@ -72,6 +74,7 @@ function show_help {
 JTFRAME simulation tool. (c) Jose Tejada 2019-2022, @topapate
 Please support the development: https://patreon.com/jotego
 
+    -args      Additional arguments for the simulator
     -d         Add specific Verilog macros for the simulation.
                Call jtmacros to display all macros.
     -deep      Save all signals for scope verification. See -w below.
@@ -218,6 +221,7 @@ function set_mist_as_target {
 
 while [ $# -gt 0 ]; do
 case "$1" in
+    -args) shift; SIMULATOR_EXTRA="$SIMULATOR_EXTRA $1";;
     -showcmd) SHOWCMD="echo";;
     -sysname) shift;; # ignore here
     -modules) shift;; # ignore here
@@ -546,7 +550,7 @@ case $SIMULATOR in
 iverilog)
     SIMEXE=sim
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
-        -f target.f \
+        -f target.f $SIMULATOR_EXTRA \
         -s $TOP -o $SIMEXE \
         -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc\
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
@@ -557,9 +561,9 @@ modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
     $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
-        +initwireX \
+        +initwireX $SIMULATOR_EXTRA \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
-        $SIMARGS -f target.f \
+        $SIMARGS -f target.f $SIMULATOR_EXTRA\
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
     echo calling vsim $TOP
@@ -577,7 +581,7 @@ synapticad)
         -f filtered.f -f target.f $FILES \
         +scd_top+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
-        $SIMARGS \
+        $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $EXTRA -l /dev/null || exit $?;;
 ncverilog)
@@ -589,7 +593,7 @@ ncverilog)
         +nctop+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         -ncvhdl_args,-V93 \
-        $SIMARGS \
+        $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         -nowarn "MCONDE" -nowarn "NOCOND" -nowarn "RECOME" -nowarn "ZROMCW" \
         $EXTRA -l /dev/null || exit $?;;
@@ -625,7 +629,7 @@ verilator)
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
          $EXTRA $TRACE --prefix UUT --assert \
-         --cc test.cpp --exe \
+         --cc test.cpp --exe $SIMULATOR_EXTRA \
          -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT \
         || exit $?
     # boost C++ optimization without affecting other settings
