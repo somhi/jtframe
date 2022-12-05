@@ -364,7 +364,7 @@ if [ -z "$TARGET" ]; then
     set_mist_as_target
 fi
 
-echo "${wBG}=========== JTSIM starts for $TARGET ===========${NC}"
+echo "${wBG}=========== JTSIM starts for $TARGET ===========${NC}" > /dev/stderr
 
 if [ -z "$SYSNAME" ]; then
     AUX=`pwd`
@@ -672,4 +672,4 @@ COMPILE_TIME=$[$END_TIME - $START_TIME]
 MINUTES=$[$COMPILE_TIME / 60]
 SECONDS=$[$COMPILE_TIME % 60]
 
-echo "====== JTSIM finished in "$MINUTES\'$SECONDS\"" ======"
+echo "====== JTSIM finished in "$MINUTES\'$SECONDS\"" ======" > /dev/stderr

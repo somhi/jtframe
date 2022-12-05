@@ -169,13 +169,13 @@ public:
         fin.seekg( 0, ios_base::end );
         len = (int)fin.tellg();
         if( len == 0 || fin.bad() ) {
-            fputs("Verilator test.cpp: cannot open file rom.bin",stderr);
+            fputs("Verilator test.cpp: cannot open file rom.bin\n",stderr);
         } else {
             buf = new char[len];
             fin.seekg(0, ios_base::beg);
             fin.read(buf,len);
             if( fin.bad() ) {
-                fputs("Verilator test.cpp: problem while reading rom.bin",stderr);
+                fputs("Verilator test.cpp: problem while reading rom.bin\n",stderr);
             } else {
                 fprintf(stderr,"Read %d bytes from rom.bin\n",len);
             }
@@ -190,10 +190,10 @@ public:
         full_download = download; // At least the first 32 bytes will always be downloaded
         if( !full_download ) {
             if ( len > 32 ) {
-                fputs("ROM download shortened to 32 bytes",stderr);
+                fputs("ROM download shortened to 32 bytes\n",stderr);
                 len=32;
             } else {
-                fputs("Short ROM download",stderr);
+                fputs("Short ROM download\n",stderr);
             }
         }
         ticks = 0;
@@ -219,7 +219,7 @@ public:
                     } else {
                         dut.downloading = 0;
                         done = true;
-                        fputs("ROM file transfered",stderr);
+                        fputs("ROM file transfered\n",stderr);
                     }
                     break;
             }
@@ -404,7 +404,7 @@ void SDRAM::update() {
             if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Tested with 32 and 64-bit reads (JTFRAME_BAx_LEN=64)
                 // May fail when using 96MHz for SDRAM. Needs investigation
                 if( dqbusy ) {
-                    fputs("WARNING: (test.cpp) SDRAM reads clashed",stderr);
+                    fputs("WARNING: (test.cpp) SDRAM reads clashed\n",stderr);
                 }
                 // if( rd_st[k]==burst_len ) printf("Read start\n");
                 auto data_read = read_bank( banks[k], ba_addr[k] );
@@ -440,7 +440,7 @@ int SDRAM::read_offset( int region ) {
 
 SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
 #ifdef _JTFRAME_SDRAM_BANKS
-    fputs("Multibank SDRAM enabled",stderr);
+    fputs("Multibank SDRAM enabled\n",stderr);
     const int MAXBANK=3;
 #else
     const int MAXBANK=0;
@@ -527,7 +527,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
         tracer = new VerilatedVcdC;
         game.trace( tracer, 99 );
         tracer->open("test.vcd");
-        fputs("Verilator will dump to test.vcd",stderr);
+        fputs("Verilator will dump to test.vcd\n",stderr);
     } else {
         tracer = nullptr;
     }
@@ -711,7 +711,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-time")==0 ) {
             if( ++k >= argc ) {
-                fputs("ERROR: (test.cpp)  expecting time after -time argument", stderr);
+                fputs("ERROR: (test.cpp)  expecting time after -time argument\n", stderr);
             } else {
                 finish_time = atol(argv[k]);
             }
@@ -719,7 +719,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-frame")==0 ) {
             if( ++k >= argc ) {
-                fputs("ERROR: (test.cpp)  expecting frame count after -frame argument", stderr);
+                fputs("ERROR: (test.cpp)  expecting frame count after -frame argument\n", stderr);
             } else {
                 finish_frame = atol(argv[k]);
             }
@@ -795,7 +795,7 @@ WaveWritter::~WaveWritter() {
 int main(int argc, char *argv[]) {
     Verilated::commandArgs(argc, argv);
 
-    fputs("Verilator sim starts", stderr);
+    fputs("Verilator sim starts\n", stderr);
     try {
         UUT game;
         JTSim sim(game, argc, argv);
@@ -814,6 +814,7 @@ int main(int argc, char *argv[]) {
         if( sim.get_frame()>1 ) fputc('\n',stderr);
     } catch( const char *error ) {
         fputs(error,stderr);
+        fputc('\n',stderr);
         return 1;
     }
     return 0;
