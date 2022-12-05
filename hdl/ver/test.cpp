@@ -16,6 +16,11 @@
     Version: 1.0
     Date: 9-5-2022 */
 
+// All screen output should go through stderr using C functions
+// Do not use C++ IO functions like cout or cerr because it
+// can mess up with verilog $display and $fdisplay calls
+// see https://github.com/verilator/verilator/issues/3799
+
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -111,9 +116,9 @@ public:
         done = false;
         fin.open("sim_inputs.hex");
         if( fin.bad() ) {
-            cout << "ERROR: (test.cpp)  could not open sim_inputs.hex\n";
+            fputs("ERROR: (test.cpp)  could not open sim_inputs.hex\n", stderr );
         } else {
-            cout << "reading sim_inputs.hex\n";
+            fputs("reading sim_inputs.hex\n", stderr );
         }
         next();
 #else
@@ -137,7 +142,7 @@ public:
             }
             if( fin.eof() ) {
                 done = true;
-                cout << "\nsim_inputs.hex finished at line " << line << endl;
+                fprintf(stderr,"\nsim_inputs.hex finished at line %d\n", line);
                 fin.close();
             }
         } else {
@@ -164,15 +169,15 @@ public:
         fin.seekg( 0, ios_base::end );
         len = (int)fin.tellg();
         if( len == 0 || fin.bad() ) {
-            cout << "Verilator test.cpp: cannot open file rom.bin" << endl;
+            fputs("Verilator test.cpp: cannot open file rom.bin",stderr);
         } else {
             buf = new char[len];
             fin.seekg(0, ios_base::beg);
             fin.read(buf,len);
             if( fin.bad() ) {
-                cout << "Verilator test.cpp: problem while reading rom.bin" << endl;
+                fputs("Verilator test.cpp: problem while reading rom.bin",stderr);
             } else {
-                cout << "Read " << len << " bytes from rom.bin" << endl;
+                fprintf(stderr,"Read %d bytes from rom.bin\n",len);
             }
         }
     };
@@ -185,10 +190,10 @@ public:
         full_download = download; // At least the first 32 bytes will always be downloaded
         if( !full_download ) {
             if ( len > 32 ) {
-                cout << "ROM download shortened to 32 bytes\n";
+                fputs("ROM download shortened to 32 bytes",stderr);
                 len=32;
             } else {
-                cout << "Short ROM download\n";
+                fputs("Short ROM download",stderr);
             }
         }
         ticks = 0;
@@ -214,7 +219,7 @@ public:
                     } else {
                         dut.downloading = 0;
                         done = true;
-                        cout << "ROM file transfered\n";
+                        fputs("ROM file transfered",stderr);
                     }
                     break;
             }
@@ -336,7 +341,7 @@ void SDRAM::dump() {
         sprintf(fname,"sdram_bank%d.bin",k);
         ofstream fout(fname,ios_base::binary);
         if( !fout.good() ) {
-            cout << "ERROR: (test.cpp) creating " << fname << '\n';
+            fprintf(stderr,"ERROR: (test.cpp) creating %s\n", fname );
         }
         // reverse bytes because 16-bit access operation
         // use the wrong endianness in intel machines
@@ -346,9 +351,9 @@ void SDRAM::dump() {
         }
         fout.write(aux,BANK_LEN);
         if( !fout.good() ) {
-            cout << "ERROR: (test.cpp) saving to " << fname << '\n';
+            fprintf(stderr, "ERROR: (test.cpp) saving to %s\n", fname );
         }
-        cout << fname << " dumped\n";
+        fprintf(stderr,"%s dumped\n", fname );
 #ifndef _JTFRAME_SDRAM_BANKS
         break;
 #endif
@@ -366,7 +371,7 @@ void SDRAM::update() {
             int mode = dut.SDRAM_A;
             burst_len = 1 << (mode&3);
             burst_mask = ~(burst_len-1);
-            cout << "SDRAM burst mode changed to " << burst_len << " mask 0x" << hex << burst_mask << '\n';
+            fprintf(stderr, "SDRAM burst mode changed to %d mask 0x%X\n",  burst_len, burst_mask );
             if( burst_len>4 ) {
                 throw "\nERROR: (test.cpp)  support for bursts larger than 4 is not implemented in test.cpp\n";
             }
@@ -399,7 +404,7 @@ void SDRAM::update() {
             if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Tested with 32 and 64-bit reads (JTFRAME_BAx_LEN=64)
                 // May fail when using 96MHz for SDRAM. Needs investigation
                 if( dqbusy ) {
-                    cout << "WARNING: (test.cpp) SDRAM reads clashed\n";
+                    fputs("WARNING: (test.cpp) SDRAM reads clashed",stderr);
                 }
                 // if( rd_st[k]==burst_len ) printf("Read start\n");
                 auto data_read = read_bank( banks[k], ba_addr[k] );
@@ -435,7 +440,7 @@ int SDRAM::read_offset( int region ) {
 
 SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
 #ifdef _JTFRAME_SDRAM_BANKS
-    cout << "Multibank SDRAM enabled\n";
+    fputs("Multibank SDRAM enabled",stderr);
     const int MAXBANK=3;
 #else
     const int MAXBANK=0;
@@ -460,7 +465,7 @@ SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
             char *aux=new char[BANK_LEN];
             fin.read( aux, len );
             auto pos = fin.tellg();
-            cout << "Read " << hex << pos << " from " << fname << '\n';
+            fprintf(stderr, "Read %X from %s\n", (int)pos, fname );
             // reverse the byte order
             for( int j=0;j<pos;j++) {
                 banks[k][j] = aux[j^1];
@@ -470,7 +475,7 @@ SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
             if( pos<BANK_LEN )
                 memset( (void*)&banks[k][pos], 0, BANK_LEN-pos);
         } else {
-            if( k<=MAXBANK ) cout << "WARNING: (test.cpp) " << fname << " not found.\n";
+            if( k<=MAXBANK ) fprintf( stderr, "WARNING: (test.cpp)%s not found\n", fname);
         }
     }
 }
@@ -522,7 +527,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
         tracer = new VerilatedVcdC;
         game.trace( tracer, 99 );
         tracer->open("test.vcd");
-        cout << "Verilator will dump to test.vcd\n";
+        fputs("Verilator will dump to test.vcd",stderr);
     } else {
         tracer = nullptr;
     }
@@ -581,6 +586,9 @@ void JTSim::clock(int n) {
             if ( dwn.FullDownload() ) sdram.dump();
             reset(0);
         }
+#ifdef RST_DLY // reset delay in us
+        reset( simtime < RST_DLY*1000'000L ? 1 : 0);
+#endif
         last_dwnd = cur_dwn;
         simtime += semi_period;
 #ifdef DUMP
@@ -603,11 +611,11 @@ void JTSim::clock(int n) {
             frame_cnt++;
             if( frame_cnt == DUMP_START && !dump_ok ) {
                 dump_ok = 1;
-                cout << "\nDump starts " << dec << frame_cnt << '\n';
+                fprintf(stderr,"\nDump starts (frame %d)\n", frame_cnt);
             }
-            cout << ".";
-            if( !(frame_cnt & 0x3f) ) cout << '\n';
-            cout.flush();
+            fputc('.', stderr); // do not flush the streams. It can mess up
+            // the display and fdisplay output of the verilog files
+            if( !(frame_cnt & 0x3f) ) fputc('\n',stderr);
             sim_inputs.next();
 #ifdef JTFRAME_SIM_DEBUG
             game.debug_bus++;
@@ -703,7 +711,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-time")==0 ) {
             if( ++k >= argc ) {
-                cout << "ERROR: (test.cpp)  expecting time after -time argument\n";
+                fputs("ERROR: (test.cpp)  expecting time after -time argument", stderr);
             } else {
                 finish_time = atol(argv[k]);
             }
@@ -711,7 +719,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
         }
         if( strcmp( argv[k], "-frame")==0 ) {
             if( ++k >= argc ) {
-                cout << "ERROR: (test.cpp)  expecting frame count after -frame argument\n";
+                fputs("ERROR: (test.cpp)  expecting frame count after -frame argument", stderr);
             } else {
                 finish_frame = atol(argv[k]);
             }
@@ -787,7 +795,7 @@ WaveWritter::~WaveWritter() {
 int main(int argc, char *argv[]) {
     Verilated::commandArgs(argc, argv);
 
-    cout << "Verilator sim starts\n";
+    fputs("Verilator sim starts", stderr);
     try {
         UUT game;
         JTSim sim(game, argc, argv);
@@ -797,15 +805,15 @@ int main(int argc, char *argv[]) {
             sim.update_wav(); // Other clock rates will not have exact wav dumps
             if( sim.get_frame()==2 ) {
                 if( sim.activeh != _JTFRAME_HEIGHT || sim.activew != _JTFRAME_WIDTH ) {
-                    printf("\nERROR: (test.cpp)  video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
+                    fprintf(stderr, "\nERROR: (test.cpp)  video size mismatch. Macros define it as %dx%d but the core outputs %dx%d\n",
                         _JTFRAME_WIDTH, _JTFRAME_HEIGHT, sim.activew, sim.activeh );
                     break;
                 }
             }
         }
-        if( sim.get_frame()>1 ) cout << endl;
+        if( sim.get_frame()>1 ) fputc('\n',stderr);
     } catch( const char *error ) {
-        cout << error << endl;
+        fputs(error,stderr);
         return 1;
     }
     return 0;
