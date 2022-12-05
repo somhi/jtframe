@@ -156,6 +156,7 @@ SIMULATION               |         | Enables simulation features
 VIDEO_START              |         | First frame for which video output is provided use it to prevent a split first frame
 DUMP_6809                |         | Generates a m6809.log during simulation with register dumps
 VERILATOR_KEEP_CPU       |verilator| Keeps Z80 signals during simulation
+VERILATOR_KEEP_VTIMER    |verilator| Keeps jtframe_vtimer signals
 
 # ROM Downloading
 

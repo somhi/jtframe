@@ -90,14 +90,19 @@ module tv80_core (/*AUTOARG*/
   parameter     aSP      = 3'b101;
   parameter     aZI      = 3'b110;
 
-  // Registers
+  // Registers, the key ones are always kept by Verilator
+  /*verilator tracing_on*/
   reg [7:0]     ACC, F;
   reg [7:0]     Ap, Fp;
   reg [7:0]     I;
+  reg [15:0]    SP, PC;
+  reg           Alternate;
 `ifdef TV80_REFRESH
   reg [7:0]     R;
 `endif
-  reg [15:0]    SP, PC;
+  `ifndef VERILATOR_KEEP_CPU
+  /*verilator tracing_off*/
+  `endif
   reg [7:0]     RegDIH;
   reg [7:0]     RegDIL;
   wire [15:0]   RegBusA;
@@ -110,7 +115,6 @@ module tv80_core (/*AUTOARG*/
   reg [2:0]     RegAddrC;
   reg           RegWEH;
   reg           RegWEL;
-  reg           Alternate;
 
   // Help Registers
   reg [15:0]    TmpAddr;        // Temporary address register
@@ -395,9 +399,11 @@ module tv80_core (/*AUTOARG*/
           dout <= 8'b00000000;
 
           ACC <= 8'hFF;
-          F <= 8'hFF;
           Ap <= 8'hFF;
-          Fp <= 8'hFF;
+          // Changed to zeros to match MAME's start-up value
+          // These apparently had no reset value in the original Z80
+          F  <= 8'h00;
+          Fp <= 8'h00;
           I <= 0;
           `ifdef TV80_REFRESH
           R <= 0;
@@ -759,6 +765,7 @@ module tv80_core (/*AUTOARG*/
                             `ifdef TV80_REFRESH
                             ACC <= R;
                             `else
+                            $display("Warning [TV80]: Read from Refresh register simplified to zeros. tv80_core.v @ ",`__LINE__);
                             ACC <= 0;
                             `endif
                             F[Flag_P] <= IntE_FF2;
