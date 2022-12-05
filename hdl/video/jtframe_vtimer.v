@@ -31,7 +31,9 @@
 // See the parameter definition below to alter the needed parameters when
 // instantiating the module
 
+`ifndef VERILATOR_KEEP_VTIMER
 /* verilator tracing_off */
+`endif
 
 module jtframe_vtimer(
     input               clk,
@@ -70,18 +72,20 @@ parameter [8:0] V_START  = 9'd0,
 
 `ifdef SIMULATION
 initial begin
+    // starts off at the beginning of the vertical blanking
+    // to match MAME timing
     Hinit    = 0;
     Vinit    = 0;
-    LHBL     = 0;
-    LVBL     = 1;
-    LVBL1    = 1;
-    LVBL2    = 1;
+    LVBL     = 0;
+    LVBL1    = LVBL;
+    LVBL2    = LVBL;
     HS       = 0;
     VS       = 0;
-    H        = 0;
-    vrender1 = 0;
-    vrender  = 0;
-    vdump    = 0;
+    LHBL     = 1;
+    H        = HB_START;
+    vdump    = VB_START;
+    vrender  = vdump+1'd1;
+    vrender1 = vrender+1'd1;
 
     // VS should be at least 3 line long
     // In the case the count is expressed in a funny way
