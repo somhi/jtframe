@@ -124,10 +124,10 @@ module jtframe_z80wait #(parameter DEVCNT=2)(
     input       iorq_n,
     input       busak_n,
     // manage access to shared memory
-    input  [DEVCNT-1:0] dev_busy,
+    input  [DEVCNT-1:0] dev_busy, // Delays here are not recovered
     // manage access to ROM data from SDRAM
     input       rom_cs,
-    input       rom_ok
+    input       rom_ok // Delays because of rom_ok are recovered
 );
 
 /////////////////////////////////////////////////////////////////
@@ -163,7 +163,7 @@ always @(posedge clk, negedge rst_n) begin
         if( !start ) begin
             miss_cnt <= 4'd0;
         end else begin
-            if( cen_in && !gate ) begin
+            if( cen_in && !gate && !dev_busy ) begin
                 if( ~&miss_cnt ) miss_cnt <= miss_cnt+4'd1;
             end else if( rec ) begin
                 if( miss_cnt!=0 ) miss_cnt <= miss_cnt - 4'd1;
