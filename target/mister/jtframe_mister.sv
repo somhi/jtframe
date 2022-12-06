@@ -50,8 +50,8 @@ module jtframe_mister #(parameter
     input           LVBL,
     input           hs,
     input           vs,
-    input           pxl_cen,
-    input           pxl2_cen,
+    inout           pxl_cen,
+    inout           pxl2_cen,
     // Audio
     input  signed [15:0] snd_lin,
     input  signed [15:0] snd_rin,

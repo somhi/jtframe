@@ -153,7 +153,7 @@ module jtframe_board #(parameter
     input             LVBL,
     input             hs,
     input             vs,
-    `ifdef JTFRAME_PXLCLK output `else input `endif pxl2_cen, pxl_cen,
+    inout             pxl2_cen, pxl_cen,
     // Base video after OSD and Debugger
     output [3*COLORW-1:0] base_rgb,
     output            base_LHBL,

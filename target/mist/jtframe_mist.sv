@@ -40,7 +40,8 @@ module jtframe_mist #(parameter
     input              LVBL,
     input              hs,
     input              vs,
-    `ifdef JTFRAME_PXLCLK output `else input `endif pxl2_cen, pxl_cen,
+    inout              pxl2_cen,
+    inout              pxl_cen,
     // LED
     input        [1:0] game_led,
     // MiST VGA pins

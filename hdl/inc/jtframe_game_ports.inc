@@ -15,7 +15,7 @@
 `ifdef JTFRAME_CLK96
     input           rst96, clk96,
 `endif
-    `ifdef JTFRAME_PXLCLK input `else output `endif pxl2_cen, pxl_cen,
+    inout           pxl2_cen, pxl_cen,
     output   [`JTFRAME_COLORW-1:0]  red, green, blue,
     output          LHBL, LVBL, HS, VS,
     output          game_led,
