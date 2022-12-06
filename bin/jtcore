@@ -55,6 +55,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --program | -p  programs the FPGA via JTAG
     --quick|-q      quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
+    -qs             Same as -q but with sound.
     --quicker|-qq   same as -q but it also disabled HDMI output and sets MiSTer as target
     --seed          sets random seed for compilation
     --sim           prepares Quartus simulation
@@ -134,6 +135,10 @@ function parse_args {
                 SKIP_COMPILE=TRUE;;
             --quick|-q)
                 MACROS="$MACROS NOSOUND JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X"
+                UNMACROS="$UNMACROS JTFRAME_CREDITS"
+                GIT=FALSE;;
+            -qs)
+                MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X"
                 UNMACROS="$UNMACROS JTFRAME_CREDITS"
                 GIT=FALSE;;
             --skip | -s) SKIP_COMPILE=TRUE;;
