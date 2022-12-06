@@ -513,6 +513,14 @@ jtframe_sdram64 #(
     `endif
 `endif
 
+`ifdef JTFRAME_PXLCLK
+    jtframe_pxlcen u_pxlcen(
+        .clk        ( clk_rom   ),
+        .pxl_cen    ( pxl_cen   ),
+        .pxl2_cen   ( pxl2_cen  )
+    );
+`endif
+
 //////// GAME MODULE
 `GAMETOP
 u_game(

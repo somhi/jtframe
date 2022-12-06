@@ -153,8 +153,7 @@ module jtframe_board #(parameter
     input             LVBL,
     input             hs,
     input             vs,
-    input             pxl_cen,
-    input             pxl2_cen,
+    `ifdef JTFRAME_PXLCLK output `else input `endif pxl2_cen, pxl_cen,
     // Base video after OSD and Debugger
     output [3*COLORW-1:0] base_rgb,
     output            base_LHBL,
@@ -286,6 +285,14 @@ wire [SDRAMW-1:0] bax_addr;
 assign base_rgb  = { dbg_r, dbg_g, dbg_b };
 assign base_LHBL = pre2x_LHBL;
 assign base_LVBL = pre2x_LVBL;
+
+`ifdef JTFRAME_PXLCLK
+    jtframe_pxlcen u_pxlcen(
+        .clk        ( clk_rom   ),
+        .pxl_cen    ( pxl_cen   ),
+        .pxl2_cen   ( pxl2_cen  )
+    );
+`endif
 
 jtframe_reset u_reset(
     .clk_sys    ( clk_sys       ),

@@ -70,6 +70,7 @@ JTFRAME_OSD_TEST         |         | Test option on OSD
 JTFRAME_OSD_VOL          |         | Show FX volume control on OSD
 JTFRAME_OSDCOLOR         |         | Sets the OSD colour
 JTFRAME_PLL              |         | PLL module name to be used. Defaults to jtframe_pll0
+JTFRAME_PXLCLK           |         | 6 or 8. Defines de pixel clock. See [clocks](clocks.md)
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending

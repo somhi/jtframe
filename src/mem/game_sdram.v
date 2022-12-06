@@ -21,8 +21,7 @@ module jt{{.Core}}_game_sdram(
     input           rst48,
     input           clk48,
 `endif
-    output          pxl2_cen,   // 12   MHz
-    output          pxl_cen,    //  6   MHz
+    `ifdef JTFRAME_PXLCLK input `else output `endif pxl2_cen, pxl_cen,
     output   [`JTFRAME_COLORW-1:0]  red,
     output   [`JTFRAME_COLORW-1:0]  green,
     output   [`JTFRAME_COLORW-1:0]  blue,

@@ -514,7 +514,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #else
     semi_period = (vluint64_t)10416; // 48MHz
 #endif
-    printf("Simulation clock period set to %ld ps (%f MHz) ", (semi_period<<1), 1e6/(semi_period<<1));
+    fprintf(stderr,"Simulation clock period set to %ld ps (%f MHz)\n", (semi_period<<1), 1e6/(semi_period<<1));
 #ifdef LOADROM
     download = true;
 #else
