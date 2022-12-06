@@ -287,7 +287,8 @@ module jtframe_z80_devwait (
     input         dev_busy
 );
 
-parameter M1_WAIT=0; // wait states after M1 goes down
+parameter M1_WAIT=0,  // wait states after M1 goes down
+          RECOVERY=1; // enable clock cycle recovery
 wire wait_n;
 
 `ifdef SIMULATION
@@ -324,7 +325,7 @@ generate
     end
 endgenerate
 
-jtframe_z80wait #(1) u_wait(
+jtframe_z80wait #(1,RECOVERY) u_wait(
     .rst_n      ( rst_n     ),
     .clk        ( clk       ),
     .cen_in     ( cen       ),

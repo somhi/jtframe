@@ -113,7 +113,7 @@ end
 
 endmodule
 
-module jtframe_z80wait #(parameter DEVCNT=2)(
+module jtframe_z80wait #(parameter DEVCNT=2, RECOVERY=1)(
     input       rst_n,
     input       clk,
     input       cen_in,
@@ -143,7 +143,7 @@ reg  [3:0] miss_cnt;
 
 assign gate    = !(rom_bad || dev_busy || locked );
 assign rom_bad = (rom_cs && !rom_ok) || rom_cs_posedge;
-assign rec_en  = &{mreq_n, iorq_n, busak_n };
+assign rec_en  = &{mreq_n, iorq_n, busak_n, RECOVERY[0] };
 
 always @(*) begin
     rec = 0;
