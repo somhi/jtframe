@@ -293,6 +293,7 @@ reg         crop_ok;    // whether the mister.ini video settings tolerate croppi
 wire  [3:0] vcopt;
 reg        en216p;
 reg  [4:0] voff;
+reg        pxl1_cen;
 
 // Vertical crop
 assign crop_en    = status[41];
@@ -338,7 +339,7 @@ end
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
-    .pxl_cen    ( pxl_cen       ),
+    .pxl_cen    ( pxl1_cen       ),
     .hs_in      ( hs            ),
     .vs_in      ( vs            ),
     .LVBL       ( LVBL          ),
@@ -374,6 +375,9 @@ assign status_menumask[15:6] = 0,
 always @(posedge clk_sys) begin
     framebuf_flip <= status[39:38]==2;
 end
+
+// this places the pxl1_cen in the pixel centre
+always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
 
 
 jtframe_mister_dwnld u_dwnld(
@@ -534,7 +538,7 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     // scales base video horizontally
     jtframe_hsize #(.COLORW(COLORW)) u_hsize(
         .clk        ( clk_sys   ),
-        .pxl_cen    ( pxl_cen   ),
+        .pxl_cen    ( pxl1_cen  ),
         .pxl2_cen   ( pxl2_cen  ),
 
         .scale      ( hsize_scale  ),
@@ -819,7 +823,7 @@ wire rot_clk;
     jtframe_lfbuf_ddr u_lf_buf(
         .rst        ( game_rst      ),
         .clk        ( clk_rom       ),
-        .pxl_cen    ( pxl_cen       ),
+        .pxl_cen    ( pxl1_cen      ),
 
         .vs         ( vs            ),
         .lvbl       ( LVBL          ),

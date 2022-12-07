@@ -419,16 +419,11 @@ assign AUDIO_S = `JTFRAME_SIGNED_SND;
 assign prog_data = {2{prog_data8}};
 `endif
 
-reg pxl1_cen;
-
 // Line-Frame buffer
 wire [ 8:0] game_hdump, ln_addr;
 wire [ 7:0] game_vrender, ln_v;
 wire        ln_done, ln_hs, ln_we;
 wire [15:0] ln_pxl, ln_data;
-
-// this places the pxl1_cen in the pixel centre
-always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
 
 jtframe_mister #(
     .SDRAMW        ( SDRAMW         ),
@@ -468,7 +463,7 @@ u_frame(
     .LVBL           ( LVBL           ),
     .hs             ( hs             ),
     .vs             ( vs             ),
-    .pxl_cen        ( pxl1_cen       ),
+    .pxl_cen        ( pxl_cen        ),
     .pxl2_cen       ( pxl2_cen       ),
 
     // Audio
