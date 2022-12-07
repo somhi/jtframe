@@ -42,12 +42,14 @@ func Run(args Args) {
 	datestr := fmt.Sprintf("%d-%d-%d", time.Now().Year(), time.Now().Month(), time.Now().Day())
 	scanner := bufio.NewScanner(fmsg)
 	data := make([]int16,0,1024)
+	line_cnt := 0
 	for scanner.Scan() {
 		escape := false
 		pal := 3
 		cnt := 0
 		line_data := make([]int16,32)
 		k := 0
+		line_cnt++
 		line_loop:
 		for _, c := range scanner.Text() {
 			if k==32 {
@@ -95,7 +97,7 @@ func Run(args Args) {
 				continue
 			}
 			if cnt>31 {
-				log.Fatal("ERROR: line is longer than 32 characters")
+				log.Fatal("jtframe msg: line is longer than 32 characters")
 			}
 			cnt++
 			if args.Verbose {
@@ -103,7 +105,8 @@ func Run(args Args) {
 			}
 			coded := int(c)
 			if coded <0x20 || coded>0x7f {
-				log.Fatal("character code out of range ")
+				log.Fatal("jtframe msg: character code out of range at line ", line_cnt,
+				 ":", scanner.Text(),)
 			}
 			coded = (pal<<7) | ( (coded-0x20)&0x7f)
 			line_data[k] = int16(coded)
