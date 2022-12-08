@@ -71,9 +71,11 @@ func init() {
 	flag.BoolVar( &up_cfg.Seed,    "seed",    false, "Random seed iteration used for compilation")
 	flag.BoolVar( &up_cfg.Seed,    "private", false, "Build for JTALPHA team")
 	flag.BoolVar( &up_cfg.Actions, "actions", false, "Updates GitHub actions")
+	flag.StringVar( &up_cfg.Beta,   "beta",    "", "Sets JTFRAME_UNLOCKKEY=<value> and sets BETA. Use with --corestamp")
+	flag.StringVar( &up_cfg.Stamp,  "corestamp",   "", "Date string for RBF file. Passed to jtcore")
 	flag.StringVar(&up_cfg.Network, "network", "", "Ignored")
-	flag.StringVar(&up_cfg.CoreList, "cores", "", "Comma separated list of cores")
-	flag.StringVar(&up_cfg.Group, "group", "", "Core group specified in $JTROOT/.jtupdate")
+	flag.StringVar(&up_cfg.CoreList, "cores",  "", "Comma separated list of cores")
+	flag.StringVar(&up_cfg.Group, "group",     "", "Core group specified in $JTROOT/.jtupdate")
 	flag.Int64("jobs", 0, "Ignored ")
 	flag.BoolVar( &up_all, "all", false, "updates all target platforms")
 }

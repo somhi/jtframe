@@ -22,6 +22,7 @@ type Config struct {
 	Max_jobs               int
 	Dryrun, Debug, Nogit, Nohdmi, Nosnd, Actions, Seed, Private bool
 	Network, Group, extra  string
+	Beta, Stamp					   string
 	cores                  []string
 	CoreList			   string
 	Targets                map[string]bool
@@ -203,6 +204,12 @@ func dump_output(cfg Config) {
 			jtcore := fmt.Sprintf("%s %s -%s %s %s", cmd, c, target, cfg.customs[key], cfg.extra)
 			if cfg.Private {
 				jtcore = jtcore + " --private"
+			}
+			if cfg.Stamp!="" {
+				jtcore += "--corestamp " + cfg.Stamp
+			}
+			if cfg.Beta != "" {
+				jtcore +="-d BETA -d JTFRAME_CHEAT_SCRAMBLE -d JTFRAME_UNLOCKKEY=" + cfg.Beta
 			}
 			if cfg.Nohdmi {
 				jtcore = jtcore + " -d MISTER_DEBUG_NOHDMI"
