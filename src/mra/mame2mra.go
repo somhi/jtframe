@@ -302,7 +302,11 @@ extra_loop:
 		if machine == nil {
 			break
 		}
-		fmt.Println("Found ", machine.Name)
+		fmt.Print("Found ", machine.Name)
+		if machine.Cloneof != "" {
+			fmt.Printf(" (%s)", machine.Cloneof)
+		}
+		fmt.Println()
 		cloneof := false
 		if len(machine.Cloneof) > 0 {
 			cloneof = true
@@ -648,9 +652,7 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	button_set := false
 	for _, b := range cfg.Buttons.Names {
 		// default definition is allowed
-		if (b.Machine == "" && b.Setname == "" && !button_set) ||
-			// Using machine name
-			(len(b.Machine) > 0 && (b.Machine == machine.Name || b.Machine == machine.Cloneof)) {
+		if (b.Machine == "" && b.Setname == "" && !button_set) || is_family(b.Machine,machine) {
 			button_def = b.Names
 			button_set = true
 		}
