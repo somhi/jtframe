@@ -45,6 +45,7 @@ type RegCfg struct {
 	// The upper and lower halves of the same file are merged together
 	Ext_sort  []string // sorts by matching the file extension
 	Name_sort []string // sorts by name
+	Regex_sort []string // sorts by name apply regular expression
 	Frac      struct {
 		Bytes, Parts int
 	}
@@ -353,14 +354,14 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 		strings.Index(
 			strings.ToLower(machine.Description), "bootleg") != -1 {
 		if args.Verbose {
-			fmt.Println("Skipping ", machine.Description)
+			fmt.Println("Skipping ", machine.Description, "for it's a bootleg")
 		}
 		return true
 	}
 	for _, d := range mra_cfg.Parse.Skip.Descriptions {
 		if strings.Index(machine.Description, d) != -1 {
 			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description)
+				fmt.Println("Skipping ", machine.Description, "for its description")
 			}
 			return true
 		}
@@ -368,7 +369,7 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 	for _, each := range mra_cfg.Parse.Skip.Setnames {
 		if each == machine.Name {
 			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description)
+				fmt.Println("Skipping ", machine.Description, "for matching setname")
 			}
 			return true
 		}
@@ -387,9 +388,15 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 	return skip
 }
 
+func rm_spsp( a string ) string {
+	re := regexp.MustCompile(" +")
+	return re.ReplaceAllString(a," ") // Remove duplicated spaces
+}
+
 ////////////////////////////////////////////////////////////////////////
 func fix_filename(filename string) string {
 	x := strings.ReplaceAll(filename, "World?", "World")
+	x = rm_spsp(x)
 	return strings.ReplaceAll(x, "?", "x")
 }
 
@@ -420,7 +427,9 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		if k := strings.Index(pure_name, " - "); k != -1 {
 			pure_name = pure_name[0:k]
 		}
+		pure_name = strings.ReplaceAll(pure_name,"/","") // Prevent the creation of folders!
 		pure_name = strings.TrimSpace(pure_name)
+		pure_name = rm_spsp(pure_name)
 		fname += "/" + args.Altdir + "/_" + pure_name
 
 		err := os.MkdirAll(fname, 0777)
@@ -627,7 +636,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 	// coreMOD
 	make_coreMOD(&root, machine, cfg)
 	// DIP switches
-	def_dipsw := make_switches(&root, machine, cfg)
+	def_dipsw := make_switches(&root, machine, cfg, args)
 	// Buttons
 	make_buttons(&root, machine, cfg, args)
 	return &root, def_dipsw
@@ -1375,6 +1384,23 @@ func sort_name_list(reg_cfg *RegCfg, roms []MameROM) {
 	}
 }
 
+func sort_regex_list(reg_cfg *RegCfg, roms []MameROM) {
+	// fmt.Println("Applying name sorting ", reg_cfg.Name_sort)
+	base := make([]MameROM, len(roms))
+	copy(base, roms)
+	k := 0
+	for _, each := range reg_cfg.Regex_sort {
+		re := regexp.MustCompile(each)
+		for i, _ := range base {
+			if re.MatchString(base[i].Name) {
+				roms[k] = base[i]
+				k++
+				break
+			}
+		}
+	}
+}
+
 func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 	if len(reg_cfg.Ext_sort) > 0 {
 		sort_ext_list(reg_cfg, roms)
@@ -1382,6 +1408,10 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 	}
 	if len(reg_cfg.Name_sort) > 0 {
 		sort_name_list(reg_cfg, roms)
+		return
+	}
+	if len(reg_cfg.Regex_sort) > 0 {
+		sort_regex_list(reg_cfg, roms)
 		return
 	}
 	if reg_cfg.Sort_even {
@@ -1438,7 +1468,7 @@ func find_region_cfg(machine, regname string, cfg Mame2MRA) *RegCfg {
 }
 
 // make_DIP
-func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
+func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) string {
 	if len(machine.Dipswitch) ==0 {
 		return "ff,ff"
 	}
@@ -1608,6 +1638,10 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
 	// Add DIP switches in the extra section, note that these
 	// one will always have a default value of 1
 	for _, each := range cfg.Dipsw.Extra {
+		if args.Verbose {
+			fmt.Printf("\tChecking extra DIPSW %s for %s/%s (current %s/%s)\n",
+				each.Name, each.Machine, each.Setname, machine.Cloneof, machine.Name)
+		}
 		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
 			(each.Machine == "" && each.Setname == "") {
 			m := n.AddNode("dip")
