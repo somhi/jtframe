@@ -49,7 +49,7 @@
     input           enable_fm, enable_psg,
     // DIP switches
     input   [31:0]  status, dipsw,
-    input           dip_pause, dip_test, service,
+    input           dip_pause, dip_test, service, tilt,
     inout           dip_flip,
     input   [ 1:0]  dip_fxlevel,
 `ifdef JTFRAME_GAME_UART

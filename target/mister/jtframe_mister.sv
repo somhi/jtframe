@@ -181,6 +181,7 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_coin,
     output  [ 3:0]  game_start,
     output          game_service,
+    output          game_tilt,
     // mouse
     output  [15:0]  mouse_1p,
     output  [15:0]  mouse_2p,
@@ -619,6 +620,7 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     // Mouse & paddle
     .bd_mouse_dx    ( mouse_dx        ),
     .bd_mouse_dy    ( mouse_dy        ),

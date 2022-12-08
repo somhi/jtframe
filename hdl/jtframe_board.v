@@ -118,6 +118,7 @@ module jtframe_board #(parameter
     output    [ 3:0]  game_coin,
     output    [ 3:0]  game_start,
     output            game_service,
+    output            game_tilt,
 
     // Mouse & Paddle
     input      [ 8:0] bd_mouse_dx,
@@ -262,7 +263,7 @@ wire   [9:0] key_joy1, key_joy2, key_joy3;
 wire   [7:0] key_digit;
 wire   [3:0] key_start, key_coin;
 wire   [3:0] key_gfx;
-wire         key_service;
+wire         key_service, key_tilt;
 wire         lock;
 wire         autofire0;
 
@@ -341,6 +342,7 @@ jtframe_keyboard u_keyboard(
     .key_test    ( key_test      ),
     .key_pause   ( key_pause     ),
     .key_service ( key_service   ),
+    .key_tilt    ( key_tilt      ),
     .key_digit   ( key_digit     ),
 
     .shift       ( key_shift     ),
@@ -411,6 +413,7 @@ jtframe_keyboard u_keyboard(
     assign key_reset   = 1'b0;
     assign key_pause   = 1'b0;
     assign key_service = 1'b0;
+    assign key_tilt    = 1'b0;
     assign key_test    = 1'b0;
     assign gfx_en      = `JTFRAME_SIM_GFXEN;
     assign debug_bus   = 0;
@@ -446,6 +449,7 @@ jtframe_inputs #(
     .key_start      ( key_start       ),
     .key_coin       ( key_coin        ),
     .key_service    ( key_service     ),
+    .key_tilt       ( key_tilt        ),
     .key_pause      ( key_pause       ),
     .key_test       ( key_test        ),
     .osd_pause      ( osd_pause       ),
@@ -459,6 +463,7 @@ jtframe_inputs #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     .game_test      ( game_test       ),
     .lock           ( lock            ),
 

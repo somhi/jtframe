@@ -76,6 +76,7 @@ module game_test(
     input   [31:0]  status,
     input   [31:0]  dipsw,
     input           service,
+    input           tilt,
     input           dip_test,
     input           dip_pause,
 `ifdef JTFRAME_OSD_FLIP
@@ -649,6 +650,7 @@ u_game(
     .dip_test    ( dip_test       ),
     .dip_fxlevel ( dip_fxlevel    ),
     .service     ( service        ),
+    .tilt        ( tilt           ),
     .dipsw       ( dipsw          ),
 
 `ifdef JTFRAME_GAME_UART

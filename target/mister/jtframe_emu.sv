@@ -192,7 +192,7 @@ wire [3:0] hoffset, voffset;
 ////////////////////   CLOCKS   ///////////////////
 
 wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6;
-wire game_rst, game_service, rst, rst_n;
+wire game_rst, game_service, game_tilt, rst, rst_n;
 wire clk_pico;
 wire pxl2_cen, pxl_cen;
 wire rst96, rst48, rst24, rst6;
@@ -585,6 +585,7 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
+    .game_tilt      ( game_tilt      ),
     .joyana_l1      ( joyana_l1      ),
     .joyana_l2      ( joyana_l2      ),
     .joyana_l3      ( joyana_l3      ),
@@ -788,6 +789,7 @@ assign sim_pxl_cen = pxl_cen;
     // DIP switches
     .status       ( status           ),
     .service      ( game_service     ),
+    .tilt         ( game_tilt        ),
     .dip_pause    ( dip_pause        ),
     .dip_flip     ( dip_flip         ),
     .dip_test     ( dip_test         ),

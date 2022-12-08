@@ -143,6 +143,7 @@ module jtframe_mist #(parameter
     output   [3:0]  game_coin,
     output   [3:0]  game_start,
     output          game_service,
+    output          game_tilt,
     output  [15:0]  joyana_l1,
     output  [15:0]  joyana_r1,
     output  [15:0]  joyana_l2,
@@ -353,6 +354,7 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     // Mouse & paddle
     .bd_mouse_dx    ( bd_mouse_dx     ),
     .bd_mouse_dy    ( bd_mouse_dy     ),

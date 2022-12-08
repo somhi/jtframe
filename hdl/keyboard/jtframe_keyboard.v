@@ -35,6 +35,7 @@ module jtframe_keyboard(
     output     [7:0] key_digit,
     output reg key_reset,
     output reg key_pause,
+    output reg key_tilt,
     output reg key_test,
     output reg key_service,
 
@@ -77,6 +78,7 @@ always @(posedge clk) begin
       key_reset    <= 1'b0;
       key_pause    <= 1'b0;
       key_service  <= 1'b0;
+      key_tilt     <= 1'b0;
       key_test     <= 1'b0;
 
       debug_plus   <= 0;
@@ -100,33 +102,33 @@ always @(posedge clk) begin
                     9'h0_22: key_joy1[9] <= !key_released;   // Button 6 (X)
                     9'h0_1a: key_joy1[8] <= !key_released;   // Button 5 (Z)
                     9'h0_12: key_joy1[7] <= !key_released;   // Button 4 (L shift)
-                    9'h0_29: key_joy1[6] <= !key_released;   // Button 3
-                    9'h0_11: key_joy1[5] <= !key_released;   // Button 2
+                    9'h0_29: key_joy1[6] <= !key_released;   // Button 3 (Space)
+                    9'h0_11: key_joy1[5] <= !key_released;   // Button 2 (L alt)
                     9'h0_14: key_joy1[4] <= !key_released;   // Button 1 (L ctrl)
                     9'h1_75: key_joy1[3] <= !key_released;   // Up
                     9'h1_72: key_joy1[2] <= !key_released;   // Down
                     9'h1_6b: key_joy1[1] <= !key_released;   // Left
                     9'h1_74: key_joy1[0] <= !key_released;   // Right
                     // second joystick
-                    9'h0_24: key_joy2[8] <= !key_released;   // Button 5
-                    9'h0_1d: key_joy2[7] <= !key_released;   // Button 4
-                    9'h0_15: key_joy2[6] <= !key_released;   // Button 3
-                    9'h0_1b: key_joy2[5] <= !key_released;   // Button 2
-                    9'h0_1c: key_joy2[4] <= !key_released;   // Button 1
-                    9'h0_2d: key_joy2[3] <= !key_released;   // Up
-                    9'h0_2b: key_joy2[2] <= !key_released;   // Down
-                    9'h0_23: key_joy2[1] <= !key_released;   // Left
-                    9'h0_34: key_joy2[0] <= !key_released;   // Right
+                    9'h0_24: key_joy2[8] <= !key_released;   // Button 5 (E)
+                    9'h0_1d: key_joy2[7] <= !key_released;   // Button 4 (W)
+                    9'h0_15: key_joy2[6] <= !key_released;   // Button 3 (Q)
+                    9'h0_1b: key_joy2[5] <= !key_released;   // Button 2 (S)
+                    9'h0_1c: key_joy2[4] <= !key_released;   // Button 1 (A)
+                    9'h0_2d: key_joy2[3] <= !key_released;   // Up       (R)
+                    9'h0_2b: key_joy2[2] <= !key_released;   // Down     (F)
+                    9'h0_23: key_joy2[1] <= !key_released;   // Left     (D)
+                    9'h0_34: key_joy2[0] <= !key_released;   // Right    (G)
                     // third joystick
                     9'h0_5a: key_joy3[6] <= !key_released;   // Button 3 (return)
                     9'h0_59: key_joy3[5] <= !key_released;   // Button 2 (R shift)
                     9'h1_14: key_joy3[4] <= !key_released;   // Button 1 (R ctrl)
-                    9'h0_43: key_joy3[3] <= !key_released;   // Up (I)
+                    9'h0_43: key_joy3[3] <= !key_released;   // Up       (I)
                     9'h0_42: begin // K is used for both 2P and 3P
-                        key_joy3[2] <= !key_released;   // 3P Down (K)
-                        key_joy2[9] <= !key_released;   // 2P Button 6
+                        key_joy3[2] <= !key_released;        // 3P Down  (K)
+                        key_joy2[9] <= !key_released;        // 2P Button 6
                     end
-                    9'h0_3b: key_joy3[1] <= !key_released;   // Left (J)
+                    9'h0_3b: key_joy3[1] <= !key_released;   // Left  (J)
                     9'h0_4b: key_joy3[0] <= !key_released;   // Right (L)
                     // coins
                     9'h2e: key_coin[0] <= !key_released;  // 1st coin
@@ -141,6 +143,7 @@ always @(posedge clk) begin
                     `endif
                     // system control
                     9'h4d: key_pause   <= !key_released; //  P
+                    9'h2c: key_tilt    <= !key_released; //  T
                     9'h06: key_test    <= !key_released; // F2
                     9'h04: key_reset   <= !key_released; // F3
                     9'h46: key_service <= !key_released; //  9

@@ -41,6 +41,7 @@ module jtframe_inputs(
     input       [3:0] key_coin,
     input             key_service,
     input             key_test,
+    input             key_tilt,
 
     input             key_pause,
     input             osd_pause,
@@ -55,6 +56,7 @@ module jtframe_inputs(
     output reg [3:0]  game_start,
     output reg        game_service,
     output            game_test,
+    output reg        game_tilt,
     input             lock, // disable joystick inputs
 
     // Mouse & Paddle
@@ -255,6 +257,7 @@ always @(posedge clk, posedge rst) begin
         game_pause <= 1'b1;
 `endif
         game_service <= key_service ^ ACTIVE_LOW[0];
+        game_tilt    <= key_tilt    ^ ACTIVE_LOW[0];
 
         // Disable inputs for locked cores
         if( lock ) begin
