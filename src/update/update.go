@@ -206,10 +206,10 @@ func dump_output(cfg Config) {
 				jtcore = jtcore + " --private"
 			}
 			if cfg.Stamp!="" {
-				jtcore += "--corestamp " + cfg.Stamp
+				jtcore += " --corestamp " + cfg.Stamp
 			}
 			if cfg.Beta != "" {
-				jtcore +="-d BETA -d JTFRAME_CHEAT_SCRAMBLE -d JTFRAME_UNLOCKKEY=" + cfg.Beta
+				jtcore +=" -d BETA -d JTFRAME_CHEAT_SCRAMBLE -d JTFRAME_UNLOCKKEY=" + cfg.Beta
 			}
 			if cfg.Nohdmi {
 				jtcore = jtcore + " -d MISTER_DEBUG_NOHDMI"
