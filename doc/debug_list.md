@@ -28,6 +28,8 @@ If a core synthesizes correctly but shows odd behaviour, these are some of the i
 
 This text can be used in GitHub to generate a check list to use during code development
 
+## Beta core development
+
 - [ ] Hardware dependencies
 - [ ] SDRAM mapping (mame2mra.toml and mem.yaml)
 - [ ] Logic connected
@@ -41,8 +43,54 @@ This text can be used in GitHub to generate a check list to use during code deve
 - [ ] OSD sound options (FX level, FM/PSG enable)
 - [ ] Synthesis ok
 - [ ] Playable
+- [ ] Button names in mame2mra.toml
 - [ ] Add Patreon message
 - [ ] Update README file
 - [ ] Check MiSTer
 - [ ] Check Pocket
 - [ ] Write Patreon entry
+
+## Beta core publishing
+
+- [ ] Is JTFRAME_FLIP_RESET required and if so, set?
+**JTALPHA checks**
+- [ ] Copy the latest README
+- [ ] Folder Arcade/cores deleted in the other_zip
+- [ ] MRA files included in the other_zip
+- [ ] MiSTer file includes jtbeta.zip
+- [ ] MiSTer zip includes all current games in beta, not only the last one
+**JTBIN checks**
+- [ ] Correct link in JTBIN wiki
+- [ ] No files for non-beta RBF in JTBIN
+- [ ] JTBIN has been comitted and pushed
+- [ ] Run update_all and check the files
+- [ ] No MRA/JSON files for unsupported games
+**Other**
+- [ ] Files in Patreon, including jtbeta.zip as a separate file
+- [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
+- [ ] Github actions updated so jtbuild builds the new core
+- [ ] Are the MRA files included in the Pocket zip?
+- [ ] Did you use cpbeta-mra.sh to copy the beta MRA files?
+**If you didn’t use cpbeta-mra.sh, then**
+- [ ] MRA files must be in JTBIN/mra and added to git
+- [ ] At least one MRA file in JTBIN/mister/core/releases and added to git
+- [ ] Beta MRA files should not load debug ROMs
+- [ ] No RBF files for non MiSTer platforms in JTBIN
+**After publishing**
+- [ ] Tweet about the beta
+- [ ] Files in #betafiles, including jtbeta.zip as a separate file
+- [ ] Patreon links can download the right files
+
+## Public release
+
+- [ ] Remove jtbeta.zip from MRAs
+- [ ] Recompile MiSTer without beta
+- [ ] Recompile Sockit without beta
+- [ ] Copy minor platforms to JTBIN
+- [ ] Copy Pocket files to JTBIN
+- [ ] Push branch to GitHub, if a local remote was used
+- [ ] Make source code repository public, if it was private
+**Unsupported games**
+- [ ] mame2mra.toml discards unsupported games
+- [ ] No MRA/JSON files for unsupported games in any repository
+- [ ] issue in main repository listing unsupported games as possible _new cores_
