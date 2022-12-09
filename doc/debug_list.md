@@ -65,6 +65,8 @@ This text can be used in GitHub to generate a check list to use during code deve
 - [ ] JTBIN has been comitted and pushed
 - [ ] Run update_all and check the files
 - [ ] No MRA/JSON files for unsupported games
+- [ ] No empty folders in pocket
+- [ ] No half-baked folders in pocket
 **Other**
 - [ ] Files in Patreon, including jtbeta.zip as a separate file
 - [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
