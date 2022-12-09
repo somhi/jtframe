@@ -123,7 +123,7 @@ func update_actions(jtroot string, cfg Config) {
 	rand.Seed(time.Now().UnixNano())
 
 	for target, _ := range cfg.Targets {
-		if target=="mister" {
+		if target=="mister" || target=="sockit" {
 			continue // not ready yet
 		}
 		for _, core := range cfg.cores {
