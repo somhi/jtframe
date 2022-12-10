@@ -42,7 +42,7 @@ module jtframe_i8742(
 
     input [10:0] prog_addr,
     input  [7:0] prog_data,
-    input        prom_we,
+    input        prom_we
 );
 
 wire        cen_div3;
@@ -52,7 +52,7 @@ wire        ram_we;
 
 reg  [ 7:0] dbbin;
 
-always @(posedge clk, rst) begin
+always @(posedge clk, posedge rst) begin
     if( rst ) begin
         dbbin <= 0;
     end else begin
