@@ -107,6 +107,7 @@ public:
         dut.start_button = 0xf;
         dut.coin_input   = 0xf;
         dut.service      = 1;
+        dut.tilt         = 1;
         dut.dip_test     = 1;
 #ifdef _JTFRAME_OSD_FLIP
         dut.dip_flip     = 0;

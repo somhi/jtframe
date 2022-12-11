@@ -26,6 +26,9 @@ module jtframe_rom_1slot #(parameter
     SLOT0_AW     = 8,
     SLOT0_LATCH  = 0,
     SLOT0_DOUBLE = 0,
+/* verilator lint_off WIDTH */
+    parameter [SDRAMW-1:0] SLOT0_OFFSET = {SDRAMW{1'b0}},
+/* verilator lint_on WIDTH */
     SLOT0_OKLATCH= 1
 )(
     input               rst,
@@ -52,7 +55,7 @@ jtframe_rom_2slots #(
     .SLOT0_AW     ( SLOT0_AW      ),
     .SLOT0_DW     ( SLOT0_DW      ),
     .SLOT0_LATCH  ( SLOT0_LATCH   ),
-    .SLOT0_OFFSET ( 'h0           ),
+    .SLOT0_OFFSET ( SLOT0_OFFSET  ),
     .SLOT0_DOUBLE ( SLOT0_DOUBLE  ),
     .SLOT0_OKLATCH( SLOT0_OKLATCH )
 ) u_2slots(

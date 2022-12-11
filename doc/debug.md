@@ -26,13 +26,13 @@ At the moment, this can be used to see the number of SDRAM access done in a fram
 
 st_addr     |  Read
 ------------|-----------
-bit 7 clear | Combined access in all banks
-bit 7 set   | bits 5:4 select the bank for which stats are shown
-bit 2 clear | Show access count divided by 4096
-bit 2 set   | Show access count divided by 256 (may overflow)
-bits 1:0=0  | Show frame stats
-bits 1:0=1  | Show active region stats
-bits 1:0=2  | Show blank region stats
+bit 5 set   | Combined access in all banks
+bit 5 clear | bits 1:0 select the bank for which stats are shown
+bit 4 clear | Show access count divided by 4096
+bit 4 set   | Show access count divided by 256 (may overflow)
+bits 3:2=0  | Show frame stats
+bits 3:2=1  | Show active region stats
+bits 3:2=2  | Show blank region stats
 
 ## Target Info
 

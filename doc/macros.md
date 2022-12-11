@@ -40,6 +40,7 @@ JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_FORCED_DIPSW     | Pocket  | Forces a fixed value for the DIP switches
+JTFRAME_HEADER           |         | Set to the length of the ROM file header
 JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
 JTFRAME_INTERPOL2        |         | Enables a x2 FIR interpolation filter for audio. The game 'sample' output must be well defined
@@ -159,7 +160,7 @@ DUMP_6809                |         | Generates a m6809.log during simulation wit
 VERILATOR_KEEP_CPU       |verilator| Keeps Z80 signals during simulation
 VERILATOR_KEEP_VTIMER    |verilator| Keeps jtframe_vtimer signals
 
-# ROM Downloading
+## ROM Downloading
 
 The following macros only have an effect if SIMULATION is defined.
 

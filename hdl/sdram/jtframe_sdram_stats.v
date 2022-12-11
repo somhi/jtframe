@@ -16,8 +16,7 @@
     Version: 1.0
     Date: 20-10-2022 */
 
-// if st_addr[7] is low, then show stats combined for all banks
-// else, show stats for the bank set by st_addr[5:4]
+// see debug.md for a table describing the st_dout vs st_addr
 
 module jtframe_sdram_stats(
     input               rst,
@@ -35,10 +34,10 @@ reg [ 3:0] rdy_l;
 reg        count_up;
 
 always @* begin
-    if( !st_addr[7] )
+    if( st_addr[5] )
         count_up   = |(rdy & ~rdy_l);
     else
-        count_up   = rdy[ st_addr[5:4]] & ~rdy_l[st_addr[5:4]];
+        count_up   = rdy[ st_addr[1:0]] & ~rdy_l[st_addr[1:0]];
 end
 
 always @(posedge clk) begin
@@ -56,7 +55,7 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    case( st_addr[2:0] )
+    case( { st_addr[4], st_addr[3:2] } )
         3'b0_00: st_dout <= req_frame [19:12];
         3'b0_01: st_dout <= req_active[19:12];
         3'b0_10: st_dout <= req_blank [19:12];
