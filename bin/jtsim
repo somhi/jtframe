@@ -574,6 +574,7 @@ run -all
 EOF
     fi
     vsim -64 -batch -do "do vsim.do" $TOP || exit $?
+    if [ -e test.vcd ]; then vcd2fst test.vcd test.fst && rm test.vcd; fi
     ;;
 synapticad)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f

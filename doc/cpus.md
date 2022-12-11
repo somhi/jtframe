@@ -20,6 +20,7 @@ Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65 (VHDL)
 6502        |   937        |    0  |  chip_6502 (Andrew Holme)
 PicoBlaze   |   950        |    0  |  PauloBlaze
+MCS48       |   657        |    3  |  T48 (VHDL)
 
 ## Z80
 

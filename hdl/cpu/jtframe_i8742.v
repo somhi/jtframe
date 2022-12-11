@@ -25,7 +25,8 @@ module jtframe_i8742(
 
     //
     input        a0,
-    input        we,
+    input        cpu_rdn,
+    input        cpu_wrn,
     input  [7:0] din,
     output [7:0] dout,
 
@@ -45,29 +46,22 @@ module jtframe_i8742(
     input        prom_we
 );
 
+parameter SIMFILE="8742.bin";
+
 wire        cen_div3;
 wire [ 7:0] ram_addr, ram_dout, ram_din, rom_data;
 wire [11:0] rom_addr;
 wire        ram_we;
 
-reg  [ 7:0] dbbin;
-
-always @(posedge clk, posedge rst) begin
-    if( rst ) begin
-        dbbin <= 0;
-    end else begin
-        if( we ) dbbin <= din;
-    end
-end
-
 t48_core u_t48(
     // T48 interface
-    .reset_i        ( rst       ),
+    .reset_i        ( ~rst      ),
     .xtal_i         ( clk       ),
     .xtal_en_i      ( cen       ),
 
-    // .a0             ( a0        ),
-    // .we             ( we        ),
+    .a0_i           ( a0        ),
+    .rd_n_i         ( cpu_rdn   ),
+    .wr_n_i         ( cpu_wrn   ),
     // Test pins
     .t0_i           ( t0_din    ),
     .t0_o           ( t0_dout   ),
@@ -82,7 +76,7 @@ t48_core u_t48(
     .ale_o          (           ),
     .prog_n_o       (           ),
     // Data bus
-    .db_i           ( dbbin     ),
+    .db_i           ( din       ),
     .db_o           ( dout      ),
     .db_dir_o       (           ),
     // Port 1
@@ -108,12 +102,12 @@ t48_core u_t48(
 
 jtframe_prom #(
     .aw(11),
-    .simfile("../../../rom/extrmatn/b06__14.1g")
+    .simfile(SIMFILE)
 ) u_prom (
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( prog_data ),
-    .rd_addr( rom_addr  ),
+    .rd_addr( rom_addr[10:0] ),
     .wr_addr( prog_addr ),
     .we     ( prom_we   ),
     .q      ( rom_data  )
