@@ -864,29 +864,33 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		reg_offsets[reg] = pos
 		apply_sort(reg_cfg, reg_roms)
 		// Singleton interleave case
-		if reg_cfg.Width == 16 && reg_cfg.Singleton {
+		if reg_cfg.Singleton {
+			if reg_cfg.Width!=16 && reg_cfg.Width!=32 {
+				log.Fatal("jtframe mra: singleton only supported for width 16 and 32")
+			}
 			var n *XMLNode
 			p.AddNode("Singleton region. The files are merged with themselves.").comment = true
-			mapstr := "01"
+			mapbyte := 1
+			msb     := (reg_cfg.Width/8)-1
+			divider := reg_cfg.Width>>3
+			mapfmt  := fmt.Sprintf("%%0%db",divider)
 			if reg_cfg.Reverse {
-				mapstr = "10"
+				mapbyte = 1 << msb // 2 for 16 bits, 8 for 32 bits
 			}
 			for _, r := range reg_roms {
 				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-				// First half
-				m := add_rom(n, r)
-				m.AddAttr("map", mapstr)
-				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-				// Second half
-				if mapstr == "01" {
-					mapstr = "10"
-				} else {
-					mapstr = "01"
+				for k:=0; k<divider; k++ {
+					m := add_rom(n, r)
+					m.AddAttr("offset", fmt.Sprintf("0x%04x", r.Size/divider*k))
+					m.AddAttr("map", fmt.Sprintf(mapfmt,mapbyte))
+					m.AddAttr("length", fmt.Sprintf("0x%04X", r.Size/divider))
+					// Second half
+					if reg_cfg.Reverse {
+						mapbyte >>= 1
+					} else {
+						mapbyte <<= 1
+					}
 				}
-				m = add_rom(n, r)
-				m.AddAttr("map", mapstr)
-				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-				m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
 				pos += r.Size
 			}
 		}
@@ -976,7 +980,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				}
 			}
 		}
-		if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0 {
+		if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0 && !reg_cfg.Singleton {
 			// Straight dump
 			for _, r := range reg_roms {
 				offset := r.Offset
