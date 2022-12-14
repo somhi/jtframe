@@ -37,7 +37,6 @@ parameter {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 `ifndef JTFRAME_IOCTL_RD
 wire ioctl_ram = 0;
 `endif
-
 {{range .Ports.Outputs}}wire {{.}};{{end}}
 {{ range .SDRAM.Banks}}
 {{- range .Buses}}
@@ -259,8 +258,8 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
     {{- end }}
     {{- if .Rw }}
     .slot{{$index2}}_wen   ( {{.Name}}_we    ),
-    .slot{{$index2}}_din   ( {{.Name}}_din   ),
-    .slot{{$index2}}_wrmask( {{.Name}}_dsn   ),
+    .slot{{$index2}}_din   ( {{if .Din}}{{.Din}}{{else}}{{.Name}}_din{{end}}   ),
+    .slot{{$index2}}_wrmask( {{if .Dsn}}{{.Dsn}}{{else}}{{.Name}}_dsn{{end}}   ),
     {{with .Offset }}.slot{{$index2}}_offset( {{.}}[21:0] ), {{end}}
     {{- else }}
     {{- if not $is_rom }}
@@ -298,4 +297,34 @@ assign ba{{$index}}_dsn  = 3;
 assign ba{{$index}}_din  = 0;
 {{ end -}}
 {{ end -}}
+
+{{ range $cnt, $bus:=.BRAM -}}
+// Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
+{{- if $bus.Dual_port.Name }}
+jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
+    .aw({{$bus.Addr_width}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
+    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+) u_bram_{{$bus.Name}}(
+    // Port 0 - {{$bus.Name}}
+    .clk0   ( clk ),
+    .addr0  ( {{$bus.Name}}_addr ),
+    {{ if $bus.Rw }}
+    .data0  ( {{$bus.Name}}_din  ),
+    .we0    ( {2{ {{$bus.Cs}} }} & ~{{$bus.Name}}.dsn ), {{ else }}
+    .data0  ( {{$bus.Data_width}}'h0 ),
+    .we0    ( 2'd0 ),{{end}}
+    .q0     ( {{$bus.Name}}_dout ),
+    // Port 1 - {{$bus.Dual_port.Name}}
+    .clk1   ( clk ),
+    .data1  ( {{$bus.Dual_port.Name}}_dout ),
+    .addr1  ( {{$bus.Dual_port.Name}}_addr{{ addr_range $bus }}),
+    {{ if $bus.Dual_port.Rw }}
+    .we1    ( {2{ {{$bus.Dual_port.Cs}} }} & ~{{$bus.Dual_port.Name}}_dsn ), {{ else }}
+    .we1    ( 2'd0 ),{{end}}
+    .q1     ( {{$bus.Name}}2{{$bus.Dual_port.Name}}_data )
+);
+{{ end -}}
+{{ end }}
+
 endmodule

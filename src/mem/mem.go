@@ -18,8 +18,8 @@
 package mem
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -41,26 +41,47 @@ type Args struct {
 	// The memory selection (SDRAM, DDR, BRAM...) will be here
 }
 
+type Bus interface {
+	Get_dw() int
+	Get_aw() int
+}
+
 type SDRAMBus struct {
 	Name       string `yaml:"name"`
-	Offset	   string `yaml:"offset"`
-	Addr_width int    `yaml:"addr_width"`	// Width for counting all *bytes*
+	Offset     string `yaml:"offset"`
+	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
 	Data_width int    `yaml:"data_width"`
 	Rw         bool   `yaml:"rw"`
-	Cs		   string `yaml:"cs"`
+	Dsn		   string `yaml:"dsn"`	// optional name for dsn signal
+	Din		   string `yaml:"din"`  // optional name for din signal
+	Cs         string `yaml:"cs"`
+}
+
+type BRAMBus struct {
+	Name       string `yaml:"name"`
+	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
+	Data_width int    `yaml:"data_width"`
+	Rw         bool   `yaml:"rw"`
+	Cs         string `yaml:"cs"`
+	Sim_file   bool   `yaml:"sim_file"`
+	Dual_port  struct {
+		Name string `yaml:"name"`
+		Rw   bool   `yaml:"rw"`
+		Cs   string `yaml:"cs"`
+	} `yaml:"dual_port"`
 }
 
 type SDRAMBank struct {
-	Buses  []SDRAMBus `yaml:"buses"`
+	Buses []SDRAMBus `yaml:"buses"`
 	// Precalculated values
 	MemType string
 }
 
 type DownloadCfg struct {
-	Pre_addr  bool `yaml:"pre_addr"`	// Pass some signals to the game so it can remap the download address
-	Post_addr bool `yaml:"post_addr"`	// Pass some signals to the game so it can remap the download address
-	Post_data bool `yaml:"post_data"`	// Pass some signals to the game so it can remap the download data
-	Noswab bool `yaml:"noswab"`		// SWAB parameter of jtframe_download
+	Pre_addr  bool `yaml:"pre_addr"`  // Pass some signals to the game so it can remap the download address
+	Post_addr bool `yaml:"post_addr"` // Pass some signals to the game so it can remap the download address
+	Post_data bool `yaml:"post_data"` // Pass some signals to the game so it can remap the download data
+	Noswab    bool `yaml:"noswab"`    // SWAB parameter of jtframe_download
 }
 
 type SDRAMCfg struct {
@@ -73,9 +94,9 @@ type Include struct {
 }
 
 type Param struct {
-	Name string `yaml:"name"`
-	Value string `yaml:"value"`	// if null, the value will be a macro of the same name
-								// use "..." if the value starts by ` because of a macro calling
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"` // if null, the value will be a macro of the same name
+	// use "..." if the value starts by ` because of a macro calling
 }
 
 type Ports struct {
@@ -84,12 +105,13 @@ type Ports struct {
 }
 
 type MemConfig struct {
-	Include []Include  `yaml:"include"`
-	Download  DownloadCfg `yaml:"download"`
-	SDRAM     SDRAMCfg `yaml:"sdram"`
-	Params  []Param   `yaml:"params"`
-	Ports     Ports   `yaml:"ports"`
-	Game      string   `yaml:"game"`  // optional: Overrides using Core as the jt<core>_game module
+	Include  []Include   `yaml:"include"`
+	Download DownloadCfg `yaml:"download"`
+	SDRAM    SDRAMCfg    `yaml:"sdram"`
+	BRAM     []BRAMBus   `yaml:"bram"`
+	Params   []Param     `yaml:"params"`
+	Ports    Ports       `yaml:"ports"`
+	Game     string      `yaml:"game"` // optional: Overrides using Core as the jt<core>_game module
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.
 	// This part does not go in the YAML file
@@ -98,32 +120,38 @@ type MemConfig struct {
 	Macros map[string]string
 	// Precalculated values
 	Colormsb int
-	Unused [4]bool // true for unused banks
+	Unused   [4]bool // true for unused banks
 }
 
-func addr_range( bus SDRAMBus ) string {
-	return fmt.Sprintf("[%2d:%d]",bus.Addr_width-1,bus.Data_width>>4)
+// Template helper functions
+func (bus SDRAMBus) Get_aw() int { return bus.Addr_width }
+func (bus BRAMBus)  Get_aw() int { return bus.Addr_width }
+func (bus SDRAMBus) Get_dw() int { return bus.Data_width }
+func (bus BRAMBus)  Get_dw() int { return bus.Data_width }
+
+func addr_range(bus Bus) string {
+	return fmt.Sprintf("[%2d:%d]", bus.Get_aw()-1, bus.Get_dw()>>4)
 }
 
-func data_range( bus SDRAMBus ) string {
-	return fmt.Sprintf("[%2d:0]",bus.Data_width-1)
+func data_range(bus Bus) string {
+	return fmt.Sprintf("[%2d:0]", bus.Get_dw()-1)
 }
 
-func slot_addr_width( bus SDRAMBus ) string {
-	if bus.Data_width==8 {
-		return fmt.Sprintf("%2d",bus.Addr_width)
+func slot_addr_width(bus SDRAMBus) string {
+	if bus.Data_width == 8 {
+		return fmt.Sprintf("%2d", bus.Addr_width)
 	} else {
-		return fmt.Sprintf("%2d",bus.Addr_width-1)
+		return fmt.Sprintf("%2d", bus.Addr_width-1)
 	}
 }
 
 var funcMap = template.FuncMap{
-    "addr_range": addr_range,
-    "data_range": data_range,
-    "slot_addr_width": slot_addr_width,
+	"addr_range":      addr_range,
+	"data_range":      data_range,
+	"slot_addr_width": slot_addr_width,
 }
 
-func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
+func parse_file(core, filename string, cfg *MemConfig, args Args) bool {
 	filename = jtfiles.GetFilename(core, filename, "")
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -143,16 +171,16 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 		fmt.Println("jtframe mem: memory configuration:")
 		fmt.Println(*cfg)
 	}
-	include_copy := make( []Include, len(cfg.Include))
-	copy( include_copy, cfg.Include )
+	include_copy := make([]Include, len(cfg.Include))
+	copy(include_copy, cfg.Include)
 	cfg.Include = nil
-	for _,each := range include_copy {
+	for _, each := range include_copy {
 		fname := each.File
-		if fname=="" {
-			fname="mem"
+		if fname == "" {
+			fname = "mem"
 		}
-		parse_file( each.Game, fname, cfg, args )
-		fmt.Println( each.Game, fname )
+		parse_file(each.Game, fname, cfg, args)
+		fmt.Println(each.Game, fname)
 	}
 	// Reload the YAML to overwrite values that the included files may have set
 	err_yaml = yaml.Unmarshal(buf, cfg)
@@ -163,12 +191,12 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 	for k, bank := range cfg.SDRAM.Banks {
 		ram_cnt := 0
 		for _, each := range bank.Buses {
-			if each.Rw  {
+			if each.Rw {
 				ram_cnt++
 			}
 		}
 		if ram_cnt > 0 {
-			cfg.SDRAM.Banks[k].MemType = fmt.Sprintf("ram%d",ram_cnt)
+			cfg.SDRAM.Banks[k].MemType = fmt.Sprintf("ram%d", ram_cnt)
 		} else {
 			cfg.SDRAM.Banks[k].MemType = "rom"
 		}
@@ -176,19 +204,19 @@ func parse_file( core, filename string, cfg *MemConfig, args Args ) bool {
 	return true
 }
 
-func make_sdram( args Args, cfg *MemConfig) {
+func make_sdram(args Args, cfg *MemConfig) {
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "game_sdram.v")
 	t := template.Must(template.New("game_sdram.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, cfg)
-	outpath := "jt"+args.Core+"_game_sdram.v"
-	hdl_path := filepath.Join( os.Getenv("CORES"),args.Core,"hdl" )
-	os.MkdirAll( hdl_path, 0777 ) // derivative cores may not have a permanent hdl folder
-	outpath = filepath.Join( hdl_path, outpath )
-	ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
+	outpath := "jt" + args.Core + "_game_sdram.v"
+	hdl_path := filepath.Join(os.Getenv("CORES"), args.Core, "hdl")
+	os.MkdirAll(hdl_path, 0777) // derivative cores may not have a permanent hdl folder
+	outpath = filepath.Join(hdl_path, outpath)
+	ioutil.WriteFile(outpath, buffer.Bytes(), 0644)
 }
 
-func add_game_ports( args Args, cfg *MemConfig) {
+func add_game_ports(args Args, cfg *MemConfig) {
 	make_inc := false
 	found := false
 
@@ -196,11 +224,11 @@ func add_game_ports( args Args, cfg *MemConfig) {
 	t := template.Must(template.New("ports.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, cfg)
-	outpath := "jt"+args.Core+"_game.v"
-	outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl", outpath )
-	f, err := os.Open( outpath )
+	outpath := "jt" + args.Core + "_game.v"
+	outpath = filepath.Join(os.Getenv("CORES"), args.Core, "hdl", outpath)
+	f, err := os.Open(outpath)
 	if err != nil {
-		log.Println("jtframe mem: cannot update file ",outpath)
+		log.Println("jtframe mem: cannot update file ", outpath)
 		make_inc = true
 	} else {
 		make_inc = false
@@ -209,36 +237,36 @@ func add_game_ports( args Args, cfg *MemConfig) {
 		ignore := false
 		for scanner.Scan() {
 			line := scanner.Text()
-			if ignore && strings.Index(line, ");")>=0 {
+			if ignore && strings.Index(line, ");") >= 0 {
 				ignore = false
 			}
 			if !ignore {
 				bout.WriteString(line)
 				bout.WriteByte(byte(0xA))
 			}
-			if !found && strings.Index( line, "/* jtframe mem_ports */")>=0 { // simple comparison for now, change to regex in future
+			if !found && strings.Index(line, "/* jtframe mem_ports */") >= 0 { // simple comparison for now, change to regex in future
 				found = true
 				bout.Write(buffer.Bytes())
-				ignore = true	// will not copy lines until ); is found
+				ignore = true // will not copy lines until ); is found
 			}
-			if strings.Index( line, "`include \"mem_ports.inc\"")>=0 || // manually added
-			   strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 /* in main JTFRAME include */ {
+			if strings.Index(line, "`include \"mem_ports.inc\"") >= 0 || // manually added
+				strings.Index(line, "`include \"jtframe_game_ports.inc\"") >= 0 /* in main JTFRAME include */ {
 				make_inc = true
 				break
 			}
-			if strings.Index( line, "`include \"jtframe_game_ports.inc\"")>=0 {
+			if strings.Index(line, "`include \"jtframe_game_ports.inc\"") >= 0 {
 				make_inc = true
 				break
 			}
 		}
 		f.Close()
 		if found {
-			ioutil.WriteFile( outpath, bout.Bytes(), 0644 )
+			ioutil.WriteFile(outpath, bout.Bytes(), 0644)
 		}
 	}
 	if make_inc || args.Make_inc {
-		outpath = filepath.Join( os.Getenv("CORES"),args.Core,"hdl/mem_ports.inc")
-		ioutil.WriteFile( outpath, buffer.Bytes(), 0644 )
+		outpath = filepath.Join(os.Getenv("CORES"), args.Core, "hdl/mem_ports.inc")
+		ioutil.WriteFile(outpath, buffer.Bytes(), 0644)
 	}
 	if !found && !make_inc {
 		log.Println("jtframe mem: the game file was not updated. jtframe_mem_ports line not found. Declare /* jtframe_mem_ports */ right before the end of the port list in the game module or include mem_ports.inc in the port list.")
@@ -247,41 +275,41 @@ func add_game_ports( args Args, cfg *MemConfig) {
 
 func Run(args Args) {
 	var cfg MemConfig
-	if !parse_file( args.Core, "mem", &cfg, args ) {
+	if !parse_file(args.Core, "mem", &cfg, args) {
 		// the mem.yaml file does not exist, that's
 		// normally ok
 		return
 	}
 	// Check that the arguments make sense
-	if len(cfg.SDRAM.Banks)>4 || len(cfg.SDRAM.Banks)==0 {
-		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.",len(cfg.SDRAM.Banks))
+	if len(cfg.SDRAM.Banks) > 4 || len(cfg.SDRAM.Banks) == 0 {
+		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.", len(cfg.SDRAM.Banks))
 	}
 	// Check that the required files are available
-	for k,each := range cfg.SDRAM.Banks {
+	for k, each := range cfg.SDRAM.Banks {
 		total_slots := len(each.Buses)
-		if total_slots==0 {
+		if total_slots == 0 {
 			continue
 		}
 		total_ram := 0
-		for _,bus := range each.Buses {
+		for _, bus := range each.Buses {
 			if bus.Rw {
 				total_ram++
 			}
 		}
 		filename := "jtframe_"
 		if total_ram > 0 {
-			filename += fmt.Sprintf("ram%d_", total_ram )
+			filename += fmt.Sprintf("ram%d_", total_ram)
 		} else {
 			filename += "rom_"
 		}
-		filename += fmt.Sprintf("%dslot",total_slots)
+		filename += fmt.Sprintf("%dslot", total_slots)
 		if total_slots > 1 {
 			filename += "s"
 		}
 		filename += ".v"
 		// Check that the file exists
-		fullname := filepath.Join(os.Getenv("JTFRAME"),"hdl","sdram",filename)
-		f,err := os.Open(fullname)
+		fullname := filepath.Join(os.Getenv("JTFRAME"), "hdl", "sdram", filename)
+		f, err := os.Open(fullname)
 		if err != nil {
 			log.Fatalf("jtframe mem: mem.yaml requires the file %s. But this module doesn't exist.\nChecked in %s",
 				filename, fullname)
@@ -291,16 +319,16 @@ func Run(args Args) {
 		}
 		f.Close()
 	}
-	for k := 0; k<4; k++ {
+	for k := 0; k < 4; k++ {
 		// Mark each bank as used or unused
 		if k < len(cfg.SDRAM.Banks) {
-			cfg.Unused[k] = len(cfg.SDRAM.Banks[k].Buses)==0
+			cfg.Unused[k] = len(cfg.SDRAM.Banks[k].Buses) == 0
 		} else {
 			cfg.Unused[k] = true
 		}
 	}
 	// Execute the template
 	cfg.Core = args.Core
-	make_sdram( args, &cfg )
-	add_game_ports( args, &cfg )
+	make_sdram(args, &cfg)
+	add_game_ports(args, &cfg)
 }

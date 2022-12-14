@@ -38,6 +38,8 @@ mem.yaml syntax
 
 # Include other .yaml files
 include: [ "file0", "file1",... ]
+# Parameters to be used in the sdram section
+params: [ {name:SCR_OFFSET value:"32'h10000"}, ... ]
 # Past additional ports to the game module
 download: { pre_addr: true, post_addr: true, post_data: true, noswab: true }
 # Connect addtional output ports from the game module

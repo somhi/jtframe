@@ -23,8 +23,19 @@
     input           ioctl_ram,
     output   [ 7:0] ioctl_din,
 `endif
-{{ $first := true}}
-{{- range .Ports.Outputs}}    output          {{.}},{{end -}}
+    // Buses to BRAM
+{{- range .BRAM }}
+    output   {{ addr_range . }} {{.Name}}_addr,
+    output   {{ data_range . }} {{.Name}}_din,
+    input    {{ data_range . }} {{.Name}}_dout,
+    {{ if .Dual_port.Name }}// Dual port for {{.Dual_port.Name}}
+    input    {{ if .Dual_port.Cs }}{{.Dual_port.Cs}}{{else}}{{.Dual_port.Name}}_cs,
+    {{end}}{{end}}
+{{- end}}
+    // Buses to SDRAM
+{{- $first := true -}}
+{{- range .Ports.Outputs}}
+    output          {{.}},{{end -}}
 {{ range .SDRAM.Banks}}
 {{- range .Buses}}
     {{- if $first}}{{$first = false}}{{else}},{{end}}
@@ -33,8 +44,8 @@
     input    {{ data_range . }} {{.Name}}_data,{{if not .Cs}}
 {{- if .Rw }}
     output          {{.Name}}_we,
-    output   {{ data_range . }} {{.Name}}_din,
-    output   [ 1:0] {{.Name}}_dsn,{{end}}
+    output   {{ data_range . }} {{if .Din}}{{.Din}}{{else}}{{.Name}}_din,{{end}}
+    output   [ 1:0] {{if .Dsn}}{{.Dsn}}{{else}}{{.Name}}_dsn,{{end}}{{end}}
     output          {{.Name}}_cs,{{end}}
     input           {{.Name}}_ok{{end}}
 {{- end}}
