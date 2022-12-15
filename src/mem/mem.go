@@ -99,9 +99,11 @@ type Param struct {
 	// use "..." if the value starts by ` because of a macro calling
 }
 
-type Ports struct {
-	// Inputs []string `yaml:"inputs"`
-	Outputs []string `yaml:"outputs"`
+type Port struct {
+	Name string `yaml:"name"`
+	MSB  int `yaml:"msb"`
+	LSB  int `yaml:"lsb"`
+	Input bool `yaml:"input"`
 }
 
 type MemConfig struct {
@@ -110,7 +112,7 @@ type MemConfig struct {
 	SDRAM    SDRAMCfg    `yaml:"sdram"`
 	BRAM     []BRAMBus   `yaml:"bram"`
 	Params   []Param     `yaml:"params"`
-	Ports    Ports       `yaml:"ports"`
+	Ports    []Port      `yaml:"ports"`
 	Game     string      `yaml:"game"` // optional: Overrides using Core as the jt<core>_game module
 	// There will be other memory models supported here
 	// Like DDR, BRAM, etc.

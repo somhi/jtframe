@@ -165,15 +165,8 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	case "mister", "sockit":
 		macros["SEPARATOR"] = "-;"
 	}
-	macros["TARGET"] = cfg.Target
 	// Adds a macro with the target name
 	macros[ strings.ToUpper(cfg.Target) ] = "1"
-	// Adds the date
-	year, month, day := time.Now().Date()
-	datestr := fmt.Sprintf("%d%02d%02d", year%100, month, day)
-	macros["DATE"] = datestr
-	// Adds the commit
-	macros["COMMIT"] = cfg.Commit
 	if cfg.Commit!="" {
 		// fmt.Fprintln( os.Stderr, "jtframe cfgstr: using commit ", cfg.Commit)
 		if len(cfg.Commit)>=7 {
@@ -185,8 +178,31 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Adds the CORENAME if missing. This macro is expected to exist in macros.def
 	_, exists := macros["CORENAME"]
 	if ! exists {
-		macros["CORENAME"] = cfg.Core
 		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s", cfg.Core)
+	}
+	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
+	if mem_managed {
+		_, exists = macros["JTFRAME_SDRAM_BANKS"]
+		if !exists && mem_managed {
+			macros["JTFRAME_SDRAM_BANKS"] = ""
+		}
+		macros["JTFRAME_MEMGEN"] = ""
+	}
+	// Macros with default values
+	year, month, day := time.Now().Date()
+	defaul_values := map[string]string{
+		"JTFRAME_COLORW": "4",
+		"JTFRAME_TIMESTAMP":fmt.Sprintf("%d", time.Now().Unix()),
+		"CORENAME": cfg.Core,
+		"DATE": fmt.Sprintf("%d%02d%02d", year%100, month, day),
+		"COMMIT": cfg.Commit,
+		"TARGET": cfg.Target,
+	}
+	for k,v := range defaul_values {
+		_, exists = macros[k]
+		if !exists {
+			macros[k] = v
+		}
 	}
 	// Derives the GAMETOP module from the CORENAME if unspecified
 	_, exists = macros["GAMETOP"]
@@ -197,16 +213,6 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game_sdram")
 		}
 	}
-	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
-	if mem_managed {
-		_, exists = macros["JTFRAME_SDRAM_BANKS"]
-		if !exists && mem_managed {
-			macros["JTFRAME_SDRAM_BANKS"] = ""
-		}
-		macros["JTFRAME_MEMGEN"] = ""
-	}
-	// Adds the timestamp
-	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
 	// prevent the CORE_OSD from having two ;; in a row or starting with ;
 	core_osd := macros["CORE_OSD"]
 	if len(core_osd) > 0 {

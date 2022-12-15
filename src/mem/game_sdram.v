@@ -37,7 +37,19 @@ parameter {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 `ifndef JTFRAME_IOCTL_RD
 wire ioctl_ram = 0;
 `endif
-{{range .Ports.Outputs}}wire {{.}};{{end}}
+// Additional ports
+{{range .Ports}}wire {{if .MSB}}[{{.MSB}}:{{.LSB}}]{{end}} {{.Name}};
+{{end}}
+// BRAM buses
+{{- range .BRAM }}
+wire     {{ addr_range . }} {{.Name}}_addr;
+wire     {{ data_range . }} {{.Name}}_din;
+wire     {{ data_range . }} {{.Name}}_dout;
+{{ if .Dual_port.Name }}
+{{ if not .Dual_port.Cs }}wire    {{.Dual_port.Name}}_cs; // Dual port for {{.Dual_port.Name}}
+{{end}}{{end}}
+{{- end}}
+// SDRAM buses
 {{ range .SDRAM.Banks}}
 {{- range .Buses}}
 wire {{ addr_range . }} {{.Name}}_addr;
@@ -120,10 +132,11 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .game_led       ( game_led      ),
     .enable_psg     ( enable_psg    ),
     .enable_fm      ( enable_fm     ),
-    // Memory interface
-    {{- range .Ports.Outputs}}
-    .{{.}}   ( {{.}} ),
-    {{end}}
+    // Ports declared in mem.yaml
+    {{- range .Ports}}
+    .{{.Name}}   ( {{.Name}} ),
+    {{- end}}
+    // Memory interface - SDRAM
     {{- range .SDRAM.Banks}}
     {{- range .Buses}}
     .{{.Name}}_addr ( {{.Name}}_addr ),{{ if not .Cs}}
@@ -132,11 +145,20 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .{{.Name}}_data ( {{.Name}}_data ),
     {{- if .Rw }}
     .{{.Name}}_we   ( {{.Name}}_we   ),
-    .{{.Name}}_dsn  ( {{.Name}}_dsn  ),
-    .{{.Name}}_din  ( {{.Name}}_din  ),
+    {{if not .Dsn}}.{{.Name}}_dsn  ( {{.Name}}_dsn  ),{{end}}
+    {{if not .Din}}.{{.Name}}_din  ( {{.Name}}_din  ),{{end}}
     {{- end}}
     {{end}}
     {{- end}}
+    // Memory interface - BRAM
+{{- range .BRAM }}
+    .{{.Name}}_addr ( {{.Name}}_addr ),
+    .{{.Name}}_din  ( {{.Name}}_din  ),
+    .{{.Name}}_dout ( {{.Name}}_dout ),
+    {{ if .Dual_port.Name -}}
+    {{ if not .Dual_port.Cs }}.{{.Dual_port.Name}}_cs ( {{.Dual_port.Name}}_cs ),  // Dual port for {{.Dual_port.Name}}{{end}}
+    {{- end}}
+{{- end}}
     // PROM writting
     .ioctl_addr   ( ioctl_addr     ),
     .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : raw_addr      ),
@@ -302,7 +324,7 @@ assign ba{{$index}}_din  = 0;
 // Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
 {{- if $bus.Dual_port.Name }}
 jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
-    .aw({{$bus.Addr_width}}){{ if $bus.Sim_file }},
+    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
     {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
     .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
 ) u_bram_{{$bus.Name}}(
