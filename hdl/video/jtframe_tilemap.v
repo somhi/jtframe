@@ -14,7 +14,7 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 13-1-2020 */
+    Date: 15-12-2022 */
     
 
 // Generic tile map generator with no scroll
@@ -68,19 +68,36 @@ initial begin
     end
 end
 
-assign vram_addr = (SIZE== 8 ? { vdump[7:3], hdump[7:3] } :
-                    SIZE==16 ? { vdump[7:4], hdump[7:4] } : { vdump[7:5], hdump[7:5] }) ^ {VA{flip}};
+// assign vram_addr = (SIZE== 8 ? { vdump[7:3], hdump[7:3] } :
+//                     SIZE==16 ? { vdump[7:4], hdump[7:4] } : { vdump[7:5], hdump[7:5] }) ^ {VA{flip}};
 assign rom_cs    = blankn;
 assign pxl       = { cur_pal, hf_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
                                      {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
 assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
+
+always @* begin
+    case( SIZE )
+        8: begin
+            vram_addr[VA-1-:5]=vdump[7:3];
+            vram_addr[4:0] = hdump[7:3];
+        end
+        16: begin
+            vram_addr[VA-1-:4]=vdump[7:4];
+            vram_addr[3:0] = hdump[7:4];
+        end
+        32: begin
+            vram_addr[VA-1-:3]=vdump[7:5];
+            vram_addr[2:0] = hdump[7:5];
+        end
+    endcase
+end
 
 always @(posedge clk) if(pxl_cen) begin
     if( hdump[2:0]==0 ) begin
         rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};
         rom_addr[VR-1-:CW] <= code;
         if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
-        if( SIZE==32 ) rom_addr[VW+1] <= hdump[4:3];
+        if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
         pxl_data <= rom_data;
         cur_pal  <= pal;
         hf_g     <= (flip & XOR_HFLIP[0])^hflip;
