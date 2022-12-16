@@ -445,15 +445,6 @@ if [ $SKIP_COMPILE = FALSE ]; then
         fi
     done
 
-    # Link .hex files in mist, if they exist
-    if [ $TARGET != mist ]; then
-        for i in $PRJPATH/mist/*.hex; do
-            if [ -e "$i" ]; then
-                ln -srf $i $PRJPATH/$TARGET/$(basename $i)
-            fi
-        done
-    fi
-
     ############################################
     # Recompile
     rm -rf db incremental_db output_files
