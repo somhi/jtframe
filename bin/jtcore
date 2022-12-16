@@ -240,8 +240,12 @@ MODULES=$JTROOT/modules
 JTFRAME=$MODULES/jtframe
 
 # Sets the commit string to a short commit and an optional -dirty suffix
+function is_dirty {
+    git status --short | grep -i "^ M " > /dev/null
+}
+
 PRJCOMMIT=$(git rev-parse --short HEAD)
-if (git status --short | grep -i "^ M " > /dev/null); then
+if is_dirty; then
     PRJCOMMIT="$PRJCOMMIT-dirty"
 fi
 
@@ -280,7 +284,7 @@ if [ -z "$CORE_FOLDER" ]; then
 fi
 
 if [ $GIT = TRUE ]; then
-    if (git status --short | grep "^ M " > /dev/null); then
+    if is_dirty; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
