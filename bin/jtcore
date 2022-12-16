@@ -241,7 +241,7 @@ JTFRAME=$MODULES/jtframe
 
 # Sets the commit string to a short commit and an optional -dirty suffix
 PRJCOMMIT=$(git rev-parse --short HEAD)
-if (git status --short | grep "^ M " > /dev/null); then
+if (git status --short | grep -i "^ M " > /dev/null); then
     PRJCOMMIT="$PRJCOMMIT-dirty"
 fi
 
@@ -550,6 +550,15 @@ if [ ! -e $RBF ]; then
     exit 1
 fi
 
+function archive_commit {
+    cp $1 releases/$TARGET/$RELEASE.$EXT
+    if [ ${#PRJCOMMIT} = 7 ]; then
+        mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
+        cp $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
+        ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $JTROOT/releases/$TARGET/latest
+    fi
+}
+
 if [ $TARGET = pocket ]; then
     # The Pocket must have something misconnected inside
     # and it requires the bit order in each RBF byte to
@@ -561,7 +570,7 @@ if [ $TARGET = pocket ]; then
         cd -
     fi
     $JTFRAME/bin/reverse_bits $RBF ${RBF}_r
-    cp ${RBF}_r releases/$TARGET/$RELEASE.$EXT
+    archive_commit ${RBF}_r
     if [ -e $ROM/pocket/Cores/jotego.$corename ]; then
         cp ${RBF}_r $ROM/pocket/Cores/jotego.$corename
         if [ -d /media/$USER/POCKET  ]; then
@@ -572,7 +581,7 @@ if [ $TARGET = pocket ]; then
     fi
 else
     cp $RBF $RELEASE.rbf
-    cp $RELEASE.rbf releases/$TARGET/$RELEASE.$EXT
+    archive_commit $RELEASE.rbf
 fi
 
 ######################################################################################
