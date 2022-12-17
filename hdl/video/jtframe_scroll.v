@@ -37,7 +37,7 @@ module jtframe_scroll #( parameter
     input              clk,
     input              pxl_cen,
 
-    input              vs,
+    input              hs,
 
     input [MAP_VW-1:0] vdump,
     input [MAP_HW-1:0] hdump,
@@ -46,14 +46,14 @@ module jtframe_scroll #( parameter
     input      [ 8:0]  scrx,
     input      [ 8:0]  scry,
 
-    output reg [VA-1:0]vram_addr,
+    output     [VA-1:0]vram_addr,
 
     input      [CW-1:0]code,
     input      [PW-5:0]pal,
     input              hflip,
     input              vflip,
 
-    output reg [VR-1:0]rom_addr,
+    output     [VR-1:0]rom_addr,
     input      [31:0]  rom_data,
     output             rom_cs,
     input              rom_ok,      // ignored. It assumes that data is always right
@@ -61,17 +61,15 @@ module jtframe_scroll #( parameter
     output     [PW-1:0]pxl
 );
 
-localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
-
-reg        vsl;
+reg        hsl;
 reg  [8:0] veff;
 wire [8:0] heff;
 
 assign heff = hdump + scrx;
 
 always @(posedge clk) begin
-    vsl <= vs;
-    if( ~vs & vsl ) veff <= vdump + scry;
+    hsl <= hs;
+    if( ~hs & hsl ) veff <= vdump + scry;
 end
 
 jtframe_tilemap #( 

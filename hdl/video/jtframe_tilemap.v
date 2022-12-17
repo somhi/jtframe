@@ -42,10 +42,10 @@ module jtframe_tilemap #( parameter
     input              blankn,  // if !blankn there are no ROM requests
     input              flip,    // Screen flip
 
-    output reg [VA-1:0]vram_addr,
+    output    [VA-1:0] vram_addr,
 
-    input      [CW-1:0]code,
-    input      [PW-5:0]pal,
+    input     [CW-1:0] code,
+    input     [PW-5:0] pal,
     input              hflip,
     input              vflip,
 
@@ -75,10 +75,8 @@ assign pxl       = { cur_pal, hf_g ? {pxl_data[24], pxl_data[16], pxl_data[8], p
                                      {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
 assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
 
-always @* begin
-    vram_addr[VA-1-:MAP_HW-VW]=vdump[MAP_VW-1:VW];
-    vram_addr[0+:MAP_HW-VW] = hdump[MAP_HW-1:VW];
-end
+assign vram_addr[VA-1-:MAP_VW-VW]=vdump[MAP_VW-1:VW];
+assign vram_addr[0+:MAP_HW-VW] = hdump[MAP_HW-1:VW];
 
 always @(posedge clk) if(pxl_cen) begin
     if( hdump[2:0]==0 ) begin
