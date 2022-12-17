@@ -28,8 +28,8 @@
     {{if .Input}}input{{else}}output{{end}}   {{if .MSB}}[{{.MSB}}:{{.LSB}}]{{end}} {{.Name}},{{end }}
     // Buses to BRAM
 {{- range .BRAM }}
-    output   {{ addr_range . }} {{.Name}}_addr,
-    output   {{ data_range . }} {{.Name}}_din,
+    output   {{ addr_range . }} {{.Name}}_addr,{{ if .Rw }}
+    output   {{ data_range . }} {{.Name}}_din,{{end}}
     input    {{ data_range . }} {{.Name}}_dout,
     {{- if .Dual_port.Name }}
     {{ if not .Dual_port.Cs }}input    {{.Dual_port.Name}}_cs, // Dual port for {{.Dual_port.Name}}

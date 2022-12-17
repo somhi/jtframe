@@ -22,14 +22,14 @@
 // code, H parts, V part
 // pixel data is 4bpp, and arrives in four bytes. Each byte is for a plane
 
-module jtframe_tilemap #( parameter
+module jtframe_scroll #( parameter
     SIZE =  8,    // 8x8, 16x16 or 32x32
     VA   = 10,
     CW   = 12,
     PW   =  8,
+    MAP_HW = 9,    // size of the map in pixels
+    MAP_VW = 9,
     VR   = SIZE==8 ? CW+3 : SIZE==16 ? CW+5 : CW+7,
-    MAP_HW = 8,    // size of the map in pixels
-    MAP_VW = 8,
     XOR_HFLIP = 0, // set to 1 so hflip gets ^ with flip
     XOR_VFLIP = 0  // set to 1 so vflip gets ^ with flip
 )(
@@ -37,10 +37,14 @@ module jtframe_tilemap #( parameter
     input              clk,
     input              pxl_cen,
 
+    input              vs,
+
     input [MAP_VW-1:0] vdump,
     input [MAP_HW-1:0] hdump,
     input              blankn,  // if !blankn there are no ROM requests
     input              flip,    // Screen flip
+    input      [ 8:0]  scrx,
+    input      [ 8:0]  scry,
 
     output reg [VA-1:0]vram_addr,
 
@@ -59,39 +63,49 @@ module jtframe_tilemap #( parameter
 
 localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
 
-reg  [  31:0] pxl_data;
-reg  [PW-5:0] cur_pal;
-wire          vf_g;
-reg           hf_g;
+reg        vsl;
+reg  [8:0] veff;
+wire [8:0] heff;
 
-initial begin
-    if( SIZE==32 ) begin
-        $display("WARNING %m: SIZE=32 has not been tested");
-    end
+assign heff = hdump + scrx;
+
+always @(posedge clk) begin
+    vsl <= vs;
+    if( ~vs & vsl ) veff <= vdump + scry;
 end
 
-assign rom_cs    = blankn;
-assign pxl       = { cur_pal, hf_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
-                                     {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
-assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
+jtframe_tilemap #( 
+    .SIZE       ( SIZE      ),
+    .VA         ( VA        ),
+    .CW         ( CW        ),
+    .PW         ( PW        ),
+    .MAP_HW     ( MAP_HW    ),
+    .MAP_VW     ( MAP_VW    ),
+    .XOR_HFLIP  ( XOR_HFLIP ),
+    .XOR_VFLIP  ( XOR_VFLIP )
+)u_tilemap(
+    .rst        ( rst       ),
+    .clk        ( clk       ),
+    .pxl_cen    ( pxl_cen   ),
 
-always @* begin
-    vram_addr[VA-1-:MAP_HW-VW]=vdump[MAP_VW-1:VW];
-    vram_addr[0+:MAP_HW-VW] = hdump[MAP_HW-1:VW];
-end
+    .vdump      ( veff      ),
+    .hdump      ( heff      ),
+    .blankn     ( blankn    ),
+    .flip       ( flip      ),
 
-always @(posedge clk) if(pxl_cen) begin
-    if( hdump[2:0]==0 ) begin
-        rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};
-        rom_addr[VR-1-:CW] <= code;
-        if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
-        if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
-        pxl_data <= rom_data;
-        cur_pal  <= pal;
-        hf_g     <= (flip & XOR_HFLIP[0])^hflip;
-    end else begin
-        pxl_data <= hf_g ? (pxl_data>>1) : (pxl_data<<1);
-    end
-end
+    .vram_addr  ( vram_addr ),
+
+    .code       ( code      ),
+    .pal        ( pal       ),
+    .hflip      ( hflip     ),
+    .vflip      ( vflip     ),
+
+    .rom_addr   ( rom_addr  ),
+    .rom_data   ( rom_data  ),
+    .rom_cs     ( rom_cs    ),
+    .rom_ok     ( rom_ok    ),
+
+    .pxl        ( pxl       )
+);
 
 endmodule

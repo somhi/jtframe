@@ -10,3 +10,7 @@ a.out
 src/jtframe
 src/mra/pocket.go
 .DS_Store
+bin2m
+lut2hex
+msg2hex
+reverse_bits

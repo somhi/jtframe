@@ -152,8 +152,8 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end}}
     // Memory interface - BRAM
 {{- range .BRAM }}
-    .{{.Name}}_addr ( {{.Name}}_addr ),
-    .{{.Name}}_din  ( {{.Name}}_din  ),
+    .{{.Name}}_addr ( {{.Name}}_addr ),{{ if .Rw }}
+    .{{.Name}}_din  ( {{.Name}}_din  ),{{end}}
     .{{.Name}}_dout ( {{.Name}}_dout ),
     {{ if .Dual_port.Name -}}
     {{ if not .Dual_port.Cs }}.{{.Dual_port.Name}}_cs ( {{.Dual_port.Name}}_cs ),  // Dual port for {{.Dual_port.Name}}{{end}}

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -169,6 +170,12 @@ type XMLNode struct {
 	indent_txt bool
 }
 
+// first XML node of a ROM region
+type StartNode struct{
+	node *XMLNode
+	pos int
+}
+
 func (n *XMLNode) GetNode(name string) *XMLNode {
 	for _, c := range n.children {
 		if c.name == name {
@@ -266,6 +273,16 @@ func (n *XMLNode) Dump() string {
 		}
 	}
 	return s
+}
+
+func (this *StartNode) add_length( pos int ) {
+	if this.node != nil {
+		lenreg := pos - this.pos
+		if lenreg > 0 {
+			this.node.name = fmt.Sprintf("%s - length 0x%X (%d bits)", this.node.name, lenreg,
+				int(math.Ceil( math.Log2(float64(lenreg)))) )
+		}
+	}
 }
 
 type ParsedMachine struct {
@@ -824,6 +841,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	pos := 0
 	reg_offsets := make(map[string]int)
 
+	var previous StartNode
 	for _, reg := range regions {
 		reg_cfg := find_region_cfg(FamilyName(machine), reg, cfg)
 		if reg_cfg.Skip {
@@ -858,7 +876,12 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				"\tstart offset overcome by 0x%X while parsing region %s\n",
 				-delta, reg)
 		}
-		p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos)).comment = true
+		// comment with start and length of region
+		previous.add_length(pos)
+		previous.node = p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos))
+		previous.node.comment = true
+		previous.pos = pos
+
 		start_pos := pos
 		reg_pos := 0
 		reg_offsets[reg] = pos
@@ -1043,6 +1066,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
 	}
+	previous.add_length(pos)
 	make_devROM(p, machine, cfg, &pos)
 	p.AddNode(fmt.Sprintf("Total 0x%X bytes - %d kBytes", pos, pos>>10)).comment = true
 	make_patches(p, machine, cfg)
