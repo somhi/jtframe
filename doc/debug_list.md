@@ -30,6 +30,7 @@ This text can be used in GitHub to generate a check list to use during code deve
 
 ## Beta core development
 
+- [ ] Schematics
 - [ ] Hardware dependencies
 - [ ] SDRAM mapping (mame2mra.toml and mem.yaml)
 - [ ] Logic connected
