@@ -48,7 +48,11 @@ The SDRAM bank0 can be partially shadowed in BRAM and download as NVRAM via the 
 
 It is not possible to use JTFRAME_SHADOW and JTFRAME_IOCTL_RD at the same time.
 
-## Frequency counter
+## Helper Modules
+
+- jtframe_simwr_68k replaces a M68000 in simulation and writes a sequence of values from a CSV file to the data bus
+
+## Frequency Counter
 
 Sometimes it is useful to measure an internal frequency. The module [jtframe_freqinfo](../hdl/clocking/jtframe_freqinfo.v) provides this information. It needs to know the clock frequency in kHz and it provides the measured frequency in kHz too.
 

@@ -30,9 +30,11 @@ This text can be used in GitHub to generate a check list to use during code deve
 
 ## Beta core development
 
+**Ground Work**
 - [ ] Schematics
 - [ ] Hardware dependencies
 - [ ] SDRAM mapping (mame2mra.toml and mem.yaml)
+**RTL**
 - [ ] Logic connected
 - [ ] Tilemap logic
 - [ ] Sprite logic
@@ -44,9 +46,11 @@ This text can be used in GitHub to generate a check list to use during code deve
 - [ ] OSD sound options (FX level, FM/PSG enable)
 - [ ] Synthesis ok
 - [ ] Playable
+**Final Verification**
 - [ ] Button names in mame2mra.toml
 - [ ] Add Patreon message
 - [ ] Update README file
+- [ ] Github actions updated so jtbuild builds the new core
 - [ ] Check MiSTer
 - [ ] Check Pocket
 - [ ] Write Patreon entry
@@ -71,7 +75,6 @@ This text can be used in GitHub to generate a check list to use during code deve
 **Other**
 - [ ] Files in Patreon, including jtbeta.zip as a separate file
 - [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
-- [ ] Github actions updated so jtbuild builds the new core
 - [ ] Are the MRA files included in the Pocket zip?
 - [ ] Did you use cpbeta-mra.sh to copy the beta MRA files?
 **If you didn’t use cpbeta-mra.sh, then**
