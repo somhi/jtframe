@@ -49,6 +49,7 @@ type Bus interface {
 type SDRAMBus struct {
 	Name       string `yaml:"name"`
 	Offset     string `yaml:"offset"`
+	Addr       string `yaml:"addr"`
 	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
 	Data_width int    `yaml:"data_width"`
 	Rw         bool   `yaml:"rw"`

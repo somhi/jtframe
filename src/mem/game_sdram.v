@@ -138,8 +138,8 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end}}
     // Memory interface - SDRAM
     {{- range .SDRAM.Banks}}
-    {{- range .Buses}}
-    .{{.Name}}_addr ( {{.Name}}_addr ),{{ if not .Cs}}
+    {{- range .Buses}}{{if not .Addr}}
+    .{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if not .Cs}}
     .{{.Name}}_cs   ( {{.Name}}_cs   ),{{end}}
     .{{.Name}}_ok   ( {{.Name}}_ok   ),
     .{{.Name}}_data ( {{.Name}}_data ),
@@ -272,12 +272,13 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
 ) u_bank{{$bank}}(
     .rst         ( rst        ),
     .clk         ( clk        ),
-    {{ range $index2, $each:=.Buses }}
+    {{ range $index2, $each:=.Buses }}{{if .Addr}}
+    .slot{{$index2}}_addr  ( {{.Addr}} ),{{else}}
     {{- if eq .Data_width 32 }}
     .slot{{$index2}}_addr  ( { {{.Name}}_addr, 1'b0 } ),
     {{- else }}
     .slot{{$index2}}_addr  ( {{.Name}}_addr  ),
-    {{- end }}
+    {{- end }}{{end}}
     {{- if .Rw }}
     .slot{{$index2}}_wen   ( {{.Name}}_we    ),
     .slot{{$index2}}_din   ( {{if .Din}}{{.Din}}{{else}}{{.Name}}_din{{end}}   ),

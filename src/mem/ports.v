@@ -42,8 +42,8 @@
     // Buses to SDRAM{{$first = false}}{{else}},
 {{end}}
     input    {{ data_range . }} {{.Name}}_data,{{if not .Cs}}
-    output          {{.Name}}_cs,{{end}}
-    output   {{ addr_range . }} {{.Name}}_addr,
+    output          {{.Name}}_cs,{{end}}{{if not .Addr }}
+    output   {{ addr_range . }} {{.Name}}_addr,{{end}}
 {{- if .Rw }}
     output          {{.Name}}_we,{{ if not .Din}}
     output   {{ data_range . }} {{.Name}}_din,{{end }}{{if not .Dsn}}

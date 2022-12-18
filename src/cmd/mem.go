@@ -53,8 +53,10 @@ sdram:
         - name:
           addr_width:
           data_width: # 8, 16 or 32. It will affect the LSB start of addr_width
+          # Optional switches:
           rw: true # normally false
           cs: myown_cs # use a cs signal not based on the bus name
+          addr: myown_addr # use a cs signal not based on the bus name
         - name: another bus...
     - buses: # same for bank 1
         - name: another bus...
