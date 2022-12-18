@@ -46,6 +46,7 @@ SAMPLING_RATE=
 TESTCPP=
 GATES=NO
 MACOS=NO
+KEEP_FX68K=
 SED="sed -i"
 START_TIME=$(date +%s)
 # Extra arguments for the simulator, passed with -args
@@ -80,6 +81,7 @@ Please support the development: https://patreon.com/jotego
     -deep      Save all signals for scope verification. See -w below.
     -frame     Number of frames to simulate
     -gates     Gate-level simulation
+    -fx68k     Keep FX68K files for Icarus Verilog
     -inputs    Defines SIM_INPUTS macro:
                Game cabinet inputs will be taken from a sim_inputs.hex
                file. Each line contains a byte with the input status.
@@ -222,6 +224,7 @@ function set_mist_as_target {
 while [ $# -gt 0 ]; do
 case "$1" in
     -args) shift; SIMULATOR_EXTRA="$SIMULATOR_EXTRA $1";;
+    -fx68k) KEEP_FX68K=1;;
     -showcmd) SHOWCMD="echo";;
     -sysname) shift;; # ignore here
     -modules) shift;; # ignore here
@@ -490,8 +493,10 @@ if [ $GATES = NO ]; then
             # ' induces new line by modelsim
             $SED "s/'h/\\\\'h/g" core.def;;
         iverilog)
-            # Remove references to fx68k as it is not supported in iverilog
-            $SED /fx68k/d game.f;;
+            if [ ! -z "$KEEP_FX68K" ]; then
+                # Remove references to fx68k as it is not supported in iverilog
+                $SED /fx68k/d game.f
+            fi;;
     esac
     cat game.f jtsim_vhdl.f jtsim.f >> tmp.f
     cat tmp.f | envsubst | grep -v "^#" | xargs realpath --relative-to=. | sort | uniq > game_env.f
