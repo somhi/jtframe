@@ -82,7 +82,7 @@ reg       cen0;
 
 always @(posedge clk) begin
     if(cen)
-        divcencnt <= divcencnt==11 ? 0 : divcencnt+1'd1;
+        divcencnt <= divcencnt==11 ? 4'd0 : divcencnt+1'd1;
     cen0 <= divcencnt==1 && cen==1;
 end
 
