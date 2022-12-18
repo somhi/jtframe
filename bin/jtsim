@@ -498,12 +498,9 @@ if [ $GATES = NO ]; then
                 $SED /fx68k/d game.f
             fi;;
     esac
-    cat game.f jtsim_vhdl.f jtsim.f >> tmp.f
+    cat game.f jtsim.f >> tmp.f
     cat tmp.f | envsubst | grep -v "^#" | xargs realpath --relative-to=. | sort | uniq > game_env.f
     cat macros.f >> game_env.f
-    # Take out .vhd definitions
-    grep \.vhd game_env.f >> jtsim_vhdl.f
-    $SED /.vhd/d game_env.f
     # Sort and delete duplicates
     emulate_F game_env.f | sort | uniq > filtered.f
     rm -f game_env.f tmp.f
@@ -555,7 +552,7 @@ case $SIMULATOR in
 iverilog)
     SIMEXE=sim
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
-        -f target.f $SIMULATOR_EXTRA \
+        $SIMULATOR_EXTRA \
         -s $TOP -o $SIMEXE \
         -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc\
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
@@ -568,7 +565,7 @@ modelsim|questasim)
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
         +initwireX $SIMULATOR_EXTRA \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
-        $SIMARGS -f target.f $SIMULATOR_EXTRA\
+        $SIMARGS $SIMULATOR_EXTRA\
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
     echo calling vsim $TOP
@@ -584,7 +581,7 @@ EOF
 synapticad)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f
     $SHOWCMD simx +access+r +define+SYNAPTICAD +timescale+1ns/1ps\
-        -f filtered.f -f target.f $FILES \
+        -f filtered.f $FILES \
         +scd_top+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         $SIMARGS $SIMULATOR_EXTRA\
@@ -594,7 +591,7 @@ ncverilog)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f
     $SHOWCMD ncverilog +access+r +nc64bit +define+NCVERILOG +nctimescale+1ns/1ps\
         -mcmaxcores 3 -mccodegen \
-        -sysv -f jtsim_vhdl.f -f target.f \
+        -sysv -f jtsim_vhdl.f \
         -disable_sem2009 $FILES \
         +nctop+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
