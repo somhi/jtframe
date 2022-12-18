@@ -37,7 +37,7 @@ generate
             if(rst) begin
                 q[i]         <= 0;
                 qn[i]        <= 1;
-                last_edge[i] <= 1;
+                last_edge[i] <= 0;
             end
             else begin
                 last_edge[i] <= sigedge[i];

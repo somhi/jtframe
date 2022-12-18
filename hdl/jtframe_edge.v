@@ -26,14 +26,16 @@ module jtframe_edge #(parameter
     output reg  q
 );
 
-reg edge_l;
+reg edge_l=0;
+
+always @(posedge clk) begin
+    edge_l <= edgeof;
+end
 
 always @(posedge clk,posedge rst) begin
     if( rst ) begin
-        q      <= ~QSET[0];
-        edge_l <= 0;
+        q <= ~QSET[0];
     end else begin
-        edge_l <= edgeof;
         if( clr )
             q <= ~QSET[0];
         else if( edgeof & ~edge_l ) q <= QSET[0];
