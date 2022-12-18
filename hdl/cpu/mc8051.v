@@ -1,4 +1,5 @@
 // Translation to verilog of Oregano's 8051 core
+/* verilator tracing_off */
 
 module addsub_ovcy_4
   (input  [3:0] opa_i,
@@ -25687,3 +25688,4 @@ module mc8051_core
     .tf1_o(gen_mc8051_tmrctr_n1_i_mc8051_tmrctr_tf1_o));
 endmodule
 
+/* verilator tracing_on */
