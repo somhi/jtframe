@@ -84,7 +84,7 @@ always @(posedge clk, posedge rst) begin
         pxl_data <= 0;
         cur_pal  <= 0;
         hf_g     <= 0;
-    end if(pxl_cen) begin
+    end else if(pxl_cen) begin
         if( hdump[2:0]==0 ) begin
             rom_cs <= ~rst & blankn;
             rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};

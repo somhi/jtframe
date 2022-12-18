@@ -70,8 +70,11 @@ always @* begin
         "RGB": {red,green,blue} = { prom1_dout[COLORW*3-9:0], prom0_dout };
         "BGR": {blue,green,red} = { prom1_dout[COLORW*3-9:0], prom0_dout };
         default: begin
+            {red,green,blue} = { prom1_dout[COLORW*3-9:0], prom0_dout };
+`ifdef SIMULATION
             $display("ERROR: %m unsupported CODING");
             $finish;
+`endif
         end
     endcase
 end

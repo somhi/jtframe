@@ -85,7 +85,17 @@ wire over = cencnt>den-num2;
 reg  [CW:0] cencnt_nx;
 reg  risefall=0;
 
-assign halt = RECOVERY==1 && !ASn && wait1==0 && (bus_cs && bus_busy && !bus_legit);
+`ifdef SIMULATION
+    // This is needed to prevent X's at the start of simulation
+    reg  rstl=1;
+    always @(posedge clk) rstl <= rst;
+`else
+    // Not needed in synthesis
+    wire rstl=1;
+`endif
+
+assign halt = rstl && RECOVERY==1 && !ASn && wait1==0 && (bus_cs && bus_busy && !bus_legit);
+
 
 always @(posedge clk) begin : dtack_gen
     if( rst ) begin
