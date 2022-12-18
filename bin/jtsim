@@ -39,6 +39,7 @@ TOP=game_test
 TARGET=
 FILES=
 MACROPREFIX=+define+
+VERILATOR_SAFE=
 EXTRA=
 SHOWCMD=
 ARGNUMBER=1
@@ -107,6 +108,7 @@ Please support the development: https://patreon.com/jotego
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
     -pocket    Select PocketFPGA as target platform
     -questasim Use QuestaSim as the simulator
+    -safe      Disable verilator optimizations that may halt the elaboration stage
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis
     -synap     Use Synapticad's simulator
@@ -308,6 +310,8 @@ case "$1" in
         SIM_MS="$1"
         echo Simulate $1 ms
         ;;
+    -safe)
+        VERILATOR_SAFE=-fno-dfg-peephole;;
     -stats)
         add_macro JTFRAME_SDRAM_STATS
         echo RAM stats enabled
@@ -633,7 +637,7 @@ verilator)
         --top-module game_test -o sim \
          $EXTRA $TRACE --prefix UUT --assert \
          --cc test.cpp --exe $SIMULATOR_EXTRA \
-         -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT \
+         -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT $VERILATOR_SAFE \
         || exit $?
     # boost C++ optimization without affecting other settings
     # export CPPFLAGS=`echo "$CPPFLAGS" | sed s/-O1/-O3/`

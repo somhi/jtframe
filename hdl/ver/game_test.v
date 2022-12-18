@@ -296,6 +296,12 @@ jtframe_sdram64 #(
     .BA3_AUTOPRECH( BA3_AUTOPRECH ),
     .PROG_LEN     ( PROG_LEN      ),
     .MISTER       ( 0             ),
+`ifdef JTFRAME_BA1_WEN
+    .BA1_WEN      ( 1             ), `endif
+`ifdef JTFRAME_BA2_WEN
+    .BA2_WEN      ( 1             ), `endif
+`ifdef JTFRAME_BA3_WEN
+    .BA3_WEN      ( 1             ), `endif
 `ifdef JTFRAME_SDRAM96
     .HF(1),
     .SHIFTED(1)     // This is different from jtframe_board's in order to work
