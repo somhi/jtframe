@@ -51,7 +51,7 @@ module jtframe_tilemap #( parameter
 
     output reg [VR-1:0]rom_addr,
     input      [31:0]  rom_data,
-    output             rom_cs,
+    output reg         rom_cs,
     input              rom_ok,      // ignored. It assumes that data is always right
 
     output     [PW-1:0]pxl
@@ -70,7 +70,6 @@ initial begin
     end
 end
 
-assign rom_cs    = blankn;
 assign pxl       = { cur_pal, hf_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
                                      {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
 assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
@@ -78,17 +77,26 @@ assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
 assign vram_addr[VA-1-:MAP_VW-VW]=vdump[MAP_VW-1:VW];
 assign vram_addr[0+:MAP_HW-VW] = hdump[MAP_HW-1:VW];
 
-always @(posedge clk) if(pxl_cen) begin
-    if( hdump[2:0]==0 ) begin
-        rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};
-        rom_addr[VR-1-:CW] <= code;
-        if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
-        if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
-        pxl_data <= rom_data;
-        cur_pal  <= pal;
-        hf_g     <= (flip & XOR_HFLIP[0])^hflip;
-    end else begin
-        pxl_data <= hf_g ? (pxl_data>>1) : (pxl_data<<1);
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        rom_cs   <= 0;
+        rom_addr <= 0;
+        pxl_data <= 0;
+        cur_pal  <= 0;
+        hf_g     <= 0;
+    end if(pxl_cen) begin
+        if( hdump[2:0]==0 ) begin
+            rom_cs <= ~rst & blankn;
+            rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};
+            rom_addr[VR-1-:CW] <= code;
+            if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
+            if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
+            pxl_data <= rom_data;
+            cur_pal  <= pal;
+            hf_g     <= (flip & XOR_HFLIP[0])^hflip;
+        end else begin
+            pxl_data <= hf_g ? (pxl_data>>1) : (pxl_data<<1);
+        end
     end
 end
 
