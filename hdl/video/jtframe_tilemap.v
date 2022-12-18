@@ -60,9 +60,9 @@ module jtframe_tilemap #( parameter
 localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
 
 reg  [  31:0] pxl_data;
-reg  [PW-5:0] cur_pal;
+reg  [PW-5:0] cur_pal, nx_pal;
 wire          vf_g;
-reg           hf_g;
+reg           hf_g, nx_hf;
 
 initial begin
     if( SIZE==32 ) begin
@@ -92,8 +92,11 @@ always @(posedge clk, posedge rst) begin
             if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
             if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
             pxl_data <= rom_data;
-            cur_pal  <= pal;
-            hf_g     <= (flip & XOR_HFLIP[0])^hflip;
+            // draw information is eight pixels behind
+            nx_pal   <= pal;
+            cur_pal  <= nx_pal;
+            nx_hf    <= (flip & XOR_HFLIP[0])^hflip;
+            hf_g     <= nx_hf;
         end else begin
             pxl_data <= hf_g ? (pxl_data>>1) : (pxl_data<<1);
         end
