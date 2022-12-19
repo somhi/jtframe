@@ -20,8 +20,9 @@
 // It could be extended to 32x32 easily
 
 module jtframe_draw#( parameter
-    CW = 12,    // code width
-    PW =  8     // pixel width (lower four bits come from ROM)
+    CW    = 12,    // code width
+    PW    =  8,    // pixel width (lower four bits come from ROM)
+    SWAPH =  0     // swaps the two horizontal halves of the tile
 )(
     input               rst,
     input               clk,
@@ -57,10 +58,10 @@ wire [ 3:0] ysubf, pxl;
 assign ysubf   = ysub^{4{vflip}};
 assign buf_din = { pal, pxl };
 assign pxl     = hflip ?
-    { pxl_data[23], pxl_data[ 7], pxl_data[31], pxl_data[15] } :
-    { pxl_data[16], pxl_data[ 0], pxl_data[24], pxl_data[ 8] };
+    { pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[ 7] } :
+    { pxl_data[24], pxl_data[16], pxl_data[ 8], pxl_data[ 0] };
 
-assign rom_addr = { code, ysubf[3], rom_lsb, ysubf[2:0] };
+assign rom_addr = { code, rom_lsb^SWAPH[0], ysubf[3:0] };
 assign buf_we   = busy & ~cnt[3];
 
 always @(posedge clk, posedge rst) begin

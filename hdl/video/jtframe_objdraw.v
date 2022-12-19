@@ -19,11 +19,12 @@
 // Draws a 16x16 tile
 
 module jtframe_objdraw#( parameter
-    CW = 12,    // code width
-    PW =  8,    // pixel width (lower four bits come from ROM)
+    CW    = 12,    // code width
+    PW    =  8,    // pixel width (lower four bits come from ROM)
+    SWAPH =  0,    // swaps the two horizontal halves of the tile
     // object line buffer
     FLIP_OFFSET = 0,
-    ALPHA = 0
+    ALPHA       = 0
 )(
     input               rst,
     input               clk,
@@ -55,8 +56,9 @@ wire    [8:0] buf_addr;
 wire          buf_we;
 
 jtframe_draw #(
-    .CW( CW ),
-    .PW( PW )
+    .CW   ( CW    ),
+    .PW   ( PW    ),
+    .SWAPH( SWAPH )
 )u_draw(
     .rst        ( rst       ),
     .clk        ( clk       ),
