@@ -45,6 +45,8 @@ JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
 JTFRAME_INTERPOL2        |         | Enables a x2 FIR interpolation filter for audio. The game 'sample' output must be well defined
 JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interface. Set it to the number of bytes to save on MiST. Any value will work for MiSTer
+JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are right, left, down, up
+JTFRAME_JOY_LRUD         |         | Joystick lower 4 bits are left, right, up, down
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load

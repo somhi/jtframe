@@ -83,17 +83,17 @@ jtframe_obj_buffer #(
     .ALPHA      ( ALPHA       ),
     .FLIP_OFFSET( FLIP_OFFSET )
 ) u_linebuf(
-    .clk    ( clk       ),
-    .flip   ( flip      ),
-    .LHBL   ( ~hs       ),
+    .clk        ( clk       ),
+    .flip       ( flip      ),
+    .LHBL       ( ~hs       ),
     // New line writting
-    .we     ( buf_we    ),
-    .wr_data( buf_din   ),
-    .wr_addr( buf_addr  ),
+    .we         ( buf_we    ),
+    .wr_data    ( buf_din   ),
+    .wr_addr    ( buf_addr  ),
     // Previous line reading
-    .rd     ( pxl_cen   ),
-    .rd_addr( hdump     ),
-    .rd_data( pxl       )
+    .rd         ( pxl_cen   ),
+    .rd_addr    ( hdump     ),
+    .rd_data    ( pxl       )
 );
 
 endmodule

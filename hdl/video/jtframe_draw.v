@@ -52,22 +52,16 @@ module jtframe_draw#( parameter
 reg  [31:0] pxl_data;
 reg         rom_lsb;
 reg  [ 3:0] cnt;
-wire [ 3:0] ysubf, pxl_sort, pxl_in;
+wire [ 3:0] ysubf, pxl;
 
-assign ysubf    = ysub^{4{vflip}};
-assign buf_din  = { pal, pxl_sort };
-assign pxl_in   = hflip ?
+assign ysubf   = ysub^{4{vflip}};
+assign buf_din = { pal, pxl };
+assign pxl     = hflip ?
     { pxl_data[23], pxl_data[ 7], pxl_data[31], pxl_data[15] } :
     { pxl_data[16], pxl_data[ 0], pxl_data[24], pxl_data[ 8] };
 
-assign rom_addr = { code, ysubf[3], rom_lsb^SWAP_HALVES, ysubf[2:0] };
+assign rom_addr = { code, ysubf[3], rom_lsb, ysubf[2:0] };
 assign buf_we   = busy & ~cnt[3];
-
-jtframe_sort u_sort(
-    .debug_bus  ( debug_bus ),
-    .busin      ( pxl_in    ),
-    .busout     ( pxl_sort  )
-);
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
