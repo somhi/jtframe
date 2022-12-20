@@ -21,11 +21,13 @@
 // By default vertical blanking and sync toggle with horizontal blanking and sync
 // but some games make these signals toggle in the middle of the vertical ones
 // See Side Arms for an example
+
 // By default, H/V counters end with the blanking signal, for some games it
 // may be useful to define the end count differently
 // Depending on how the graphic hardware is designed, H/V count start and end values
 // can be important, as well as when signals toggle (like in a 8-multiple of H)
 // but these limitations can be trade off for different ones if the design is changed
+
 // A default VS pulse of three lines and HS pulse of 4.5us will fit the TV standard
 // but some games use different values
 // See the parameter definition below to alter the needed parameters when
@@ -64,6 +66,7 @@ parameter [8:0] V_START  = 9'd0,
                 HS_START = 9'd330,
                 HS_END   = HS_START+9'd27, // Default 4.5us for a 6MHz clock
                 HCNT_END = HB_END > HS_END ? HB_END : HS_END,
+                HJUMP    = 0, // use typically 9'h180 so the count at the end of H blank is 1FF
                 H_VB     = HB_START,
                 H_VS     = HS_START,
                 H_VNEXT  = HS_START,
@@ -105,7 +108,7 @@ end
 // H counter
 always @(posedge clk) if(pxl_cen) begin
     Hinit <= H == HINIT;
-    H     <= H == HCNT_END ? HCNT_START : (H+9'd1);
+    H     <= (HJUMP!=0 && H==9'hFF) ? HJUMP[8:0] : H == HCNT_END ? HCNT_START : (H+9'd1);
 end
 
 always @(posedge clk) if(pxl_cen) begin
