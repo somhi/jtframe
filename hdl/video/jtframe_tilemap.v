@@ -30,6 +30,7 @@ module jtframe_tilemap #( parameter
     VR   = SIZE==8 ? CW+3 : SIZE==16 ? CW+5 : CW+7,
     MAP_HW = 8,    // size of the map in pixels
     MAP_VW = 8,
+    FLIP_MSB  = 1, // set to 0 for scroll tile maps
     XOR_HFLIP = 0, // set to 1 so hflip gets ^ with flip
     XOR_VFLIP = 0  // set to 1 so vflip gets ^ with flip
 )(
@@ -59,10 +60,16 @@ module jtframe_tilemap #( parameter
 
 localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
 
-reg  [  31:0] pxl_data;
-reg  [PW-5:0] cur_pal, nx_pal;
-wire          vf_g;
-reg           hf_g, nx_hf;
+reg  [      31:0] pxl_data;
+reg  [    PW-5:0] cur_pal, nx_pal;
+wire              vflip_g;
+reg               hflip_g, nx_hf;
+wire [MAP_HW-1:0] heff;
+wire [MAP_VW-1:0] veff;
+
+// not flipping the MSB is usually needed in scroll layers
+assign heff = hdump ^ {MAP_HW{flip}}; //{ FLIP_MSB[0]&flip, {MAP_HW-1{flip}}};
+assign veff = vdump ^ { FLIP_MSB[0]&flip, {MAP_VW-1{flip}}};
 
 initial begin
     if( SIZE==32 ) begin
@@ -70,12 +77,12 @@ initial begin
     end
 end
 
-assign pxl       = { cur_pal, hf_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
-                                     {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
-assign vf_g      = (flip & XOR_VFLIP[0])^vflip;
+assign pxl       = { cur_pal, hflip_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
+                                        {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
+assign vflip_g   = (flip & XOR_VFLIP[0])^vflip;
 
-assign vram_addr[VA-1-:MAP_VW-VW]=vdump[MAP_VW-1:VW];
-assign vram_addr[0+:MAP_HW-VW] = hdump[MAP_HW-1:VW];
+assign vram_addr[VA-1-:MAP_VW-VW]=veff[MAP_VW-1:VW];
+assign vram_addr[0+:MAP_HW-VW] = heff[MAP_HW-1:VW];
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
@@ -83,22 +90,22 @@ always @(posedge clk, posedge rst) begin
         rom_addr <= 0;
         pxl_data <= 0;
         cur_pal  <= 0;
-        hf_g     <= 0;
+        hflip_g  <= 0;
     end else if(pxl_cen) begin
-        if( hdump[2:0]==0 ) begin
+        if( heff[2:0]==0 ) begin
             rom_cs <= ~rst & blankn;
-            rom_addr[0+:VW] <= vdump[0+:VW]^{VW{vf_g}};
+            rom_addr[0+:VW] <= veff[0+:VW]^{VW{vflip_g}};
             rom_addr[VR-1-:CW] <= code;
-            if( SIZE==16 ) rom_addr[VW]   <= hdump[3];
-            if( SIZE==32 ) rom_addr[VW+1-:2] <= hdump[4:3];
+            if( SIZE==16 ) rom_addr[VW]      <= heff[3]^flip;
+            if( SIZE==32 ) rom_addr[VW+1-:2] <= heff[4:3]^{2{flip}};
             pxl_data <= rom_data;
             // draw information is eight pixels behind
             nx_pal   <= pal;
             cur_pal  <= nx_pal;
             nx_hf    <= (flip & XOR_HFLIP[0])^hflip;
-            hf_g     <= nx_hf;
+            hflip_g  <= nx_hf;
         end else begin
-            pxl_data <= hf_g ? (pxl_data>>1) : (pxl_data<<1);
+            pxl_data <= hflip_g ? (pxl_data>>1) : (pxl_data<<1);
         end
     end
 end

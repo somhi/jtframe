@@ -79,6 +79,7 @@ jtframe_tilemap #(
     .PW         ( PW        ),
     .MAP_HW     ( MAP_HW    ),
     .MAP_VW     ( MAP_VW    ),
+    .FLIP_MSB   ( 0         ),
     .XOR_HFLIP  ( XOR_HFLIP ),
     .XOR_VFLIP  ( XOR_VFLIP )
 )u_tilemap(

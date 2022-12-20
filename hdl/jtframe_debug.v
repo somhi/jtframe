@@ -40,6 +40,7 @@ module jtframe_debug #(
     input [COLORW-1:0] bin,
     input              lhbl,
     input              lvbl,
+    input              dip_flip,
 
     // combinational output
     output reg [COLORW-1:0] rout,
@@ -116,10 +117,13 @@ always @(posedge clk, posedge rst) begin
 end
 
 // Video overlay
-reg [8:0] vcnt,hcnt;
-reg       lhbl_l, osd_on, view_on, bus_hex_on, view_hex_on;
-reg       show_view;
+reg  [8:0] vcnt,hcnt;
+reg        lhbl_l, osd_on, view_on, bus_hex_on, view_hex_on;
+reg        show_view;
+wire [8:0] veff, heff;
 
+assign veff = vcnt ^ { 1'b0, {8{dip_flip}}};
+assign heff = hcnt ^ { 1'b0, {8{dip_flip}}};
 
 always @(posedge clk) if(pxl_cen) begin
     lhbl_l <= lhbl;
@@ -131,13 +135,13 @@ always @(posedge clk) if(pxl_cen) begin
         hcnt <= 0;
     else hcnt <= hcnt + 9'd1;
     // display of debug_bus
-    osd_on     <= debug_bus  != 0 && vcnt[8:3]==6'h18 && hcnt[8:6] == 3'b010;
-    bus_hex_on <= debug_bus  != 0 && vcnt[8:3] == 6'h18 && hcnt[8:4] == 5'b01101;
+    osd_on     <= debug_bus  != 0 && veff[8:3]==6'h18 && heff[8:6] == 3'b010;
+    bus_hex_on <= debug_bus  != 0 && veff[8:3] == 6'h18 && heff[8:4] == 5'b01101;
 
     // display of debug_view
-    show_view   <= (view_mux!=0 || view_sel!=0 || debug_bus!=0) && vcnt[8:3] == 6'h1A;
-    view_on     <= show_view && hcnt[8:6] == 3'b010;
-    view_hex_on <= show_view && hcnt[8:4] == 5'b01101;
+    show_view   <= (view_mux!=0 || view_sel!=0 || debug_bus!=0) && veff[8:3] == 6'h1A;
+    view_on     <= show_view && heff[8:6] == 3'b010;
+    view_hex_on <= show_view && heff[8:4] == 5'b01101;
 end
 
 reg [0:19] font [0:15]; // 4x5 font
@@ -167,24 +171,24 @@ end
 wire [3:0] display_bit_bus, display_bit_view, display_nibble_bus, display_nibble_view;
 wire [4:0] font_pixel;
 
-assign display_bit_bus     = { 3'h0, debug_bus[ ~hcnt[5:3] ] };
-assign display_bit_view    = { 3'h0, view_mux[ ~hcnt[5:3] ] };
-assign display_nibble_bus  = hcnt[3] ? debug_bus[3:0] : debug_bus[7:4];
-assign display_nibble_view = hcnt[3] ? view_mux[3:0]  : view_mux[7:4];
+assign display_bit_bus     = { 3'h0, debug_bus[ ~heff[5:3] ] };
+assign display_bit_view    = { 3'h0, view_mux[ ~heff[5:3] ] };
+assign display_nibble_bus  = heff[3] ? debug_bus[3:0] : debug_bus[7:4];
+assign display_nibble_view = heff[3] ? view_mux[3:0]  : view_mux[7:4];
 
-assign font_pixel          = ( ( vcnt[2:0] - 3'd2 ) << 2 ) + ( hcnt[2:0] - 3'd3 );
+assign font_pixel          = ( ( veff[2:0] - 3'd2 ) << 2 ) + ( heff[2:0] - 3'd3 );
 
 always @* begin
     rout = rin;
     gout = gin;
     bout = bin;
     if( osd_on ) begin
-        if( hcnt[2:0]!=0 ) begin
-            rout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
-            gout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
-            bout = {COLORW{debug_bus[ ~hcnt[5:3] ]}};
+        if( heff[2:0]!=0 ) begin
+            rout = {COLORW{debug_bus[ ~heff[5:3] ]}};
+            gout = {COLORW{debug_bus[ ~heff[5:3] ]}};
+            bout = {COLORW{debug_bus[ ~heff[5:3] ]}};
         end
-        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+        if( heff[2:0] >= 3 && heff[2:0] < 7 && veff[2:0] >= 2 && veff[2:0] < 7 ) begin
             rout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
             gout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
             bout = {COLORW{ font[ display_bit_bus ][ font_pixel ] ^ display_bit_bus[0] }};
@@ -192,12 +196,12 @@ always @* begin
     end
 
     if( view_on ) begin
-        if( hcnt[2:0]!=0 ) begin
-            rout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
-            gout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
-            bout[COLORW-1:COLORW-2] = {2{view_mux[ ~hcnt[5:3] ]}};
+        if( heff[2:0]!=0 ) begin
+            rout[COLORW-1:COLORW-2] = {2{view_mux[ ~heff[5:3] ]}};
+            gout[COLORW-1:COLORW-2] = {2{view_mux[ ~heff[5:3] ]}};
+            bout[COLORW-1:COLORW-2] = {2{view_mux[ ~heff[5:3] ]}};
         end
-        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+        if( heff[2:0] >= 3 && heff[2:0] < 7 && veff[2:0] >= 2 && veff[2:0] < 7 ) begin
             rout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
             gout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
             bout[COLORW-1:COLORW-2] = {2{ font[ display_bit_view ][ font_pixel ] ^ display_bit_view[0] }};
@@ -205,12 +209,12 @@ always @* begin
     end
 
     if( bus_hex_on ) begin
-        if( hcnt[2:0] != 0 ) begin
+        if( heff[2:0] != 0 ) begin
             rout[COLORW-1:COLORW-2] = 2'b11;
             gout[COLORW-1:COLORW-2] = 2'b11;
             bout[COLORW-1:COLORW-2] = 2'b11;
         end
-        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+        if( heff[2:0] >= 3 && heff[2:0] < 7 && veff[2:0] >= 2 && veff[2:0] < 7 ) begin
             rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
             gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
             bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_bus ][ font_pixel ] }};
@@ -218,12 +222,12 @@ always @* begin
     end
 
     if( view_hex_on ) begin
-        if( hcnt[2:0] != 0 ) begin
+        if( heff[2:0] != 0 ) begin
             rout[COLORW-1:COLORW-2] = 2'b11;
             gout[COLORW-1:COLORW-2] = 2'b11;
             bout[COLORW-1:COLORW-2] = 2'b11;
         end
-        if( hcnt[2:0] >= 3 && hcnt[2:0] < 7 && vcnt[2:0] >= 2 && vcnt[2:0] < 7 ) begin
+        if( heff[2:0] >= 3 && heff[2:0] < 7 && veff[2:0] >= 2 && veff[2:0] < 7 ) begin
             rout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
             gout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};
             bout[COLORW-1:COLORW-2] = ~{2{ font[ display_nibble_view ][ font_pixel ] }};

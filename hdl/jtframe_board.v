@@ -370,6 +370,7 @@ jtframe_keyboard u_keyboard(
 
             // overlay the value on video
             .pxl_cen     ( pxl_cen       ),
+            .dip_flip    ( dip_flip      ),
             .rin         ( pre2x_r       ),
             .gin         ( pre2x_g       ),
             .bin         ( pre2x_b       ),
