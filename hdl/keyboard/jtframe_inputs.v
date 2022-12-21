@@ -184,7 +184,7 @@ function [9:0] apply_rotation;
     end
 endfunction
 
-function [9:0] reorder();
+function [9:0] reorder;
     input [9:0] joy_in;
     begin
         reorder = joy_in; // default order up, down, left, right
