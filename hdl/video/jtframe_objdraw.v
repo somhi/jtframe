@@ -22,6 +22,7 @@ module jtframe_objdraw#( parameter
     CW    = 12,    // code width
     PW    =  8,    // pixel width (lower four bits come from ROM)
     SWAPH =  0,    // swaps the two horizontal halves of the tile
+    HJUMP =  0,    // Assumes that hdump goes from 0 to FF and then 180 to 1FF
     // object line buffer
     FLIP_OFFSET = 0,
     ALPHA       = 0
@@ -52,8 +53,11 @@ module jtframe_objdraw#( parameter
 );
 
 wire [PW-1:0] buf_din;
-wire    [8:0] buf_addr;
+wire    [8:0] buf_addr, aeff;
 wire          buf_we;
+
+// if HJUMP is defined the 100~17F range is translated to 180~1FF
+assign aeff = HJUMP ? { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] } : buf_addr;
 
 jtframe_draw #(
     .CW   ( CW    ),
@@ -91,7 +95,7 @@ jtframe_obj_buffer #(
     // New line writting
     .we         ( buf_we    ),
     .wr_data    ( buf_din   ),
-    .wr_addr    ( buf_addr  ),
+    .wr_addr    ( aeff      ),
     // Previous line reading
     .rd         ( pxl_cen   ),
     .rd_addr    ( hdump     ),

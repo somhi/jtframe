@@ -65,12 +65,13 @@ parameter [8:0] V_START  = 9'd0,
                 HB_START = HB_END-9'd116,
                 HS_START = 9'd330,
                 HS_END   = HS_START+9'd27, // Default 4.5us for a 6MHz clock
-                HCNT_END = HB_END > HS_END ? HB_END : HS_END,
-                HJUMP    = 0, // use typically 9'h180 so the count at the end of H blank is 1FF
                 H_VB     = HB_START,
                 H_VS     = HS_START,
                 H_VNEXT  = HS_START,
                 HINIT    = H_VNEXT,
+                HJUMP    = 0, // set to 1 so the HCNT goes from 0 to FF and then from 180 to 1FF.
+                              // HCNT_START and HCNT_END are ignored if HJUMP is set
+                HCNT_END = HB_END > HS_END ? HB_END : HS_END,
                 HCNT_START=9'd0;
 
 `ifdef SIMULATION
@@ -108,7 +109,10 @@ end
 // H counter
 always @(posedge clk) if(pxl_cen) begin
     Hinit <= H == HINIT;
-    H     <= (HJUMP!=0 && H==9'hFF) ? HJUMP[8:0] : H == HCNT_END ? HCNT_START : (H+9'd1);
+    if( HJUMP )
+        H <= H==9'hFF ? 9'h180 : (H+9'd1);
+    else
+        H <= H == HCNT_END ? HCNT_START : (H+9'd1);
 end
 
 always @(posedge clk) if(pxl_cen) begin
