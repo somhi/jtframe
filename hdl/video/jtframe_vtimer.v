@@ -109,7 +109,7 @@ end
 // H counter
 always @(posedge clk) if(pxl_cen) begin
     Hinit <= H == HINIT;
-    if( HJUMP )
+    if( HJUMP[0] )
         H <= H==9'hFF ? 9'h180 : (H+9'd1);
     else
         H <= H == HCNT_END ? HCNT_START : (H+9'd1);

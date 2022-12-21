@@ -64,9 +64,12 @@ type BRAMBus struct {
 	Data_width int    `yaml:"data_width"`
 	Rw         bool   `yaml:"rw"`
 	Cs         string `yaml:"cs"`
+	Addr       string `yaml:"addr"`
+	Din		   string `yaml:"din"`  // optional name for din signal
 	Sim_file   bool   `yaml:"sim_file"`
 	Dual_port  struct {
 		Name string `yaml:"name"`
+		Din	 string `yaml:"din"`  // optional name for din signal
 		Rw   bool   `yaml:"rw"`
 		Cs   string `yaml:"cs"`
 	} `yaml:"dual_port"`

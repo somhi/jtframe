@@ -152,7 +152,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{- end}}
     // Memory interface - BRAM
 {{- range .BRAM }}
-    .{{.Name}}_addr ( {{.Name}}_addr ),{{ if .Rw }}
+    {{if not .Addr}}.{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if .Rw }}
     .{{.Name}}_din  ( {{.Name}}_din  ),{{end}}
     .{{.Name}}_dout ( {{.Name}}_dout ),
     {{ if .Dual_port.Name -}}
@@ -322,8 +322,8 @@ assign ba{{$index}}_din  = 0;
 {{ end -}}
 
 {{ range $cnt, $bus:=.BRAM -}}
-// Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
 {{- if $bus.Dual_port.Name }}
+// Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
 jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
     {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
@@ -331,8 +331,7 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
 ) u_bram_{{$bus.Name}}(
     // Port 0 - {{$bus.Name}}
     .clk0   ( clk ),
-    .addr0  ( {{$bus.Name}}_addr ),
-    {{ if $bus.Rw }}
+    .addr0  ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),{{ if $bus.Rw }}
     .data0  ( {{$bus.Name}}_din  ),
     .we0    ( {2{ {{$bus.Cs}} }} & ~{{$bus.Name}}.dsn ), {{ else }}
     .data0  ( {{$bus.Data_width}}'h0 ),
@@ -340,14 +339,24 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .q0     ( {{$bus.Name}}_dout ),
     // Port 1 - {{$bus.Dual_port.Name}}
     .clk1   ( clk ),
-    .data1  ( {{$bus.Dual_port.Name}}_dout ),
-    .addr1  ( {{$bus.Dual_port.Name}}_addr{{ addr_range $bus }}),
-    {{ if $bus.Dual_port.Rw }}
-    .we1    ( {2{ {{$bus.Dual_port.Cs}} }} & ~{{$bus.Dual_port.Name}}_dsn ), {{ else }}
+    .data1  ( {{if $bus.Dual_port.Din}}{{$bus.Dual_port.Din}}{{else}}{{$bus.Dual_port.Name}}_dout{{end}} ),
+    .addr1  ( {{$bus.Dual_port.Name}}_addr{{ addr_range $bus }}),{{ if $bus.Dual_port.Rw }}
+    .we1    ( {2{ {{if $bus.Dual_port.Cs}}{{$bus.Dual_port.Cs}}{{else}}{{$bus.Dual_port.Name}}_cs{{end}} }} & ~{{$bus.Dual_port.Name}}_dsn ), {{ else }}
     .we1    ( 2'd0 ),{{end}}
     .q1     ( {{$bus.Name}}2{{$bus.Dual_port.Name}}_data )
-);
-{{ end -}}
+);{{else}}
+// BRAM for {{$bus.Name}}
+jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
+    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
+    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+) u_bram_{{$bus.Name}}(
+    .clk    ( clk ),
+    .addr   ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),
+    .data   ( {{if $bus.Din}}{{$bus.Din}}{{else}}{{$bus.Name}}_din{{end}}  ),{{ if eq $bus.Data_width 16 }}
+    .we     ( {2{ {{if $bus.Cs}}{{$bus.Cs}}{{else}}{{$bus.Name}}_cs{{end}} }} & ~{{$bus.Name}}.dsn ),{{else}}
+    .we     ( {{$bus.Name}}_we   ),{{end}}
+    .q      ( {{$bus.Name}}_dout )
+);{{ end }}
 {{ end }}
-
 endmodule
