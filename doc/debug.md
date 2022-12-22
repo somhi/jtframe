@@ -22,7 +22,35 @@ It is recommended to remove the *debug_bus* once the core is stable. When the co
 
 By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_view* to *sys_info*. This 8-bit signals carries information from modules inside JTFRAME, aside from core-specific information. This is available as long as **JTFRAME_RELEASE** was not used for compilation. The *debug_bus* selects which information to display. Note that *sys_info* is shown in a reddish color, while *debug_view* is shown in white.
 
-At the moment, this can be used to see the number of SDRAM access done in a frame. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details. Note that the access count is divided by 4096, for display convenience. The SDRAM stats are as follow depending on the value of *st_addr* (which is the same as the debug_bus in MiST).
+st_addr[7:6] |  Read
+-------------|-------------
+  00         |  SDRAM stats
+  01         |  Frame count (BCD)
+  10         |  Sample rate (BCD)
+
+### Frame Count
+
+This is the total number of frames since the last reset. The count gets halted during pause.
+
+st_addr[0]  |  Read
+------------|-----------
+  0         | lower 8 bits (BCD)
+  1         | upper 8 bits (BCD)
+
+### Sample Rate
+
+If the core exercises the *sample* signal, JTFRAME can report the current sample rate.
+
+st_addr     |  Read
+------------|-----------
+  X         | rate in kHz (BCD)
+
+
+### SDRAM Information
+
+The number of SDRAM access done in a frame gets displayed. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details. Note that the access count is divided by 4096, for display convenience. The SDRAM stats are as follow depending on the value of *st_addr* (which is the same as the debug_bus in MiST).
+
+The SDRAM numbers are not in BCD, but in plain binary. Rather than the absolute number, the interesting thing about the SDRAM report is the relative usage. A good design should try to balance access counts among all banks.
 
 st_addr     |  Read
 ------------|-----------

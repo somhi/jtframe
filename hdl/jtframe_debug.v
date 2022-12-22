@@ -66,6 +66,9 @@ wire [7:0] step = shift ? 8'd16 : 8'd1;
 
 assign vtoggle = shift & ctrl;
 
+localparam [1:0] SYS_INFO = 2'b01,
+                 TARGET_INFO = 2'b10;
+
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         debug_bus  <= 0;
@@ -87,9 +90,9 @@ always @(posedge clk, posedge rst) begin
             view_sel <= view_sel==2 ? 2'd0 : view_sel+1'd1;
         end
         case( view_sel )
-            default: view_mux <= debug_view;
-            1: view_mux <= sys_info;
-            2: view_mux <= target_info;
+            default:     view_mux <= debug_view;
+            SYS_INFO:    view_mux <= sys_info;
+            TARGET_INFO: view_mux <= target_info;
         endcase
 
         if( ctrl && (debug_plus||debug_minus) ) begin
@@ -195,7 +198,7 @@ always @* begin
         end
     end
 
-    if( view_on ) begin
+    if( view_on ) begin // binary view
         if( heff[2:0]!=0 ) begin
             rout[COLORW-1:COLORW-2] = {2{view_mux[ ~heff[5:3] ]}};
             gout[COLORW-1:COLORW-2] = {2{view_mux[ ~heff[5:3] ]}};
@@ -208,7 +211,7 @@ always @* begin
         end
     end
 
-    if( bus_hex_on ) begin
+    if( bus_hex_on ) begin // hex view
         if( heff[2:0] != 0 ) begin
             rout[COLORW-1:COLORW-2] = 2'b11;
             gout[COLORW-1:COLORW-2] = 2'b11;

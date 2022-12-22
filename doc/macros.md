@@ -48,6 +48,7 @@ JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interfa
 JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are right, left, down, up
 JTFRAME_JOY_LRUD         |         | Joystick lower 4 bits are left, right, up, down
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
+JTFRAME_MFREQ            |         | Automatically set to the master clock in kHz. Depends on JTFRAME_PLL
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
 JTFRAME_MOUSE            |         | Enables mouse input. See [inputs.md](inputs.md)
@@ -72,7 +73,7 @@ JTFRAME_OSD_SND_EN       |         | OSD option to enable/disable FX and FM chan
 JTFRAME_OSD_TEST         |         | Test option on OSD
 JTFRAME_OSD_VOL          |         | Show FX volume control on OSD
 JTFRAME_OSDCOLOR         |         | Sets the OSD colour
-JTFRAME_PLL              |         | PLL module name to be used. Defaults to jtframe_pll0
+JTFRAME_PLL              |         | PLL module name to be used. PLL names must end in the pixel clock frequency in kHz
 JTFRAME_PXLCLK           |         | 6 or 8. Defines de pixel clock. See [clocks](clocks.md)
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD

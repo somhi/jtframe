@@ -248,7 +248,6 @@ localparam
 `endif
     PROG_LEN = 32;
 
-
 wire  [ 2:0] scanlines;
 wire         bw_en, blend_en;
 wire         en_mixing;
@@ -387,11 +386,13 @@ jtframe_keyboard u_keyboard(
             .target_info ( target_info   )
         );
 
-        jtframe_sdram_stats u_stats(
-            .rst        ( rst           ),
+        jtframe_sys_info u_info(
+            .rst        ( game_rst      ),
             .clk        ( clk_sys       ),
-            .rdy        ( bax_rdy       ),
+            .sample     ( snd_sample    ),
+            .dip_pause  ( dip_pause     ),
             .LVBL       ( LVBL          ),
+            .ba_rdy     ( bax_rdy       ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )
         );

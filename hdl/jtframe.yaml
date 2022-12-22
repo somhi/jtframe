@@ -8,6 +8,8 @@ jtframe:
       - jtframe_uart.v
       - jtframe_dip.v
       - jtframe_sh.v
+      - jtframe_sys_info.v
+      - jtframe_bcd_cnt.v
   - from: clocking
     get:
       - jtframe_frac_cen.v
