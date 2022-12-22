@@ -662,9 +662,8 @@ verilator)
     fi
 esac
 
-rm -f video.pipe
-rm -f frame.raw
-rm -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
+rm -f video.pipe frame.raw test.cpp game_test.v \
+   -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
 # killall --quiet raw2png
 
 # convert raw sound file to wav format

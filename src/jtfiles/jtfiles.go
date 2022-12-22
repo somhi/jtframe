@@ -44,12 +44,14 @@ const (
 type FileList struct {
 	From   string   `yaml:"from"`
 	Get    []string `yaml:"get"`
-	Unless string   `yaml:"unless"`
+	Unless string   `yaml:"unless"` // parses the section "unless" the macro is defined
+	When   string   `yaml:"when"`   // parses the section "when" the macro is defined
 }
 
 type JTModule struct {
 	Name   string `yaml:"name"`
-	Unless string `yaml:"unless"` // will be compared against env. variables and target argument
+	Unless string `yaml:"unless"`
+	When   string   `yaml:"when"`
 }
 
 type JTFiles struct {
@@ -127,17 +129,25 @@ func append_filelist(dest *[]FileList, src []FileList, other *[]string, origin O
 	if dest == nil {
 		*dest = make([]FileList, 0)
 	}
+	parse_section:
 	for _, each := range src {
-		// If a matching macro exists, the section is skipped
+		// Parses the section unless the macro is defined
 		if each.Unless != "" {
-			_, exists := macros[each.Unless]
-			if exists {
-				continue
-			}
-			if strings.ToLower(each.Unless) == strings.ToLower(args.Target) {
-				continue
+			for _,name := range( strings.Split(each.Unless,",")) {
+				if _, exists := macros[name]; exists {
+					continue parse_section
+				}
 			}
 		}
+		// Only parses the section when the macro is defined
+		if each.When != "" {
+			for _,name := range( strings.Split(each.When,",")) {
+				if _, exists := macros[name]; !exists {
+					continue parse_section
+				}
+			}
+		}
+
 		var newfl FileList
 		newfl.From = each.From
 		newfl.Get = make([]string, 2)

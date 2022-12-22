@@ -38,6 +38,18 @@ The simulation output creates two files:
 - game.f for all verilog files
 - jtsim_vhdl.f for all VHDL files
 
+The yaml file is composed of several sections, which can only appear once:
+
+- game: get files from a given core hdl folder
+- jtframe: get files from jtframe/hdl folders
+- modules: get files from the modules folder
+
+# Conditional file parsing:
+
+Each file list can be parsed conditionally using the keys:
+- unless: will always parse it unless the macro is defined
+- when: will only parse it when the macro is defined
+
 `,
 	Run:  run_files,
 	Args: cobra.ExactArgs(2),

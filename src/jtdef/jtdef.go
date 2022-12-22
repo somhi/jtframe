@@ -25,6 +25,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -153,6 +154,11 @@ func get_defpath(cfg Config) string {
 	}
 }
 
+func defined( macros map[string]string, key string ) bool {
+	_ ,e := macros[key]
+	return e
+}
+
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
 	parse_def(get_defpath(cfg), cfg, &macros)
@@ -243,13 +249,23 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// JTFRAME_PLL is defined as the PLL name
 	// in the .def file. This will define that
 	// name as a macro on its own too
+	mclk := 48000
 	if pll, e := macros["JTFRAME_PLL"]; e {
 		macros[strings.ToUpper(pll)] = ""
+		freq_str := regexp.MustCompile("[0-9]*").FindString(pll)
+		if freq_str == "" {
+			log.Fatal("JTFRAME: macro JTFRAME_PLL is not well formed. It should contain the pixel clock in kHz")
+		}
+		freq, _ := strconv.Atoi(freq_str)
+		freq *= 8
 	}
+	if defined(macros,"JTFRAME_SDRAM96") || defined(macros,"JTFRAME_CLK96") {
+		mclk *= 2
+	}
+	macros["JTFRAME_MCLK"] = fmt.Sprintf("%d",mclk)
 	// if the macro BETA is defined, and we are on MiSTer, make
 	// sure JTFRAME_CHEAT is defined too
-	_, isbeta := macros["BETA"]
-	if isbeta {
+	if defined( macros, "BETA" ) {
 		_, cheatok := macros["JTFRAME_CHEAT"]
 		if !cheatok && (cfg.Target == "mister" || cfg.Target == "sockit") {
 			fmt.Fprintln(os.Stderr, "Compiling a BETA for MiSTer but JTFRAME_CHEAT was not set\nAdding it now automatically.")
