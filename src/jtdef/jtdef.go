@@ -252,9 +252,9 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	mclk := 48000
 	if pll, e := macros["JTFRAME_PLL"]; e {
 		macros[strings.ToUpper(pll)] = ""
-		freq_str := regexp.MustCompile("[0-9]*").FindString(pll)
+		freq_str := regexp.MustCompile("[0-9]+$").FindString(pll)
 		if freq_str == "" {
-			log.Fatal("JTFRAME: macro JTFRAME_PLL is not well formed. It should contain the pixel clock in kHz")
+			log.Fatal("JTFRAME: macro JTFRAME_PLL=", pll, " is not well formed. It should contain the pixel clock in kHz")
 		}
 		freq, _ := strconv.Atoi(freq_str)
 		freq *= 8
