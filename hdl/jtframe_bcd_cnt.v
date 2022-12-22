@@ -42,7 +42,7 @@ always @(posedge clk, posedge rst) begin
         if( clr ) begin
             cnt[3:0] <= 0;
         end else if( up && (WRAP==1 || ~&nines) ) begin
-            cnt[3:0] <= cnt[3:0]==9 ? 4'd0 : cnt[3:0] + 1;
+            cnt[3:0] <= cnt[3:0]==4'd9 ? 4'd0 : cnt[3:0] + 1'd1;
         end
     end
 end
@@ -56,7 +56,7 @@ generate
                 if( clr ) begin
                     cnt[k*4+:4] <= 0;
                 end else if( up && (WRAP==1 || ~&nines) && &nines[0+:k] ) begin
-                    cnt[k*4+:4] <= cnt[k*4+:4]==9 ? 4'd0 : cnt[k*4+:4] + 1;
+                    cnt[k*4+:4] <= cnt[k*4+:4]==4'd9 ? 4'd0 : cnt[k*4+:4] + 1'd1;
                 end
             end
         end

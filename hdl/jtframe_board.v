@@ -531,7 +531,7 @@ jtframe_dip u_dip(
         .game_rd    ( ba_rd[0]  ),
         .game_wr    ( ba_wr[0]  ),
         .game_din   ( ba0_din   ),
-        .game_din_m ( ba0_din_m ),
+        .game_din_m ( ba0_dsn   ),
         .game_ack   ( cheat_ack ),
         .game_dst   ( cheat_dst ),
         .game_rdy   ( cheat_rdy ),
@@ -544,7 +544,7 @@ jtframe_dip u_dip(
         .ba0_rdy    ( bax_rdy[0]),
         .ba0_ack    ( bax_ack[0]),
         .ba0_din    ( bax_din   ),
-        .ba0_din_m  ( bax_dsn ),
+        .ba0_din_m  ( bax_dsn   ),
         .data_read  ( sdram_dout),
 
         .flags      ( cheat     ),
