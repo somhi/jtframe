@@ -14,128 +14,98 @@
 
     Author: Jose Tejada Gomez. Twitter: @topapate
     Version: 1.0
-    Date: 13-1-2020 */
+    Date: 15-12-2022 */
     
 
-// 8x8 tiles
+// Generic tile map generator with no scroll
+// The ROM data must be in these format
+// code, H parts, V part
+// pixel data is 4bpp, and arrives in four bytes. Each byte is for a plane
 
-module jtframe_tilemap(
+module jtframe_tilemap #( parameter
+    SIZE =  8,    // 8x8, 16x16 or 32x32
+    VA   = 10,
+    CW   = 12,
+    PW   =  8,
+    VR   = SIZE==8 ? CW+3 : SIZE==16 ? CW+5 : CW+7,
+    MAP_HW = 8,    // size of the map in pixels
+    MAP_VW = 8,
+    FLIP_MSB  = 1, // set to 0 for scroll tile maps
+    XOR_HFLIP = 0, // set to 1 so hflip gets ^ with flip
+    XOR_VFLIP = 0  // set to 1 so vflip gets ^ with flip
+)(
     input              rst,
     input              clk,
+    input              pxl_cen,
 
-    input      [ 8:0]  vrender, // 1 line ahead of vdump
-    input      [ 2:0]  size,    // hot one encoding. bit 0=8x8, bit 1=16x16, bit 2=32x32
-    // control registers
-    input      [15:0]  vpos,
-    input              flip,
+    input [MAP_VW-1:0] vdump,
+    input [MAP_HW-1:0] hdump,
+    input              blankn,  // if !blankn there are no ROM requests
+    input              flip,    // Screen flip
 
-    input              start,
-    input              stop,
-    output reg         done,
+    output    [VA-1:0] vram_addr,
 
+    input     [CW-1:0] code,
+    input     [PW-5:0] pal,
+    input              hflip,
+    input              vflip,
 
-    output reg [17:1]  vram_addr,
-    input      [15:0]  vram_data,
-    input              vram_ok,
-    output reg         vram_cs,
-
-    output reg [19:0]  rom_addr,    // up to 1 MB
+    output reg [VR-1:0]rom_addr,
     input      [31:0]  rom_data,
     output reg         rom_cs,
-    input              rom_ok,
+    input              rom_ok,      // ignored. It assumes that data is always right
 
-    output reg [ 8:0]  buf_addr,
-    output reg [10:0]  buf_data,
-    output reg         buf_wr
+    output     [PW-1:0]pxl
 );
 
-reg [10:0] vn;
-reg [10:0] hn;
-reg [31:0] pxl_data;
+localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
 
-reg [ 4:0] st;
+reg  [      31:0] pxl_data;
+reg  [    PW-5:0] cur_pal, nx_pal;
+wire              vflip_g;
+reg               hflip_g, nx_hf;
+wire [MAP_HW-1:0] heff;
+wire [MAP_VW-1:0] veff;
 
-reg [15:0] code,attr;
+// not flipping the MSB is usually needed in scroll layers
+assign heff = hdump ^ {MAP_HW{flip}}; //{ FLIP_MSB[0]&flip, {MAP_HW-1{flip}}};
+assign veff = vdump ^ { FLIP_MSB[0]&flip, {MAP_VW-1{flip}}};
 
-wire [11:0] scan;
+initial begin
+    if( SIZE==32 ) begin
+        $display("WARNING %m: SIZE=32 has not been tested");
+    end
+end
 
-assign      scan = { vn[8],   hn[8:3], vn[7:3] };
+assign pxl       = { cur_pal, hflip_g ? {pxl_data[24], pxl_data[16], pxl_data[8], pxl_data[0]} :
+                                        {pxl_data[31], pxl_data[23], pxl_data[15], pxl_data[7]} };
+assign vflip_g   = (flip & XOR_VFLIP[0])^vflip;
 
-wire [4:0] pal   = attr[4:0];
+assign vram_addr[VA-1-:MAP_VW-VW]=veff[MAP_VW-1:VW];
+assign vram_addr[0+:MAP_HW-VW] = heff[MAP_HW-1:VW];
 
-function [3:0] colour;
-    input [31:0] c;
-    input        flip;
-    colour = flip ? { c[24], c[16], c[ 8], c[0] } : 
-                    { c[31], c[23], c[15], c[7] };
-endfunction
-
-always @(posedge clk or posedge rst) begin
-    if(rst) begin
-        rom_cs          <= 1'b0;
-        vram_cs         <= 1'b0;
-        buf_wr          <= 1'b0;
-        done            <= 1'b0;
-        st              <= 5'd0;
-        rom_addr        <= 23'd0;
-        code            <= 16'd0;
-    end else begin
-        st <= st+6'd1;
-        case( st ) 
-            0: begin
-                rom_cs   <= 1'b0;
-                vram_cs  <= 1'b0;
-                vn       <= {7'd0, vrender};
-                hn       <= 11'd0;
-                buf_addr <= 9'h1ff;
-                buf_wr   <= 1'b0;
-                done     <= 1'b0;
-                if(!start) begin
-                    st   <= 0;
-                end
-            end
-            ///////////////////////
-            1: begin
-                vram_addr <= { 4'd0, scan, 1'b0 };
-                vram_cs   <= 1'b1;
-            end
-            3: begin
-                if( vram_ok ) begin
-                    code <= vram_data;
-                end else st<=st;
-            end
-            4: begin
-                rom_addr <= { 1'b0, code, vn[2:0] ^ {3{flip}} };
-                rom_cs   <= 1'b1;
-                hn <= hn + 11'h8;
-            end
-            6: if(rom_ok) begin
-                vram_addr <= { 4'd0, scan, 1'b0 };
-                pxl_data  <= rom_data;   // 32 bits = 32/4 = 8 pixels
-            end else st<=6;
-            7,8,9,10,    11,12,13,14: begin
-                buf_wr   <= 1'b1;
-                buf_addr <= buf_addr+9'd1;
-                buf_data <= { pal, colour(pxl_data, flip) };
-                pxl_data <= flip ? pxl_data>>1 : pxl_data<<1;
-            end
-            15: begin
-                buf_wr <= 1'b0;
-                st <= 6'd2; // scan again. Jumps to 2 because vram_addr was already
-                        // updated at 6
-            end
-        endcase
-        if( stop || buf_addr == 9'h100 ) begin // 256 pixels
-            // it is important to set vram_cs as soon as possible
-            // in order to avoid the SDRAM controller to be processing
-            // a request at the time the scroll controller moves to
-            // the SCROLL 2 layer, as this could prevent the row scroll
-            // values from reading correctly
-            buf_addr<= 9'd0;
-            buf_wr  <= 1'b0;
-            done    <= 1'b1;
-            st      <= 6'd0;
-            vram_cs <= 1'b0;
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        rom_cs   <= 0;
+        rom_addr <= 0;
+        pxl_data <= 0;
+        cur_pal  <= 0;
+        hflip_g  <= 0;
+    end else if(pxl_cen) begin
+        if( heff[2:0]==0 ) begin
+            rom_cs <= ~rst & blankn;
+            rom_addr[0+:VW] <= veff[0+:VW]^{VW{vflip_g}};
+            rom_addr[VR-1-:CW] <= code;
+            if( SIZE==16 ) rom_addr[VW]      <= heff[3]^flip;
+            if( SIZE==32 ) rom_addr[VW+1-:2] <= heff[4:3]^{2{flip}};
+            pxl_data <= rom_data;
+            // draw information is eight pixels behind
+            nx_pal   <= pal;
+            cur_pal  <= nx_pal;
+            nx_hf    <= (flip & XOR_HFLIP[0])^hflip;
+            hflip_g  <= nx_hf;
+        end else begin
+            pxl_data <= hflip_g ? (pxl_data>>1) : (pxl_data<<1);
         end
     end
 end

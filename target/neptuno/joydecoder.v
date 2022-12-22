@@ -108,7 +108,7 @@ begin
            joy_renew <= 1'b1;
           end
           
-`ifdef MULTICORE2PLUS
+`ifdef MCP
         if (joy_count == 5'd15) 
 `else        
         if (joy_count == 5'd24) 
@@ -121,7 +121,7 @@ begin
              joy_count <= joy_count + 1'd1;
           end   
 
-`ifdef MULTICORE2PLUS
+`ifdef MCP
         case (joy_count)
             5'd15 : joy1[0]  <= joy_data_i;   //  1p up
             5'd14 : joy1[4]  <= joy_data_i;   //  1p fire1

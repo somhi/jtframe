@@ -28,6 +28,7 @@ set_false_path -to [get_ports {VGA_*}]
 set_false_path -to [get_ports {AUDIO_SPDIF}]
 set_false_path -to [get_ports {AUDIO_L}]
 set_false_path -to [get_ports {AUDIO_R}]
+set_false_path -from {get_ports {SW[*]}}
 set_false_path -to {cfg[*]}
 set_false_path -from {cfg[*]}
 set_false_path -from {VSET[*]}
@@ -63,7 +64,7 @@ set_false_path -from {ascal|o_ivsize*}
 set_false_path -from {ascal|o_format*}
 set_false_path -from {ascal|o_hdown}
 set_false_path -from {ascal|o_vdown}
-set_false_path -from {ascal|o_hmin* ascal|o_hmax* ascal|o_vmin* ascal|o_vmax*}
+set_false_path -from {ascal|o_hmin* ascal|o_hmax* ascal|o_vmin* ascal|o_vmax* ascal|o_vrrmax* ascal|o_vrr}
 set_false_path -from {ascal|o_hdisp* ascal|o_vdisp*}
 set_false_path -from {ascal|o_htotal* ascal|o_vtotal*}
 set_false_path -from {ascal|o_hsstart* ascal|o_vsstart* ascal|o_hsend* ascal|o_vsend*}
@@ -101,3 +102,7 @@ set_false_path  -from  [get_clocks {FPGA_CLK2_50}]  -to  [get_clocks {emu|pll|ga
 set_false_path  -from  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]  -to  [get_clocks {emu|pll|game_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
 set_false_path  -from  [get_clocks {FPGA_CLK1_50}]  -to  [get_clocks {emu|pll|game_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
 set_false_path -to [get_keepers {*altera_std_synchronizer:*|din_s1}]
+
+# set false path between Game clock <--> HDMI clock
+set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
+set_false_path  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -from [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]

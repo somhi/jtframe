@@ -266,12 +266,11 @@ set_instance_assignment -name FAST_INPUT_REGISTER ON -to SDRAM_DQ[*]
 set_global_assignment -name FORCE_SYNCH_CLEAR ON
 
 # Use Neptuno's qip file
-set_global_assignment -name QIP_FILE target.qip
 set_global_assignment -name QIP_FILE game.qip
 
+# MC2 also shares the MIST and NEPTUNO macro
 set_global_assignment -name VERILOG_MACRO "MIST=1"
 set_global_assignment -name VERILOG_MACRO "NEPTUNO=1"
-set_global_assignment -name VERILOG_MACRO "MULTICORE2PLUS=1"
 
 # set_instance_assignment -name GLOBAL_SIGNAL "GLOBAL CLOCK" -to SPI_SCK
 set_global_assignment -name SEARCH_PATH "../hdl"

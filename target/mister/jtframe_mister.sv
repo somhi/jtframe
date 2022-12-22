@@ -50,8 +50,8 @@ module jtframe_mister #(parameter
     input           LVBL,
     input           hs,
     input           vs,
-    input           pxl_cen,
-    input           pxl2_cen,
+    inout           pxl_cen,
+    inout           pxl2_cen,
     // Audio
     input  signed [15:0] snd_lin,
     input  signed [15:0] snd_rin,
@@ -70,6 +70,17 @@ module jtframe_mister #(parameter
     output [ 1:0]   SDRAM_BA,       // SDRAM Bank Address
     input           SDRAM_CLK,      // SDRAM Clock
     output          SDRAM_CKE,      // SDRAM Clock Enable
+
+    // line-frame buffer
+    input        [ 7:0] game_vrender,
+    input        [ 8:0] game_hdump,
+    input        [ 8:0] ln_addr,
+    input        [15:0] ln_data,
+    input               ln_done,
+    output              ln_hs,
+    output       [15:0] ln_pxl,
+    output       [ 7:0] ln_v,
+    input               ln_we,
 
     // Signals to rotate the screen
 `ifdef JTFRAME_VERTICAL
@@ -170,6 +181,7 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_coin,
     output  [ 3:0]  game_start,
     output          game_service,
+    output          game_tilt,
     // mouse
     output  [15:0]  mouse_1p,
     output  [15:0]  mouse_2p,
@@ -234,6 +246,7 @@ wire        force_scan2x, direct_video;
 wire        video_rotated;
 
 wire [ 6:0] core_mod;
+wire [ 7:0] st_lpbuf;
 // Mouse support
 wire [24:0] ps2_mouse;
 reg         ps2_mouse_l;
@@ -281,6 +294,7 @@ reg         crop_ok;    // whether the mister.ini video settings tolerate croppi
 wire  [3:0] vcopt;
 reg        en216p;
 reg  [4:0] voff;
+reg        pxl1_cen;
 
 // Vertical crop
 assign crop_en    = status[41];
@@ -326,7 +340,7 @@ end
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
-    .pxl_cen    ( pxl_cen       ),
+    .pxl_cen    ( pxl1_cen       ),
     .hs_in      ( hs            ),
     .vs_in      ( vs            ),
     .LVBL       ( LVBL          ),
@@ -362,6 +376,9 @@ assign status_menumask[15:6] = 0,
 always @(posedge clk_sys) begin
     framebuf_flip <= status[39:38]==2;
 end
+
+// this places the pxl1_cen in the pixel centre
+always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
 
 
 jtframe_mister_dwnld u_dwnld(
@@ -522,7 +539,7 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     // scales base video horizontally
     jtframe_hsize #(.COLORW(COLORW)) u_hsize(
         .clk        ( clk_sys   ),
-        .pxl_cen    ( pxl_cen   ),
+        .pxl_cen    ( pxl1_cen  ),
         .pxl2_cen   ( pxl2_cen  ),
 
         .scale      ( hsize_scale  ),
@@ -603,6 +620,7 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     // Mouse & paddle
     .bd_mouse_dx    ( mouse_dx        ),
     .bd_mouse_dy    ( mouse_dy        ),
@@ -703,6 +721,7 @@ jtframe_board #(
     .ioctl_addr     ( ioctl_addr[7:0] ),
     .st_addr        ( st_addr         ),
     .st_dout        ( st_dout         ),
+    .target_info    ( st_lpbuf        ),
     // Base video
     .osd_rotate     ( rotate          ),
     .game_r         ( hsize_r         ),
@@ -794,35 +813,75 @@ wire rot_clk;
         .DDRAM_DIN      ( DDRAM_DIN      )
     );
 `else
-    assign DDRAM_DIN=64'd0;
+    `ifndef JTFRAME_LF_BUFFER assign DDRAM_DIN=64'd0; `endif
     assign rot_clk = clk_rom;
 `endif
 
-jtframe_mr_ddrmux u_ddrmux(
-    .rst            ( rst             ),
-    .clk            ( clk_rom         ),
-    .downloading    ( downloading     ),
-    // Fast DDR load
-    .ddrld_burstcnt ( ddrld_burstcnt  ),
-    .ddrld_addr     ( ddrld_addr      ),
-    .ddrld_rd       ( ddrld_rd        ),
-    .ddrld_busy     ( ddrld_busy      ),
-    // Rotation signals
-    .rot_clk        ( rot_clk         ),
-    .rot_burstcnt   ( rot_burstcnt    ),
-    .rot_addr       ( rot_addr        ),
-    .rot_rd         ( rot_rd          ),
-    .rot_we         ( rot_we          ),
-    .rot_be         ( rot_be          ),
-    .rot_busy       ( rot_busy        ),
-    // DDR Signals
-    .ddr_clk        ( DDRAM_CLK       ),
-    .ddr_busy       ( DDRAM_BUSY      ),
-    .ddr_burstcnt   ( DDRAM_BURSTCNT  ),
-    .ddr_addr       ( DDRAM_ADDR      ),
-    .ddr_rd         ( DDRAM_RD        ),
-    .ddr_we         ( DDRAM_WE        ),
-    .ddr_be         ( DDRAM_BE        )
-);
+
+
+
+`ifdef JTFRAME_LF_BUFFER
+    // line-frame buffer. This won't work with fast DDR load or vertical games
+    jtframe_lfbuf_ddr u_lf_buf(
+        .rst        ( game_rst      ),
+        .clk        ( clk_rom       ),
+        .pxl_cen    ( pxl1_cen      ),
+
+        .vs         ( vs            ),
+        .lvbl       ( LVBL          ),
+        .lhbl       ( LHBL          ),
+        .vrender    ( game_vrender  ),
+        .hdump      ( game_hdump    ),
+
+        // interface with the game core
+        .ln_addr    ( ln_addr       ),
+        .ln_data    ( ln_data       ),
+        .ln_done    ( ln_done       ),
+        .ln_hs      ( ln_hs         ),
+        .ln_pxl     ( ln_pxl        ),
+        .ln_v       ( ln_v          ),
+        .ln_we      ( ln_we         ),
+
+        .ddram_clk  ( DDRAM_CLK     ),
+        .ddram_busy ( DDRAM_BUSY    ),
+        .ddram_addr ( DDRAM_ADDR    ),
+        .ddram_dout ( DDRAM_DOUT    ),
+        .ddram_rd   ( DDRAM_RD      ),
+        .ddram_din  ( DDRAM_DIN     ),
+        .ddram_be   ( DDRAM_BE      ),
+        .ddram_we   ( DDRAM_WE      ),
+        .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
+        .ddram_dout_ready( DDRAM_DOUT_READY  ),
+        .st_addr    ( st_addr       ),
+        .st_dout    ( st_lpbuf      )
+    );
+`else
+    jtframe_mr_ddrmux u_ddrmux(
+        .rst            ( rst             ),
+        .clk            ( clk_rom         ),
+        .downloading    ( downloading     ),
+        // Fast DDR load
+        .ddrld_burstcnt ( ddrld_burstcnt  ),
+        .ddrld_addr     ( ddrld_addr      ),
+        .ddrld_rd       ( ddrld_rd        ),
+        .ddrld_busy     ( ddrld_busy      ),
+        // Rotation signals
+        .rot_clk        ( rot_clk         ),
+        .rot_burstcnt   ( rot_burstcnt    ),
+        .rot_addr       ( rot_addr        ),
+        .rot_rd         ( rot_rd          ),
+        .rot_we         ( rot_we          ),
+        .rot_be         ( rot_be          ),
+        .rot_busy       ( rot_busy        ),
+        // DDR Signals
+        .ddr_clk        ( DDRAM_CLK       ),
+        .ddr_busy       ( DDRAM_BUSY      ),
+        .ddr_burstcnt   ( DDRAM_BURSTCNT  ),
+        .ddr_addr       ( DDRAM_ADDR      ),
+        .ddr_rd         ( DDRAM_RD        ),
+        .ddr_we         ( DDRAM_WE        ),
+        .ddr_be         ( DDRAM_BE        )
+    );
+`endif
 
 endmodule

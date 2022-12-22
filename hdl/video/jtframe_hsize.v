@@ -103,7 +103,7 @@ always @(posedge clk) if(pxl_cen) begin
     end
 
     // colour output
-    {r_out,g_out,b_out} <= enable ? (overl || !passz ? 0 : rgb_out) : rgb_in;
+    {r_out,g_out,b_out} <= enable ? (overl || !passz ? {3*COLORW{1'b0}} : rgb_out) : rgb_in;
 end
 
 always @(posedge clk) if(pxl2_cen) begin

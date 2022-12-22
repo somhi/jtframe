@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -45,6 +46,7 @@ type RegCfg struct {
 	// The upper and lower halves of the same file are merged together
 	Ext_sort  []string // sorts by matching the file extension
 	Name_sort []string // sorts by name
+	Regex_sort []string // sorts by name apply regular expression
 	Frac      struct {
 		Bytes, Parts int
 	}
@@ -168,6 +170,12 @@ type XMLNode struct {
 	indent_txt bool
 }
 
+// first XML node of a ROM region
+type StartNode struct{
+	node *XMLNode
+	pos int
+}
+
 func (n *XMLNode) GetNode(name string) *XMLNode {
 	for _, c := range n.children {
 		if c.name == name {
@@ -267,6 +275,16 @@ func (n *XMLNode) Dump() string {
 	return s
 }
 
+func (this *StartNode) add_length( pos int ) {
+	if this.node != nil {
+		lenreg := pos - this.pos
+		if lenreg > 0 {
+			this.node.name = fmt.Sprintf("%s - length 0x%X (%d bits)", this.node.name, lenreg,
+				int(math.Ceil( math.Log2(float64(lenreg)))) )
+		}
+	}
+}
+
 type ParsedMachine struct {
 	machine *MachineXML
 	mra_xml *XMLNode
@@ -302,7 +320,11 @@ extra_loop:
 		if machine == nil {
 			break
 		}
-		fmt.Println("Found ", machine.Name)
+		fmt.Print("Found ", machine.Name)
+		if machine.Cloneof != "" {
+			fmt.Printf(" (%s)", machine.Cloneof)
+		}
+		fmt.Println()
 		cloneof := false
 		if len(machine.Cloneof) > 0 {
 			cloneof = true
@@ -349,14 +371,14 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 		strings.Index(
 			strings.ToLower(machine.Description), "bootleg") != -1 {
 		if args.Verbose {
-			fmt.Println("Skipping ", machine.Description)
+			fmt.Println("Skipping ", machine.Description, "for it's a bootleg")
 		}
 		return true
 	}
 	for _, d := range mra_cfg.Parse.Skip.Descriptions {
 		if strings.Index(machine.Description, d) != -1 {
 			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description)
+				fmt.Println("Skipping ", machine.Description, "for its description")
 			}
 			return true
 		}
@@ -364,7 +386,7 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 	for _, each := range mra_cfg.Parse.Skip.Setnames {
 		if each == machine.Name {
 			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description)
+				fmt.Println("Skipping ", machine.Description, "for matching setname")
 			}
 			return true
 		}
@@ -383,9 +405,15 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 	return skip
 }
 
+func rm_spsp( a string ) string {
+	re := regexp.MustCompile(" +")
+	return re.ReplaceAllString(a," ") // Remove duplicated spaces
+}
+
 ////////////////////////////////////////////////////////////////////////
 func fix_filename(filename string) string {
 	x := strings.ReplaceAll(filename, "World?", "World")
+	x = rm_spsp(x)
 	return strings.ReplaceAll(x, "?", "x")
 }
 
@@ -416,7 +444,9 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		if k := strings.Index(pure_name, " - "); k != -1 {
 			pure_name = pure_name[0:k]
 		}
+		pure_name = strings.ReplaceAll(pure_name,"/","") // Prevent the creation of folders!
 		pure_name = strings.TrimSpace(pure_name)
+		pure_name = rm_spsp(pure_name)
 		fname += "/" + args.Altdir + "/_" + pure_name
 
 		err := os.MkdirAll(fname, 0777)
@@ -623,7 +653,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 	// coreMOD
 	make_coreMOD(&root, machine, cfg)
 	// DIP switches
-	def_dipsw := make_switches(&root, machine, cfg)
+	def_dipsw := make_switches(&root, machine, cfg, args)
 	// Buttons
 	make_buttons(&root, machine, cfg, args)
 	return &root, def_dipsw
@@ -648,9 +678,7 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	button_set := false
 	for _, b := range cfg.Buttons.Names {
 		// default definition is allowed
-		if (b.Machine == "" && b.Setname == "" && !button_set) ||
-			// Using machine name
-			(len(b.Machine) > 0 && (b.Machine == machine.Name || b.Machine == machine.Cloneof)) {
+		if (b.Machine == "" && b.Setname == "" && !button_set) || is_family(b.Machine,machine) {
 			button_def = b.Names
 			button_set = true
 		}
@@ -813,6 +841,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	pos := 0
 	reg_offsets := make(map[string]int)
 
+	var previous StartNode
 	for _, reg := range regions {
 		reg_cfg := find_region_cfg(FamilyName(machine), reg, cfg)
 		if reg_cfg.Skip {
@@ -847,35 +876,44 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				"\tstart offset overcome by 0x%X while parsing region %s\n",
 				-delta, reg)
 		}
-		p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos)).comment = true
+		// comment with start and length of region
+		previous.add_length(pos)
+		previous.node = p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos))
+		previous.node.comment = true
+		previous.pos = pos
+
 		start_pos := pos
 		reg_pos := 0
 		reg_offsets[reg] = pos
 		apply_sort(reg_cfg, reg_roms)
 		// Singleton interleave case
-		if reg_cfg.Width == 16 && reg_cfg.Singleton {
+		if reg_cfg.Singleton {
+			if reg_cfg.Width!=16 && reg_cfg.Width!=32 {
+				log.Fatal("jtframe mra: singleton only supported for width 16 and 32")
+			}
 			var n *XMLNode
 			p.AddNode("Singleton region. The files are merged with themselves.").comment = true
-			mapstr := "01"
+			mapbyte := 1
+			msb     := (reg_cfg.Width/8)-1
+			divider := reg_cfg.Width>>3
+			mapfmt  := fmt.Sprintf("%%0%db",divider)
 			if reg_cfg.Reverse {
-				mapstr = "10"
+				mapbyte = 1 << msb // 2 for 16 bits, 8 for 32 bits
 			}
 			for _, r := range reg_roms {
 				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-				// First half
-				m := add_rom(n, r)
-				m.AddAttr("map", mapstr)
-				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-				// Second half
-				if mapstr == "01" {
-					mapstr = "10"
-				} else {
-					mapstr = "01"
+				for k:=0; k<divider; k++ {
+					m := add_rom(n, r)
+					m.AddAttr("offset", fmt.Sprintf("0x%04x", r.Size/divider*k))
+					m.AddAttr("map", fmt.Sprintf(mapfmt,mapbyte))
+					m.AddAttr("length", fmt.Sprintf("0x%04X", r.Size/divider))
+					// Second half
+					if reg_cfg.Reverse {
+						mapbyte >>= 1
+					} else {
+						mapbyte <<= 1
+					}
 				}
-				m = add_rom(n, r)
-				m.AddAttr("map", mapstr)
-				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-				m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
 				pos += r.Size
 			}
 		}
@@ -965,7 +1003,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				}
 			}
 		}
-		if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0 {
+		if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0 && !reg_cfg.Singleton {
 			// Straight dump
 			for _, r := range reg_roms {
 				offset := r.Offset
@@ -1028,6 +1066,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
 	}
+	previous.add_length(pos)
 	make_devROM(p, machine, cfg, &pos)
 	p.AddNode(fmt.Sprintf("Total 0x%X bytes - %d kBytes", pos, pos>>10)).comment = true
 	make_patches(p, machine, cfg)
@@ -1373,6 +1412,23 @@ func sort_name_list(reg_cfg *RegCfg, roms []MameROM) {
 	}
 }
 
+func sort_regex_list(reg_cfg *RegCfg, roms []MameROM) {
+	// fmt.Println("Applying name sorting ", reg_cfg.Name_sort)
+	base := make([]MameROM, len(roms))
+	copy(base, roms)
+	k := 0
+	for _, each := range reg_cfg.Regex_sort {
+		re := regexp.MustCompile(each)
+		for i, _ := range base {
+			if re.MatchString(base[i].Name) {
+				roms[k] = base[i]
+				k++
+				break
+			}
+		}
+	}
+}
+
 func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 	if len(reg_cfg.Ext_sort) > 0 {
 		sort_ext_list(reg_cfg, roms)
@@ -1380,6 +1436,10 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 	}
 	if len(reg_cfg.Name_sort) > 0 {
 		sort_name_list(reg_cfg, roms)
+		return
+	}
+	if len(reg_cfg.Regex_sort) > 0 {
+		sort_regex_list(reg_cfg, roms)
 		return
 	}
 	if reg_cfg.Sort_even {
@@ -1436,7 +1496,7 @@ func find_region_cfg(machine, regname string, cfg Mame2MRA) *RegCfg {
 }
 
 // make_DIP
-func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
+func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) string {
 	if len(machine.Dipswitch) ==0 {
 		return "ff,ff"
 	}
@@ -1606,6 +1666,10 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) string {
 	// Add DIP switches in the extra section, note that these
 	// one will always have a default value of 1
 	for _, each := range cfg.Dipsw.Extra {
+		if args.Verbose {
+			fmt.Printf("\tChecking extra DIPSW %s for %s/%s (current %s/%s)\n",
+				each.Name, each.Machine, each.Setname, machine.Cloneof, machine.Name)
+		}
 		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
 			(each.Machine == "" && each.Setname == "") {
 			m := n.AddNode("dip")

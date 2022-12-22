@@ -27,6 +27,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jotego/jtframe/jtdef"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,12 +44,14 @@ const (
 type FileList struct {
 	From   string   `yaml:"from"`
 	Get    []string `yaml:"get"`
-	Unless string   `yaml:"unless"`
+	Unless string   `yaml:"unless"` // parses the section "unless" the macro is defined
+	When   string   `yaml:"when"`   // parses the section "when" the macro is defined
 }
 
 type JTModule struct {
 	Name   string `yaml:"name"`
-	Unless string `yaml:"unless"` // will be compared against env. variables and target argument
+	Unless string `yaml:"unless"`
+	When   string   `yaml:"when"`
 }
 
 type JTFiles struct {
@@ -65,9 +68,7 @@ type JTFiles struct {
 type Args struct {
 	Corename string // JT core
 	Parse    string // any file
-	Output   string // Output file name
 	Rel      bool
-	SkipVHDL bool
 	Format   string
 	Target   string
 }
@@ -75,6 +76,7 @@ type Args struct {
 var parsed []string
 var CWD string
 var args Args
+var macros map[string]string
 
 func parse_args(args *Args) {
 	flag.Usage = func() {
@@ -97,11 +99,9 @@ func parse_args(args *Args) {
 	}
 	flag.StringVar(&args.Corename, "core", "", "core name")
 	flag.StringVar(&args.Parse, "parse", "", "File to parse. Use either -parse or -core")
-	flag.StringVar(&args.Output, "output", "", "Output file name with no extension. Default is 'game'")
 	flag.StringVar(&args.Format, "f", "qip", "Output format. Valid values: qip, sim")
 	flag.StringVar(&args.Target, "target", "", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVar(&args.Rel, "rel", false, "Output relative paths")
-	flag.BoolVar(&args.SkipVHDL, "novhdl", false, "Skip VHDL files")
 	flag.Parse()
 	if len(args.Corename) == 0 && len(args.Parse) == 0 {
 		log.Fatal("JTFILES: You must specify either the core name with argument -core\nor a file name with -parse")
@@ -129,18 +129,25 @@ func append_filelist(dest *[]FileList, src []FileList, other *[]string, origin O
 	if dest == nil {
 		*dest = make([]FileList, 0)
 	}
+	parse_section:
 	for _, each := range src {
-		// If an environment variable exists with the
-		// name set at "unless", the section is skipped
+		// Parses the section unless the macro is defined
 		if each.Unless != "" {
-			_, exists := os.LookupEnv(each.Unless)
-			if exists {
-				continue
-			}
-			if strings.ToLower(each.Unless) == strings.ToLower(args.Target) {
-				continue
+			for _,name := range( strings.Split(each.Unless,",")) {
+				if _, exists := macros[name]; exists {
+					continue parse_section
+				}
 			}
 		}
+		// Only parses the section when the macro is defined
+		if each.When != "" {
+			for _,name := range( strings.Split(each.When,",")) {
+				if _, exists := macros[name]; !exists {
+					continue parse_section
+				}
+			}
+		}
+
 		var newfl FileList
 		newfl.From = each.From
 		newfl.Get = make([]string, 2)
@@ -300,6 +307,7 @@ func dump_jtmodules(mods []JTModule, all *[]string, rel bool) {
 	}
 }
 
+// Get file path names from JTFiles definition
 func collect_files(files JTFiles, rel bool) []string {
 	all := make([]string, 0)
 	dump_filelist(files.Game, &all, GAME, rel)
@@ -313,15 +321,28 @@ func collect_files(files JTFiles, rel bool) []string {
 		}
 		all = append(all, each)
 	}
-	sort.Strings(all)
-	if len(all) > 0 {
+	// Weed out the vhdl files
+	vhdl    := make([]string,0,len(all))
+	nonvhdl := make([]string,0,len(all))
+	for _,each := range all {
+		if strings.HasSuffix(each,".vhd") || strings.HasSuffix(each,".vhdl") {
+			vhdl = append( vhdl, each )
+		} else {
+			nonvhdl = append( nonvhdl, each )
+		}
+	}
+	// non-VHDL files are sorted
+	sort.Strings(nonvhdl)
+	if len(nonvhdl) > 0 {
 		// Remove duplicated files
 		uniq := make([]string, 0)
-		for _, each := range all {
+		for _, each := range nonvhdl {
 			if len(uniq) == 0 || each != uniq[len(uniq)-1] {
 				uniq = append(uniq, each)
 			}
 		}
+		// Add all the VHDL files
+		uniq = append(uniq, vhdl...)
 		// Check that files exist
 		for _, each := range uniq {
 			if _, err := os.Stat(each); os.IsNotExist(err) {
@@ -334,24 +355,8 @@ func collect_files(files JTFiles, rel bool) []string {
 	}
 }
 
-func get_output_name(args Args) string {
-	var fname string
-	if args.Output != "" {
-		fname = args.Output
-	} else if args.Parse != "" {
-		fname = strings.TrimSuffix(filepath.Base(args.Parse), ".yaml")
-	} else {
-		fname = "game"
-	}
-	return fname
-}
-
-func dump_qip(all []string, args Args, do_target bool) {
-	fname := get_output_name(args) + ".qip"
-	if do_target {
-		fname = "target.qip"
-	}
-	fout, err := os.Create(fname)
+func dump_qip(all []string, args Args ) {
+	fout, err := os.Create("game.qip")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -384,35 +389,26 @@ func dump_qip(all []string, args Args, do_target bool) {
 	}
 }
 
-func dump_sim(all []string, args Args, do_target, noclobber bool) {
-	fname := get_output_name(args) + ".f"
-	if do_target {
-		fname = "target.f"
+func dump_sim(all []string, args Args ) {
+	fout, err := os.Create( "game.f" )
+	if err != nil {
+		log.Fatal(err)
 	}
-	flag := os.O_CREATE | os.O_WRONLY
-	if noclobber {
-		flag = flag | os.O_APPEND
-	} else {
-		flag = flag | os.O_TRUNC
-	}
-
-	fout, err := os.OpenFile(fname, flag, 0644)
+	fout_vhdl, err := os.Create("jtsim_vhdl.f")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer fout.Close()
+	defer fout_vhdl.Close()
 	for _, each := range all {
 		dump := true
 		switch filepath.Ext(each) {
-		case ".sv":
+		case ".sv", ".v":
 			dump = true
-		case ".vhd":
-			dump = !args.SkipVHDL
-		case ".v":
-			dump = true
-		case ".qip":
+		case ".qip",".sdc":
 			dump = false
-		case ".sdc":
+		case ".vhd":
+			fmt.Fprintln(fout_vhdl, each)
 			dump = false
 		default:
 			{
@@ -425,45 +421,55 @@ func dump_sim(all []string, args Args, do_target, noclobber bool) {
 	}
 }
 
-func parse_one(path string, dump2target, noclobber bool, skip []string, args Args) (uniq []string) {
-	var files JTFiles
-	if !dump2target {
-		parse_yaml(GetFilename(args.Corename, "game", args.Parse), &files)
-	}
-	parse_yaml(path, &files)
-	all := collect_files(files, args.Rel)
-	// Remove files that could have appeared in the game section
-	for _, s := range all {
-		found := false
-		for _, s2 := range skip {
-			if s == s2 {
-				found = true
-				break
-			}
-		}
-		if !found {
-			uniq = append(uniq, s)
-		}
-	}
-	switch args.Format {
+// func parse_paths( skip []string, args Args, paths... string ) (uniq []string) {
+// 	var files JTFiles
+// 	for _, each := range paths {
+// 		parse_yaml(each, &files)
+// 	}
+// 	all := collect_files( files, args.Rel )
+// 	// Remove files in the skip list
+// 	for _, s := range all {
+// 		found := false
+// 		for _, s2 := range skip {
+// 			if s == s2 {
+// 				found = true
+// 				break
+// 			}
+// 		}
+// 		if !found {
+// 			uniq = append(uniq, s)
+// 		}
+// 	}
+// 	return uniq
+// }
+
+func dump_files( filenames[]string, format string ) {
+	switch format {
 	case "syn", "qip":
-		dump_qip(uniq, args, dump2target)
+		dump_qip(filenames, args )
 	default:
-		dump_sim(uniq, args, dump2target, noclobber)
+		dump_sim(filenames, args )
 	}
-	return uniq
 }
 
 func Run(args Args) {
 	CWD, _ = os.Getwd()
 
-	game_files := parse_one(os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", false, false, nil, args)
+	var def_cfg jtdef.Config
+	def_cfg.Target = args.Target
+	def_cfg.Core = args.Corename
+	macros = jtdef.Make_macros(def_cfg)
+
+	var files JTFiles
+	parse_yaml( GetFilename(args.Corename, "game", args.Parse), &files )
+	parse_yaml( os.Getenv("JTFRAME")+"/hdl/jtframe.yaml", &files )
 
 	if args.Target != "" {
-		target_files := parse_one(os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", true, false, game_files, args)
+		parse_yaml( os.Getenv("JTFRAME")+"/target/"+args.Target+"/target.yaml", &files )
 		if args.Format == "sim" {
-			all_files := append(target_files, game_files...)
-			parse_one(os.Getenv("JTFRAME")+"/target/"+args.Target+"/sim.yaml", true, true, all_files, args)
+			parse_yaml(os.Getenv("JTFRAME")+"/target/"+args.Target+"/sim.yaml", &files )
 		}
 	}
+	filenames := collect_files( files, args.Rel )
+	dump_files( filenames, args.Format )
 }

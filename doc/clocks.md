@@ -67,3 +67,15 @@ clk48        |  48      |   49.152
 clk24        |  24      |   24.576
 clk6         |   6      |    6.144
 
+# Pixel Clock
+
+All cores must define two clock enable signals based on clk_rom:
+
+- pxl_cen is the pixel clock. A typical value is 6MHz
+- pxl2_cen runs at twice the frequency of pxl_cen
+
+As clock enable signals, these should not be high for more than one clock cycle. Some modules may expect an idle cycle after the active one.
+
+Most core define these two signals as output ports. But it is possible to have them as input ports and leave JTFRAME to handle them by defining **JTFRAME_PXLCLK** to be either 6 or 8. JTFRAME will generate them correctly provided regardless of whether the SDRAM is set to 48 or 96MHz.
+
+**JTFRAME_PXLCLK** will divide clk_rom by 6 or 8 (for a 48MHz reference). If **JTFRAME_PLL** is used, note that those two are the only valid values. Because of the PLL, the actual frequency will be off 6MHz, which is the intention of using **JTFRAME_PLL** in the first place.

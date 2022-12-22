@@ -23,18 +23,30 @@
     input           ioctl_ram,
     output   [ 7:0] ioctl_din,
 `endif
-{{ $first := true}}
-{{- range .Ports.Outputs}}    output          {{.}},{{end -}}
-{{ range .SDRAM.Banks}}
+    // Explicit ports
+{{- range .Ports}}
+    {{if .Input}}input{{else}}output{{end}}   {{if .MSB}}[{{.MSB}}:{{.LSB}}]{{end}} {{.Name}},{{end }}
+    // Buses to BRAM
+{{- range .BRAM }}
+    {{if not .Addr}}output   {{ addr_range . }} {{.Name}}_addr,{{end}}{{ if .Rw }}
+    output   {{ data_range . }} {{.Name}}_din,{{end}}
+    input    {{ data_range . }} {{.Name}}_dout,
+    {{- if .Dual_port.Name }}
+    {{ if not .Dual_port.Cs }}input    {{.Dual_port.Name}}_cs, // Dual port for {{.Dual_port.Name}}
+    {{end}}{{end}}
+{{- end}}
+{{- $first := true -}}
+{{- range .SDRAM.Banks}}
 {{- range .Buses}}
-    {{- if $first}}{{$first = false}}{{else}},{{end}}
-
-    output   {{ addr_range . }} {{.Name}}_addr,
+    {{- if $first}}
+    // Buses to SDRAM{{$first = false}}{{else}},
+{{end}}
     input    {{ data_range . }} {{.Name}}_data,{{if not .Cs}}
+    output          {{.Name}}_cs,{{end}}{{if not .Addr }}
+    output   {{ addr_range . }} {{.Name}}_addr,{{end}}
 {{- if .Rw }}
-    output          {{.Name}}_we,
-    output   {{ data_range . }} {{.Name}}_din,
-    output   [ 1:0] {{.Name}}_dsn,{{end}}
-    output          {{.Name}}_cs,{{end}}
+    output          {{.Name}}_we,{{ if not .Din}}
+    output   {{ data_range . }} {{.Name}}_din,{{end }}{{if not .Dsn}}
+    output   [ 1:0] {{.Name}}_dsn,{{end}}{{end }}
     input           {{.Name}}_ok{{end}}
 {{- end}}

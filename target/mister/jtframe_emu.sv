@@ -56,6 +56,7 @@ module emu
     output        VGA_F1,
     output  [1:0] VGA_SL,
     output        VGA_SCALER,
+    output        VGA_DISABLE, // analog out is off
 
     input  [11:0] HDMI_WIDTH,
     input  [11:0] HDMI_HEIGHT,
@@ -76,12 +77,23 @@ module emu
     // I/O board button press simulation (active high)
     // b[1]: user button
     // b[0]: osd button
-    // output  [1:0] BUTTONS,
+    output  [1:0] BUTTONS,
 
     input         CLK_AUDIO,
     output reg [15:0] AUDIO_L,
     output reg [15:0] AUDIO_R,
     output        AUDIO_S,   // 1 - signed audio samples, 0 - unsigned
+    output  [1:0] AUDIO_MIX, // 0 - no mix, 1 - 25%, 2 - 50%, 3 - 100% (mono)
+
+    //ADC
+    inout   [3:0] ADC_BUS,
+
+    //SD-SPI
+    output        SD_SCK,
+    output        SD_MOSI,
+    input         SD_MISO,
+    output        SD_CS,
+    input         SD_CD,
 
     //SDRAM interface with lower latency
     output        SDRAM_CLK,
@@ -95,6 +107,13 @@ module emu
     output        SDRAM_nCAS,
     output        SDRAM_nRAS,
     output        SDRAM_nWE,
+
+    input         UART_CTS,
+    output        UART_RTS,
+    input         UART_RXD,
+    output        UART_TXD,
+    output        UART_DTR,
+    input         UART_DSR,
 
     `ifdef JTFRAME_VERTICAL
     output        FB_EN,
@@ -136,7 +155,8 @@ module emu
     output  [6:0] USER_OUT,
     output        db15_en,
     output        uart_en,
-    output        show_osd
+    output        show_osd,
+    input         OSD_STATUS
     `ifdef SIMULATION
     ,output       sim_pxl_cen,
     output        sim_pxl_clk,
@@ -158,15 +178,21 @@ wire   field;
 assign VGA_F1=field;
 `endif
 
-assign VGA_SCALER = 0;
+// unused features
+assign VGA_SCALER  = 0;
+assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
+assign AUDIO_MIX   = 0;
+assign BUTTONS     = 0;
+assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 
 wire [3:0] hoffset, voffset;
 
 ////////////////////   CLOCKS   ///////////////////
 
 wire clk_sys, clk_rom, clk96, clk96sh, clk48, clk48sh, clk24, clk6;
-wire game_rst, game_service, rst, rst_n;
+wire game_rst, game_service, game_tilt, rst, rst_n;
 wire clk_pico;
 wire pxl2_cen, pxl_cen;
 wire rst96, rst48, rst24, rst6;
@@ -393,10 +419,11 @@ assign AUDIO_S = `JTFRAME_SIGNED_SND;
 assign prog_data = {2{prog_data8}};
 `endif
 
-reg pxl1_cen;
-
-// this places the pxl1_cen in the pixel centre
-always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
+// Line-Frame buffer
+wire [ 8:0] game_hdump, ln_addr;
+wire [ 7:0] game_vrender, ln_v;
+wire        ln_done, ln_hs, ln_we;
+wire [15:0] ln_pxl, ln_data;
 
 jtframe_mister #(
     .SDRAMW        ( SDRAMW         ),
@@ -436,7 +463,7 @@ u_frame(
     .LVBL           ( LVBL           ),
     .hs             ( hs             ),
     .vs             ( vs             ),
-    .pxl_cen        ( pxl1_cen       ),
+    .pxl_cen        ( pxl_cen        ),
     .pxl2_cen       ( pxl2_cen       ),
 
     // Audio
@@ -445,6 +472,17 @@ u_frame(
     .snd_sample     ( sample         ),
     .snd_rout       ( AUDIO_R        ),
     .snd_lout       ( AUDIO_L        ),
+
+    // line-frame buffer
+    .game_vrender   ( game_vrender   ),
+    .game_hdump     ( game_hdump     ),
+    .ln_addr        ( ln_addr        ),
+    .ln_data        ( ln_data        ),
+    .ln_done        ( ln_done        ),
+    .ln_hs          ( ln_hs          ),
+    .ln_pxl         ( ln_pxl         ),
+    .ln_v           ( ln_v           ),
+    .ln_we          ( ln_we          ),
 
     `ifdef JTFRAME_VERTICAL
     // Screen rotation
@@ -547,6 +585,7 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
+    .game_tilt      ( game_tilt      ),
     .joyana_l1      ( joyana_l1      ),
     .joyana_l2      ( joyana_l2      ),
     .joyana_l3      ( joyana_l3      ),
@@ -686,6 +725,19 @@ assign sim_pxl_cen = pxl_cen;
     .ioctl_din    ( ioctl_din        ),
 `endif
 
+`ifdef JTFRAME_LF_BUFFER
+    // line-frame buffer
+    .game_vrender ( game_vrender     ),
+    .game_hdump   ( game_hdump       ),
+    .ln_addr      ( ln_addr          ),
+    .ln_data      ( ln_data          ),
+    .ln_done      ( ln_done          ),
+    .ln_hs        ( ln_hs            ),
+    .ln_pxl       ( ln_pxl           ),
+    .ln_v         ( ln_v             ),
+    .ln_we        ( ln_we            ),
+`endif
+
     // ROM load
     .downloading ( downloading    ),
     .dwnld_busy  ( dwnld_busy     ),
@@ -737,6 +789,7 @@ assign sim_pxl_cen = pxl_cen;
     // DIP switches
     .status       ( status           ),
     .service      ( game_service     ),
+    .tilt         ( game_tilt        ),
     .dip_pause    ( dip_pause        ),
     .dip_flip     ( dip_flip         ),
     .dip_test     ( dip_test         ),

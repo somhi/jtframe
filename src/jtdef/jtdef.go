@@ -25,6 +25,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -153,6 +154,11 @@ func get_defpath(cfg Config) string {
 	}
 }
 
+func defined( macros map[string]string, key string ) bool {
+	_ ,e := macros[key]
+	return e
+}
+
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
 	parse_def(get_defpath(cfg), cfg, &macros)
@@ -165,15 +171,8 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	case "mister", "sockit":
 		macros["SEPARATOR"] = "-;"
 	}
-	macros["TARGET"] = cfg.Target
 	// Adds a macro with the target name
 	macros[ strings.ToUpper(cfg.Target) ] = "1"
-	// Adds the date
-	year, month, day := time.Now().Date()
-	datestr := fmt.Sprintf("%d%02d%02d", year%100, month, day)
-	macros["DATE"] = datestr
-	// Adds the commit
-	macros["COMMIT"] = cfg.Commit
 	if cfg.Commit!="" {
 		// fmt.Fprintln( os.Stderr, "jtframe cfgstr: using commit ", cfg.Commit)
 		if len(cfg.Commit)>=7 {
@@ -185,8 +184,31 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Adds the CORENAME if missing. This macro is expected to exist in macros.def
 	_, exists := macros["CORENAME"]
 	if ! exists {
-		macros["CORENAME"] = cfg.Core
 		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s", cfg.Core)
+	}
+	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
+	if mem_managed {
+		_, exists = macros["JTFRAME_SDRAM_BANKS"]
+		if !exists && mem_managed {
+			macros["JTFRAME_SDRAM_BANKS"] = ""
+		}
+		macros["JTFRAME_MEMGEN"] = ""
+	}
+	// Macros with default values
+	year, month, day := time.Now().Date()
+	defaul_values := map[string]string{
+		"JTFRAME_COLORW": "4",
+		"JTFRAME_TIMESTAMP":fmt.Sprintf("%d", time.Now().Unix()),
+		"CORENAME": cfg.Core,
+		"DATE": fmt.Sprintf("%d%02d%02d", year%100, month, day),
+		"COMMIT": cfg.Commit,
+		"TARGET": cfg.Target,
+	}
+	for k,v := range defaul_values {
+		_, exists = macros[k]
+		if !exists {
+			macros[k] = v
+		}
 	}
 	// Derives the GAMETOP module from the CORENAME if unspecified
 	_, exists = macros["GAMETOP"]
@@ -197,16 +219,6 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			macros["GAMETOP"] = strings.ToLower(macros["CORENAME"]+"_game_sdram")
 		}
 	}
-	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
-	if mem_managed {
-		_, exists = macros["JTFRAME_SDRAM_BANKS"]
-		if !exists && mem_managed {
-			macros["JTFRAME_SDRAM_BANKS"] = ""
-		}
-		macros["JTFRAME_MEMGEN"] = ""
-	}
-	// Adds the timestamp
-	macros["JTFRAME_TIMESTAMP"] = fmt.Sprintf("%d", time.Now().Unix())
 	// prevent the CORE_OSD from having two ;; in a row or starting with ;
 	core_osd := macros["CORE_OSD"]
 	if len(core_osd) > 0 {
@@ -237,13 +249,23 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// JTFRAME_PLL is defined as the PLL name
 	// in the .def file. This will define that
 	// name as a macro on its own too
+	mclk := 48000
 	if pll, e := macros["JTFRAME_PLL"]; e {
 		macros[strings.ToUpper(pll)] = ""
+		freq_str := regexp.MustCompile("[0-9]+$").FindString(pll)
+		if freq_str == "" {
+			log.Fatal("JTFRAME: macro JTFRAME_PLL=", pll, " is not well formed. It should contain the pixel clock in kHz")
+		}
+		freq, _ := strconv.Atoi(freq_str)
+		freq *= 8
 	}
+	if defined(macros,"JTFRAME_SDRAM96") || defined(macros,"JTFRAME_CLK96") {
+		mclk *= 2
+	}
+	macros["JTFRAME_MCLK"] = fmt.Sprintf("%d",mclk)
 	// if the macro BETA is defined, and we are on MiSTer, make
 	// sure JTFRAME_CHEAT is defined too
-	_, isbeta := macros["BETA"]
-	if isbeta {
+	if defined( macros, "BETA" ) {
 		_, cheatok := macros["JTFRAME_CHEAT"]
 		if !cheatok && (cfg.Target == "mister" || cfg.Target == "sockit") {
 			fmt.Fprintln(os.Stderr, "Compiling a BETA for MiSTer but JTFRAME_CHEAT was not set\nAdding it now automatically.")

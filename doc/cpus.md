@@ -20,6 +20,7 @@ Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65 (VHDL)
 6502        |   937        |    0  |  chip_6502 (Andrew Holme)
 PicoBlaze   |   950        |    0  |  PauloBlaze
+MCS48       |   657        |    3  |  T48 (VHDL)
 
 ## Z80
 
@@ -37,3 +38,14 @@ These two modules offer a Z80 CPU plus:
 ## 6502
 
 The recommended CPU core is the netlist to verilog conversion by [Andrew Holme](http://www.aholme.co.uk/6502/Main.htm). This version requires a clock at least 16x faster than the target 6502 speed, and a 50% duty cycle for a PHI signal that represents the actual 6502 clock. The output has glitches similar to the original ones (not necessarily at the same time). Because of this, the connection is not straight forward. The wrapper [jtframe_mos6502](../hdl/cpu/jtframe_mos6502.v) takes care of these things.
+
+## VHDL
+
+Verilator cannot simulate VHDL. It is possible to run mixed language simulations in _jtframe_ by using _modelsim_ in the simulation with `jtsim -modelsim`. However, this is very slow. In order to speed it up, convert the modules to verilog first using [ghdl](https://github.com/ghdl).
+
+```
+ghdl -a -fsynopsys @gatherfile
+ghdl synth --out=verilog toplevel_name > toplevel_name.v
+```
+
+Another valid tool is [VHD2VL](https://github.com/ldoolitt/vhd2vl)

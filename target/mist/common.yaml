@@ -1,7 +1,7 @@
 # Common files to MiST, SiDi and NeptUNO
 jtframe:
   - from: sound
-    unless: pocket
+    unless: POCKET
     get:
       - hybrid_pwm_sd.v
       - hifi_1bit_dac.v
@@ -25,7 +25,7 @@ target:
       - pll6293/jtframe_pll6293.qip
       - pll6671/jtframe_pll6671.qip
   - from: mist
-    unless: pocket
+    unless: POCKET
     get:
       - mist_io.sdc
       - jtframe_mist_base.v

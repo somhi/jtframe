@@ -40,8 +40,8 @@ module jtframe_mist #(parameter
     input              LVBL,
     input              hs,
     input              vs,
-    input              pxl_cen,
-    input              pxl2_cen,
+    inout              pxl2_cen,
+    inout              pxl_cen,
     // LED
     input        [1:0] game_led,
     // MiST VGA pins
@@ -143,6 +143,7 @@ module jtframe_mist #(parameter
     output   [3:0]  game_coin,
     output   [3:0]  game_start,
     output          game_service,
+    output          game_tilt,
     output  [15:0]  joyana_l1,
     output  [15:0]  joyana_r1,
     output  [15:0]  joyana_l2,
@@ -353,6 +354,7 @@ jtframe_board #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     // Mouse & paddle
     .bd_mouse_dx    ( bd_mouse_dx     ),
     .bd_mouse_dy    ( bd_mouse_dy     ),
@@ -437,6 +439,7 @@ jtframe_board #(
     .ioctl_addr ( ioctl_addr[7:0]),
     .st_addr    ( st_addr       ),
     .st_dout    ( st_dout       ),
+    .target_info( 8'h00         ),
 
     // Base video
     .osd_rotate     ( rotate          ),

@@ -22,17 +22,49 @@ It is recommended to remove the *debug_bus* once the core is stable. When the co
 
 By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_view* to *sys_info*. This 8-bit signals carries information from modules inside JTFRAME, aside from core-specific information. This is available as long as **JTFRAME_RELEASE** was not used for compilation. The *debug_bus* selects which information to display. Note that *sys_info* is shown in a reddish color, while *debug_view* is shown in white.
 
-At the moment, this can be used to see the number of SDRAM access done in a frame. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details. Note that the access count is divided by 4096, for display convenience. The SDRAM stats are as follow depending on the value of *st_addr* (which is the same as the debug_bus in MiST).
+st_addr[7:6] |  Read
+-------------|-------------
+  00         |  SDRAM stats
+  01         |  Frame count (BCD)
+  10         |  Sample rate (BCD)
+
+### Frame Count
+
+This is the total number of frames since the last reset. The count gets halted during pause.
+
+st_addr[0]  |  Read
+------------|-----------
+  0         | lower 8 bits (BCD)
+  1         | upper 8 bits (BCD)
+
+### Sample Rate
+
+If the core exercises the *sample* signal, JTFRAME can report the current sample rate.
 
 st_addr     |  Read
 ------------|-----------
-bit 7 clear | Combined access in all banks
-bit 7 set   | bits 5:4 select the bank for which stats are shown
-bit 2 clear | Show access count divided by 4096
-bit 2 set   | Show access count divided by 256 (may overflow)
-bits 1:0=0  | Show frame stats
-bits 1:0=1  | Show active region stats
-bits 1:0=2  | Show blank region stats
+  X         | rate in kHz (BCD)
+
+
+### SDRAM Information
+
+The number of SDRAM access done in a frame gets displayed. See [jtframe_sdram_stats](../hdl/sdram/jtframe_sdram_stats.v) for details. Note that the access count is divided by 4096, for display convenience. The SDRAM stats are as follow depending on the value of *st_addr* (which is the same as the debug_bus in MiST).
+
+The SDRAM numbers are not in BCD, but in plain binary. Rather than the absolute number, the interesting thing about the SDRAM report is the relative usage. A good design should try to balance access counts among all banks.
+
+st_addr     |  Read
+------------|-----------
+bit 5 set   | Combined access in all banks
+bit 5 clear | bits 1:0 select the bank for which stats are shown
+bit 4 clear | Show access count divided by 4096
+bit 4 set   | Show access count divided by 256 (may overflow)
+bits 3:2=0  | Show frame stats
+bits 3:2=1  | Show active region stats
+bits 3:2=2  | Show blank region stats
+
+## Target Info
+
+By pressing SHIFT+CTRL again, the core displays an 8-bit signal defined by the JTFRAME target subsystem. This information is shown in blue. The MiSTer target uses this feature to show the status of the [line-frame buffer](../hdl/video/jtframe_lfbuf_ddr_ctrl.v).
 
 ## Generic SDRAM Dump
 
@@ -44,7 +76,11 @@ The SDRAM bank0 can be partially shadowed in BRAM and download as NVRAM via the 
 
 It is not possible to use JTFRAME_SHADOW and JTFRAME_IOCTL_RD at the same time.
 
-## Frequency counter
+## Helper Modules
+
+- jtframe_simwr_68k replaces a M68000 in simulation and writes a sequence of values from a CSV file to the data bus
+
+## Frequency Counter
 
 Sometimes it is useful to measure an internal frequency. The module [jtframe_freqinfo](../hdl/clocking/jtframe_freqinfo.v) provides this information. It needs to know the clock frequency in kHz and it provides the measured frequency in kHz too.
 

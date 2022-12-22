@@ -24,21 +24,9 @@
 // depending on whether we are running simulations
 // or synthesis
 
-// By default use tv80s for simulation only.
-// This can be overridden by defining VHDLZ80 or TV80S explicitly
-`ifndef VHDLZ80
-`ifndef TV80S
-
-`ifdef SIMULATION
-      `define TV80S
-`else
-      `define VHDLZ80
-`endif
-
-`endif
-`endif
-
+`ifndef VERILATOR_KEEP_CPU
 /* verilator tracing_off */
+`endif
 
 // This is a wrapper for jtframe_sysz80_nvram, for volatile RAM
 module jtframe_sysz80(
@@ -299,7 +287,8 @@ module jtframe_z80_devwait (
     input         dev_busy
 );
 
-parameter M1_WAIT=0; // wait states after M1 goes down
+parameter M1_WAIT=0,  // wait states after M1 goes down
+          RECOVERY=1; // enable clock cycle recovery
 wire wait_n;
 
 `ifdef SIMULATION
@@ -336,7 +325,7 @@ generate
     end
 endgenerate
 
-jtframe_z80wait #(1) u_wait(
+jtframe_z80wait #(1,RECOVERY) u_wait(
     .rst_n      ( rst_n     ),
     .clk        ( clk       ),
     .cen_in     ( cen       ),
@@ -397,6 +386,23 @@ module jtframe_z80 (
     input  [7:0]  din,
     output [7:0]  dout
 );
+
+// By default use tv80s for simulation only.
+// This can be overridden by defining VHDLZ80 or TV80S explicitly
+`ifndef VHDLZ80
+`ifndef TV80S
+`ifndef MODELSIM
+
+`ifdef SIMULATION
+      `define TV80S
+      initial $display("WARNING: Using Verilog version of T80 for simulation.");
+`else
+      `define VHDLZ80
+`endif
+
+`endif
+`endif
+`endif
 
 `ifdef VHDLZ80
 T80s u_cpu(

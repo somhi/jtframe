@@ -41,6 +41,7 @@ module jtframe_inputs(
     input       [3:0] key_coin,
     input             key_service,
     input             key_test,
+    input             key_tilt,
 
     input             key_pause,
     input             osd_pause,
@@ -55,6 +56,7 @@ module jtframe_inputs(
     output reg [3:0]  game_start,
     output reg        game_service,
     output            game_test,
+    output reg        game_tilt,
     input             lock, // disable joystick inputs
 
     // Mouse & Paddle
@@ -182,6 +184,15 @@ function [9:0] apply_rotation;
     end
 endfunction
 
+function [9:0] reorder;
+    input [9:0] joy_in;
+    begin
+        reorder = joy_in; // default order up, down, left, right
+`ifdef JTFRAME_JOY_LRUD reorder[3:0]={joy_in[1:0],joy_in[3:2]}; `endif
+`ifdef JTFRAME_JOY_RLDU reorder[3:0]={joy_in[0], joy_in[1], joy_in[2], joy_in[3]}; `endif
+    end
+endfunction
+
 `ifdef SIM_INPUTS
     reg [15:0] sim_inputs[0:16383];
     integer frame_cnt;
@@ -220,15 +231,15 @@ always @(posedge clk, posedge rst) begin
 `ifdef SIM_INPUTS
         game_coin  <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][1:0] };
         game_start <= {4{ACTIVE_LOW[0]}} ^ { 2'b0, sim_inputs[frame_cnt][3:2] };
-        game_joy1  <= {10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] };
+        game_joy1  <= reorder({10{ACTIVE_LOW[0]}} ^ { 3'd0, sim_inputs[frame_cnt][10:4] });
 `else
-        game_joy1  <= apply_rotation( joy1_sync | key_joy1 | { mouse_but_1p, 4'd0}, rot_control, ~dip_flip, autofire );
         game_coin  <= {4{ACTIVE_LOW[0]}} ^ ( joy_coin | key_coin  | board_coin  );
         game_start <= {4{ACTIVE_LOW[0]}} ^ ( joy_start| key_start | board_start );
+        game_joy1  <= reorder(apply_rotation( joy1_sync | key_joy1 | { mouse_but_1p, 4'd0}, rot_control, ~dip_flip, autofire ));
 `endif
-        game_joy2 <= apply_rotation(joy2_sync | key_joy2 | { mouse_but_2p, 4'd0}, rot_control, ~dip_flip, autofire );
-        game_joy3 <= apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip, autofire );
-        game_joy4 <= apply_rotation(joy4_sync           , rot_control, ~dip_flip, autofire );
+        game_joy2 <= reorder(apply_rotation(joy2_sync | key_joy2 | { mouse_but_2p, 4'd0}, rot_control, ~dip_flip, autofire ));
+        game_joy3 <= reorder(apply_rotation(joy3_sync | key_joy3, rot_control, ~dip_flip, autofire ));
+        game_joy4 <= reorder(apply_rotation(joy4_sync           , rot_control, ~dip_flip, autofire ));
 
         soft_rst <= key_reset && !last_reset;
 
@@ -255,6 +266,7 @@ always @(posedge clk, posedge rst) begin
         game_pause <= 1'b1;
 `endif
         game_service <= key_service ^ ACTIVE_LOW[0];
+        game_tilt    <= key_tilt    ^ ACTIVE_LOW[0];
 
         // Disable inputs for locked cores
         if( lock ) begin

@@ -37,15 +37,18 @@ JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
 JTFRAME_COLORW           |         | Sets the number of bits per color component (default=4)
 JTFRAME_DEBUG            |         | Enables the debug_bus signal connection to the game instance
 JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
-JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_FORCED_DIPSW     | Pocket  | Forces a fixed value for the DIP switches
+JTFRAME_HEADER           |         | Set to the length of the ROM file header
 JTFRAME_HEIGHT           |         | Sets the video height
 JTFRAME_INTERLACED       |         | Support for interlaced games
 JTFRAME_INTERPOL2        |         | Enables a x2 FIR interpolation filter for audio. The game 'sample' output must be well defined
 JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interface. Set it to the number of bytes to save on MiST. Any value will work for MiSTer
+JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are right, left, down, up
+JTFRAME_JOY_LRUD         |         | Joystick lower 4 bits are left, right, up, down
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
+JTFRAME_MFREQ            |         | Automatically set to the master clock in kHz. Depends on JTFRAME_PLL
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
 JTFRAME_MOUSE            |         | Enables mouse input. See [inputs.md](inputs.md)
@@ -70,7 +73,8 @@ JTFRAME_OSD_SND_EN       |         | OSD option to enable/disable FX and FM chan
 JTFRAME_OSD_TEST         |         | Test option on OSD
 JTFRAME_OSD_VOL          |         | Show FX volume control on OSD
 JTFRAME_OSDCOLOR         |         | Sets the OSD colour
-JTFRAME_PLL              |         | PLL module name to be used. Defaults to jtframe_pll0
+JTFRAME_PLL              |         | PLL module name to be used. PLL names must end in the pixel clock frequency in kHz
+JTFRAME_PXLCLK           |         | 6 or 8. Defines de pixel clock. See [clocks](clocks.md)
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending
@@ -145,6 +149,7 @@ Macro                    | Target  |  Usage
 -------------------------|---------|---------------------------------------------
 DUMP_VIDEO               |         | Enables video dump to a file
 DUMP_VIDEO_FNAME         |         | Internal. Do not assign.
+JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_SAVESDRAM        |         | Saves SDRAM contents at the end of each frame (slow)
 JTFRAME_SDRAM_STATS      |         | Produce SDRAM usage data during simulation
 JTFRAME_SIM_DIPS         |         | Define DIP switch values during simulation
@@ -155,8 +160,10 @@ JTFRAME_SIM_DEBUG        |verilator| debug_bus is increased by one each frame. S
 SIMULATION               |         | Enables simulation features
 VIDEO_START              |         | First frame for which video output is provided use it to prevent a split first frame
 DUMP_6809                |         | Generates a m6809.log during simulation with register dumps
+VERILATOR_KEEP_CPU       |verilator| Keeps Z80 signals during simulation
+VERILATOR_KEEP_VTIMER    |verilator| Keeps jtframe_vtimer signals
 
-# ROM Downloading
+## ROM Downloading
 
 The following macros only have an effect if SIMULATION is defined.
 

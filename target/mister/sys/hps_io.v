@@ -65,6 +65,13 @@ module hps_io #(parameter STRLEN=0, PS2DIV=0, WIDE=0, VDNUM=1, PS2WE=0)
 	output reg [15:0] joystick_r_analog_4,
 	output reg [15:0] joystick_r_analog_5,
 
+	input      [15:0] joystick_0_rumble, // 15:8 - 'large' rumble motor magnitude, 7:0 'small' rumble motor magnitude
+	input      [15:0] joystick_1_rumble,
+	input      [15:0] joystick_2_rumble,
+	input      [15:0] joystick_3_rumble,
+	input      [15:0] joystick_4_rumble,
+	input      [15:0] joystick_5_rumble,
+
 	// paddle 0..255
 	output reg  [7:0] paddle_0,
 	output reg  [7:0] paddle_1,
@@ -330,6 +337,12 @@ always@(posedge clk_sys) begin : uio_block
 				'h36: begin io_dout <= info_n; info_n <= 0; end
 				'h39: io_dout <= 1;
 				'h3E: io_dout <= 1; // shadow mask
+				'h003F: io_dout <= joystick_0_rumble;
+				'h013F: io_dout <= joystick_1_rumble;
+				'h023F: io_dout <= joystick_2_rumble;
+				'h033F: io_dout <= joystick_3_rumble;
+				'h043F: io_dout <= joystick_4_rumble;
+				'h053F: io_dout <= joystick_5_rumble;
 			endcase
 
 			sd_buff_addr <= 0;

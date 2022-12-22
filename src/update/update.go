@@ -20,8 +20,9 @@ type Groups map[string]string
 
 type Config struct {
 	Max_jobs               int
-	Dryrun, Debug, Nogit, Nohdmi, Nosnd, Actions, Seed, Private bool
+	Dryrun, Nogit, Nohdmi, Nosnd, Actions, Seed, Private bool
 	Network, Group, extra  string
+	Beta, Stamp					   string
 	cores                  []string
 	CoreList			   string
 	Targets                map[string]bool
@@ -122,7 +123,7 @@ func update_actions(jtroot string, cfg Config) {
 	rand.Seed(time.Now().UnixNano())
 
 	for target, _ := range cfg.Targets {
-		if target=="mister" {
+		if target=="mister" || target=="sockit" {
 			continue // not ready yet
 		}
 		for _, core := range cfg.cores {
@@ -204,14 +205,22 @@ func dump_output(cfg Config) {
 			if cfg.Private {
 				jtcore = jtcore + " --private"
 			}
+			if cfg.Stamp!="" {
+				jtcore += " --corestamp " + cfg.Stamp
+			}
+			if cfg.Beta != "" {
+				jtcore +=" -d BETA -d JTFRAME_CHEAT_SCRAMBLE -d JTFRAME_UNLOCKKEY=" + cfg.Beta
+			}
 			if cfg.Nohdmi {
 				jtcore = jtcore + " -d MISTER_DEBUG_NOHDMI"
 			}
 			if cfg.Nosnd {
 				jtcore = jtcore + " -d NOSOUND"
 			}
-			if !cfg.Private && !cfg.Debug && !cfg.Nogit {
+			if cfg.Beta != "" || cfg.Private {
 				jtcore = jtcore + " -d JTFRAME_RELEASE"
+			}
+			if !cfg.Nogit {
 				jtcore = jtcore + " --git"
 			}
 			copy := false
@@ -304,10 +313,6 @@ func Run( cfg *Config, all_args []string ) {
 
 	parse_args( cfg, cores_folder, all_args)
 
-	// Some checks on the arguments
-	if cfg.Private && cfg.Debug {
-		log.Fatal("jtupdate: cannot specify --private and --debug together")
-	}
 	// parse .jtupdate file
 	file, err := os.Open(jtroot + "/.jtupdate")
 	if err == nil {

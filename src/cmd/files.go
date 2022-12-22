@@ -30,8 +30,27 @@ var filesCmd = &cobra.Command{
 	Long: `The project files are defined in cores/corename/game.yaml.
 jtframe files command will also add the required files for the
 selected compilation or simulation target.
+
 The first argument selects simulation (sim) or synthesis (output). The
-synthesis output consists of .qip files compatible with Intel Quartus.`,
+synthesis output consists of .qip files compatible with Intel Quartus.
+
+The simulation output creates two files:
+- game.f for all verilog files
+- jtsim_vhdl.f for all VHDL files
+
+The yaml file is composed of several sections, which can only appear once:
+
+- game: get files from a given core hdl folder
+- jtframe: get files from jtframe/hdl folders
+- modules: get files from the modules folder
+
+# Conditional file parsing:
+
+Each file list can be parsed conditionally using the keys:
+- unless: will always parse it unless the macro is defined
+- when: will only parse it when the macro is defined
+
+`,
 	Run:  run_files,
 	Args: cobra.ExactArgs(2),
 }
@@ -42,10 +61,8 @@ func init() {
 	rootCmd.AddCommand(filesCmd)
 	flag := filesCmd.Flags()
 
-	flag.StringVar(&files_args.Output, "output", "", "Output file name with no extension. Default is 'game'")
-	flag.StringVar(&files_args.Target, "target", "", "Target platform: mist, mister, pocket, etc.")
+	flag.StringVarP(&files_args.Target, "target", "t", "", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVar(&files_args.Rel, "rel", false, "Output relative paths")
-	flag.BoolVar(&files_args.SkipVHDL, "novhdl", false, "Skip VHDL files")
 }
 
 func run_files(cmd *cobra.Command, args []string) {

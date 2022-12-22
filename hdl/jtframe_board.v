@@ -118,6 +118,7 @@ module jtframe_board #(parameter
     output    [ 3:0]  game_coin,
     output    [ 3:0]  game_start,
     output            game_service,
+    output            game_tilt,
 
     // Mouse & Paddle
     input      [ 8:0] bd_mouse_dx,
@@ -153,8 +154,7 @@ module jtframe_board #(parameter
     input             LVBL,
     input             hs,
     input             vs,
-    input             pxl_cen,
-    input             pxl2_cen,
+    inout             pxl2_cen, pxl_cen,
     // Base video after OSD and Debugger
     output [3*COLORW-1:0] base_rgb,
     output            base_LHBL,
@@ -186,6 +186,7 @@ module jtframe_board #(parameter
     input      [31:0] cheat,
     output     [ 7:0] st_addr,
     input      [ 7:0] st_dout,
+    input      [ 7:0] target_info,
     input      [31:0] timestamp,
     // GFX enable
     output     [3:0]  gfx_en,
@@ -247,12 +248,11 @@ localparam
 `endif
     PROG_LEN = 32;
 
-
 wire  [ 2:0] scanlines;
 wire         bw_en, blend_en;
 wire         en_mixing;
 wire         osd_pause;
-wire         debug_plus, debug_minus, key_shift, key_ctrl;
+wire         debug_plus, debug_minus, key_shift, key_ctrl, key_alt;
 
 wire         key_reset, key_pause, key_test, rot_control;
 wire         game_pause, soft_rst, game_test;
@@ -262,7 +262,7 @@ wire   [9:0] key_joy1, key_joy2, key_joy3;
 wire   [7:0] key_digit;
 wire   [3:0] key_start, key_coin;
 wire   [3:0] key_gfx;
-wire         key_service;
+wire         key_service, key_tilt;
 wire         lock;
 wire         autofire0;
 
@@ -285,6 +285,14 @@ wire [SDRAMW-1:0] bax_addr;
 assign base_rgb  = { dbg_r, dbg_g, dbg_b };
 assign base_LHBL = pre2x_LHBL;
 assign base_LVBL = pre2x_LVBL;
+
+`ifdef JTFRAME_PXLCLK
+    jtframe_pxlcen u_pxlcen(
+        .clk        ( clk_rom   ),
+        .pxl_cen    ( pxl_cen   ),
+        .pxl2_cen   ( pxl2_cen  )
+    );
+`endif
 
 jtframe_reset u_reset(
     .clk_sys    ( clk_sys       ),
@@ -333,10 +341,12 @@ jtframe_keyboard u_keyboard(
     .key_test    ( key_test      ),
     .key_pause   ( key_pause     ),
     .key_service ( key_service   ),
+    .key_tilt    ( key_tilt      ),
     .key_digit   ( key_digit     ),
 
     .shift       ( key_shift     ),
     .ctrl        ( key_ctrl      ),
+    .alt         ( key_alt       ),
     .key_gfx     ( key_gfx       ),
     .debug_plus  ( debug_plus    ),
     .debug_minus ( debug_minus   )
@@ -351,6 +361,7 @@ jtframe_keyboard u_keyboard(
 
             .shift       ( key_shift     ),
             .ctrl        ( key_ctrl      ),
+            .alt         ( key_alt       ),
             .key_gfx     ( key_gfx       ),
             .key_digit   ( key_digit     ),
             .debug_plus  ( debug_plus    ),
@@ -358,6 +369,7 @@ jtframe_keyboard u_keyboard(
 
             // overlay the value on video
             .pxl_cen     ( pxl_cen       ),
+            .dip_flip    ( dip_flip      ),
             .rin         ( pre2x_r       ),
             .gin         ( pre2x_g       ),
             .bin         ( pre2x_b       ),
@@ -370,14 +382,17 @@ jtframe_keyboard u_keyboard(
             .gfx_en      ( gfx_en        ),
             .debug_bus   ( debug_bus     ),
             .debug_view  ( debug_view    ),
-            .sys_info    ( sys_info      )
+            .sys_info    ( sys_info      ),
+            .target_info ( target_info   )
         );
 
-        jtframe_sdram_stats u_stats(
-            .rst        ( rst           ),
+        jtframe_sys_info u_info(
+            .rst        ( game_rst      ),
             .clk        ( clk_sys       ),
-            .rdy        ( bax_rdy       ),
+            .sample     ( snd_sample    ),
+            .dip_pause  ( dip_pause     ),
             .LVBL       ( LVBL          ),
+            .ba_rdy     ( bax_rdy       ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )
         );
@@ -400,6 +415,7 @@ jtframe_keyboard u_keyboard(
     assign key_reset   = 1'b0;
     assign key_pause   = 1'b0;
     assign key_service = 1'b0;
+    assign key_tilt    = 1'b0;
     assign key_test    = 1'b0;
     assign gfx_en      = `JTFRAME_SIM_GFXEN;
     assign debug_bus   = 0;
@@ -435,6 +451,7 @@ jtframe_inputs #(
     .key_start      ( key_start       ),
     .key_coin       ( key_coin        ),
     .key_service    ( key_service     ),
+    .key_tilt       ( key_tilt        ),
     .key_pause      ( key_pause       ),
     .key_test       ( key_test        ),
     .osd_pause      ( osd_pause       ),
@@ -448,6 +465,7 @@ jtframe_inputs #(
     .game_coin      ( game_coin       ),
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
+    .game_tilt      ( game_tilt       ),
     .game_test      ( game_test       ),
     .lock           ( lock            ),
 
@@ -513,7 +531,7 @@ jtframe_dip u_dip(
         .game_rd    ( ba_rd[0]  ),
         .game_wr    ( ba_wr[0]  ),
         .game_din   ( ba0_din   ),
-        .game_din_m ( ba0_din_m ),
+        .game_din_m ( ba0_dsn   ),
         .game_ack   ( cheat_ack ),
         .game_dst   ( cheat_dst ),
         .game_rdy   ( cheat_rdy ),
@@ -526,7 +544,7 @@ jtframe_dip u_dip(
         .ba0_rdy    ( bax_rdy[0]),
         .ba0_ack    ( bax_ack[0]),
         .ba0_din    ( bax_din   ),
-        .ba0_din_m  ( bax_dsn ),
+        .ba0_din_m  ( bax_dsn   ),
         .data_read  ( sdram_dout),
 
         .flags      ( cheat     ),

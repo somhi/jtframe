@@ -84,7 +84,7 @@ module jtframe_dual_ram_cen #(parameter dw=8, aw=10,
     simfile="", simhexfile="",
     synfile="",
     ascii_bin=0,  // set to 1 to read the ASCII file as binary
-    dumpfile="dump.hex"
+    dumpfile="dump" // do not add an extension to the name
 )(
     input   clk0,
     input   cen0,
@@ -153,15 +153,28 @@ generate
             `ifdef SIMULATION
                 // Content dump for simulation debugging
                 `ifdef JTFRAME_DUAL_RAM_DUMP
-                    integer fdump=0, dumpcnt;
+                    integer fdump=0, dumpcnt, fcnt=32'h30303030;
+                    reg dumpl;
 
-                    always @(posedge dump) begin
-                        $display("INFO: contents dumped to %s", dumpfile );
-                        if( fdump==0 )begin
-                            fdump=$fopen(dumpfile,"w");
+
+
+                    always @(posedge clk1) begin
+                        dumpl <= dump;
+                        if( dump & ~dumpl ) begin
+                            $display("INFO: %m contents dumped to %s", dumpfile );
+                            fdump=$fopen( {dumpfile, "_", fcnt[23:0],".hex"},"w");
+                            for( dumpcnt=0; dumpcnt<2**aw; dumpcnt=dumpcnt+1 )
+                                $fdisplay(fdump,"%0X", mem[dumpcnt]);
+                            $fclose(fdump);
+                            // increment fcnt
+                            fcnt[7:0] <= fcnt[7:0]==8'h39 ? 8'h30 : fcnt[7:0]+1'd1;
+                            if( fcnt[7:0]==8'h39 ) begin
+                                fcnt[15-:8] <= fcnt[15-:8]==8'h39 ? 8'h30 : fcnt[15-:8]+1'd1;
+                                if( fcnt[15-:8]==8'h39 ) begin
+                                    fcnt[23-:8] <= fcnt[23-:8]==8'h39 ? 8'h30 : fcnt[23-:8]+1'd1;
+                                end
+                            end
                         end
-                        for( dumpcnt=0; dumpcnt<2**aw; dumpcnt=dumpcnt+1 )
-                            $fdisplay(fdump,"%X", mem[dumpcnt]);
                     end
                 `endif
 

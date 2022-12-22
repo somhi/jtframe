@@ -31,8 +31,6 @@ if [ -n "$TERM" ]; then
     NC=`tput sgr0`
 fi
 
-echo "${wBG}=========== JTSIM starts ===========${NC}"
-
 DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
@@ -41,6 +39,7 @@ TOP=game_test
 TARGET=
 FILES=
 MACROPREFIX=+define+
+VERILATOR_SAFE=
 EXTRA=
 SHOWCMD=
 ARGNUMBER=1
@@ -48,8 +47,11 @@ SAMPLING_RATE=
 TESTCPP=
 GATES=NO
 MACOS=NO
+KEEP_FX68K=
 SED="sed -i"
 START_TIME=$(date +%s)
+# Extra arguments for the simulator, passed with -args
+SIMULATOR_EXTRA=
 
 rm -f macros.f
 
@@ -74,11 +76,13 @@ function show_help {
 JTFRAME simulation tool. (c) Jose Tejada 2019-2022, @topapate
 Please support the development: https://patreon.com/jotego
 
+    -args      Additional arguments for the simulator
     -d         Add specific Verilog macros for the simulation.
                Call jtmacros to display all macros.
     -deep      Save all signals for scope verification. See -w below.
     -frame     Number of frames to simulate
     -gates     Gate-level simulation
+    -fx68k     Keep FX68K files for Icarus Verilog
     -inputs    Defines SIM_INPUTS macro:
                Game cabinet inputs will be taken from a sim_inputs.hex
                file. Each line contains a byte with the input status.
@@ -102,7 +106,9 @@ Please support the development: https://patreon.com/jotego
     -ncverilog Select NCVerilog as the simulator
     -nosnd     Disable SOUND hardware. Speeds up simulation a lot!
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
+    -pocket    Select PocketFPGA as target platform
     -questasim Use QuestaSim as the simulator
+    -safe      Disable verilator optimizations that may halt the elaboration stage
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis
     -synap     Use Synapticad's simulator
@@ -215,11 +221,12 @@ function add_macro {
 function set_mist_as_target {
     TOP=mist_test
     TARGET=mist
-    add_macro MIST
 }
 
 while [ $# -gt 0 ]; do
 case "$1" in
+    -args) shift; SIMULATOR_EXTRA="$SIMULATOR_EXTRA $1";;
+    -fx68k) KEEP_FX68K=1;;
     -showcmd) SHOWCMD="echo";;
     -sysname) shift;; # ignore here
     -modules) shift;; # ignore here
@@ -276,7 +283,6 @@ case "$1" in
     -pocket)
         TOP=test
         TARGET=pocket
-        add_macro POCKET
         ;;
     #################### MiST setup
     -mist)
@@ -286,7 +292,6 @@ case "$1" in
     -mister|-mr)
         TOP=mister_test
         TARGET=mister
-        add_macro MISTER
         # Generate a fake build_id.v file
         echo "\`define BUILD_DATE \"190311\"" > build_id.v
         echo "\`define BUILD_TIME \"190311\"" >> build_id.v
@@ -305,6 +310,8 @@ case "$1" in
         SIM_MS="$1"
         echo Simulate $1 ms
         ;;
+    -safe)
+        VERILATOR_SAFE=-fno-dfg-peephole;;
     -stats)
         add_macro JTFRAME_SDRAM_STATS
         echo RAM stats enabled
@@ -363,6 +370,8 @@ done
 if [ -z "$TARGET" ]; then
     set_mist_as_target
 fi
+
+echo "${wBG}=========== JTSIM starts for $TARGET ===========${NC}" > /dev/stderr
 
 if [ -z "$SYSNAME" ]; then
     AUX=`pwd`
@@ -488,15 +497,14 @@ if [ $GATES = NO ]; then
             # ' induces new line by modelsim
             $SED "s/'h/\\\\'h/g" core.def;;
         iverilog)
-            # Remove references to fx68k as it is not supported in iverilog
-            $SED /fx68k/d game.f;;
+            if [ ! -z "$KEEP_FX68K" ]; then
+                # Remove references to fx68k as it is not supported in iverilog
+                $SED /fx68k/d game.f
+            fi;;
     esac
-    cat game.f jtsim_vhdl.f jtsim.f >> tmp.f
+    cat game.f jtsim.f >> tmp.f
     cat tmp.f | envsubst | grep -v "^#" | xargs realpath --relative-to=. | sort | uniq > game_env.f
     cat macros.f >> game_env.f
-    # Take out .vhd definitions
-    grep \.vhd game_env.f >> jtsim_vhdl.f
-    $SED /.vhd/d game_env.f
     # Sort and delete duplicates
     emulate_F game_env.f | sort | uniq > filtered.f
     rm -f game_env.f tmp.f
@@ -548,7 +556,7 @@ case $SIMULATOR in
 iverilog)
     SIMEXE=sim
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
-        -f target.f \
+        $SIMULATOR_EXTRA \
         -s $TOP -o $SIMEXE \
         -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc\
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
@@ -559,9 +567,9 @@ modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
     $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
-        +initwireX \
+        +initwireX $SIMULATOR_EXTRA \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
-        $SIMARGS -f target.f \
+        $SIMARGS $SIMULATOR_EXTRA\
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
     echo calling vsim $TOP
@@ -572,26 +580,27 @@ run -all
 EOF
     fi
     vsim -64 -batch -do "do vsim.do" $TOP || exit $?
+    if [ -e test.vcd ]; then vcd2fst test.vcd test.fst && rm test.vcd; fi
     ;;
 synapticad)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f
     $SHOWCMD simx +access+r +define+SYNAPTICAD +timescale+1ns/1ps\
-        -f filtered.f -f target.f $FILES \
+        -f filtered.f $FILES \
         +scd_top+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
-        $SIMARGS \
+        $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $EXTRA -l /dev/null || exit $?;;
 ncverilog)
     # ls $JTFRAME/hdl/cpu/t80/T80{pa,_ALU,_Reg,_MCode,"",s}.vhd >> jtsim_vhdl.f
     $SHOWCMD ncverilog +access+r +nc64bit +define+NCVERILOG +nctimescale+1ns/1ps\
         -mcmaxcores 3 -mccodegen \
-        -sysv -f jtsim_vhdl.f -f target.f \
+        -sysv -f jtsim_vhdl.f \
         -disable_sem2009 $FILES \
         +nctop+$TOP \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
         -ncvhdl_args,-V93 \
-        $SIMARGS \
+        $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         -nowarn "MCONDE" -nowarn "NOCOND" -nowarn "RECOME" -nowarn "ZROMCW" \
         $EXTRA -l /dev/null || exit $?;;
@@ -623,12 +632,12 @@ verilator)
     # $SED '/fx68k/d' filtered.f
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
     $SHOWCMD verilator -I../../hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
-        game_test.v $SIMARGS \
+        game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
          $EXTRA $TRACE --prefix UUT --assert \
-         --cc test.cpp --exe \
-         -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT \
+         --cc test.cpp --exe $SIMULATOR_EXTRA \
+         -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT $VERILATOR_SAFE \
         || exit $?
     # boost C++ optimization without affecting other settings
     # export CPPFLAGS=`echo "$CPPFLAGS" | sed s/-O1/-O3/`
@@ -653,9 +662,8 @@ verilator)
     fi
 esac
 
-rm -f video.pipe
-rm -f frame.raw
-rm -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
+rm -f video.pipe frame.raw test.cpp game_test.v \
+   -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
 # killall --quiet raw2png
 
 # convert raw sound file to wav format
@@ -670,4 +678,4 @@ COMPILE_TIME=$[$END_TIME - $START_TIME]
 MINUTES=$[$COMPILE_TIME / 60]
 SECONDS=$[$COMPILE_TIME % 60]
 
-echo "====== JTSIM finished in "$MINUTES\'$SECONDS\"" ======"
+echo "====== JTSIM finished in "$MINUTES\'$SECONDS\"" ======" > /dev/stderr

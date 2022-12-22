@@ -116,7 +116,7 @@ wire        sample;
 
 wire [9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [3:0] game_coin, game_start;
-wire       game_rst, game_service;
+wire       game_rst, game_service, game_tilt;
 wire       rst96, rst48, rst24, rst6;
 wire [3:0] gfx_en;
 // SDRAM
@@ -339,6 +339,7 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
+    .game_tilt      ( game_tilt      ),
     .joyana_l1      ( joyana_l1      ),
     .joyana_l2      ( joyana_l2      ),
     .joyana_l3      ( joyana_l3      ),
@@ -554,6 +555,7 @@ u_game(
     .dip_test    ( dip_test       ),
     .dip_fxlevel ( dip_fxlevel    ),
     .service     ( game_service   ),
+    .tilt        ( game_tilt      ),
     .dipsw       ( dipsw          ),
 
 `ifdef JTFRAME_GAME_UART

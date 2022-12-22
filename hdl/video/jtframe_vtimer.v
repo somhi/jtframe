@@ -21,17 +21,21 @@
 // By default vertical blanking and sync toggle with horizontal blanking and sync
 // but some games make these signals toggle in the middle of the vertical ones
 // See Side Arms for an example
+
 // By default, H/V counters end with the blanking signal, for some games it
 // may be useful to define the end count differently
 // Depending on how the graphic hardware is designed, H/V count start and end values
 // can be important, as well as when signals toggle (like in a 8-multiple of H)
 // but these limitations can be trade off for different ones if the design is changed
+
 // A default VS pulse of three lines and HS pulse of 4.5us will fit the TV standard
 // but some games use different values
 // See the parameter definition below to alter the needed parameters when
 // instantiating the module
 
+`ifndef VERILATOR_KEEP_VTIMER
 /* verilator tracing_off */
+`endif
 
 module jtframe_vtimer(
     input               clk,
@@ -61,27 +65,31 @@ parameter [8:0] V_START  = 9'd0,
                 HB_START = HB_END-9'd116,
                 HS_START = 9'd330,
                 HS_END   = HS_START+9'd27, // Default 4.5us for a 6MHz clock
-                HCNT_END = HB_END > HS_END ? HB_END : HS_END,
                 H_VB     = HB_START,
                 H_VS     = HS_START,
                 H_VNEXT  = HS_START,
                 HINIT    = H_VNEXT,
+                HJUMP    = 0, // set to 1 so the HCNT goes from 0 to FF and then from 180 to 1FF.
+                              // HCNT_START and HCNT_END are ignored if HJUMP is set
+                HCNT_END = HB_END > HS_END ? HB_END : HS_END,
                 HCNT_START=9'd0;
 
 `ifdef SIMULATION
 initial begin
+    // starts off at the beginning of the vertical blanking
+    // to match MAME timing
     Hinit    = 0;
     Vinit    = 0;
-    LHBL     = 0;
-    LVBL     = 1;
-    LVBL1    = 1;
-    LVBL2    = 1;
+    LVBL     = 0;
+    LVBL1    = LVBL;
+    LVBL2    = LVBL;
     HS       = 0;
     VS       = 0;
-    H        = 0;
-    vrender1 = 0;
-    vrender  = 0;
-    vdump    = 0;
+    LHBL     = 1;
+    H        = HB_START;
+    vdump    = VB_START;
+    vrender  = vdump+1'd1;
+    vrender1 = vrender+1'd1;
 
     // VS should be at least 3 line long
     // In the case the count is expressed in a funny way
@@ -101,7 +109,10 @@ end
 // H counter
 always @(posedge clk) if(pxl_cen) begin
     Hinit <= H == HINIT;
-    H     <= H == HCNT_END ? HCNT_START : (H+9'd1);
+    if( HJUMP[0] )
+        H <= H==9'hFF ? 9'h180 : (H+9'd1);
+    else
+        H <= H == HCNT_END ? HCNT_START : (H+9'd1);
 end
 
 always @(posedge clk) if(pxl_cen) begin

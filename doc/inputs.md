@@ -8,10 +8,13 @@ Key     |   Action
   5-8   |  coin slots
   P     |  Pause, press SERVICE (9) while in pause to advance one frame
   9     |  Service
+  T     |  Tilt
  F2     |  Test mode
  F3     |  Reset
  F7-F10 |  gfx_en control see [debug.md](debug.md)
  +/-    |  debug_bus control see [debug.md](debug.md)
+
+ Most games ignore the *tilt* input. One that reacts to it is [Insector X](https://github.com/jotego/jtbubl), which shows the word *TILT* on screen and then reboots.
 
 # Joysticks
 

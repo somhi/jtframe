@@ -180,6 +180,14 @@ assign din      = (bg[3] && BA3_WEN) ? ba3_din :
                   (bg[2] && BA2_WEN) ? ba2_din :
                   (bg[2] && BA1_WEN) ? ba1_din : ba0_din;
 
+`ifdef SIMULATION
+    always @(posedge clk) begin
+        if( wr[3] & ~BA3_WEN ) begin $display("%m attempt to write to SDRAM bank 3, but it is not enable. Set JTFRAME_BA3_WEN"); $finish; end
+        if( wr[2] & ~BA2_WEN ) begin $display("%m attempt to write to SDRAM bank 2, but it is not enable. Set JTFRAME_BA2_WEN"); $finish; end
+        if( wr[1] & ~BA1_WEN ) begin $display("%m attempt to write to SDRAM bank 1, but it is not enable. Set JTFRAME_BA1_WEN"); $finish; end
+    end
+`endif
+
 `ifndef VERILATOR
 reg  [15:0] dq_pad;
 assign sdram_dq = dq_pad;

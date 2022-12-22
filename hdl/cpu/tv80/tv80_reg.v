@@ -74,6 +74,7 @@ module tv80_reg (/*AUTOARG*/
 
   // break out ram bits for waveform debug
 // synopsys translate_off
+  /*verilator tracing_on*/
   wire [7:0] B = RegsH[0];
   wire [7:0] C = RegsL[0];
   wire [7:0] D = RegsH[1];
@@ -83,6 +84,9 @@ module tv80_reg (/*AUTOARG*/
 
   wire [15:0] IX = { RegsH[3], RegsL[3] };
   wire [15:0] IY = { RegsH[7], RegsL[7] };
+`ifndef VERILATOR_KEEP_CPU
+  /*verilator tracing_off*/
+`endif
 // synopsys translate_on
 
 endmodule

@@ -11,128 +11,8 @@
 `endif
 
 module jt{{.Core}}_game_sdram(
-    input           rst,
-    input           clk,
-`ifdef JTFRAME_CLK24
-    input           rst24,
-    input           clk24,
-`endif
-`ifdef JTFRAME_CLK48
-    input           rst48,
-    input           clk48,
-`endif
-    output          pxl2_cen,   // 12   MHz
-    output          pxl_cen,    //  6   MHz
-    output   [`JTFRAME_COLORW-1:0]  red,
-    output   [`JTFRAME_COLORW-1:0]  green,
-    output   [`JTFRAME_COLORW-1:0]  blue,
-    output          LHBL,
-    output          LVBL,
-    output          HS,
-    output          VS,
-    // cabinet I/O
-`ifdef JTFRAME_4PLAYERS
-    input    [ 3:0] start_button,
-    input    [ 3:0] coin_input,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick1,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick2,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick3,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick4,
-`else
-    input    [ 1:0] start_button,
-    input    [ 1:0] coin_input,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick1,
-    input    [`JTFRAME_BUTTONS-1+4:0] joystick2,
-`endif
-`ifdef JTFRAME_ANALOG
-    input   [15:0]  joyana_l1,
-    input   [15:0]  joyana_l2,
-    `ifdef JTFRAME_ANALOG_DUAL
-    input   [15:0]  joyana_r1,
-    input   [15:0]  joyana_r2,
-    `endif
-    `ifdef JTFRAME_4PLAYERS
-    input   [15:0]  joyana_l3,
-    input   [15:0]  joyana_l4,
-        `ifdef JTFRAME_ANALOG_DUAL
-    input   [15:0]  joyana_r3,
-    input   [15:0]  joyana_r4,
-        `endif
-    `endif
-`endif
-    // SDRAM interface
-    input           downloading,
-    output          dwnld_busy,
-`ifdef JTFRAME_IOCTL_RD
-    input           ioctl_ram,
-    output   [ 7:0] ioctl_din,
-`endif
-    // Bank 0: allows R/W
-    output   [21:0] ba0_addr,
-    output   [21:0] ba1_addr,
-    output   [21:0] ba2_addr,
-    output   [21:0] ba3_addr,
-    output   [ 3:0] ba_rd,
-    // Write signals
-    output   [ 3:0] ba_wr,
-    output   [15:0] ba0_din,
-    output   [ 1:0] ba0_dsn,  // write mask
-    output   [15:0] ba1_din,
-    output   [ 1:0] ba1_dsn,
-    output   [15:0] ba2_din,
-    output   [ 1:0] ba2_dsn,
-    output   [15:0] ba3_din,
-    output   [ 1:0] ba3_dsn,
-
-    input    [ 3:0] ba_ack,
-    input    [ 3:0] ba_dst,
-    input    [ 3:0] ba_dok,
-    input    [ 3:0] ba_rdy,
-
-    input    [15:0] data_read,
-    // ROM LOAD
-    input   [24:0]  ioctl_addr,
-    input   [ 7:0]  ioctl_dout,
-    input           ioctl_wr,
-    output  [21:0]  prog_addr,
-    output  [15:0]  prog_data,
-    output  [ 1:0]  prog_mask,
-    output  [ 1:0]  prog_ba,
-    output          prog_we,
-    output          prog_rd,
-    input           prog_ack,
-    input           prog_dok,
-    input           prog_dst,
-    input           prog_rdy,
-    // DIP switches
-    input   [31:0]  status,     // only bits 31:16 are looked at
-    input   [31:0]  dipsw,
-    input           service,
-    input           dip_pause,
-    inout           dip_flip,
-    input           dip_test,
-    input   [ 1:0]  dip_fxlevel,
-    // Sound output
-`ifdef JTFRAME_STEREO
-    output  signed [15:0] snd_left,
-    output  signed [15:0] snd_right,
-`else
-    output  signed [15:0] snd,
-`endif
-    output          sample,
-    output          game_led,
-    input           enable_psg,
-    input           enable_fm,
-    // Debug
-`ifdef JTFRAME_DEBUG
-    input   [ 7:0]  debug_bus,
-    output  [ 7:0]  debug_view,
-`endif
-`ifdef JTFRAME_STATUS
-    input   [ 7:0]  st_addr,
-    output  [ 7:0]  st_dout,
-`endif
-    input   [ 3:0]  gfx_en
+    `include "jtframe_common_ports.inc"
+    `include "jtframe_mem_ports.inc"
 );
 
 /* verilator lint_off WIDTH */
@@ -157,8 +37,19 @@ parameter {{.Name}} = {{ if .Value }}{{.Value}}{{else}}`{{.Name}}{{ end}};
 `ifndef JTFRAME_IOCTL_RD
 wire ioctl_ram = 0;
 `endif
-
-{{range .Ports.Outputs}}wire {{.}};{{end}}
+// Additional ports
+{{range .Ports}}wire {{if .MSB}}[{{.MSB}}:{{.LSB}}]{{end}} {{.Name}};
+{{end}}
+// BRAM buses
+{{- range .BRAM }}
+wire     {{ addr_range . }} {{.Name}}_addr;
+wire     {{ data_range . }} {{.Name}}_din;
+wire     {{ data_range . }} {{.Name}}_dout;
+{{ if .Dual_port.Name }}
+{{ if not .Dual_port.Cs }}wire    {{.Dual_port.Name}}_cs; // Dual port for {{.Dual_port.Name}}
+{{end}}{{end}}
+{{- end}}
+// SDRAM buses
 {{ range .SDRAM.Banks}}
 {{- range .Buses}}
 wire {{ addr_range . }} {{.Name}}_addr;
@@ -225,6 +116,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .status         ( status        ),
     .dipsw          ( dipsw         ),
     .service        ( service       ),
+    .tilt           ( tilt          ),
     .dip_pause      ( dip_pause     ),
     .dip_flip       ( dip_flip      ),
     .dip_test       ( dip_test      ),
@@ -240,23 +132,33 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .game_led       ( game_led      ),
     .enable_psg     ( enable_psg    ),
     .enable_fm      ( enable_fm     ),
-    // Memory interface
-    {{- range .Ports.Outputs}}
-    .{{.}}   ( {{.}} ),
-    {{end}}
+    // Ports declared in mem.yaml
+    {{- range .Ports}}
+    .{{.Name}}   ( {{.Name}} ),
+    {{- end}}
+    // Memory interface - SDRAM
     {{- range .SDRAM.Banks}}
-    {{- range .Buses}}
-    .{{.Name}}_addr ( {{.Name}}_addr ),{{ if not .Cs}}
+    {{- range .Buses}}{{if not .Addr}}
+    .{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if not .Cs}}
     .{{.Name}}_cs   ( {{.Name}}_cs   ),{{end}}
     .{{.Name}}_ok   ( {{.Name}}_ok   ),
     .{{.Name}}_data ( {{.Name}}_data ),
     {{- if .Rw }}
     .{{.Name}}_we   ( {{.Name}}_we   ),
-    .{{.Name}}_dsn  ( {{.Name}}_dsn  ),
-    .{{.Name}}_din  ( {{.Name}}_din  ),
+    {{if not .Dsn}}.{{.Name}}_dsn  ( {{.Name}}_dsn  ),{{end}}
+    {{if not .Din}}.{{.Name}}_din  ( {{.Name}}_din  ),{{end}}
     {{- end}}
     {{end}}
     {{- end}}
+    // Memory interface - BRAM
+{{- range .BRAM }}
+    {{if not .Addr}}.{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if .Rw }}
+    .{{.Name}}_din  ( {{.Name}}_din  ),{{end}}
+    .{{.Name}}_dout ( {{.Name}}_dout ),
+    {{ if .Dual_port.Name -}}
+    {{ if not .Dual_port.Cs }}.{{.Dual_port.Name}}_cs ( {{.Dual_port.Name}}_cs ),  // Dual port for {{.Dual_port.Name}}{{end}}
+    {{- end}}
+{{- end}}
     // PROM writting
     .ioctl_addr   ( ioctl_addr     ),
     .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : raw_addr      ),
@@ -293,7 +195,18 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .st_addr      ( st_addr        ),
     .st_dout      ( st_dout        ),
 `endif
-    .gfx_en       ( gfx_en         )
+`ifdef JTFRAME_LF_BUFFER
+    .game_vrender( game_vrender  ),
+    .game_hdump  ( game_hdump    ),
+    .ln_addr     ( ln_addr       ),
+    .ln_data     ( ln_data       ),
+    .ln_done     ( ln_done       ),
+    .ln_hs       ( ln_hs         ),
+    .ln_pxl      ( ln_pxl        ),
+    .ln_v        ( ln_v          ),
+    .ln_we       ( ln_we         ),
+`endif
+    .gfx_en      ( gfx_en        )
 );
 
 assign dwnld_busy = downloading | prom_we; // prom_we is really just for sims
@@ -359,16 +272,17 @@ jtframe_{{.MemType}}_{{len .Buses}}slot{{with lt 1 (len .Buses)}}s{{end}} #(
 ) u_bank{{$bank}}(
     .rst         ( rst        ),
     .clk         ( clk        ),
-    {{ range $index2, $each:=.Buses }}
+    {{ range $index2, $each:=.Buses }}{{if .Addr}}
+    .slot{{$index2}}_addr  ( {{.Addr}} ),{{else}}
     {{- if eq .Data_width 32 }}
     .slot{{$index2}}_addr  ( { {{.Name}}_addr, 1'b0 } ),
     {{- else }}
     .slot{{$index2}}_addr  ( {{.Name}}_addr  ),
-    {{- end }}
+    {{- end }}{{end}}
     {{- if .Rw }}
     .slot{{$index2}}_wen   ( {{.Name}}_we    ),
-    .slot{{$index2}}_din   ( {{.Name}}_din   ),
-    .slot{{$index2}}_wrmask( {{.Name}}_dsn   ),
+    .slot{{$index2}}_din   ( {{if .Din}}{{.Din}}{{else}}{{.Name}}_din{{end}}   ),
+    .slot{{$index2}}_wrmask( {{if .Dsn}}{{.Dsn}}{{else}}{{.Name}}_dsn{{end}}   ),
     {{with .Offset }}.slot{{$index2}}_offset( {{.}}[21:0] ), {{end}}
     {{- else }}
     {{- if not $is_rom }}
@@ -406,4 +320,43 @@ assign ba{{$index}}_dsn  = 3;
 assign ba{{$index}}_din  = 0;
 {{ end -}}
 {{ end -}}
+
+{{ range $cnt, $bus:=.BRAM -}}
+{{- if $bus.Dual_port.Name }}
+// Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
+jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
+    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
+    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+) u_bram_{{$bus.Name}}(
+    // Port 0 - {{$bus.Name}}
+    .clk0   ( clk ),
+    .addr0  ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),{{ if $bus.Rw }}
+    .data0  ( {{$bus.Name}}_din  ),
+    .we0    ( {2{ {{$bus.Cs}} }} & ~{{$bus.Name}}.dsn ), {{ else }}
+    .data0  ( {{$bus.Data_width}}'h0 ),
+    .we0    ( 2'd0 ),{{end}}
+    .q0     ( {{$bus.Name}}_dout ),
+    // Port 1 - {{$bus.Dual_port.Name}}
+    .clk1   ( clk ),
+    .data1  ( {{if $bus.Dual_port.Din}}{{$bus.Dual_port.Din}}{{else}}{{$bus.Dual_port.Name}}_dout{{end}} ),
+    .addr1  ( {{$bus.Dual_port.Name}}_addr{{ addr_range $bus }}),{{ if $bus.Dual_port.Rw }}
+    .we1    ( {2{ {{if $bus.Dual_port.Cs}}{{$bus.Dual_port.Cs}}{{else}}{{$bus.Dual_port.Name}}_cs{{end}} }} & ~{{$bus.Dual_port.Name}}_dsn ), {{ else }}
+    .we1    ( 2'd0 ),{{end}}
+    .q1     ( {{$bus.Name}}2{{$bus.Dual_port.Name}}_data )
+);{{else}}
+// BRAM for {{$bus.Name}}
+jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
+    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
+    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+) u_bram_{{$bus.Name}}(
+    .clk    ( clk ),
+    .addr   ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),
+    .data   ( {{if $bus.Din}}{{$bus.Din}}{{else}}{{$bus.Name}}_din{{end}}  ),{{ if eq $bus.Data_width 16 }}
+    .we     ( {2{ {{if $bus.Cs}}{{$bus.Cs}}{{else}}{{$bus.Name}}_cs{{end}} }} & ~{{$bus.Name}}.dsn ),{{else}}
+    .we     ( {{$bus.Name}}_we   ),{{end}}
+    .q      ( {{$bus.Name}}_dout )
+);{{ end }}
+{{ end }}
 endmodule

@@ -16,11 +16,11 @@
     Version: 1.0
     Date: 22-2-2019 */
 
-`ifdef MULTICORE2PLUS
+`ifdef MCP
     `define MC2_PINS
 `endif
 
-`ifdef MULTICORE2
+`ifdef MC2
     `define MC2_PINS
 `endif
 
@@ -64,7 +64,7 @@ module neptuno_top(
     inout           PS2_MOUSE_DATA
     
     // Joystick
-`ifndef MULTICORE2
+`ifndef MC2
     // joy pins for neputo and Multicore 2 plus
     ,output         JOY_CLK,
     output          JOY_LOAD,
@@ -98,7 +98,7 @@ module neptuno_top(
     ,output wire  STM_RESET,
     output wire   SPI_nWAIT
         
-`ifdef MULTICORE2PLUS
+`ifdef MCP
     //Multicore 2 plus exclusive pins
     ,inout [31:0] GPIO 
 `endif   
@@ -127,7 +127,7 @@ module neptuno_top(
     assign STM_RESET = 1'bZ;
 `endif  
 
-`ifdef MULTICORE2PLUS    
+`ifdef MCP
    //disable external interfaces for this core
     assign GPIO = 32'Hzzzz; 
 `endif  
@@ -208,7 +208,7 @@ assign snd_right = snd_left;
 wire [5:0] joy1_bus;
 wire [5:0] joy2_bus;
 
-`ifndef MULTICORE2
+`ifndef MC2
     joystick_serial u_serial(
         .clk_i           ( clk_sys     ),
         .joy_data_i      ( JOY_DATA    ),

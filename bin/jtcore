@@ -55,6 +55,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --program | -p  programs the FPGA via JTAG
     --quick|-q      quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
+    -qs             Same as -q but with sound.
     --quicker|-qq   same as -q but it also disabled HDMI output and sets MiSTer as target
     --seed          sets random seed for compilation
     --sim           prepares Quartus simulation
@@ -62,7 +63,6 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --showmacros    Shows the macros used for compilation and exits
     --target|-t <target>
                     specifies the target platform
-    --rename        name used for copying the RBF file into the SD card
     --verbose | -v  verbose
 
     --help          displays this message
@@ -80,7 +80,6 @@ OUTPUTDIR=output_files
 PRIVATE=0
 PRJ=
 PROG=FALSE
-RENAME=
 SEED=1
 SIM=FALSE
 SKIP_COMPILE=FALSE
@@ -138,6 +137,10 @@ function parse_args {
                 MACROS="$MACROS NOSOUND JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X"
                 UNMACROS="$UNMACROS JTFRAME_CREDITS"
                 GIT=FALSE;;
+            -qs)
+                MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X"
+                UNMACROS="$UNMACROS JTFRAME_CREDITS"
+                GIT=FALSE;;
             --skip | -s) SKIP_COMPILE=TRUE;;
             --quicker|-qq)
                 MACROS="$MACROS NOSOUND JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI"
@@ -176,9 +179,6 @@ function parse_args {
                     exit 1
                 fi
                 TARGET=$1;;
-            --rename)
-                shift
-                RENAME=$1;;
             --seed)
                 shift
                 SEED=$1;;
@@ -217,14 +217,17 @@ if [ "$JTROOT" = "" ]; then
         source setprj.sh --quiet
     else
         echo -e "${yBG}WARNING:${NC}${wBG} cannot find setprj.sh in ${red}$(pwd)${NC}"
+        exit 1
     fi
 fi
 
 if [ "$JTROOT" = "" ]; then
-    echo -e "${rBG}ERROR:${NC}${wBG} Missing JTROOT environment variable. Define it to${NC}"
-    echo -e "      ${wBG} point to the root folder of the project to compile.${NC}"
+    echo -e "${rBG}ERROR:${NC}${wBG} Missing JTROOT environment variable.${NC}"
+    echo -e "      ${wBG}Source JTFRAME/bin/setprj.sh in bash before compiling.${NC}"
     exit 1
 fi
+
+if [ -e $JTROOT/.jtcore ]; then source $JTROOT/.jtcore; fi
 
 # The FTP folder can be set in the project's $JTROOT/setprj.sh file
 # This is the MiSTer folder to which files will be copied to via ssh
@@ -237,8 +240,12 @@ MODULES=$JTROOT/modules
 JTFRAME=$MODULES/jtframe
 
 # Sets the commit string to a short commit and an optional -dirty suffix
+function is_dirty {
+    git status --short | grep -i "^ M " > /dev/null
+}
+
 PRJCOMMIT=$(git rev-parse --short HEAD)
-if (git status --short | grep "^ M " > /dev/null); then
+if is_dirty; then
     PRJCOMMIT="$PRJCOMMIT-dirty"
 fi
 
@@ -277,7 +284,7 @@ if [ -z "$CORE_FOLDER" ]; then
 fi
 
 if [ $GIT = TRUE ]; then
-    if (git status --short | grep "^ M " > /dev/null); then
+    if is_dirty; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
@@ -386,17 +393,17 @@ function report {
         $PRJCOMMIT $JTFRAMECOMMIT >> $JTROOT/log/builds.log
 }
 
+# Define the CORENAME macro
+`eval parse_macros bash | grep CORENAME | tr -d \" `
+# lower case version
+corename=${CORENAME,,}
+
 START_TIME=$(date +%s)
 echo =============== JTCORE =======================
 echo -e "${wBG}$CORENAME $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(date +%T)${NC}${wBG} with seed ${red}$SEED${NC}${wBG} on $(hostname)${NC}"
 if [ "$MACROS" != "" ]; then
     echo Explicit macros: $MACROS
 fi
-
-# Define the CORENAME macro
-`eval parse_macros bash | grep CORENAME | tr -d \" `
-# lower case version
-corename=${CORENAME,,}
 
 ################ compilation
 if [ $SKIP_COMPILE = FALSE ]; then
@@ -442,15 +449,6 @@ if [ $SKIP_COMPILE = FALSE ]; then
         fi
     done
 
-    # Link .hex files in mist, if they exist
-    if [ $TARGET != mist ]; then
-        for i in $PRJPATH/mist/*.hex; do
-            if [ -e "$i" ]; then
-                ln -srf $i $PRJPATH/$TARGET/$(basename $i)
-            fi
-        done
-    fi
-
     ############################################
     # Recompile
     rm -rf db incremental_db output_files
@@ -483,6 +481,16 @@ if [ $SKIP_COMPILE = FALSE ]; then
             echo -e "${yBG}WARNING:${NC}${wBG} some SDRAM signals are not IO registers${NC}"
             cat sdram_badio.rpt
         fi
+        if grep "inferring latch" $RPTPATH/jt$PRJ.map.rpt; then
+            echo "Warning: latch inferred"
+        fi
+        # Report connectivity problems
+        grep \^Warning $LOG | grep \\.v | grep -v altera_pll\\.v \
+        | grep -v altera_cyclonev_pll\\.v \
+        | grep -v "\.data_a.*has no driver or initial value" \
+        | grep -v "\.waddr_a.*has no driver or initial value" \
+        | grep -v "\.we_a.*has no driver or initial value"
+        # Report timing
         grep --color=auto "Worst-case.*-[0-9.]*" "$LOG"
         if [ $? = 0 ]; then
             FAIL=1
@@ -525,14 +533,9 @@ esac
 # Rename output file
 cd $JTROOT
 mkdir -p releases/$TARGET
-if [ -z $RENAME ]; then
-    SHORT=$corename
-else
-    SHORT=$RENAME
-fi
 
 # date stamp is only added to MiSTer (and family) output
-RELEASE=${SHORT}
+RELEASE=$corename
 if is_mister_family; then
     RELEASE=${RELEASE}_$CORESTAMP
 fi
@@ -551,6 +554,15 @@ if [ ! -e $RBF ]; then
     exit 1
 fi
 
+function archive_commit {
+    cp $1 releases/$TARGET/$RELEASE.$EXT
+    if [ ${#PRJCOMMIT} = 7 ]; then
+        mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
+        cp $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
+        ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $JTROOT/releases/$TARGET/latest
+    fi
+}
+
 if [ $TARGET = pocket ]; then
     # The Pocket must have something misconnected inside
     # and it requires the bit order in each RBF byte to
@@ -562,7 +574,7 @@ if [ $TARGET = pocket ]; then
         cd -
     fi
     $JTFRAME/bin/reverse_bits $RBF ${RBF}_r
-    cp ${RBF}_r releases/$TARGET/$RELEASE.$EXT
+    archive_commit ${RBF}_r
     if [ -e $ROM/pocket/Cores/jotego.$corename ]; then
         cp ${RBF}_r $ROM/pocket/Cores/jotego.$corename
         if [ -d /media/$USER/POCKET  ]; then
@@ -573,7 +585,7 @@ if [ $TARGET = pocket ]; then
     fi
 else
     cp $RBF $RELEASE.rbf
-    cp $RELEASE.rbf releases/$TARGET/$RELEASE.$EXT
+    archive_commit $RELEASE.rbf
 fi
 
 ######################################################################################
@@ -599,15 +611,11 @@ fi
 # Copy the file to the SD card. The SD card must have the same name as the target platform
 if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
     cd $JTROOT
-    if [ -z "$RENAME" ]; then
-        RENAME=JT${PRJ^^}.$EXT
-    else
-        RENAME=$RENAME.$EXT
-    fi
+    RENAME=${CORENAME^^}.$EXT
     # copy the file in three forms:
     # with full date for reference, as core.rbf to start up with it
     # and inside its own folder for use with ARC files
-    cp -v $RBF /media/$USER/${TARGET^^}/${SHORT^^}.$EXT
+    cp -v $RBF /media/$USER/${TARGET^^}/$CORENAME.$EXT
     # Copy the file to the core folder so it can be used by ARC files
     if [ -d /media/$USER/${TARGET^^}/$CORE_FOLDER ]; then
         cp -v $RBF /media/$USER/${TARGET^^}/$CORE_FOLDER/$RENAME
@@ -638,7 +646,7 @@ if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
         fi
         popd >/dev/null
     fi
-elif [ $TARGET != pocket ]; then
+elif [[ $TARGET != pocket && $TARGET != mister && $TARGET != sockit ]]; then
     echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
 fi
 
@@ -647,7 +655,17 @@ if [ $TARGET = mister ]; then
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
     if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
     if ping $MRHOST -w 1 -c 1 > /dev/null; then
-        sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores
+        if sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+            echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
+        else
+            echo "Network copy to MiSTer failed"
+        fi
+    else
+        echo "MiSTer is not online or unreachable"
+    fi
+    if [ -d /media/$USER/MiSTer_Data ]; then
+        mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
+        cp $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
     fi
 fi
 
@@ -659,10 +677,31 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
         mkdir -p $BINFOLDER/releases
     else
         BINFOLDER=$JTBIN/$TARGET
-        BINRBF=$JTBIN/$TARGET/${SHORT}.$EXT
-        mkdir -p $BINFOLDER
+        if [ $TARGET = pocket ]; then
+            BINFOLDER=$BINFOLDER/Cores/jotego.$corename
+        fi
+        BINRBF=$BINFOLDER/$corename.$EXT
     fi
+    mkdir -p $(dirname $BINRBF)
     cp $RBF $BINRBF -v || exit 1
+    if [ $TARGET = pocket ]; then
+        # Copy the JSON files
+        if [ -e $CORES/$PRJ/cfg/mame2mra.toml ]; then
+            cd $ROM
+            # if ! jtframe mra --skipMRA $PRJ > mra.log; then cat mra.log; exit 1; fi
+            for i in Cores Presets; do
+                mkdir -p $JTBIN/pocket/$i
+                cp -rv pocket/$i/jotego.$corename $JTBIN/pocket/$i
+                cp -v pocket/$corename.txt $JTBIN/pocket
+            done
+            cp -rv pocket/Assets/$corename $JTBIN/pocket/Assets
+            cp -rv pocket/Platforms/$corename.json $JTBIN/pocket/Platforms
+            cp -rv pocket/Platforms/_images/$corename.bin $JTBIN/pocket/Platforms/_images
+            find $JTBIN/pocket -name "*.rom" -delete
+        else
+            echo "Skipping JSON file update because the core doesn't have a mame2mra.toml file"
+        fi
+    fi
     # if [ -n "$SEED_SUFFIX" ]; then
     #     cp $RELEASE.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
     # fi
@@ -694,6 +733,10 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
                 # There was no MRA or the file present was older
                 cp -v "$MAINMRA" "$NEWMRA"
                 git add "$NEWMRA"
+            fi
+            # Always copy it to the SD card
+            if [ -d /media/$USER/MiSTer_Data/_$FTP_FOLDER ]; then
+                cp -v "$MAINMRA" /media/$USER/MiSTer_Data/_$FTP_FOLDER
             fi
         fi
     fi

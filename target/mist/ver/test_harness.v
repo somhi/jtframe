@@ -109,7 +109,7 @@ reg frames_done=1'b1;
 `endif
 
 wire spi_done;
-integer fincnt;
+integer fincnt=0;
 
 // The PLL is only added if the top level does not already include it
 `ifndef MISTER
