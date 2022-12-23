@@ -678,7 +678,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
     else
         BINFOLDER=$JTBIN/$TARGET
         if [ $TARGET = pocket ]; then
-            BINFOLDER=$BINFOLDER/Cores/jotego.$corename
+            BINFOLDER=$BINFOLDER/raw/Cores/jotego.$corename
         fi
         BINRBF=$BINFOLDER/$corename.$EXT
     fi
@@ -690,13 +690,13 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
             cd $ROM
             # if ! jtframe mra --skipMRA $PRJ > mra.log; then cat mra.log; exit 1; fi
             for i in Cores Presets; do
-                mkdir -p $JTBIN/pocket/$i
-                cp -rv pocket/$i/jotego.$corename $JTBIN/pocket/$i
-                cp -v pocket/$corename.txt $JTBIN/pocket
+                mkdir -p $JTBIN/pocket/raw/$i
+                cp -rv pocket/$i/jotego.$corename $JTBIN/pocket/raw/$i
+                cp -v pocket/$corename.txt $JTBIN/pocket/raw
             done
-            cp -rv pocket/Assets/$corename $JTBIN/pocket/Assets
-            cp -rv pocket/Platforms/$corename.json $JTBIN/pocket/Platforms
-            cp -rv pocket/Platforms/_images/$corename.bin $JTBIN/pocket/Platforms/_images
+            cp -rv pocket/Assets/$corename $JTBIN/pocket/raw/Assets
+            cp -rv pocket/Platforms/$corename.json $JTBIN/pocket/raw/Platforms
+            cp -rv pocket/Platforms/_images/$corename.bin $JTBIN/pocket/raw/Platforms/_images
             find $JTBIN/pocket -name "*.rom" -delete
         else
             echo "Skipping JSON file update because the core doesn't have a mame2mra.toml file"
