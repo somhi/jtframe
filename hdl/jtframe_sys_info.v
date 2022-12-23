@@ -19,7 +19,7 @@
 // see debug.md for a table describing the st_dout vs st_addr
 
 module jtframe_sys_info(
-    input               rst,
+    input               rst_sys,
     input               clk,
     input               sample,
     input               dip_pause,
@@ -30,7 +30,9 @@ module jtframe_sys_info(
 );
 
 parameter MFREQ = `JTFRAME_MCLK;
-    
+
+reg rst;
+
 // Frame counter
 wire [15:0] frame_cnt;
 wire        frame_up;
@@ -46,6 +48,8 @@ wire [ 7:0] stats;
 assign frame_up   = LVBL & ~LVBLl & dip_pause;
 assign sample_clr = freq_cnt == MFREQ-1;
 assign sample_up  = sample & ~sl;
+
+always @(posedge clk) rst <= rst_sys;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin

@@ -45,7 +45,7 @@ reg [MAIN_RSTW-1:0] rst_rom; // rst in clk_rom domain
 reg                 rst_rom_sync;
 reg [1:0]           rst_req_sync;
 
-always @(negedge clk_sys, negedge pll_locked) begin
+always @(posedge clk_sys, negedge pll_locked) begin
     if( !pll_locked ) begin
         rst_cnt <= {MAIN_RSTW{1'b1}};
         rst     <= 1;

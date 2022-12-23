@@ -387,7 +387,7 @@ jtframe_keyboard u_keyboard(
         );
 
         jtframe_sys_info u_info(
-            .rst        ( game_rst      ),
+            .rst_sys    ( game_rst      ),
             .clk        ( clk_sys       ),
             .sample     ( snd_sample    ),
             .dip_pause  ( dip_pause     ),
