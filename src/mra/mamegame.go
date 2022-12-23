@@ -97,6 +97,7 @@ type MameXML struct {
 	Machine []MachineXML
 }
 
+// Configure whether to parse or not a machine
 type ParseCfg struct {
 	All        bool // parse all games
 	Sourcefile string
