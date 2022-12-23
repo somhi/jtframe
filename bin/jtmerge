@@ -57,6 +57,7 @@ fi
 git checkout master
 git pull
 git merge $WIP
+git push
 git tag $NEXT
 git push --tags
 
