@@ -106,6 +106,7 @@ type ParseCfg struct {
 	}
 	Skip struct {
 		Descriptions []string
+		Machines     []string
 		Setnames     []string
 		Bootlegs     bool
 	}

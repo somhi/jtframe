@@ -391,6 +391,14 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 			return true
 		}
 	}
+	for _, each := range mra_cfg.Parse.Skip.Machines {
+		if is_family( each, machine ) {
+			if args.Verbose {
+				fmt.Println("Skipping ", machine.Description, "for matching machine name")
+			}
+			return true
+		}
+	}
 	// Parse Must-be conditions
 	skip := len(mra_cfg.Parse.Mustbe.Devices)>0
 	device_check:
