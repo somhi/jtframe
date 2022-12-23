@@ -86,6 +86,10 @@ type Mame2MRA struct {
 		Zip       struct {
 			Alt string
 		}
+		Overrule []struct { // overrules values in MAME XML
+			Machine, Setname string
+			Rotate int
+		}
 	}
 
 	Features struct {
@@ -333,6 +337,13 @@ extra_loop:
 		}
 		if skip_game( machine, mra_cfg, args ) {
 			continue extra_loop
+		}
+		for _, each := range mra_cfg.Global.Overrule {
+			if is_family( each.Machine, machine ) || each.Setname == machine.Name || (each.Setname=="" && each.Machine=="") {
+				if each.Rotate != 0 {
+					machine.Display.Rotate = each.Rotate
+				}
+			}
 		}
 		for _, reg := range mra_cfg.ROM.Regions {
 			for k, r := range machine.Rom {

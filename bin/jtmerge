@@ -12,11 +12,6 @@ LAST=${LAST:1}
 
 WIP=`git branch --show-current`
 
-if [ $WIP = master ]; then
-    echo "Call jtmerge from the feature branch."
-    exit 1
-fi
-
 M=`echo $LAST|cut -d . -f 1`
 F=`echo $LAST|cut -d . -f 2`
 P=`echo $LAST|cut -d . -f 3`
@@ -29,6 +24,9 @@ case "$1" in
         NEXT=v${M}.$((F+1)).0;;
     -m|--major)
         NEXT=v$((M+1)).0.0;;
+    -v|--version)
+        echo v$LAST
+        exit 0;;
     ""|-h|--help)
         cat<<EOF
 jtmerge merges a feature branch into the master branch and advances the version number
@@ -45,6 +43,11 @@ EOF
         echo "Unknown argument $1"
         exit 1;;
 esac
+
+if [ $WIP = master ]; then
+    echo "Call jtmerge from the feature branch."
+    exit 1
+fi
 
 if is_dirty; then
     echo "Commit your changes before attempting a merge"
