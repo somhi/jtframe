@@ -17,7 +17,8 @@
     Date: 11-8-2022 */
 
 module jtframe_logo #(parameter
-    COLORW = 4
+    COLORW  = 4,
+    SHOWHEX = 1
 ) (
     input        clk,
     input        pxl_cen,
@@ -75,7 +76,7 @@ assign rgb_out = { r_out, g_out, b_out };
 
 function [COLORW-1:0] filter( input [COLORW-1:0] v );
     filter = !show_en ? v :                                     // regular video
-              {COLORW{ inzone ? rom[vdiff[3:1]] : idpxl }};     // logo or chip ID
+              {COLORW{ inzone ? rom[vdiff[3:1]] : idpxl & SHOWHEX[0] }};     // logo or chip ID
 endfunction
 
 always @(posedge clk) if( pxl_cen ) begin

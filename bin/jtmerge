@@ -9,6 +9,7 @@ function is_dirty {
 # Merges changes from wip branch into master
 LAST=`git tag | grep "^v" | sort | tail -n 1`
 LAST=${LAST:1}
+EDITS="edits_$LAST"
 
 WIP=`git branch --show-current`
 
@@ -18,6 +19,9 @@ P=`echo $LAST|cut -d . -f 3`
 
 NEXT=
 case "$1" in
+    -e|--edit)
+        git checkout -b $EDITS
+        exit 0;;
     -p|--patch)
         NEXT=v${M}.${F}.$((P+1));;
     -f|--feature)
@@ -31,11 +35,15 @@ case "$1" in
         cat<<EOF
 jtmerge merges a feature branch into the master branch and advances the version number
 
-    -m|--major   Advances the major number and sets the rest to zero
-    -f|--feature Advances the feature number and sets the patch to zero
-    -p|--patch   Advances the patch number (third digit)
+    -e | --edit    Creates a branch for new edits called edits_$LAST
+    -v | --version Shows the current version
 
-You must specify at least one argument
+    -m | --major   Advances the major number and sets the rest to zero
+    -f | --feature Advances the feature number and sets the patch to zero
+    -p | --patch   Advances the patch number (third digit)
+
+You must specify at least one argument. If the editing branch matches the
+name edits_$LAST, it will be deleted after the merge
 EOF
         exit 0
         ;;
@@ -61,4 +69,9 @@ git push
 git tag $NEXT
 git push --tags
 
-git checkout $WIP
+
+if git branch -a | grep -q $EDITS; then
+    git branch -d $EDITS
+else
+    git checkout $WIP
+fi

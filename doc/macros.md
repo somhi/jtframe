@@ -48,6 +48,7 @@ JTFRAME_IOCTL_RD         |         | Enables saving to SD card via NVRAM interfa
 JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are right, left, down, up
 JTFRAME_JOY_LRUD         |         | Joystick lower 4 bits are left, right, up, down
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
+JTFRAME_LOGO_NOHEX       | Pocket  | Do not display the chip ID on the logo screen
 JTFRAME_MFREQ            |         | Automatically set to the master clock in kHz. Depends on JTFRAME_PLL
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
