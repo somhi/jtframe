@@ -5,9 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -29,6 +32,8 @@ type Args struct {
 	Verbose, SkipMRA          bool
 	Show_platform             bool
 	Author, URL  		      string
+	// private
+	firmware_dir			  string
 }
 
 type RegCfg struct {
@@ -657,7 +662,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 		root.AddNode("mraauthor", authors)
 	}
 	// ROM load
-	make_ROM(&root, machine, cfg)
+	make_ROM(&root, machine, cfg, args )
 	// Beta
 	if cfg.Features.Beta {
 		n := root.AddNode("rom").AddAttr("index", "17")
@@ -825,7 +830,8 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	}
 }
 
-func parse_singleton( reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, pos *int ) {
+func parse_singleton( reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode ) int {
+	pos := 0
 	if reg_cfg.Width!=16 && reg_cfg.Width!=32 {
 		log.Fatal("jtframe mra: singleton only supported for width 16 and 32")
 	}
@@ -852,8 +858,9 @@ func parse_singleton( reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, pos *int 
 				mapbyte <<= 1
 			}
 		}
-		*pos += r.Size
+		pos += r.Size
 	}
+	return pos
 }
 
 
@@ -916,6 +923,53 @@ func parse_straight_dump( split, split_minlen int, reg string, reg_roms []MameRO
 		reg_pos = *pos - start_pos
 	}
 }
+
+func parse_i8751(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args ) bool {
+	path := filepath.Join(args.firmware_dir, machine.Name+".s" )
+	f, e := os.Open(path)
+	if e != nil {
+		path := filepath.Join(args.firmware_dir, machine.Cloneof+".s" )
+		f, e = os.Open(path)
+		if e != nil {
+			log.Println("jtframe mra: cannot find custom firmware for ",machine.Name)
+			return false
+		}
+	}
+	f.Close()
+	binname := fmt.Sprintf("mra%X%X.bin",rand.Int(), rand.Int())
+	cmd := exec.Command("as31", "-Fbin", "-O"+binname, path)
+	e = cmd.Run()
+	if e != nil {
+		log.Println("jtframe mra, problem running as31:\n\t",e)
+		return false
+	}
+	// Read the result and add it as data
+	bin, e := ioutil.ReadFile(binname)
+	if e != nil {
+		log.Println("jtframe mra, problem reading as31 output:\n\t",e)
+		return false
+	}
+	*pos += len(bin)
+	p.AddNode("Using custom firmware (no known dump)").comment = true
+	node := p.AddNode("part")
+	node.indent_txt = true
+	node.SetText(hexdump(bin, 16 ))
+	return true
+}
+
+func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args ) bool {
+	if reg_cfg.Custom.Dev == "" {
+		return false
+	}
+	switch reg_cfg.Custom.Dev {
+		case "i8751": {
+			return parse_i8751( reg_cfg, p, machine, pos, args )
+		}
+		default: log.Fatal("jtframe mra: unsupported custom.dev=",reg_cfg.Custom.Dev)
+	}
+	return false
+}
+
 func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int ) {
 	reg_pos := 0
 	start_pos := *pos
@@ -1004,7 +1058,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 	}
 }
 
-func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
+func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	if len(machine.Rom) == 0 {
 		return
 	}
@@ -1067,20 +1121,6 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				nodump = true
 			}
 		}
-		do_custom := false
-		if nodump {
-			if reg_cfg.Custom.Dev != "" {
-				switch reg_cfg.Custom.Dev {
-					case "i8751": do_custom = true
-					default: log.Fatal("jtframe mra: unsupported custom.dev=",reg_cfg.Custom.Dev)
-				}
-			}
-			if !do_custom {
-				p.AddNode(fmt.Sprintf("Skipping region %s because there is no dump known",
-					reg_cfg.Name)).comment = true
-			}
-			continue
-		}
 		// Proceed with the ROM listing
 		if delta := fill_upto(&pos, reg_cfg.Start, p); delta < 0 {
 			fmt.Printf(
@@ -1092,25 +1132,35 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		previous.node = p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos))
 		previous.node.comment = true
 		previous.pos = pos
-
 		start_pos := pos
+
+		if nodump {
+
+			if parse_custom( reg_cfg, p, machine, &pos, args ) {
+				fill_upto(&pos, start_pos+reg_cfg.Len, p)
+			} else {
+				p.AddNode(fmt.Sprintf("Skipping region %s because there is no dump known",
+					reg_cfg.Name)).comment = true
+			}
+			continue
+		}
+
 		reg_offsets[reg] = pos
 		apply_sort(reg_cfg, reg_roms)
-		// Singleton interleave case
 		if reg_cfg.Singleton {
-			parse_singleton( reg_roms, reg_cfg, p, &pos )
+			// Singleton interleave case
+			pos += parse_singleton( reg_roms, reg_cfg, p )
 		} else {
 			split, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
 			if (reg_cfg.Width == 16 || reg_cfg.Width == 32) && len(reg_roms) > 1  {
 				parse_regular_interleave( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
 			}
-			if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0  {
+			if reg_cfg.Frac.Parts != 0 {
+				pos += make_frac(p, reg_cfg, reg_roms)
+			} else if (reg_cfg.Width <= 8 || len(reg_roms) == 1)  {
 				parse_straight_dump( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
 			}
-		}
-		if reg_cfg.Frac.Parts != 0 {
-			pos += make_frac(p, reg_cfg, reg_roms)
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
 	}
@@ -1846,8 +1896,8 @@ var fd1089_bin = [256]byte{
 // Command line arguments
 
 func parse_args(args *Args) {
+	cores := os.Getenv("CORES")
 	if args.Toml_path == "" && args.Def_cfg.Core != "" {
-		cores := os.Getenv("CORES")
 		if len(cores) == 0 {
 			log.Fatal("JTFILES: environment variable CORES is not defined")
 		}
@@ -1862,4 +1912,5 @@ func parse_args(args *Args) {
 	if args.Pocketdir == "" {
 		args.Pocketdir = filepath.Join( os.Getenv("JTROOT"), "rom", "pocket" )
 	}
+	args.firmware_dir = filepath.Join( cores,args.Def_cfg.Core,"firmware")
 }
