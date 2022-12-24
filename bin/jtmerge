@@ -20,7 +20,10 @@ P=`echo $LAST|cut -d . -f 3`
 NEXT=
 case "$1" in
     -e|--edit)
+        git stash
+        git pull --recurse-submodules
         git checkout -b $EDITS
+        git stash apply
         exit 0;;
     -p|--patch)
         NEXT=v${M}.${F}.$((P+1));;

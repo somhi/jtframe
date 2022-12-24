@@ -2,6 +2,7 @@
 MAX_JOBS=
 DRYRUN=
 NETWORK=
+NOGIT=
 
 function show_help {
 cat<<HELP
@@ -44,6 +45,9 @@ function parse_args {
             --dry|--dry-run)
                 DRYRUN=--dry-run
                 ;;
+            --nogit)
+                NOGIT=1
+                ;;
             -n|--network)
                 shift
                 if [ ! -e "$1" ]; then
@@ -69,7 +73,18 @@ function parse_args {
 
 parse_args $* || exit $?
 
-TASKS=/tmp/$RANDOM_$RANDOM
+if [ "$NOGIT" = 1 ]; then
+    cd $JTBIN
+    if git status --short | grep -i "^ M " > /dev/null; then
+        echo "JTBIN has uncommited changes. Do you want to continue [y/n]?"
+        read CONT
+        if [ $CONT != y ]; then
+            exit 1
+        fi
+    fi
+fi
+
+TASKS=`mktemp`
 
 if [ -z "$ACTIONS" ]; then
     jtframe update $* >> $TASKS || exit 1
