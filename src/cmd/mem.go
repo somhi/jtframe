@@ -43,7 +43,9 @@ params: [ {name:SCR_OFFSET value:"32'h10000"}, ... ]
 # Past additional ports to the game module
 download: { pre_addr: true, post_addr: true, post_data: true, noswab: true }
 # Connect addtional output ports from the game module
-ports: [ "port0", "port1",... ]
+ports:
+    - { name: foo_data, msb: 15, lsb: 0, input:true }
+    - { name: foo_cs }
 # Instantiates a differente game module
 game: othergame
 # Details about the SDRAM usage

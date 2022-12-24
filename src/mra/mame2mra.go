@@ -50,6 +50,11 @@ type RegCfg struct {
 	Frac      struct {
 		Bytes, Parts int
 	}
+	Custom struct { // If there is not dump available, jtframe will try to make one
+		// the assembly source code must be in cores/corename/firmware/machine.s or setname.s
+		// Machine, Setname string // Optional filters
+		Dev              string // Device name for assembler
+	}
 }
 
 type HeaderCfg struct {
@@ -820,6 +825,185 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	}
 }
 
+func parse_singleton( reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, pos *int ) {
+	if reg_cfg.Width!=16 && reg_cfg.Width!=32 {
+		log.Fatal("jtframe mra: singleton only supported for width 16 and 32")
+	}
+	var n *XMLNode
+	p.AddNode("Singleton region. The files are merged with themselves.").comment = true
+	msb     := (reg_cfg.Width/8)-1
+	divider := reg_cfg.Width>>3
+	mapfmt  := fmt.Sprintf("%%0%db",divider)
+	for _, r := range reg_roms {
+		n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+		mapbyte := 1
+		if reg_cfg.Reverse {
+			mapbyte = 1 << msb // 2 for 16 bits, 8 for 32 bits
+		}
+		for k:=0; k<divider; k++ {
+			m := add_rom(n, r)
+			m.AddAttr("offset", fmt.Sprintf("0x%04x", r.Size/divider*k))
+			m.AddAttr("map", fmt.Sprintf(mapfmt,mapbyte))
+			m.AddAttr("length", fmt.Sprintf("0x%04X", r.Size/divider))
+			// Second half
+			if reg_cfg.Reverse {
+				mapbyte >>= 1
+			} else {
+				mapbyte <<= 1
+			}
+		}
+		*pos += r.Size
+	}
+}
+
+
+func parse_straight_dump( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int ) {
+	reg_pos := 0
+	start_pos := *pos
+	for _, r := range reg_roms {
+		offset := r.Offset
+		if reg_cfg.No_offset {
+			offset = 0
+		} else {
+			if delta := fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p); delta < 0 {
+				fmt.Printf("Warning: ROM start overcome at 0x%X (expected 0x%X - delta=%X)\n",
+					*pos, ((offset&-2)-reg_pos)+*pos, delta)
+				fmt.Println("\t while parsing region ", r)
+			}
+		}
+		rom_pos := *pos
+		// check if the next ROM should be split
+		rom_len := 0
+		var m *XMLNode
+		if reg_cfg.Reverse {
+			pp := p.AddNode("interleave").AddAttr("output", "16")
+			m = add_rom(pp, r)
+			m.AddAttr("map", "12")
+		} else {
+			m = add_rom(p, r)
+		}
+		// Parse ROM splits by marking the dumped ROM above
+		// as only the first half, filling in a blank, and
+		// adding the second half
+		if *pos-start_pos <= split && *pos-start_pos+r.Size > split && split_minlen > (r.Size>>1) {
+			fmt.Printf("\t-split on single ROM file at %X\n", split)
+			rom_len = r.Size >> 1
+			m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
+			*pos += rom_len
+			fill_upto(pos, *pos+split_minlen-rom_len, p)
+			// second half
+			if reg_cfg.Reverse {
+				pp := p.AddNode("interleave").AddAttr("output", "16")
+				m = add_rom(pp, r)
+				m.AddAttr("map", "12")
+			} else {
+				m = add_rom(p, r)
+			}
+			m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
+			m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
+			*pos += rom_len
+		} else {
+			*pos += r.Size
+		}
+		if reg_cfg.Rom_len > r.Size {
+			fill_upto(pos, reg_cfg.Rom_len+rom_pos, p)
+		}
+		reg_pos = *pos - start_pos
+		if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+			fill_upto(pos, *pos+blank_len, p)
+			p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
+		}
+		reg_pos = *pos - start_pos
+	}
+}
+func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int ) {
+	reg_pos := 0
+	start_pos := *pos
+	if (len(reg_roms) % (reg_cfg.Width / 8)) != 0 {
+		msg := fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even", reg_cfg.Width, reg_cfg.Name)
+		log.Fatal(msg)
+	}
+	mapstr := "01"
+	if reg_cfg.Width == 32 {
+		mapstr = "0001"
+	}
+	if reg_cfg.Reverse {
+		step := reg_cfg.Width>>3
+		if step==0 {
+			step = 2
+		}
+		for k := 0; k < len(reg_roms); k += step {
+			buf := make( []MameROM, step )
+			copy( buf, reg_roms[k:k+step] )
+			for j,l:=k,step-1; l>=0; j++ {
+				reg_roms[j] = buf[l]
+				l--
+			}
+		}
+	}
+	var n *XMLNode
+	deficit := 0
+	for split_phase := 0; split_phase <= split && split_phase < 2; split_phase++ {
+		if split_phase == 1 {
+			if delta := fill_upto(pos, start_pos+split, p); delta < 0 {
+				fmt.Printf("\tsplit for region %s starts %x bytes after the required offset\n",
+					reg, -delta)
+			}
+			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
+		}
+		chunk0 := *pos
+		roms_per_chunk := reg_cfg.Width / 8 // 2 or 4
+		for k, r := range reg_roms {
+			if k%roms_per_chunk == 0 {
+				// make interleave node at the expected position
+				if deficit > 0 {
+					fill_upto(pos, *pos+deficit, p)
+				}
+				reg_pos = *pos - start_pos
+				offset := r.Offset
+				if reg_cfg.No_offset {
+					offset = 0
+				}
+				fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
+				deficit = 0
+				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+			}
+			m := add_rom(n, r)
+			m.AddAttr("map", mapstr)
+			if reg_cfg.Width == 16 {
+				if mapstr == "01" {
+					mapstr = "10"
+				} else {
+					mapstr = "01"
+				}
+			} else { // rotate the active byte
+				mapstr = mapstr[1:4] + mapstr[0:1]
+			}
+			if split != 0 {
+				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
+				if split_phase == 1 {
+					m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
+				}
+				*pos += r.Size / 2
+			} else {
+				*pos += r.Size
+				if reg_cfg.Rom_len > r.Size {
+					deficit += reg_cfg.Rom_len - r.Size
+				}
+			}
+			reg_pos = *pos - start_pos
+			if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+				fill_upto( pos, *pos+blank_len, p)
+				p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
+			}
+		}
+		if *pos-chunk0 < split_minlen {
+			fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0)
+			fill_upto(pos, split_minlen+chunk0, p)
+		}
+	}
+}
+
 func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	if len(machine.Rom) == 0 {
 		return
@@ -866,7 +1050,6 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		if reg_cfg.Skip {
 			continue
 		}
-		split, split_minlen := is_split(reg, machine, cfg)
 		// Warn about unsorted regions
 		_, sorted := sorted_regs[reg]
 		if !sorted {
@@ -884,9 +1067,18 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 				nodump = true
 			}
 		}
+		do_custom := false
 		if nodump {
-			p.AddNode(fmt.Sprintf("Skipping region %s because there is no dump known",
-				reg_cfg.Name)).comment = true
+			if reg_cfg.Custom.Dev != "" {
+				switch reg_cfg.Custom.Dev {
+					case "i8751": do_custom = true
+					default: log.Fatal("jtframe mra: unsupported custom.dev=",reg_cfg.Custom.Dev)
+				}
+			}
+			if !do_custom {
+				p.AddNode(fmt.Sprintf("Skipping region %s because there is no dump known",
+					reg_cfg.Name)).comment = true
+			}
 			continue
 		}
 		// Proceed with the ROM listing
@@ -902,182 +1094,19 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 		previous.pos = pos
 
 		start_pos := pos
-		reg_pos := 0
 		reg_offsets[reg] = pos
 		apply_sort(reg_cfg, reg_roms)
 		// Singleton interleave case
 		if reg_cfg.Singleton {
-			if reg_cfg.Width!=16 && reg_cfg.Width!=32 {
-				log.Fatal("jtframe mra: singleton only supported for width 16 and 32")
+			parse_singleton( reg_roms, reg_cfg, p, &pos )
+		} else {
+			split, split_minlen := is_split(reg, machine, cfg)
+			// Regular interleave case
+			if (reg_cfg.Width == 16 || reg_cfg.Width == 32) && len(reg_roms) > 1  {
+				parse_regular_interleave( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
 			}
-			var n *XMLNode
-			p.AddNode("Singleton region. The files are merged with themselves.").comment = true
-			mapbyte := 1
-			msb     := (reg_cfg.Width/8)-1
-			divider := reg_cfg.Width>>3
-			mapfmt  := fmt.Sprintf("%%0%db",divider)
-			if reg_cfg.Reverse {
-				mapbyte = 1 << msb // 2 for 16 bits, 8 for 32 bits
-			}
-			for _, r := range reg_roms {
-				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-				for k:=0; k<divider; k++ {
-					m := add_rom(n, r)
-					m.AddAttr("offset", fmt.Sprintf("0x%04x", r.Size/divider*k))
-					m.AddAttr("map", fmt.Sprintf(mapfmt,mapbyte))
-					m.AddAttr("length", fmt.Sprintf("0x%04X", r.Size/divider))
-					// Second half
-					if reg_cfg.Reverse {
-						mapbyte >>= 1
-					} else {
-						mapbyte <<= 1
-					}
-				}
-				pos += r.Size
-			}
-		}
-		// Regular interleave case
-		if (reg_cfg.Width == 16 || reg_cfg.Width == 32) && len(reg_roms) > 1 && !reg_cfg.Singleton {
-			if (len(reg_roms) % (reg_cfg.Width / 8)) != 0 {
-				msg := fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even", reg_cfg.Width, reg_cfg.Name)
-				log.Fatal(msg)
-			}
-			mapstr := "01"
-			if reg_cfg.Width == 32 {
-				mapstr = "0001"
-			}
-			if reg_cfg.Reverse {
-				step := reg_cfg.Width>>3
-				if step==0 {
-					step = 2
-				}
-				for k := 0; k < len(reg_roms); k += step {
-					buf := make( []MameROM, step )
-					copy( buf, reg_roms[k:k+step] )
-					for j,l:=k,step-1; l>=0; j++ {
-						reg_roms[j] = buf[l]
-						l--
-					}
-				}
-			}
-			var n *XMLNode
-			deficit := 0
-			for split_phase := 0; split_phase <= split && split_phase < 2; split_phase++ {
-				if split_phase == 1 {
-					if delta := fill_upto(&pos, start_pos+split, p); delta < 0 {
-						fmt.Printf("\tsplit for region %s starts %x bytes after the required offset\n",
-							reg, -delta)
-					}
-					p.AddNode(fmt.Sprintf("ROM split at %X (%X)", pos, pos-start_pos)).comment = true
-				}
-				chunk0 := pos
-				roms_per_chunk := reg_cfg.Width / 8 // 2 or 4
-				for k, r := range reg_roms {
-					if k%roms_per_chunk == 0 {
-						// make interleave node at the expected position
-						if deficit > 0 {
-							fill_upto(&pos, pos+deficit, p)
-						}
-						reg_pos = pos - start_pos
-						offset := r.Offset
-						if reg_cfg.No_offset {
-							offset = 0
-						}
-						fill_upto(&pos, ((offset&-2)-reg_pos)+pos, p)
-						deficit = 0
-						n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-					}
-					m := add_rom(n, r)
-					m.AddAttr("map", mapstr)
-					if reg_cfg.Width == 16 {
-						if mapstr == "01" {
-							mapstr = "10"
-						} else {
-							mapstr = "01"
-						}
-					} else { // rotate the active byte
-						mapstr = mapstr[1:4] + mapstr[0:1]
-					}
-					if split != 0 {
-						m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-						if split_phase == 1 {
-							m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
-						}
-						pos += r.Size / 2
-					} else {
-						pos += r.Size
-						if reg_cfg.Rom_len > r.Size {
-							deficit += reg_cfg.Rom_len - r.Size
-						}
-					}
-					reg_pos = pos - start_pos
-					if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
-						fill_upto(&pos, pos+blank_len, p)
-						p.AddNode(fmt.Sprintf("Blank ends at 0x%X", pos)).comment = true
-					}
-				}
-				if pos-chunk0 < split_minlen {
-					fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, pos-chunk0)
-					fill_upto(&pos, split_minlen+chunk0, p)
-				}
-			}
-		}
-		if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0 && !reg_cfg.Singleton {
-			// Straight dump
-			for _, r := range reg_roms {
-				offset := r.Offset
-				if reg_cfg.No_offset {
-					offset = 0
-				} else {
-					if delta := fill_upto(&pos, ((offset&-2)-reg_pos)+pos, p); delta < 0 {
-						fmt.Printf("Warning: ROM start overcome at 0x%X (expected 0x%X - delta=%X)\n",
-							pos, ((offset&-2)-reg_pos)+pos, delta)
-						fmt.Println("\t while parsing region ", r)
-					}
-				}
-				rom_pos := pos
-				// check if the next ROM should be split
-				rom_len := 0
-				var m *XMLNode
-				if reg_cfg.Reverse {
-					pp := p.AddNode("interleave").AddAttr("output", "16")
-					m = add_rom(pp, r)
-					m.AddAttr("map", "12")
-				} else {
-					m = add_rom(p, r)
-				}
-				// Parse ROM splits by marking the dumped ROM above
-				// as only the first half, filling in a blank, and
-				// adding the second half
-				if pos-start_pos <= split && pos-start_pos+r.Size > split && split_minlen > (r.Size>>1) {
-					fmt.Printf("\t-split on single ROM file at %X\n", split)
-					rom_len = r.Size >> 1
-					m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
-					pos += rom_len
-					fill_upto(&pos, pos+split_minlen-rom_len, p)
-					// second half
-					if reg_cfg.Reverse {
-						pp := p.AddNode("interleave").AddAttr("output", "16")
-						m = add_rom(pp, r)
-						m.AddAttr("map", "12")
-					} else {
-						m = add_rom(p, r)
-					}
-					m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
-					m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
-					pos += rom_len
-				} else {
-					pos += r.Size
-				}
-				if reg_cfg.Rom_len > r.Size {
-					fill_upto(&pos, reg_cfg.Rom_len+rom_pos, p)
-				}
-				reg_pos = pos - start_pos
-				if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
-					fill_upto(&pos, pos+blank_len, p)
-					p.AddNode(fmt.Sprintf("Blank ends at 0x%X", pos)).comment = true
-				}
-				reg_pos = pos - start_pos
+			if (reg_cfg.Width <= 8 || len(reg_roms) == 1) && reg_cfg.Frac.Parts == 0  {
+				parse_straight_dump( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
 			}
 		}
 		if reg_cfg.Frac.Parts != 0 {
