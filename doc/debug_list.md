@@ -57,27 +57,22 @@ This text can be used in GitHub to generate a check list to use during code deve
 
 ## Beta core publishing
 
-- [ ] Is JTFRAME_FLIP_RESET required and if so, set?
-**JTALPHA checks**
-- [ ] Copy the latest README
+**JTALPHA checks, if you didn't use jtbeta to make the JTALPHA files**
+- [ ] Update README
 - [ ] Folder Arcade/cores deleted in the other_zip
 - [ ] MRA files included in the other_zip
 - [ ] MiSTer file includes jtbeta.zip
-- [ ] MiSTer zip includes all current games in beta, not only the last one
 **JTBIN checks**
-- [ ] Correct link in JTBIN wiki
 - [ ] No files for non-beta RBF in JTBIN
 - [ ] JTBIN has been comitted and pushed
+- [ ] Correct link in JTBIN wiki
 - [ ] Run update_all and check the files
+- [ ] Files in Patreon, including jtbeta.zip as a separate file
+**If jtbeta did not generate all the files directly**
+- [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
 - [ ] No MRA/JSON files for unsupported games
 - [ ] No empty folders in pocket
 - [ ] No half-baked folders in pocket
-**Other**
-- [ ] Files in Patreon, including jtbeta.zip as a separate file
-- [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
-- [ ] Are the MRA files included in the Pocket zip?
-- [ ] Did you use cpbeta-mra.sh to copy the beta MRA files?
-**If you didn’t use cpbeta-mra.sh, then**
 - [ ] MRA files must be in JTBIN/mra and added to git
 - [ ] At least one MRA file in JTBIN/mister/core/releases and added to git
 - [ ] Beta MRA files should not load debug ROMs
@@ -85,7 +80,6 @@ This text can be used in GitHub to generate a check list to use during code deve
 **After publishing**
 - [ ] Tweet about the beta
 - [ ] Files in #betafiles, including jtbeta.zip as a separate file
-- [ ] Patreon links can download the right files
 
 ## Public release
 
