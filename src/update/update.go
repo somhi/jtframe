@@ -220,7 +220,8 @@ func dump_output(cfg Config) {
 			if cfg.Beta != "" || cfg.Private {
 				jtcore = jtcore + " -d JTFRAME_RELEASE"
 			}
-			if !cfg.Nogit {
+			// --git skipped if asked so, but also for all targets but mister in betas
+			if !cfg.Nogit && !( cfg.Beta=="" || target != "mister") {
 				jtcore = jtcore + " --git"
 			}
 			copy := false
