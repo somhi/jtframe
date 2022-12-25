@@ -50,7 +50,7 @@ parameter SIMFILE="8742.bin";
 
 wire        cen_div3;
 wire [ 7:0] ram_addr, ram_dout, ram_din, rom_data;
-wire [11:0] rom_addr;
+wire [10:0] rom_addr;
 wire        ram_we;
 
 
@@ -110,7 +110,7 @@ jtframe_prom #(
 
 jtframe_ram #(.aw(8)) u_ram(
     .clk    ( clk       ),
-    .cen    ( cen       ), // this may create problems
+    .cen    ( 1'b1       ), // this may create problems
     .data   ( ram_din   ),
     .addr   ( ram_addr  ),
     .we     ( ram_we    ),
