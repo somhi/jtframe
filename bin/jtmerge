@@ -19,6 +19,12 @@ P=`echo $LAST|cut -d . -f 3`
 
 NEXT=
 case "$1" in
+    --abort)
+        git stash drop
+        git checkout master
+        git reset --hard
+        git branch -D $EDITS
+        exit 0;;
     -e|--edit)
         git stash
         git pull --recurse-submodules
