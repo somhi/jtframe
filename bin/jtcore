@@ -52,20 +52,21 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
     --private       Uses red for OSD and allows copying to JTALPHA
-    --program | -p  programs the FPGA via JTAG
-    --quick|-q      quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
+    --program | -p  Programs the FPGA via JTAG
+    --quick|-q      Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
     -qs             Same as -q but with sound.
-    --quicker|-qq   same as -q but it also disabled HDMI output and sets MiSTer as target
-    --seed          sets random seed for compilation
-    --sim           prepares Quartus simulation
+    --quicker|-qq   Same as -q but it also disabled HDMI output and sets MiSTer as target
+    --seed          Sets random seed for compilation
+    --sim           Prepares Quartus simulation
     --skip | -s     skips the compilation but executes the rest of the commands
     --showmacros    Shows the macros used for compilation and exits
     --target|-t <target>
-                    specifies the target platform
+                    Specifies the target platform
     --verbose | -v  verbose
+    --version       Shows JTFRAME version
 
-    --help          displays this message
+    --help          Displays this message
 EOF
    exit 0
 }
@@ -188,6 +189,9 @@ function parse_args {
                 ;;
             --verbose | -v)
                 VERBOSE=-v;;
+            --version)
+                jtmerge -v
+                exit 0;;
             --help | -h)
                 show_usage;;
             *)  if [[ -z "$PRJ" && ${1:0:1} != - ]]; then
