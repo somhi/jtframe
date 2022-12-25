@@ -190,6 +190,8 @@ function [9:0] reorder;
         reorder = joy_in; // default order up, down, left, right
 `ifdef JTFRAME_JOY_LRUD reorder[3:0]={joy_in[1:0],joy_in[3:2]}; `endif
 `ifdef JTFRAME_JOY_RLDU reorder[3:0]={joy_in[0], joy_in[1], joy_in[2], joy_in[3]}; `endif
+`ifdef JTFRAME_JOY_DURL reorder[3:0]={joy_in[2], joy_in[3], joy_in[0], joy_in[1]}; `endif
+`ifdef JTFRAME_JOY_UDRL reorder[3:0]={joy_in[3:2], joy_in[0], joy_in[1]}; `endif
     end
 endfunction
 
