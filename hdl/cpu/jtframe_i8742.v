@@ -43,7 +43,11 @@ module jtframe_i8742(
 
     input [10:0] prog_addr,
     input  [7:0] prog_data,
-    input        prom_we
+    input        prom_we,
+
+    // Debug
+    input  [7:0] st_addr,
+    output reg [7:0] st_dout
 );
 
 parameter SIMFILE="8742.bin";
@@ -53,6 +57,19 @@ wire [ 7:0] ram_addr, ram_dout, ram_din, rom_data;
 wire [10:0] rom_addr;
 wire        ram_we;
 
+always @(posedge clk) begin
+    case( st_addr[3:0] )
+        0: st_dout <= p1_din;
+        1: st_dout <= p2_din;
+        2: st_dout <= p1_dout;
+        3: st_dout <= p2_dout;
+        4: st_dout <= rom_addr[7:0];
+        5: st_dout <= { 5'd0, rom_addr[10:8] };
+        6: st_dout <= rom_addr;
+        7: st_dout <= { 6'd0, t1_din, t0_din };
+        default: st_dout <= 0;
+    endcase
+end
 
 upi41_core u_t48(
     // T48 interface
