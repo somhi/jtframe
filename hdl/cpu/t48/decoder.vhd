@@ -3,7 +3,7 @@
 -- The Decoder unit.
 -- It decodes the instruction opcodes and executes them.
 --
--- $Id: decoder.vhd 295 2009-04-01 19:32:48Z arniml $
+-- $Id: decoder.vhd 304 2022-12-17 20:54:18Z arniml $
 --
 -- Copyright (c) 2004, Arnim Laeuger (arniml@opencores.org)
 --
@@ -58,7 +58,9 @@ entity t48_decoder is
 
   generic (
     -- store mnemonic in flip-flops (registered-out)
-    register_mnemonic_g   : integer := 1
+    register_mnemonic_g   : integer := 1;
+    is_upi_g              : integer := 0;
+    is_upi_type_a_g       : integer := 0
   );
 
   port (
@@ -81,6 +83,12 @@ entity t48_decoder is
     alu_read_alu_o         : out boolean;
     bus_write_bus_o        : out boolean;
     bus_read_bus_o         : out boolean;
+    bus_set_f1_i           : in  boolean := false;  -- UPI41
+    bus_clear_f1_i         : in  boolean := false;  -- UPI41
+    bus_ibf_int_o          : out boolean;           -- UPI41
+    bus_en_dma_o           : out boolean;           -- UPI41A
+    bus_en_flags_o         : out boolean;           -- UPI41A
+    bus_write_sts_o        : out boolean;           -- UPI41A
     dm_write_dmem_addr_o   : out boolean;
     dm_write_dmem_o        : out boolean;
     dm_read_dmem_o         : out boolean;
@@ -254,13 +262,30 @@ begin
     report "register_mnemonic_g must be either 1 or 0!"
     severity failure;
 
+  -- UPI41 configuration ------------------------------------------------------
+  assert (is_upi_g = 0) or (is_upi_g = 1)
+    report "is_upi_g must be either 1 or 0!"
+    severity failure;
+  --
+  assert (is_upi_type_a_g = 0) or (is_upi_type_a_g = 1)
+    report "is_upi_type_a_g must be either 1 or 0!"
+    severity failure;
+
   -- pragma translate_on
 
 
   -----------------------------------------------------------------------------
   -- Opcode Decoder
   --
-  mnemonic_rec_s <= decode_opcode_f(opcode => opc_opcode_q);
+  gen_mcs48: if is_upi_g = 0 generate
+    mnemonic_rec_s <= decode_mcs48_opcode_f (opcode => opc_opcode_q);
+  end generate;
+  gen_upi41: if is_upi_g = 1 and is_upi_type_a_g = 0 generate
+    mnemonic_rec_s <= decode_upi41_opcode_f (opcode => opc_opcode_q);
+  end generate;
+  gen_upi41a: if is_upi_g = 1 and is_upi_type_a_g = 1 generate
+    mnemonic_rec_s <= decode_upi41a_opcode_f(opcode => opc_opcode_q);
+  end generate;
   --
   -----------------------------------------------------------------------------
 
@@ -525,6 +550,10 @@ begin
     alu_read_alu_o         <= false;
     bus_write_bus_o        <= false;
     bus_bidir_bus_o        <= false;
+    bus_ibf_int_o          <= false;    -- UPI41
+    bus_en_dma_o           <= false;    -- UPI41A
+    bus_en_flags_o         <= false;    -- UPI41A
+    bus_write_sts_o        <= false;    -- UPI41A
     dm_write_dmem_addr_o   <= false;
     dm_write_dmem_s        <= false;
     dm_read_dmem_o         <= false;
@@ -815,6 +844,8 @@ begin
                 data_s(1 downto 0) <= "11";
                 if tim_int_s then
                   data_s(2)        <= '1';
+                else
+                  bus_ibf_int_o    <= true;  -- UPI41
                 end if;
                 read_dec_s         <= true;
               end if;
@@ -1022,6 +1053,16 @@ begin
 
         end if;
 
+      -- Mnemonic EN_DMA_FLAGS - UPI41A ---------------------------------------
+      when MN_EN_DMA_FLAGS =>
+        if clk_mstate_i = MSTATE4 then
+          if opc_opcode_q(4) = '0' then
+            bus_en_dma_o   <= true;
+          else
+            bus_en_flags_o <= true;
+          end if;
+        end if;
+
       -- Mnemonic ENT0_CLK ----------------------------------------------------
       when MN_ENT0_CLK =>
         if clk_mstate_i = MSTATE3 then
@@ -1039,6 +1080,15 @@ begin
           else
             p2_read_p2_o   <= true;
           end if;
+        end if;
+
+      -- Mnemonic IN_DBB - UPI41 ----------------------------------------------
+      when MN_IN_DBB =>
+        -- read BUS and store in Accumulator
+        if clk_mstate_i = MSTATE4 then
+          alu_write_accu_o <= true;
+
+          add_read_bus_s   <= true;
         end if;
 
       -- Mnemonic INS ---------------------------------------------------------
@@ -1222,6 +1272,46 @@ begin
 
         end if;
 
+      -- Mnemonic JNIBF - UPI41 -----------------------------------------------
+      when MN_JNIBF =>
+        assert_psen_s          <= true;
+        cnd_branch_cond_o      <= COND_NIBF;
+
+        if not clk_second_cycle_i then
+          -- start branch calculation
+          if clk_mstate_i = MSTATE3 then
+            cnd_compute_take_o <= true;
+          end if;
+
+        else
+          -- store address in Program Counter low byte if branch has to
+          -- be taken
+          if clk_mstate_i = MSTATE1 and cnd_take_branch_i then
+            cond_jump_c2_m1_f;
+          end if;
+
+        end if;
+
+      -- Mnemonic JOBF - UPI41 ------------------------------------------------
+      when MN_JOBF =>
+        assert_psen_s          <= true;
+        cnd_branch_cond_o      <= COND_OBF;
+
+        if not clk_second_cycle_i then
+          -- start branch calculation
+          if clk_mstate_i = MSTATE3 then
+            cnd_compute_take_o <= true;
+          end if;
+
+        else
+          -- store address in Program Counter low byte if branch has to
+          -- be taken
+          if clk_mstate_i = MSTATE1 and cnd_take_branch_i then
+            cond_jump_c2_m1_f;
+          end if;
+
+        end if;
+
       -- Mnemonic JT ----------------------------------------------------------
       when MN_JT =>
         assert_psen_s           <= true;
@@ -1372,6 +1462,15 @@ begin
         -- during machine state 1 of second cycle.
         if clk_second_cycle_i and clk_mstate_i = MSTATE1 then
           dm_write_dmem_s <= true;
+        end if;
+
+      -- Mnemonic MOV_STS - UPI41A --------------------------------------------
+      when MN_MOV_STS =>
+        -- read Accumulator and store in STS register
+        if clk_mstate_i = MSTATE4 then
+          alu_read_alu_o  <= true;
+
+          bus_write_sts_o <= true;
         end if;
 
       -- Mnemonic MOV_T -------------------------------------------------------
@@ -1661,6 +1760,15 @@ begin
 
         end if;
 
+      -- Mnemonic OUT_DBB - UPI41 ---------------------------------------------
+      when MN_OUT_DBB =>
+        -- read Accumulator and store in BUS output register
+        if clk_mstate_i = MSTATE4 then
+          alu_read_alu_o  <= true;
+
+          bus_write_bus_o <= true;
+        end if;
+
       -- Mnemonic OUTL_EXT ----------------------------------------------------
       when MN_OUTL_EXT =>
         if opc_opcode_q(4) = '0' then
@@ -1921,6 +2029,13 @@ begin
       -- pragma translate_on
 
     elsif clk_i'event and clk_i = clk_active_c then
+      -- UPI41 master access
+      if bus_set_f1_i then
+        f1_q <= '1';
+      elsif bus_clear_f1_i then
+        f1_q <= '0';
+      end if;
+
       if en_clk_i then
 
         -- branch taken flag

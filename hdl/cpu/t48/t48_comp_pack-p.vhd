@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- $Id: t48_comp_pack-p.vhd 295 2009-04-01 19:32:48Z arniml $
+-- $Id: t48_comp_pack-p.vhd 317 2022-12-23 13:18:49Z arniml $
 --
 -- Copyright (c) 2004, 2005, Arnim Laeuger (arniml@opencores.org)
 --
@@ -107,6 +107,8 @@ package t48_comp_pack is
       f1_i           : in  std_logic;
       tf_i           : in  std_logic;
       carry_i        : in  std_logic;
+      ibf_i          : in  std_logic := '0';
+      obf_i          : in  std_logic := '0';
       comp_value_i   : in  comp_value_t
     );
   end component;
@@ -130,9 +132,50 @@ package t48_comp_pack is
     );
   end component;
 
+  component upi41_db_bus
+    generic (
+      is_type_a_g : integer := 1
+    );
+    port (
+      clk_i        : in  std_logic;
+      res_i        : in  std_logic;
+      en_clk_i     : in  boolean;
+      data_i       : in  word_t;
+      data_o       : out word_t;
+      write_bus_i  : in  boolean;
+      read_bus_i   : in  boolean;
+      write_sts_i  : in  boolean;
+      set_f1_o     : out boolean;
+      clear_f1_o   : out boolean;
+      f0_i         : in  std_logic;
+      f1_i         : in  std_logic;
+      ibf_o        : out std_logic;
+      obf_o        : out std_logic;
+      int_n_o      : out std_logic;
+      ibf_int_i    : in  boolean;
+      en_dma_i     : in  boolean;
+      en_flags_i   : in  boolean;
+      write_p2_i   : in  boolean;
+      mint_ibf_n_o : out std_logic;
+      mint_obf_o   : out std_logic;
+      dma_o        : out boolean;
+      drq_o        : out std_logic;
+      dack_n_i     : in  std_logic;
+      a0_i         : in  std_logic;
+      cs_n_i       : in  std_logic;
+      rd_n_i       : in  std_logic;
+      wr_n_i       : in  std_logic;
+      db_i         : in  word_t;
+      db_o         : out word_t;
+      db_dir_o     : out std_logic
+    );
+  end component;
+
   component t48_decoder
     generic (
-      register_mnemonic_g   : integer := 1
+      register_mnemonic_g   : integer := 1;
+      is_upi_g              : integer := 0;
+      is_upi_type_a_g       : integer := 0
     );
     port (
       clk_i                  : in  std_logic;
@@ -152,6 +195,12 @@ package t48_comp_pack is
       alu_read_alu_o         : out boolean;
       bus_write_bus_o        : out boolean;
       bus_read_bus_o         : out boolean;
+      bus_set_f1_i           : in  boolean := false;
+      bus_clear_f1_i         : in  boolean := false;
+      bus_ibf_int_o          : out boolean;
+      bus_en_dma_o           : out boolean;
+      bus_en_flags_o         : out boolean;
+      bus_write_sts_o        : out boolean;
       dm_write_dmem_addr_o   : out boolean;
       dm_write_dmem_o        : out boolean;
       dm_read_dmem_o         : out boolean;

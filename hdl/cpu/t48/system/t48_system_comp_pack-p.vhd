@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- $Id: t48_system_comp_pack-p.vhd 295 2009-04-01 19:32:48Z arniml $
+-- $Id: t48_system_comp_pack-p.vhd 311 2022-12-19 20:58:04Z arniml $
 --
 -- Copyright (c) 2004, Arnim Laeuger (arniml@opencores.org)
 --
@@ -166,6 +166,150 @@ package t48_system_comp_pack is
       psen_n_o  : out   std_logic;
       wr_n_o    : out   std_logic;
       ale_o     : out   std_logic;
+      db_b      : inout std_logic_vector( 7 downto 0);
+      t1_i      : in    std_logic;
+      p2_b      : inout std_logic_vector( 7 downto 0);
+      p1_b      : inout std_logic_vector( 7 downto 0);
+      prog_n_o  : out   std_logic
+    );
+  end component;
+
+  component t8041_notri
+    generic (
+      gate_port_input_g : integer := 1
+    );
+
+    port (
+      xtal_i        : in  std_logic;
+      xtal_en_i     : in  std_logic;
+      reset_n_i     : in  std_logic;
+      t0_i          : in  std_logic;
+      cs_n_i        : in  std_logic;
+      rd_n_i        : in  std_logic;
+      a0_i          : in  std_logic;
+      wr_n_i        : in  std_logic;
+      sync_o        : out std_logic;
+      db_i          : in  std_logic_vector( 7 downto 0);
+      db_o          : out std_logic_vector( 7 downto 0);
+      db_dir_o      : out std_logic;
+      t1_i          : in  std_logic;
+      p2_i          : in  std_logic_vector( 7 downto 0);
+      p2_o          : out std_logic_vector( 7 downto 0);
+      p2l_low_imp_o : out std_logic;
+      p2h_low_imp_o : out std_logic;
+      p1_i          : in  std_logic_vector( 7 downto 0);
+      p1_o          : out std_logic_vector( 7 downto 0);
+      p1_low_imp_o  : out std_logic;
+      prog_n_o      : out std_logic
+    );
+  end component;
+
+  component t8041
+    port (
+      xtal_i    : in    std_logic;
+      reset_n_i : in    std_logic;
+      t0_i      : in    std_logic;
+      cs_n_i    : in    std_logic;
+      rd_n_i    : in    std_logic;
+      a0_i      : in    std_logic;
+      wr_n_i    : in    std_logic;
+      sync_o    : out   std_logic;
+      db_b      : inout std_logic_vector( 7 downto 0);
+      t1_i      : in    std_logic;
+      p2_b      : inout std_logic_vector( 7 downto 0);
+      p1_b      : inout std_logic_vector( 7 downto 0);
+      prog_n_o  : out   std_logic
+    );
+  end component;
+
+  component t8041a_notri
+    generic (
+      gate_port_input_g : integer := 1
+    );
+
+    port (
+      xtal_i        : in  std_logic;
+      xtal_en_i     : in  std_logic;
+      reset_n_i     : in  std_logic;
+      t0_i          : in  std_logic;
+      cs_n_i        : in  std_logic;
+      rd_n_i        : in  std_logic;
+      a0_i          : in  std_logic;
+      wr_n_i        : in  std_logic;
+      sync_o        : out std_logic;
+      db_i          : in  std_logic_vector( 7 downto 0);
+      db_o          : out std_logic_vector( 7 downto 0);
+      db_dir_o      : out std_logic;
+      t1_i          : in  std_logic;
+      p2_i          : in  std_logic_vector( 7 downto 0);
+      p2_o          : out std_logic_vector( 7 downto 0);
+      p2l_low_imp_o : out std_logic;
+      p2h_low_imp_o : out std_logic;
+      p1_i          : in  std_logic_vector( 7 downto 0);
+      p1_o          : out std_logic_vector( 7 downto 0);
+      p1_low_imp_o  : out std_logic;
+      prog_n_o      : out std_logic
+    );
+  end component;
+
+  component t8041a
+    port (
+      xtal_i    : in    std_logic;
+      reset_n_i : in    std_logic;
+      t0_i      : in    std_logic;
+      cs_n_i    : in    std_logic;
+      rd_n_i    : in    std_logic;
+      a0_i      : in    std_logic;
+      wr_n_i    : in    std_logic;
+      sync_o    : out   std_logic;
+      db_b      : inout std_logic_vector( 7 downto 0);
+      t1_i      : in    std_logic;
+      p2_b      : inout std_logic_vector( 7 downto 0);
+      p1_b      : inout std_logic_vector( 7 downto 0);
+      prog_n_o  : out   std_logic
+    );
+  end component;
+
+  component t8042ah_notri
+    generic (
+      gate_port_input_g : integer := 1
+    );
+
+    port (
+      xtal_i        : in  std_logic;
+      xtal_en_i     : in  std_logic;
+      reset_n_i     : in  std_logic;
+      t0_i          : in  std_logic;
+      cs_n_i        : in  std_logic;
+      rd_n_i        : in  std_logic;
+      a0_i          : in  std_logic;
+      wr_n_i        : in  std_logic;
+      sync_o        : out std_logic;
+      db_i          : in  std_logic_vector( 7 downto 0);
+      db_o          : out std_logic_vector( 7 downto 0);
+      db_dir_o      : out std_logic;
+      t1_i          : in  std_logic;
+      p2_i          : in  std_logic_vector( 7 downto 0);
+      p2_o          : out std_logic_vector( 7 downto 0);
+      p2l_low_imp_o : out std_logic;
+      p2h_low_imp_o : out std_logic;
+      p1_i          : in  std_logic_vector( 7 downto 0);
+      p1_o          : out std_logic_vector( 7 downto 0);
+      p1_low_imp_o  : out std_logic;
+      prog_n_o      : out std_logic
+    );
+  end component;
+
+  component t8042ah
+    port (
+      xtal_i    : in    std_logic;
+      reset_n_i : in    std_logic;
+      t0_i      : in    std_logic;
+      cs_n_i    : in    std_logic;
+      rd_n_i    : in    std_logic;
+      a0_i      : in    std_logic;
+      wr_n_i    : in    std_logic;
+      sync_o    : out   std_logic;
       db_b      : inout std_logic_vector( 7 downto 0);
       t1_i      : in    std_logic;
       p2_b      : inout std_logic_vector( 7 downto 0);

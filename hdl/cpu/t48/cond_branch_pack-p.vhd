@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- $Id: cond_branch_pack-p.vhd 295 2009-04-01 19:32:48Z arniml $
+-- $Id: cond_branch_pack-p.vhd 303 2022-12-16 19:56:46Z arniml $
 --
 -- Copyright (c) 2004, Arnim Laeuger (arniml@opencores.org)
 --
@@ -21,7 +21,10 @@ package t48_cond_branch_pack is
                                COND_F0, COND_F1,
                                COND_INT,
                                COND_T0, COND_T1,
-                               COND_TF);
+                               COND_TF,
+                               -- UPI41
+                               COND_NIBF,
+                               COND_OBF);
 
   subtype comp_value_t is std_logic_vector(2 downto 0);
 

@@ -25,6 +25,7 @@ module jtframe_i8742(
 
     //
     input        a0,
+    input        cs_n,
     input        cpu_rdn,
     input        cpu_wrn,
     input  [7:0] din,
@@ -39,7 +40,6 @@ module jtframe_i8742(
     // Test pins (used in the assembler TEST instruction)
     input        t0_din,
     input        t1_din,
-    output       t0_dout,
 
     input [10:0] prog_addr,
     input  [7:0] prog_data,
@@ -53,27 +53,22 @@ wire [ 7:0] ram_addr, ram_dout, ram_din, rom_data;
 wire [11:0] rom_addr;
 wire        ram_we;
 
-t48_core u_t48(
+
+upi41_core u_t48(
     // T48 interface
     .reset_i        ( ~rst      ),
     .xtal_i         ( clk       ),
     .xtal_en_i      ( cen       ),
 
     .a0_i           ( a0        ),
+    .cs_n_i         ( cs_n      ),
     .rd_n_i         ( cpu_rdn   ),
     .wr_n_i         ( cpu_wrn   ),
     // Test pins
     .t0_i           ( t0_din    ),
-    .t0_o           ( t0_dout   ),
-    .t0_dir_o       (           ),
     .t1_i           ( t1_din    ),
 
-    .int_n_i        (           ),
-    .ea_i           ( 1'b0      ),
-    .rd_n_o         (           ),
-    .psen_n_o       (           ),
-    .wr_n_o         (           ),
-    .ale_o          (           ),
+    .sync_o         (           ),
     .prog_n_o       (           ),
     // Data bus
     .db_i           ( din       ),

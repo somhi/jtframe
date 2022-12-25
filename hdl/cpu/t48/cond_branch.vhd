@@ -3,7 +3,7 @@
 -- The Conditional Branch Logic unit.
 -- Decisions whether to take a jump or not are made here.
 --
--- $Id: cond_branch.vhd 295 2009-04-01 19:32:48Z arniml $
+-- $Id: cond_branch.vhd 303 2022-12-16 19:56:46Z arniml $
 --
 -- Copyright (c) 2004, Arnim Laeuger (arniml@opencores.org)
 --
@@ -70,6 +70,8 @@ entity t48_cond_branch is
     f1_i           : in  std_logic;
     tf_i           : in  std_logic;
     carry_i        : in  std_logic;
+    ibf_i          : in  std_logic := '0';  -- UPI41
+    obf_i          : in  std_logic := '0';  -- UPI41
     comp_value_i   : in  comp_value_t
   );
 
@@ -103,6 +105,7 @@ begin
                         f0_i, f1_i,
                         tf_i,
                         carry_i,
+                        ibf_i, obf_i,
                         comp_value_i)
     variable or_v : std_logic;
   begin
@@ -151,6 +154,14 @@ begin
       -- Branch On: Timer Flag ------------------------------------------------
       when COND_TF =>
         take_branch_s <= tf_i = '1';
+
+      -- Branch On: IBF not set - UPI41 ---------------------------------------
+      when COND_NIBF =>
+        take_branch_s <= ibf_i = '0';
+
+      -- Branch On: OBF set - UPI41 -------------------------------------------
+      when COND_OBF =>
+        take_branch_s <= obf_i = '1';
 
       when others =>
         -- pragma translate_off
