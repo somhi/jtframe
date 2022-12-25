@@ -62,6 +62,7 @@ func init() {
 	flag := filesCmd.Flags()
 
 	flag.StringVarP(&files_args.Target, "target", "t", "", "Target platform: mist, mister, pocket, etc.")
+	flag.StringVarP(&files_args.AddMacro, "macro", "m", "", "Add more verilog macros separated by commas")
 	flag.BoolVar(&files_args.Rel, "rel", false, "Output relative paths")
 }
 

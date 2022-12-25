@@ -33,7 +33,7 @@ import (
 )
 
 // appends non blank arguments to a slice
-func append_args(dst, src []string) []string {
+func Append_args(dst, src []string) []string {
 	for _, each := range src {
 		if each != "" {
 			dst = append(dst, each)
@@ -55,8 +55,8 @@ func parse_args(cfg *jtdef.Config, args []string, extra_def, extra_undef string)
 		fmt.Println("target=", cfg.Target)
 		fmt.Println("def=", cfg.Deffile)
 	}
-	cfg.Add = append_args(cfg.Add, strings.Split(extra_def, ","))
-	cfg.Discard = append_args(cfg.Discard, strings.Split(extra_undef, ","))
+	cfg.Add = Append_args(cfg.Add, strings.Split(extra_def, ","))
+	cfg.Discard = Append_args(cfg.Discard, strings.Split(extra_undef, ","))
 	if cfg.Verbose {
 		fmt.Println("cmd line defs: ", cfg.Add)
 		fmt.Println("cmd line undefs: ", cfg.Discard)

@@ -28,6 +28,7 @@ import (
 	"strings"
 
 	"github.com/jotego/jtframe/jtdef"
+	"github.com/jotego/jtframe/jtcfgstr"
 	"gopkg.in/yaml.v2"
 )
 
@@ -71,6 +72,7 @@ type Args struct {
 	Rel      bool
 	Format   string
 	Target   string
+	AddMacro string // More macros, separated by commas
 }
 
 var parsed []string
@@ -458,6 +460,7 @@ func Run(args Args) {
 	var def_cfg jtdef.Config
 	def_cfg.Target = args.Target
 	def_cfg.Core = args.Corename
+	def_cfg.Add = jtcfgstr.Append_args(def_cfg.Add, strings.Split(args.AddMacro, ","))
 	macros = jtdef.Make_macros(def_cfg)
 
 	var files JTFiles
