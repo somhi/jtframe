@@ -69,8 +69,8 @@ assign prog_data = {2{data_out}};
 assign prog_rd   = 0;
 `endif
 
-`ifdef LOADROM
-`undef JTFRAME_DWNLD_PROM_ONLY
+`ifdef JTFRAME_DWNLD_PROM_ONLY
+    initial $display("WARNING: JTFRAME_DWNLD_PROM_ONLY has been deprecated. Remove it from the simulation script");
 `endif
 
 always @(*) begin
@@ -78,7 +78,11 @@ always @(*) begin
     part_addr = ioctl_addr-HEADER;
 end
 
-`ifndef JTFRAME_DWNLD_PROM_ONLY
+`ifdef SIMULATION `ifdef JTFRAME_PROM_START `ifndef LOADROM
+    `define SIM_LOAD_PROM
+`endif `endif `endif
+
+`ifndef SIM_LOAD_PROM
 /////////////////////////////////////////////////
 // Normal operation
 reg  [ 1:0] bank;

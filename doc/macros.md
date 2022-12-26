@@ -37,7 +37,6 @@ JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
 JTFRAME_COLORW           |         | Sets the number of bits per color component (default=4)
 JTFRAME_DEBUG            |         | Enables the debug_bus signal connection to the game instance
 JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
-JTFRAME_DWNLD_PROM_ONLY  |         | Quick download sim with only PROM contents
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
 JTFRAME_FORCED_DIPSW     | Pocket  | Forces a fixed value for the DIP switches
 JTFRAME_HEADER           |         | Set to the length of the ROM file header
@@ -172,8 +171,7 @@ The following macros only have an effect if SIMULATION is defined.
 
 Macro                    | Target  |  Usage
 -------------------------|---------|---------------------------------------------
-LOADROM                  |         | Sends ROM data via serial interface
-JTFRAME_DWNLD_PROM_ONLY  |         | Skip the regular download and go directly to the PROM section
+LOADROM                  |         | Sends ROM data via serial interface. Set by `jtsim -load`
 JTFRAME_SIM_LOAD_EXTRA   |         | Extra wait time when transferring ROM in simulation
 
 # Credits
