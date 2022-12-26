@@ -217,11 +217,12 @@ func dump_output(cfg Config) {
 			if cfg.Nosnd {
 				jtcore = jtcore + " -d NOSOUND"
 			}
-			if cfg.Beta != "" || cfg.Private {
+			// --git skipped if asked so, but also for all targets but mister in betas
+			dogit := !(cfg.Nogit || ( cfg.Beta!="" && target != "mister"))
+			if dogit || cfg.Beta != "" || cfg.Private {
 				jtcore = jtcore + " -d JTFRAME_RELEASE"
 			}
-			// --git skipped if asked so, but also for all targets but mister in betas
-			if !cfg.Nogit && !( cfg.Beta=="" || target != "mister") {
+			if dogit {
 				jtcore = jtcore + " --git"
 			}
 			copy := false
