@@ -20,6 +20,10 @@ P=`echo $LAST|cut -d . -f 3`
 NEXT=
 case "$1" in
     --abort)
+        if [ `git branch --show-current` = master ]; then
+            echo "Already in master branch. Nothing done"
+            exit 0
+        fi
         if is_dirty; then
             echo "Changes detected. Stash them [y/n/c]?"
             read CONT
@@ -33,7 +37,7 @@ case "$1" in
         # EDIT_COMMIT=`git rev-parse --short HEAD`
         git checkout master
         git reset --hard
-        git branch -d $EDITS
+        git branch -d $EDITS || echo "It's advised to either merge, delete or rename the $EDITS branch"
         exit 0;;
     -e|--edit)
         STASHED=0
@@ -55,6 +59,7 @@ case "$1" in
         cat<<EOF
 jtmerge merges a feature branch into the master branch and advances the version number
 
+         --abort   Aborts the current edit operation
     -e | --edit    Creates a branch for new edits called edits_$LAST
     -v | --version Shows the current version
 
