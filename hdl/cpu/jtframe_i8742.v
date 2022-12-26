@@ -92,11 +92,11 @@ upi41_core u_t48(
     .db_o           ( dout      ),
     .db_dir_o       (           ),
     // Port 1
-    .p1_i           ( p1_din    ),
+    .p1_i           ( p1_din & p1_dout ),
     .p1_o           ( p1_dout   ),
     .p1_low_imp_o   (           ),
     // Port 2
-    .p2_i           ( p2_din    ),
+    .p2_i           ( p2_din & p2_dout ),
     .p2_o           ( p2_dout   ),
     .p2l_low_imp_o  (           ),
     .p2h_low_imp_o  (           ),
@@ -127,7 +127,7 @@ jtframe_prom #(
 
 jtframe_ram #(.aw(8)) u_ram(
     .clk    ( clk       ),
-    .cen    ( 1'b1       ), // this may create problems
+    .cen    ( 1'b1      ), // this may create problems
     .data   ( ram_din   ),
     .addr   ( ram_addr  ),
     .we     ( ram_we    ),
