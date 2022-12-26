@@ -20,16 +20,27 @@ P=`echo $LAST|cut -d . -f 3`
 NEXT=
 case "$1" in
     --abort)
-        git stash drop
+        if is_dirty; then
+            echo "Changes detected. Stash them [y/n/c]?"
+            read CONT
+            case "$CONT" in
+                y) git stash;;
+                n) git reset --hard;;
+                c) echo "Cancelled"; exit 0;;
+                *) echo "Reply y(es) n(o) or c(ancel)."; exit 1;;
+            esac
+        fi
+        # EDIT_COMMIT=`git rev-parse --short HEAD`
         git checkout master
         git reset --hard
-        git branch -D $EDITS
+        git branch -d $EDITS
         exit 0;;
     -e|--edit)
-        git stash
+        STASHED=0
+        if is_dirty; then git stash; STASHED=1; fi
         git pull --recurse-submodules
         git checkout -b $EDITS
-        git stash apply
+        if [ $STASHED = 1 ]; then git stash apply; fi
         exit 0;;
     -p|--patch)
         NEXT=v${M}.${F}.$((P+1));;
