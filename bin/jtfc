@@ -21,10 +21,10 @@ fi
 
 # Check that JTFRAME is clean
 cd $JTFRAME
-# if is_dirty; then
-#     echo "ERROR you need to first commit JTFRAME. Use jtmerge to do it"
-#     exit 1
-# fi
+if is_dirty; then
+    echo "ERROR you need to first commit JTFRAME. Use jtmerge to do it"
+    exit 1
+fi
 
 JTV=`jtmerge --version`
 JTC=`git log $JTV -n 1 --pretty=%B`
