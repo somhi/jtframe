@@ -18,8 +18,6 @@
 
 */
 
-/* verilator tracing_off */
-
 module jtframe_6809wait(
     input           rstn,
     input           clk,

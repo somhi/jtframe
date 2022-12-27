@@ -39,6 +39,7 @@
 
 /* verilator lint_off CASEX */
 /* verilator lint_off UNOPTFLAT */
+/* verilator tracing_off */
 
 module mc6809i
 #(
