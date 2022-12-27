@@ -6,6 +6,12 @@ function is_dirty {
     git status --short | grep -i "^ M " > /dev/null
 }
 
+if [ -z "$JTFRAME" ]; then
+    echo "ERROR $JTFRAME must be defined"
+    exit 1
+fi
+
+cd $JTFRAME
 # Merges changes from wip branch into master
 LAST=`git tag | grep "^v" | sort | tail -n 1`
 LAST=${LAST:1}
