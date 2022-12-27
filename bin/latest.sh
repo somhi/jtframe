@@ -3,7 +3,6 @@
 
 M=`git tag | grep ^v | cut -d . -f 1 | sort -n | tail -n 1`
 F=`git tag | grep ^$M | cut -d . -f 2 | sort -n | tail -n 1`
-git tag | grep "^$M\.$F" | cut -d . -f 3 | sort -n
 P=`git tag | grep "^$M\.$F" | cut -d . -f 3 | sort -n | tail -n 1`
 
 echo "$M.$F.$P"
