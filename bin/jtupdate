@@ -73,7 +73,7 @@ function parse_args {
 
 parse_args $* || exit $?
 
-if [ "$NOGIT" = 1 ]; then
+if [ -z "$NOGIT" ]; then
     cd $JTBIN
     if git status --short | grep -i "^ M " > /dev/null; then
         echo "JTBIN has uncommited changes. Do you want to continue [y/n]?"
