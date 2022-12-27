@@ -10,6 +10,13 @@ New versions are elaborated in a separate branch, typically _wip_, and then merg
 
 Version coding started almost three years after the first JTFRAME commit with version 1.0.0, used in the [JTKARNOV](https://github.com/jotego/jtcop) beta.
 
+For JT cores, the same three digit encoding applies. Breaking compatibility in a core will occur when:
+
+- changing a structural item in the MRA files that prevent the old RBF to work with the new MRA and vice versa
+- similar to JSON files
+- changing the NVRAM structure
+- changing the OSD options in a way that would prevent old status work to be loaded correctly
+
 ## Edit Flow
 
 When you have to make edits to jtframe, follow this flow:

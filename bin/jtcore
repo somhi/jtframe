@@ -64,7 +64,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --target|-t <target>
                     Specifies the target platform
     --verbose | -v  verbose
-    --version       Shows JTFRAME version
+    --version       Shows the core version. Use "jtmerge -v" to see the JTFRAME version
 
     --help          Displays this message
 EOF
@@ -190,7 +190,7 @@ function parse_args {
             --verbose | -v)
                 VERBOSE=-v;;
             --version)
-                cd $JTFRAME; jtmerge -v
+                cd $JTROOT; jtmerge -v
                 exit 0;;
             --help | -h)
                 show_usage;;
@@ -248,9 +248,30 @@ function is_dirty {
     git status --short | grep -i "^ M " > /dev/null
 }
 
+# Removes the initial v from a word if exists.
+# Used to remove the v in version codes without
+# affecting the git id, in the case it's used instead
+function no_v {
+    if [ ${1:0:1} = v ]; then
+        echo ${1:1}
+    else
+        echo $1
+    fi
+}
+
 PRJCOMMIT=$(git rev-parse --short HEAD)
 if is_dirty; then
     PRJCOMMIT="$PRJCOMMIT-dirty"
+else
+    # if there is a version tag that matches the commit, use it instead
+    PRJTAG=`git tag --contains $PRJCOMMIT | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | tail -n 1`
+    if [ ! -z "$PRJTAG" ]; then
+        PRJCOMMIT=$PRJTAG;
+    elif [ $GIT = TRUE ]; then
+        echo "Error: cannot use --git if there is no version tag for the commit"
+        echo "Create the first version tag manually. Use jtmerge to create the tags after that."
+        exit 1
+    fi
 fi
 
 if [ ! -e "$JTFRAME" ]; then
@@ -337,7 +358,7 @@ function parse_macros {
     if [ ! -z "$UM" ]; then
         UM="--undef $UM"
     fi
-    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit $PRJCOMMIT $MM $UM --output $*
+    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit `no_v $PRJCOMMIT` $MM $UM --output $*
 }
 
 # qsf line to disable SOUND synthesis
@@ -421,7 +442,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     ############################################
     # Credits via jtframe_credits:
     if [[ -e $PRJPATH/cfg/msg ]]; then
-        jtframe msg $PRJ --commit $PRJCOMMIT || exit $?
+        jtframe msg $PRJ --commit `no_v $PRJCOMMIT` || exit $?
     fi
     # Update Avatars
     if [ -e $PRJPATH/patrons/lut ]; then
@@ -560,7 +581,7 @@ fi
 
 function archive_commit {
     cp $1 releases/$TARGET/$RELEASE.$EXT
-    if [ ${#PRJCOMMIT} = 7 ]; then
+    if [[ ${#PRJCOMMIT} = 7 || ${PRJCOMMIT:0:1} = v ]]; then
         mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
         cp $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
         ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $JTROOT/releases/$TARGET/latest
