@@ -34,3 +34,5 @@ jtmerge --major # if it breaks compatibility
 You can start editing in the _master_ branch and `jtmerge --edit` will stash your changes when creating the _edit_ branch.
 
 You can cancel one edit and go back to _master_ with `jtmerge --abort`. If there are changes done, you will be asked whether to stash them. If you had made commits to the edit branch, the branch will not be deleted automatically.
+
+When the only change in a repository is an update to JTFRAME, use `jtfc` (for JTFRAME Commit) to make the git commit. This will create a commit with the JTFRAME version and its commit description.
