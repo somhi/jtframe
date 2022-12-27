@@ -44,7 +44,8 @@ type RegCfg struct {
 	Reverse, Skip     bool
 	No_offset         bool
 	Sort_byext        bool
-	Sort_alpha        bool
+	Sort              bool // Sort by number sections
+	Sort_alpha        bool // Sort by full alpha comparison
 	Sort_even         bool // sort ROMs by pushing all even ones first, and then the odd ones
 	Sort_reverse      bool // inverts the sorting
 	Singleton         bool // Each file can only merge with itself to make interleave sections
@@ -1377,26 +1378,23 @@ func cmp_count(a, b string, rmext bool) bool {
 			b = b[0:k]
 		}
 	}
-	min_len := len(a)
-	if len(b) < min_len {
-		min_len = len(b)
+	re := regexp.MustCompile("[0-9]+")
+	asub := re.FindAllString( a, -1 )
+	bsub := re.FindAllString( b, -1 )
+	kmax := len(asub)
+	if len(bsub) < kmax {
+		kmax = len(bsub)
 	}
-	i := 0
-	for ; i < min_len; i++ {
-		if a[i] >= '0' && a[i] <= '9' {
+	low := true
+	for k:=0;k<kmax;k++ {
+		aint, _ := strconv.Atoi(asub[k])
+		bint, _ := strconv.Atoi(bsub[k])
+		if aint > bint {
+			low = false
 			break
 		}
-		if a[i] < b[i] {
-			return true
-		}
-		if a[i] > b[i] {
-			return false
-		}
 	}
-	// attempt an integer conversion
-	ai, _ := strconv.Atoi(a[i:])
-	bi, _ := strconv.Atoi(b[i:])
-	return ai < bi
+	return low
 }
 
 func sort_byext(reg_cfg *RegCfg, roms []MameROM) {
@@ -1527,6 +1525,18 @@ func sort_regex_list(reg_cfg *RegCfg, roms []MameROM) {
 	}
 }
 
+func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
+	sort.Slice(roms, func(i, j int) bool {
+		var a *MameROM = &roms[i]
+		var b *MameROM = &roms[j]
+		if reg_cfg.Sort_alpha {
+			return strings.Compare(a.Name, b.Name) < 0
+		} else {
+			return cmp_count(a.Name, b.Name, true)
+		}
+	})
+}
+
 func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 	if len(reg_cfg.Ext_sort) > 0 {
 		sort_ext_list(reg_cfg, roms)
@@ -1553,6 +1563,10 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
 				roms[i] = base[len(roms)-1-i]
 			}
 		}
+		return
+	}
+	if reg_cfg.Sort_alpha || reg_cfg.Sort {
+		sort_fullname( reg_cfg, roms )
 		return
 	}
 }
@@ -1627,17 +1641,13 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 				break
 			}
 		}
-		bitmax := -1
-		bitmin := -1
-		for k, loc := range ds.Diplocation {
-			bit := loc.Number - 1
-			if k == 0 || bit < bitmin {
-				bitmin = bit
-			}
-			if k == 0 || bit > bitmax {
-				bitmax = bit
+		bitmin := 0
+		for bitmin=0; bitmin<(1<<32);bitmin++ {
+			if (ds.Mask & (1<<bitmin)) != 0 {
+				break
 			}
 		}
+		bitmax := bitmin + int(math.Log2( float64(len(ds.Dipvalue)))) - 1
 		if ds.Tag != last_tag {
 			if len(last_tag) > 0 {
 				// Record the default values
@@ -1651,29 +1661,6 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 			last_tag = ds.Tag
 			m := n.AddNode(last_tag)
 			m.comment = true
-		}
-		if bitmin == -1 && bitmax == -1 {
-			mask := ds.Mask
-			lb := 0
-			for k := 0; k < 64; k++ {
-				cb := mask & 1
-				if cb == 1 && lb == 0 {
-					bitmin = k
-				}
-				if cb == 0 && lb == 1 {
-					bitmax = k - 1
-					break
-				}
-				lb = cb
-				mask = mask >> 1
-			}
-		} else if ds.Mask > 256 {
-			// This is needed by Bad Dudes
-			bitmin += 8
-			bitmax += 8
-		}
-		if bitmin == -1 || bitmax == -1 {
-			log.Fatal("Cannot determine DIP switch bit mask")
 		}
 		sort.Slice(ds.Dipvalue, func(p, q int) bool {
 			return ds.Dipvalue[p].Value < ds.Dipvalue[q].Value

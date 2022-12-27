@@ -29,8 +29,17 @@ var mra_args mra.Args
 var mraCmd = &cobra.Command{
 	Use:   "mra <core-name>",
 	Short: "Parses the core's TOML file to generate MRA files",
-	Long: `Parses the core's TOML file to generate MRA files.
-The TOML file must be stored in the $ROM folder.`,
+	Long: `Parses the core's mame2mra.toml file to generate MRA files.
+
+TOML elements (see full reference in mame2mra.go)
+
+[ROM]
+regions = [
+	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true },
+	{ name==soundcpu, sort=true }
+	{ name=plds, skip=true },
+]
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		mra_args.Def_cfg.Core = args[0]
 		// mra_args.Toml_path = args[0] + ".toml"
