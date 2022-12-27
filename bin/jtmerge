@@ -13,7 +13,7 @@ fi
 
 cd $JTFRAME
 # Merges changes from wip branch into master
-LAST=`git tag | grep "^v" | sort | tail -n 1`
+LAST=`latest.sh`
 LAST=${LAST:1}
 EDITS="edits_$LAST"
 
