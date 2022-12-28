@@ -267,6 +267,7 @@ else
     PRJTAG=`git tag --contains $PRJCOMMIT | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | tail -n 1`
     if [ ! -z "$PRJTAG" ]; then
         PRJCOMMIT=$PRJTAG;
+        echo "Using version tag $PRJCOMMIT"
     elif [ $GIT = TRUE ]; then
         echo "Error: cannot use --git if there is no version tag for the commit"
         echo "Create the first version tag manually. Use jtmerge to create the tags after that."
@@ -357,6 +358,9 @@ function parse_macros {
     done
     if [ ! -z "$UM" ]; then
         UM="--undef $UM"
+    fi
+    if [ ! -z "$VERBOSE" ]; then
+        echo jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit `no_v $PRJCOMMIT` $MM $UM --output $* > /dev/stderr
     fi
     jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit `no_v $PRJCOMMIT` $MM $UM --output $*
 }
