@@ -48,7 +48,7 @@ case "$1" in
     -e|--edit)
         if `git branch --show-current | grep edits`; then
             echo "Already in an edit branch"
-            exit 0;;
+            exit 0
         fi
         STASHED=0
         if is_dirty; then git stash; STASHED=1; fi
