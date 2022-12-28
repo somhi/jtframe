@@ -490,7 +490,7 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		pure_name = strings.ReplaceAll(pure_name,"/","") // Prevent the creation of folders!
 		pure_name = strings.TrimSpace(pure_name)
 		pure_name = rm_spsp(pure_name)
-		fname += "/" + args.altdir + "/_" + pure_name
+		fname = filepath.Join( args.altdir, "_" + pure_name )
 
 		err := os.MkdirAll(fname, 0777)
 		if err != nil && !os.IsExist(err) {
@@ -504,7 +504,7 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 	b.WriteString( mra_xml.Dump() )
 	b.WriteString("\n")
 	os.WriteFile(fname, []byte(b.String()),0666)
-	if args.JTbin && cloneof {
+	if args.JTbin && !cloneof {
 		// Look for the RBF name
 		rbf_name := mra_xml.FindNode("rbf").text // it must find it
 		rbf_name = rbf_name[2:] // deletes the initial jt
