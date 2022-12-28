@@ -65,7 +65,7 @@ always @(posedge clk) begin
         3: st_dout <= p2_dout;
         4: st_dout <= rom_addr[7:0];
         5: st_dout <= { 5'd0, rom_addr[10:8] };
-        6: st_dout <= rom_addr;
+        6: st_dout <= rom_data;
         7: st_dout <= { 6'd0, t1_din, t0_din };
         default: st_dout <= 0;
     endcase
