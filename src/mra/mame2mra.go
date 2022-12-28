@@ -1802,8 +1802,6 @@ func (p *flag_info) Set(a string) error {
 }
 
 func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
-	// Set defaults values different from zero
-	mra_cfg.Dipsw.Base = 16
 
 	macros = jtdef.Make_macros(args.Def_cfg)
 
@@ -1821,6 +1819,16 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// Set defaults values different from zero
+	if mra_cfg.Dipsw.Base == 0 {
+		mist_base, _ := strconv.Atoi(macros["JTFRAME_MIST_DIPBASE"])
+		if mist_base != 0 {
+			mra_cfg.Dipsw.Base = mist_base
+		} else {
+			mra_cfg.Dipsw.Base = 16 // Default value
+		}
+	}
+
 	// Add the NVRAM section if it was in the .def file
 	if macros["JTFRAME_IOCTL_RD"] != "" {
 		if mra_cfg.Features.Nvram != 0 {

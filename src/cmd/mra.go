@@ -18,6 +18,7 @@
 package cmd
 
 import (
+	"os"
 	"github.com/jotego/jtframe/mra"
 
 	"github.com/spf13/cobra"
@@ -55,7 +56,7 @@ func init() {
 
 	mra_args.Def_cfg.Target = "mist"
 	flag.StringVar(&mra_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
-	flag.StringVar(&mra_args.Xml_path, "xml", "mame.xml", "Path to MAME XML file")
+	flag.StringVar(&mra_args.Xml_path, "xml", os.Getenv("JTROOT")+"/rom/mame.xml", "Path to MAME XML file")
 	flag.StringVar(&mra_args.Pocketdir, "Pocketdir", "", "Output folder for Analogue Pocket files")
 	flag.StringVar(&mra_args.Outdir, "Outdir", "", "Output folder")
 	flag.StringVar(&mra_args.Altdir, "Altdir", "", "Output folder for alternatives")
