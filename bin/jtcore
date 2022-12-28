@@ -685,7 +685,7 @@ if [ $TARGET = mister ]; then
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
     if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
         if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
-        if echo  sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+        if sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
             echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
         else
             echo "Network copy to MiSTer failed"
@@ -693,7 +693,6 @@ if [ $TARGET = mister ]; then
     else
         echo "MiSTer is not online or unreachable"
     fi
-    echo xx
     if [ -d /media/$USER/MiSTer_Data ]; then
         mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
         cp $VERBOSE $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
