@@ -46,6 +46,10 @@ case "$1" in
         git branch -d $EDITS || echo "It's advised to either merge, delete or rename the $EDITS branch"
         exit 0;;
     -e|--edit)
+        if `git branch --show-current | grep edits`; then
+            echo "Already in an edit branch"
+            exit 0;;
+        fi
         STASHED=0
         if is_dirty; then git stash; STASHED=1; fi
         git pull --recurse-submodules

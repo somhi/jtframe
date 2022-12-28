@@ -25,12 +25,13 @@ import (
 type Args struct {
 	Def_cfg                   jtdef.Config
 	Toml_path, Xml_path       string
-	Outdir, Altdir, Pocketdir string
+	outdir, altdir, pocketdir string
 	Info                      []Info
 	Buttons                   string
 	Year                      string
 	Verbose, SkipMRA          bool
 	Show_platform             bool
+	JTbin                     bool  // copy to JTbin
 	Author, URL  		      string
 	// private
 	firmware_dir			  string
@@ -236,6 +237,21 @@ func (n *XMLNode) GetAttr(name string) string {
 		}
 	}
 	return ""
+}
+
+func (n *XMLNode) FindNode(name string) (found *XMLNode) {
+	if n.name == name {
+		return n
+	} else {
+		for _, each := range n.children {
+			found = each.FindNode(name)
+			if found != nil {
+				return found
+			}
+		}
+	}
+	found = nil
+	return found
 }
 
 func xml_str(in string) string {
@@ -448,24 +464,21 @@ func fix_filename(filename string) string {
 }
 
 func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, parent_names map[string]string ) {
-	fname := args.Outdir
+	fname := args.outdir
 	game_name := strings.ReplaceAll(mra_xml.GetNode("name").text, ":", "")
 	game_name = strings.ReplaceAll(game_name, "/", "-")
 	// Create the output directory
-	if args.Outdir != "." && args.Outdir != "" {
+	if args.outdir != "." && args.outdir != "" {
 		if args.Verbose {
-			fmt.Println("Creating folder ", args.Outdir)
+			fmt.Println("Creating folder ", args.outdir)
 		}
-		err := os.Mkdir(args.Outdir, 0777)
+		err := os.Mkdir(args.outdir, 0777)
 		if err != nil && !os.IsExist(err) {
-			log.Fatal(err, args.Outdir)
+			log.Fatal(err, args.outdir)
 		}
 	}
 	// Create the directory for alt file
 	if cloneof {
-		if len(args.Altdir) == 0 {
-			args.Altdir = "_alt"
-		}
 		pure_name := parent_names[machine.Cloneof]
 		pure_name = strings.ReplaceAll(pure_name, ":", "")
 		if k := strings.Index(pure_name, "("); k != -1 {
@@ -477,7 +490,7 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		pure_name = strings.ReplaceAll(pure_name,"/","") // Prevent the creation of folders!
 		pure_name = strings.TrimSpace(pure_name)
 		pure_name = rm_spsp(pure_name)
-		fname += "/" + args.Altdir + "/_" + pure_name
+		fname += "/" + args.altdir + "/_" + pure_name
 
 		err := os.MkdirAll(fname, 0777)
 		if err != nil && !os.IsExist(err) {
@@ -486,18 +499,24 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 	}
 	fname += "/" + fix_filename(game_name) + ".mra"
 	// fmt.Println("Output to ", fname)
-	file, err := os.Create(fname)
-	if err != nil {
-		log.Fatal(err, " while creating ", fname)
+	var b strings.Builder
+	b.WriteString(mra_disclaimer(machine, args.Year))
+	b.WriteString( mra_xml.Dump() )
+	b.WriteString("\n")
+	os.WriteFile(fname, []byte(b.String()),0666)
+	if args.JTbin && cloneof {
+		// Look for the RBF name
+		rbf_name := mra_xml.FindNode("rbf").text // it must find it
+		rbf_name = rbf_name[2:] // deletes the initial jt
+		fname = os.Getenv("JTBIN")
+		fname = filepath.Join( fname, "mister", rbf_name, "releases" )
+		os.MkdirAll(fname, 0660 )
+		fname += fix_filename(game_name) + ".mra"
+		if args.Verbose {
+			fmt.Println("Creating ",fname)
+		}
+		os.WriteFile(fname, []byte(b.String()),0666)
 	}
-	if args.Verbose {
-		fmt.Printf("Dumping to MRA file %s\n", fname)
-	}
-	dump_str := mra_xml.Dump()
-	file.WriteString(mra_disclaimer(machine, args.Year))
-	file.WriteString(dump_str)
-	file.WriteString("\n")
-	file.Close()
 }
 
 func mra_disclaimer(machine *MachineXML, year string) string {
@@ -1901,11 +1920,19 @@ func parse_args(args *Args) {
 	if args.Verbose {
 		fmt.Println("Parsing ",args.Toml_path)
 	}
-	if args.Outdir == "" {
-		args.Outdir = filepath.Join( os.Getenv("JTROOT"), "rom", "mra" )
-	}
-	if args.Pocketdir == "" {
-		args.Pocketdir = filepath.Join( os.Getenv("JTROOT"), "rom", "pocket" )
+	if args.JTbin {
+		jtbin_path := os.Getenv("JTBIN")
+		if jtbin_path=="" {
+			log.Fatal("jtframe mra: JTBIN path must be defined")
+		}
+		args.outdir = filepath.Join( jtbin_path, "mra" )
+		args.altdir = filepath.Join( args.outdir, "_alternatives" )
+		args.pocketdir = filepath.Join( jtbin_path, "pocket", "raw" )
+
+	}  else {
+		args.outdir = filepath.Join( os.Getenv("JTROOT"), "rom", "mra" )
+		args.altdir = filepath.Join( args.outdir, "_alt" )
+		args.pocketdir = filepath.Join( os.Getenv("JTROOT"), "rom", "pocket" )
 	}
 	args.firmware_dir = filepath.Join( cores,args.Def_cfg.Core,"firmware")
 }

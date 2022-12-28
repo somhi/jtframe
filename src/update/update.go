@@ -181,19 +181,19 @@ func update_actions(jtroot string, cfg Config) {
 }
 
 func dump_output(cfg Config) {
+	var all_cores []string
+	if len(cfg.Group) != 0 {
+		s, e := cfg.groups[cfg.Group]
+		if !e {
+			log.Fatal("Specified group cannot be found in .jtupdate file")
+		}
+		all_cores = strings.Split(s, ",")
+	} else {
+		all_cores = cfg.cores
+	}
 	for target, valid := range cfg.Targets {
 		if !valid {
 			continue
-		}
-		var all_cores []string
-		if len(cfg.Group) != 0 {
-			s, e := cfg.groups[cfg.Group]
-			if !e {
-				log.Fatal("Specified group cannot be found in .jtupdate file")
-			}
-			all_cores = strings.Split(s, ",")
-		} else {
-			all_cores = cfg.cores
 		}
 		for _, c := range all_cores {
 			key := make_key(target, c)
@@ -236,6 +236,12 @@ func dump_output(cfg Config) {
 				}
 			}
 			fmt.Println(jtcore)
+		}
+	}
+	// Update MRA/JSON if needed
+	if !cfg.Nogit {
+		for _, each := range all_cores {
+			fmt.Printf("jtframe mra %s --git\n", each)
 		}
 	}
 }
