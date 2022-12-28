@@ -190,7 +190,7 @@ function parse_args {
             --verbose | -v)
                 VERBOSE=-v;;
             --version)
-                cd $JTROOT; jtmerge -v
+                cd $JTROOT; latest.sh
                 exit 0;;
             --help | -h)
                 show_usage;;
