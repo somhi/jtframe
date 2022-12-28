@@ -511,7 +511,7 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 		fname = os.Getenv("JTBIN")
 		fname = filepath.Join( fname, "mister", rbf_name, "releases" )
 		os.MkdirAll(fname, 0660 )
-		fname += fix_filename(game_name) + ".mra"
+		fname = filepath.Join( fname, fix_filename(game_name) + ".mra" )
 		if args.Verbose {
 			fmt.Println("Creating ",fname)
 		}
