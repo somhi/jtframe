@@ -532,6 +532,8 @@ if [ $SKIP_COMPILE = FALSE ]; then
         quartus_map $CORENAME --64bit --parallel=1 --efort=fast > "$LOG"
         exit $?
     fi
+elif [ ! -z "$VERBOSE" ]; then
+    echo "Skipping compilation"
 fi
 
 function append_if_exists {
@@ -580,11 +582,11 @@ if [ ! -e $RBF ]; then
 fi
 
 function archive_commit {
-    cp $1 releases/$TARGET/$RELEASE.$EXT
+    cp $VERBOSE $1 releases/$TARGET/$RELEASE.$EXT
     if [[ ${#PRJCOMMIT} = 7 || ${PRJCOMMIT:0:1} = v ]]; then
         mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
-        cp $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
-        ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $JTROOT/releases/$TARGET/latest
+        cp $VERBOSE $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
+        ln $VERBOSE -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $JTROOT/releases/$TARGET/latest
     fi
 }
 
@@ -609,7 +611,7 @@ if [ $TARGET = pocket ]; then
         fi
     fi
 else
-    cp $RBF $RELEASE.rbf
+    cp $VERBOSE $RBF $RELEASE.rbf
     archive_commit $RELEASE.rbf
 fi
 
@@ -618,9 +620,10 @@ fi
 if [[ $FAIL = 0 && -n "$JTALPHA" && -d "$JTALPHA" && $TARGET == mister && \
       $MACROS != *NOSOUND* && \
       $MACROS != *MISTER_DEBUG_NOHDMI* && $PRIVATE = 1 ]]; then
+    if [ ! -z "$VERBOSE" ]; then echo "Copying to JTALPHA"; fi
     JTALPHA_OUTPUT=$JTALPHA/$PRJ/cores/$PRJCOMMIT
     mkdir -p $JTALPHA_OUTPUT
-    cp $RELEASE.rbf $JTALPHA_OUTPUT/$corename.$EXT -v
+    cp $VERBOSE $RELEASE.rbf $JTALPHA_OUTPUT/$corename.$EXT -v
     echo git tag -f alpha_$RELEASE
     git tag -f alpha_$RELEASE
     cd $JTALPHA
@@ -635,6 +638,7 @@ fi
 ######################################################################################
 # Copy the file to the SD card. The SD card must have the same name as the target platform
 if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
+    if [ ! -z "$VERBOSE" ]; then echo "Copying to SD card (non Pocket core)"; fi
     cd $JTROOT
     RENAME=${CORENAME^^}.$EXT
     # copy the file in three forms:
@@ -677,10 +681,11 @@ fi
 
 # If Mr is online, copy the file to the _Arcade/cores folder using MiSTer's SSH password
 if [ $TARGET = mister ]; then
-    if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
     if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
-    if ping $MRHOST -w 1 -c 1 > /dev/null; then
-        if sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+    if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
+    if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
+        if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
+        if echo  sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
             echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
         else
             echo "Network copy to MiSTer failed"
@@ -688,9 +693,10 @@ if [ $TARGET = mister ]; then
     else
         echo "MiSTer is not online or unreachable"
     fi
+    echo xx
     if [ -d /media/$USER/MiSTer_Data ]; then
         mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
-        cp $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
+        cp $VERBOSE $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
     fi
 fi
 
