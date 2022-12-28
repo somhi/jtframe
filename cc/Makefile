@@ -1,7 +1,7 @@
-programs = bin2m msg2hex lut2hex reverse_bits
+programs = bin2m lut2hex reverse_bits
 
 all: $(programs)
-	cp $(programs) ../bin
+	mv $(programs) ../bin
 
 bin2m:
 
