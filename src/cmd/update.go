@@ -70,6 +70,7 @@ func init() {
 	flag.BoolVar( &up_cfg.Seed,    "seed",    false, "Random seed iteration used for compilation")
 	flag.BoolVar( &up_cfg.Private, "private", false, "Build for JTALPHA team")
 	flag.BoolVar( &up_cfg.Actions, "actions", false, "Updates GitHub actions")
+	flag.BoolVarP( &up_cfg.Skip, "skip-rbf", "s", false, "Skip RBF generation and update only MRA files")
 	flag.StringVar( &up_cfg.Beta,   "beta",    "", "Sets JTFRAME_UNLOCKKEY=<value> and sets BETA. Use with --corestamp")
 	flag.StringVar( &up_cfg.Stamp,  "corestamp",   "", "Date string for RBF file. Passed to jtcore")
 	flag.StringVar(&up_cfg.Network, "network", "", "Ignored")

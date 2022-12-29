@@ -20,7 +20,7 @@ type Groups map[string]string
 
 type Config struct {
 	Max_jobs               int
-	Dryrun, Nogit, Nohdmi, Nosnd, Actions, Seed, Private bool
+	Dryrun, Nogit, Nohdmi, Nosnd, Actions, Seed, Private, Skip bool
 	Network, Group, extra  string
 	Beta, Stamp					   string
 	cores                  []string
@@ -191,6 +191,19 @@ func dump_output(cfg Config) {
 	} else {
 		all_cores = cfg.cores
 	}
+	// Update MRA/JSON if needed
+	mra_str := "jtframe mra %s"
+	if !cfg.Nogit {
+		mra_str += " --git"
+	}
+	mra_str += "\n"
+	for _, each := range all_cores {
+		fmt.Printf(mra_str, each)
+	}
+	// Update the RBF files
+	if cfg.Skip {
+		return
+	}
 	for target, valid := range cfg.Targets {
 		if !valid {
 			continue
@@ -236,12 +249,6 @@ func dump_output(cfg Config) {
 				}
 			}
 			fmt.Println(jtcore)
-		}
-	}
-	// Update MRA/JSON if needed
-	if !cfg.Nogit {
-		for _, each := range all_cores {
-			fmt.Printf("jtframe mra %s --git\n", each)
 		}
 	}
 }
