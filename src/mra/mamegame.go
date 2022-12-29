@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 )
@@ -181,7 +182,7 @@ loop_machines:
 					if len(cfg.Sourcefile) != 0 {
 						for _, v := range se.Attr {
 							if v.Name.Local == "sourcefile" {
-								if v.Value == cfg.Sourcefile {
+								if filepath.Base(v.Value) == cfg.Sourcefile {
 									dump = true
 								}
 							}
