@@ -46,7 +46,7 @@ case "$1" in
         git branch -d $EDITS || echo "It's advised to either merge, delete or rename the $EDITS branch"
         exit 0;;
     -e|--edit)
-        if `git branch --show-current | grep edits`; then
+        if (git branch --show-current | grep edits); then
             echo "Already in an edit branch"
             exit 0
         fi

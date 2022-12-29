@@ -1559,9 +1559,13 @@ func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
 }
 
 func apply_sequence(reg_cfg *RegCfg, roms *[]MameROM) {
+	kmax := len(*roms)
 	seqd := make([]MameROM,len(reg_cfg.Sequence))
 	copy(seqd,*roms)
 	for i, k := range reg_cfg.Sequence {
+		if k >= kmax {
+			k=0		// Not necessarily an error, as some ROM sets may have more files than others
+		}
 		seqd[i] = (*roms)[k]
 	}
 	*roms = seqd
