@@ -39,7 +39,7 @@ type Args struct {
 
 type RegCfg struct {
 	Name, Rename,
-	Machine string
+	Machine, Setname string
 	Start, Width, Len int
 	Rom_len           int
 	Reverse, Skip     bool
@@ -788,7 +788,7 @@ func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 func make_devROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int) {
 	for _, dev := range machine.Devices {
 		if strings.Contains(dev.Name, "fd1089") {
-			reg_cfg := find_region_cfg(FamilyName(machine), "fd1089", cfg)
+			reg_cfg := find_region_cfg( machine, "fd1089", cfg)
 			if delta := fill_upto(pos, reg_cfg.Start, root); delta < 0 {
 				fmt.Printf(
 					"\tstart offset overcome by 0x%X while adding FD1089 LUT\n", -delta)
@@ -1122,7 +1122,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 
 	var previous StartNode
 	for _, reg := range regions {
-		reg_cfg := find_region_cfg(FamilyName(machine), reg, cfg)
+		reg_cfg := find_region_cfg(machine, reg, cfg)
 		if reg_cfg.Skip {
 			continue
 		}
@@ -1168,7 +1168,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		}
 
 		reg_offsets[reg] = pos
-		apply_sort(reg_cfg, &reg_roms)
+		reg_roms = apply_sort(reg_cfg, reg_roms)
 		if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton( reg_roms, reg_cfg, p )
@@ -1558,55 +1558,55 @@ func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
 	})
 }
 
-func apply_sequence(reg_cfg *RegCfg, roms *[]MameROM) {
-	kmax := len(*roms)
+func apply_sequence(reg_cfg *RegCfg, roms []MameROM) []MameROM{
+	kmax := len(roms)
 	seqd := make([]MameROM,len(reg_cfg.Sequence))
-	copy(seqd,*roms)
+	copy(seqd,roms)
 	for i, k := range reg_cfg.Sequence {
 		if k >= kmax {
 			k=0		// Not necessarily an error, as some ROM sets may have more files than others
 		}
-		seqd[i] = (*roms)[k]
+		seqd[i] = roms[k]
 	}
-	*roms = seqd
+	return seqd
 }
 
-func apply_sort(reg_cfg *RegCfg, roms *[]MameROM) {
+func apply_sort(reg_cfg *RegCfg, roms []MameROM) []MameROM{
 	if len(reg_cfg.Sequence) > 0 {
-		apply_sequence( reg_cfg, roms )
-		return
+		return apply_sequence( reg_cfg, roms )
 	}
 	if len(reg_cfg.Ext_sort) > 0 {
-		sort_ext_list(reg_cfg, *roms)
-		return
+		sort_ext_list(reg_cfg, roms)
+		return roms
 	}
 	if len(reg_cfg.Name_sort) > 0 {
-		sort_name_list(reg_cfg, *roms)
-		return
+		sort_name_list(reg_cfg, roms)
+		return roms
 	}
 	if len(reg_cfg.Regex_sort) > 0 {
-		sort_regex_list(reg_cfg, *roms)
-		return
+		sort_regex_list(reg_cfg, roms)
+		return roms
 	}
 	if reg_cfg.Sort_even {
-		sort_even_odd(reg_cfg, *roms, true)
-		return
+		sort_even_odd(reg_cfg, roms, true)
+		return roms
 	}
 	if reg_cfg.Sort_byext {
-		sort_byext(reg_cfg, *roms)
+		sort_byext(reg_cfg, roms)
 		if reg_cfg.Sort_reverse {
-			base := make([]MameROM, len(*roms))
-			copy(base, *roms)
-			for i := 0; i < len(*roms); i++ {
-				(*roms)[i] = base[len(*roms)-1-i]
+			base := make([]MameROM, len(roms))
+			copy(base, roms)
+			for i := 0; i < len(roms); i++ {
+				roms[i] = base[len(roms)-1-i]
 			}
 		}
-		return
+		return roms
 	}
 	if reg_cfg.Sort_alpha || reg_cfg.Sort {
-		sort_fullname( reg_cfg, *roms )
-		return
+		sort_fullname( reg_cfg, roms )
+		return roms
 	}
+	return roms
 }
 
 func add_rom(parent *XMLNode, rom MameROM) *XMLNode {
@@ -1630,12 +1630,17 @@ func fill_upto(pos *int, fillto int, parent *XMLNode) int {
 	return delta
 }
 
-func find_region_cfg(machine, regname string, cfg Mame2MRA) *RegCfg {
+func find_region_cfg(machine *MachineXML, regname string, cfg Mame2MRA) *RegCfg {
 	var best *RegCfg
 	for k, each := range cfg.ROM.Regions {
-		if each.Name == regname &&
-			(each.Machine == machine || (each.Machine == "" && (best == nil || best.Machine == ""))) {
-			best = &cfg.ROM.Regions[k]
+		if each.Name == regname  {
+			if each.Setname == machine.Name {
+				best = &cfg.ROM.Regions[k]
+				break
+			}
+			if is_family( each.Machine, machine ) || (each.Setname=="" && each.Machine=="" && best == nil) {
+				best = &cfg.ROM.Regions[k]
+			}
 		}
 	}
 	var dummy RegCfg
