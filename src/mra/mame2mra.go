@@ -54,6 +54,8 @@ type RegCfg struct {
 	Ext_sort  []string // sorts by matching the file extension
 	Name_sort []string // sorts by name
 	Regex_sort []string // sorts by name apply regular expression
+	Sequence   []int    // File sequence, where the first file is identified with a 0, the next with 1 and so on
+						// ROM files can be repeated or omitted in the sequence
 	Frac      struct {
 		Bytes, Parts int
 	}
@@ -1166,7 +1168,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		}
 
 		reg_offsets[reg] = pos
-		apply_sort(reg_cfg, reg_roms)
+		apply_sort(reg_cfg, &reg_roms)
 		if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton( reg_roms, reg_cfg, p )
@@ -1556,36 +1558,49 @@ func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
 	})
 }
 
-func apply_sort(reg_cfg *RegCfg, roms []MameROM) {
+func apply_sequence(reg_cfg *RegCfg, roms *[]MameROM) {
+	seqd := make([]MameROM,len(reg_cfg.Sequence))
+	copy(seqd,*roms)
+	for i, k := range reg_cfg.Sequence {
+		seqd[i] = (*roms)[k]
+	}
+	*roms = seqd
+}
+
+func apply_sort(reg_cfg *RegCfg, roms *[]MameROM) {
+	if len(reg_cfg.Sequence) > 0 {
+		apply_sequence( reg_cfg, roms )
+		return
+	}
 	if len(reg_cfg.Ext_sort) > 0 {
-		sort_ext_list(reg_cfg, roms)
+		sort_ext_list(reg_cfg, *roms)
 		return
 	}
 	if len(reg_cfg.Name_sort) > 0 {
-		sort_name_list(reg_cfg, roms)
+		sort_name_list(reg_cfg, *roms)
 		return
 	}
 	if len(reg_cfg.Regex_sort) > 0 {
-		sort_regex_list(reg_cfg, roms)
+		sort_regex_list(reg_cfg, *roms)
 		return
 	}
 	if reg_cfg.Sort_even {
-		sort_even_odd(reg_cfg, roms, true)
+		sort_even_odd(reg_cfg, *roms, true)
 		return
 	}
 	if reg_cfg.Sort_byext {
-		sort_byext(reg_cfg, roms)
+		sort_byext(reg_cfg, *roms)
 		if reg_cfg.Sort_reverse {
-			base := make([]MameROM, len(roms))
-			copy(base, roms)
-			for i := 0; i < len(roms); i++ {
-				roms[i] = base[len(roms)-1-i]
+			base := make([]MameROM, len(*roms))
+			copy(base, *roms)
+			for i := 0; i < len(*roms); i++ {
+				(*roms)[i] = base[len(*roms)-1-i]
 			}
 		}
 		return
 	}
 	if reg_cfg.Sort_alpha || reg_cfg.Sort {
-		sort_fullname( reg_cfg, roms )
+		sort_fullname( reg_cfg, *roms )
 		return
 	}
 }

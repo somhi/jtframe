@@ -37,7 +37,7 @@ TOML elements (see full reference in mame2mra.go)
 [ROM]
 regions = [
 	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true },
-	{ name==soundcpu, sort=true }
+	{ name==soundcpu, sequence=[2,1,0,0] } # inverts the order and repeats the first ROM
 	{ name=plds, skip=true },
 ]
 `,
