@@ -29,7 +29,7 @@ type Args struct {
 	Info                      []Info
 	Buttons                   string
 	Year                      string
-	Verbose, SkipMRA          bool
+	Verbose, SkipMRA, SkipPocket bool
 	Show_platform             bool
 	JTbin                     bool  // copy to JTbin
 	Author, URL  		      string
@@ -346,7 +346,9 @@ func Run(args Args) {
 		return
 	}
 	var data_queue []ParsedMachine
-	pocket_init(mra_cfg, args, macros)
+	if !args.SkipPocket {
+		pocket_init(mra_cfg, args, macros)
+	}
 extra_loop:
 	for {
 		machine := ex.Extract(mra_cfg.Parse)
@@ -394,7 +396,9 @@ extra_loop:
 	for _, d := range data_queue {
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
-			pocket_add(d.machine, mra_cfg, args, macros, d.def_dipsw)
+			if !args.SkipPocket {
+				pocket_add(d.machine, mra_cfg, args, macros, d.def_dipsw)
+			}
 			if !args.SkipMRA {
 				dump_mra(args, d.machine, d.mra_xml, d.cloneof, parent_names)
 			}
@@ -403,7 +407,9 @@ extra_loop:
 				d.machine.Name, d.machine.Cloneof)
 		}
 	}
-	pocket_save()
+	if !args.SkipPocket {
+		pocket_save()
+	}
 }
 
 func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
