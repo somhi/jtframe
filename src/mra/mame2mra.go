@@ -123,7 +123,7 @@ type Mame2MRA struct {
 
 	Dipsw struct {
 		Delete []string
-		Base   int
+		base   int // Define it macros.def as JTFRAME_MIST_DIPBASE
 		Bitcnt int // Total bit count (including all switches)
 		// Defaults [] struct {
 		// 	Machine, Setname string
@@ -763,7 +763,7 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		buttons_str += buttons[k] + ","
 		if buttons[k] != "-" {
 			count++
-			if count == 6 {
+			if count > 6 {
 				fmt.Println("Warning: cannot support more than 6 buttons")
 				break
 			}
@@ -1666,7 +1666,7 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 	// Switch for MiST
 	n.AddAttr("page_id", "1")
 	n.AddAttr("page_name", "Switches")
-	n.AddIntAttr("base", cfg.Dipsw.Base)
+	n.AddIntAttr("base", cfg.Dipsw.base)
 	last_tag := ""
 	base := 0
 	def_cur := 0xff
@@ -1868,18 +1868,13 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Set defaults values different from zero
-	if mra_cfg.Dipsw.Base == 0 {
-		mist_base, _ := strconv.Atoi(macros["JTFRAME_MIST_DIPBASE"])
-		if mist_base != 0 {
-			mra_cfg.Dipsw.Base = mist_base
-		} else {
-			mra_cfg.Dipsw.Base = 16 // Default value
-		}
-	}
+	mra_cfg.Dipsw.base, _ = strconv.Atoi(macros["JTFRAME_MIST_DIPBASE"])
 	// Set the number of buttons to the definition in the macros.def
 	if mra_cfg.Buttons.Core==0 {
 		mra_cfg.Buttons.Core, _ = strconv.Atoi(macros["JTFRAME_BUTTONS"])
+	}
+	if len(mra_cfg.Dipsw.Delete)==0 {
+		mra_cfg.Dipsw.Delete=[]string{"Unused","Unknown"}
 	}
 	// Add the NVRAM section if it was in the .def file
 	if macros["JTFRAME_IOCTL_RD"] != "" {
