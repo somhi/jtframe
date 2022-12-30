@@ -42,12 +42,27 @@ skip.Bootlegs=true # to skip bootlegs
 [dipsw]
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
 
+[header]
+len=16
+fill=0xff
+dev=[ { dev="fd1089", byte=3, value=10 }, ...]
+data = [
+	{ machine="...", setname="...", pointer=3, data="12 32 43 ..." },
+	...
+]
+
+offset = { bits=8, reverse=true, regions=["maincpu","gfx1"...]}
+
+
 [ROM]
+# only specify regions that need parameters
 regions = [
-	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true },
-	{ name==soundcpu, sequence=[2,1,0,0] } # inverts the order and repeats the first ROM
+	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true, no_offset=true },
+	{ name==soundcpu, sequence=[2,1,0,0], no_offset=true } # inverts the order and repeats the first ROM
 	{ name=plds, skip=true },
 ]
+# this is the order in the MRA file
+order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		mra_args.Def_cfg.Core = args[0]

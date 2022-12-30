@@ -43,7 +43,10 @@ type RegCfg struct {
 	Start, Width, Len int
 	Rom_len           int
 	Reverse, Skip     bool
-	No_offset         bool
+	No_offset         bool // Using the default offset helps in some CPU configurations. If the file order is not changed,
+						   // keeping the original offset usually has no effect as the offset is just the file size
+						   // when reverse=true or a sort/sequence changes the file order, the offset may introduce
+						   // warning messages or fillers, so no_offset=true is needed
 	Sort_byext        bool
 	Sort              bool // Sort by number sections
 	Sort_alpha        bool // Sort by full alpha comparison
@@ -72,10 +75,6 @@ type HeaderCfg struct {
 		Byte, Value int
 		Dev         string
 	}
-	Machines []struct {
-		Byte, Value      int
-		Machine, Setname string
-	}
 	Data []struct {
 		Machine, Setname string
 		Pointer          int
@@ -84,6 +83,7 @@ type HeaderCfg struct {
 	Offset struct {
 		Bits    int
 		Reverse bool
+		Start   int // Start location for the offset table
 		Regions []string
 	}
 }
@@ -1233,14 +1233,14 @@ func fill_header(node *XMLNode, reg_offsets map[string]int,
 	// Fill ROM offsets
 	unknown_regions := make([]string, 0)
 	if len(cfg.Offset.Regions) > 0 {
-		pos := 0
+		pos := cfg.Offset.Start
 		for _, r := range cfg.Offset.Regions {
 			offset, ok := reg_offsets[r]
 			if !ok {
 				unknown_regions = append(unknown_regions, r)
 				offset = 0
 			}
-			//fmt.Printf("region %s offset %X\n", r, offset)
+			// fmt.Printf("region %s offset %X\n", r, offset)
 			set_header_offset(headbytes, pos, cfg.Offset.Reverse, cfg.Offset.Bits, offset)
 			pos += 2
 		}
@@ -1281,15 +1281,6 @@ func fill_header(node *XMLNode, reg_offsets map[string]int,
 				log.Fatal("Header device-byte falls outside the header")
 			}
 			headbytes[d.Byte] = byte(d.Value)
-		}
-	}
-	// Machine ID
-	for _, m := range cfg.Machines {
-		if len(m.Machine) > 0 && (m.Machine == machine.Name || m.Machine == machine.Cloneof) {
-			headbytes[m.Byte] = byte(m.Value)
-		}
-		if m.Setname == machine.Name {
-			headbytes[m.Byte] = byte(m.Value)
 		}
 	}
 	node.SetText(hexdump(headbytes, 8))
@@ -1696,7 +1687,7 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 				break
 			}
 		}
-		bitmax := bitmin + int(math.Log2( float64(len(ds.Dipvalue)))) - 1
+		bitmax := bitmin + int( math.Ceil(math.Log2( float64(len(ds.Dipvalue)))) ) - 1
 		if ds.Tag != last_tag {
 			if len(last_tag) > 0 {
 				// Record the default values
@@ -1887,6 +1878,17 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 		if err != nil {
 			fmt.Println("JTFRAME_IOCTL_RD was ill defined")
 			fmt.Println(err)
+		}
+	}
+	// For each ROM region, set the no_offset flag if a
+	// sorting option was selected
+	for k:=0; k<len(mra_cfg.ROM.Regions); k++ {
+		this := &mra_cfg.ROM.Regions[k]
+		if this.Sort_byext || this.Sort || this.Sort_alpha || this.Sort_even ||
+			this.Sort_reverse || this.Reverse || this.Width>8 ||
+			this.Singleton || len(this.Ext_sort)>0 ||
+			len(this.Name_sort)>0 || len(this.Regex_sort)>0 || len(this.Sequence)>0 {
+			this.No_offset = true
 		}
 	}
 	return mra_cfg, macros
