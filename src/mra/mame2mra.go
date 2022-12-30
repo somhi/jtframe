@@ -413,7 +413,7 @@ extra_loop:
 }
 
 func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
-	if !mra_cfg.Parse.Skip.Bootlegs &&
+	if mra_cfg.Parse.Skip.Bootlegs &&
 		strings.Index(
 			strings.ToLower(machine.Description), "bootleg") != -1 {
 		if args.Verbose {

@@ -34,6 +34,10 @@ var mraCmd = &cobra.Command{
 
 TOML elements (see full reference in mame2mra.go)
 
+[parse]
+sourcefile="mamefile.cpp"
+skip.Setnames=["willskip1","willskip2"]
+skip.Bootlegs=true # to skip bootlegs
 [ROM]
 regions = [
 	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true },
