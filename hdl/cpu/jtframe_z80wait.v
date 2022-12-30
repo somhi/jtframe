@@ -152,7 +152,7 @@ reg  [3:0] miss_cnt;
 
 // wire bus_ok = (rom_ok||!rom_cs) && !dev_busy;
 
-assign gate    = !(rom_bad || dev_busy || locked );
+assign gate    = !(rom_bad || dev_busy!=0 || locked );
 assign rom_bad = (rom_cs && !rom_ok) || rom_cs_posedge;
 assign rec_en  = &{mreq_n, iorq_n, busak_n, RECOVERY[0] };
 
@@ -193,7 +193,7 @@ always @(posedge clk or negedge rst_n) begin
         start       <= 0;
     end else begin
         last_rom_cs <= rom_cs;
-        if(rom_bad || dev_busy) begin
+        if(rom_bad || dev_busy!=0) begin
             locked  <= 1'b1;
         end
         else begin
