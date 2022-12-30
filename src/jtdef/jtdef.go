@@ -198,6 +198,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	year, month, day := time.Now().Date()
 	defaul_values := map[string]string{
 		"JTFRAME_COLORW": "4",
+		"JTFRAME_BUTTONS": "2",
 		"JTFRAME_TIMESTAMP":fmt.Sprintf("%d", time.Now().Unix()),
 		"CORENAME": cfg.Core,
 		"DATE": fmt.Sprintf("%d%02d%02d", year%100, month, day),

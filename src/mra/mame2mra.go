@@ -1877,7 +1877,10 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 			mra_cfg.Dipsw.Base = 16 // Default value
 		}
 	}
-
+	// Set the number of buttons to the definition in the macros.def
+	if mra_cfg.Buttons.Core==0 {
+		mra_cfg.Buttons.Core, _ = strconv.Atoi(macros["JTFRAME_BUTTONS"])
+	}
 	// Add the NVRAM section if it was in the .def file
 	if macros["JTFRAME_IOCTL_RD"] != "" {
 		if mra_cfg.Features.Nvram != 0 {
