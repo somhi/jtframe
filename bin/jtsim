@@ -539,6 +539,11 @@ mist_dump.v \
     FILES=
 fi
 
+# Link to hex filters in JTFRAME as needed
+if grep -q jtframe_jt49_filters filtered.f; then
+    ln -srf $JTFRAME/hdl/sound/firjt49.hex
+fi
+
 # These tools use the same names for their executables, so the
 # PATH is defined here
 case $SIMULATOR in
