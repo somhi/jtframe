@@ -339,7 +339,7 @@ void SDRAM::dump() {
     char *aux=new char[BANK_LEN];
     for( int k=0; k<4; k++ ) {
         char fname[32];
-        sprintf(fname,"sdram_bank%d.bin",k);
+        snprintf(fname,32,"sdram_bank%d.bin",k);
         ofstream fout(fname,ios_base::binary);
         if( !fout.good() ) {
             fprintf(stderr,"ERROR: (test.cpp) creating %s\n", fname );
@@ -456,7 +456,7 @@ SDRAM::SDRAM(UUT& _dut) : dut(_dut) {
         memset( banks[k], 0, BANK_LEN );
         // Try to load a file for it
         char fname[32];
-        sprintf(fname,"sdram_bank%d.bin",k);
+        snprintf(fname,32,"sdram_bank%d.bin",k);
         ifstream fin( fname, ios_base::binary );
         if( fin ) {
             fin.seekg( 0, fin.end );
@@ -515,7 +515,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #else
     semi_period = (vluint64_t)10416; // 48MHz
 #endif
-    fprintf(stderr,"Simulation clock period set to %ld ps (%f MHz)\n", (semi_period<<1), 1e6/(semi_period<<1));
+    fprintf(stderr,"Simulation clock period set to %d ps (%f MHz)\n", ((int)semi_period<<1), 1e6/(semi_period<<1));
 #ifdef LOADROM
     download = true;
 #else
@@ -664,7 +664,7 @@ void JTSim::video_dump() {
                             dump.fout.write( dump.prev_buffer(), (activew*activeh)<<2 );
                             dump.fout.close();
                             char exes[512];
-                            sprintf(exes,"convert -filter Point "
+                            snprintf(exes,512,"convert -filter Point "
                                 "-size %dx%d %s -depth 8 RGBA:frame.raw frame_%d.jpg",
                                 activew, activeh,
                             #ifdef _JTFRAME_VERTICAL
