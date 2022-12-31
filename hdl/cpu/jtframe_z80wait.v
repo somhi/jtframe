@@ -174,7 +174,7 @@ always @(posedge clk, negedge rst_n) begin
         if( !start ) begin
             miss_cnt <= 4'd0;
         end else begin
-            if( cen_in && !gate && !dev_busy ) begin
+            if( cen_in && !gate && dev_busy==0 ) begin
                 if( ~&miss_cnt ) miss_cnt <= miss_cnt+4'd1;
             end else if( rec ) begin
                 if( miss_cnt!=0 ) miss_cnt <= miss_cnt - 4'd1;
