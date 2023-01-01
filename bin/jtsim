@@ -39,6 +39,9 @@ TOP=game_test
 TARGET=
 FILES=
 MACROPREFIX=+define+
+# All command line macros separated by commas, this is used
+# in calls to jtframe
+ALLMACROS=
 VERILATOR_SAFE=
 EXTRA=
 SHOWCMD=
@@ -216,6 +219,10 @@ require "$MODULES" "Missing the modules path. You need to source the project set
 
 function add_macro {
     echo ${MACROPREFIX}$1 >> macros.f
+    if [ ! -z "$ALLMACROS" ]; then
+        ALLMACROS=${ALLMACROS},
+    fi
+    ALLMACROS=${ALLMACROS}$1
 }
 
 function set_mist_as_target {
@@ -470,6 +477,7 @@ done
 # Common macros
 add_macro SIM_MS=$SIM_MS
 add_macro SIMULATION
+ALLMACROS=${ALLMACROS},$(echo $SIMULATOR | tr '[:lower:]' '[:upper:]')
 
 if [ -e $MODULES/fx68k ]; then
     # These files are read by the FX68K module but they must be in the
@@ -481,7 +489,7 @@ fi
 if [ $GATES = NO ]; then
     # Prepare all file lists
     jtframe mem $SYSNAME || exit $?
-    jtframe files sim $SYSNAME --rel --target "$TARGET" --macro $(echo $SIMULATOR | tr '[:lower:]' '[:upper:]') || exit $?
+    jtframe files sim $SYSNAME --rel --target "$TARGET" --macro "$ALLMACROS" || exit $?
     # Remove duplicated lines
     rm -f tmp.f
     rm -f game_env.f
