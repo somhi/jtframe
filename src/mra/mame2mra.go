@@ -35,6 +35,7 @@ type Args struct {
 	Author, URL  		      string
 	// private
 	firmware_dir			  string
+	macros					  map[string]string
 }
 
 type RegCfg struct {
@@ -327,7 +328,7 @@ type ParsedMachine struct {
 
 func Run(args Args) {
 	parse_args(&args)
-	mra_cfg, macros := parse_toml(args)
+	mra_cfg := parse_toml(&args) // macros become part of args
 	if args.Verbose {
 		fmt.Println("Parsing", args.Xml_path)
 	}
@@ -347,7 +348,7 @@ func Run(args Args) {
 	}
 	var data_queue []ParsedMachine
 	if !args.SkipPocket {
-		pocket_init(mra_cfg, args, macros)
+		pocket_init(mra_cfg, args)
 	}
 extra_loop:
 	for {
@@ -397,7 +398,7 @@ extra_loop:
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
 			if !args.SkipPocket {
-				pocket_add(d.machine, mra_cfg, args, macros, d.def_dipsw)
+				pocket_add(d.machine, mra_cfg, args, d.def_dipsw)
 			}
 			if !args.SkipMRA {
 				dump_mra(args, d.machine, d.mra_xml, d.cloneof, parent_names)
@@ -1086,6 +1087,18 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 	}
 }
 
+func sdram_bank_comment( root *XMLNode, pos int, macros map[string]string) {
+	for k,v := range macros { // []string{"JTFRAME_BA1_START","JTFRAME_BA2_START","JTFRAME_BA3_START"} {
+		start, _ := strconv.ParseInt( v, 0, 32 )
+		if start==0 {
+			continue
+		}
+		if int(start)==pos {
+			root.AddNode(k).comment = true
+		}
+	}
+}
+
 func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	if len(machine.Rom) == 0 {
 		return
@@ -1155,6 +1168,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 				"\tstart offset overcome by 0x%X while parsing region %s\n",
 				-delta, reg)
 		}
+		sdram_bank_comment( p, pos, args.macros )
 		// comment with start and length of region
 		previous.add_length(pos)
 		previous.node = p.AddNode(fmt.Sprintf("%s - starts at 0x%X", reg, pos))
@@ -1841,9 +1855,8 @@ func (p *flag_info) Set(a string) error {
 	return nil
 }
 
-func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
-
-	macros = jtdef.Make_macros(args.Def_cfg)
+func parse_toml(args *Args) (mra_cfg Mame2MRA) {
+	macros := jtdef.Make_macros(args.Def_cfg)
 
 	str := jtdef.Replace_Macros(args.Toml_path, macros)
 	str = Replace_Hex(str)
@@ -1891,7 +1904,8 @@ func parse_toml(args Args) (mra_cfg Mame2MRA, macros map[string]string) {
 			this.No_offset = true
 		}
 	}
-	return mra_cfg, macros
+	args.macros = macros
+	return mra_cfg
 }
 
 func Replace_Hex(orig string) string {
