@@ -137,6 +137,8 @@ parameter [31:0] GAME_ROM_LEN = `GAME_ROM_LEN;
 integer          f, readcnt, dumpcnt;
 reg       [ 7:0] mem[0:`GAME_ROM_LEN];
 
+initial prog_ba=0;
+
 initial begin
     dumpcnt = PROM_START+HEADER;
     if( SIMFILE != "" && PROM_EN ) begin
