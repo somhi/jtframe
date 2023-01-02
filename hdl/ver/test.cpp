@@ -22,8 +22,10 @@
 // see https://github.com/verilator/verilator/issues/3799
 
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "UUT.h"
 #include "defmacros.h"
 
@@ -237,6 +239,7 @@ class JTSim {
     vluint64_t simtime;
     vluint64_t semi_period;
     WaveWritter wav;
+    string convert_options;
 
     void parse_args( int argc, char *argv[] );
     void video_dump();
@@ -507,6 +510,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     simtime   = 0;
     frame_cnt = 0;
     last_VS   = 0;
+    convert_options = getenv("CONVERT_OPTIONS");
     // Derive the clock speed from _JTFRAME_PLL
 #ifdef _JTFRAME_PLL
     semi_period = (vluint64_t)(1e12/(16.0*_JTFRAME_PLL*1000.0));
@@ -665,14 +669,14 @@ void JTSim::video_dump() {
                             dump.fout.close();
                             char exes[512];
                             snprintf(exes,512,"convert -filter Point "
-                                "-size %dx%d %s -depth 8 RGBA:frame.raw frame_%d.jpg",
+                                "-size %dx%d %s -depth 8 RGBA:frame.raw %s frame_%d.jpg",
                                 activew, activeh,
                             #ifdef _JTFRAME_VERTICAL
                                 "-rotate -90",
                             #else
                                 "",
                             #endif
-                                frame_cnt);
+                                convert_options.c_str(), frame_cnt);
                             if( system(exes) ) {
                                 printf("WARNING: (test.cpp) convert tool did not succeed\n");
                             }

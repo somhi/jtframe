@@ -124,12 +124,9 @@ Please support the development: https://patreon.com/jotego
     -verilator Use Verilator as the simulator
     -video     Enable video output. Can be followed by a number to get
                the number of frames to simulate.
-    -videow    Define the visible screen width  (only useful if -video is also used)
-               If JTFRAME_WIDTH is defined in the .def file, this is not needed
-    -videoh    Define the visible screen height (only useful if -video is also used)
-               If JTFRAME_HEIGHT is defined in the .def file, this is not needed
     -w [#]     Save a small set of signals for scope verification. If a number
                is written after -w, the dump will start at that frame
+    -zoom      Enlarge output images
 EOF
 }
 
@@ -337,14 +334,6 @@ case "$1" in
         rm -f frame.raw
         VIDEO_DUMP=TRUE
         ;;
-    -videow)
-        shift
-        JTFRAME_WIDTH=$1
-        ;;
-    -videoh)
-        shift
-        JTFRAME_HEIGHT=$1
-        ;;
     -load)
         # Moves away the old files to prevent mistakes
         if [[ -e sdram_bank0.bin || -e sdram_bank0.hex ]]; then
@@ -366,8 +355,8 @@ case "$1" in
         ;;
     -help|-h|--help)
         show_help
-        exit 0
-        ;;
+        exit 0;;
+    -zoom) export CONVERT_OPTIONS="-resize 200%x200%";; # export it for Verilator's test.cpp
     *) echo "${rBG}Error:${NC} Unknown option $1. Use -help to see the list of options"; exit 1;;
 esac
     shift
