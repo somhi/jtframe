@@ -18,6 +18,9 @@
 package cmd
 
 import (
+    "fmt"
+    "os"
+    "path/filepath"
 	"github.com/jotego/jtframe/mem"
 
 	"github.com/spf13/cobra"
@@ -90,7 +93,12 @@ bram:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		mem_args.Core = args[0]
-
+        // Check that the core folder exist
+        fi, e := os.Stat( filepath.Join(os.Getenv("CORES"),args[0]) )
+        if e != nil || !fi.IsDir() {
+            fmt.Println("jtframe mem: couldn't find core ", args[0])
+            os.Exit(1)
+        }
 		mem.Run(mem_args)
 	},
 	Args: cobra.ExactArgs(1),
