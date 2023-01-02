@@ -72,6 +72,21 @@ sdram:
         - name: another bus...
     - buses: # same for bank 3
         - name: another bus...
+# BRAM connections
+bram:
+    - name: vram
+      addr_width: 12
+      data_width: 8
+      rw: true
+      [cs:]
+      [addr:]
+      [din:]
+      [sim_file:]
+      dual_port:
+        name: main
+        [din:]
+        rw: true
+        [cs:]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		mem_args.Core = args[0]
