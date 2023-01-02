@@ -16,13 +16,18 @@
     Version: 1.0
     Date: 18-12-2022 */
 
-// Draws a 16x16 tile
+// Draws 16x16 sprites in a double-line buffer
+// Assumes that the inputs are still during drawing,
+// otherwise set LATCH=1
+// LATCH=1 will introduce an extra 1-clock per drawing
+// operation, so use LATCH=0 when throughput is critical
 
 module jtframe_objdraw#( parameter
     CW    = 12,    // code width
     PW    =  8,    // pixel width (lower four bits come from ROM)
     SWAPH =  0,    // swaps the two horizontal halves of the tile
     HJUMP =  0,    // Assumes that hdump goes from 0 to FF and then 180 to 1FF
+    LATCH =  0,    // If set, latches code, xpos, ysub, hflip, vflip and pal when draw is set and busy is low
     // object line buffer
     FLIP_OFFSET = 0,
     ALPHA       = 0
@@ -56,6 +61,36 @@ wire [PW-1:0] buf_din;
 wire    [8:0] buf_addr, aeff;
 wire          buf_we;
 
+reg  [CW-1:0] dr_code;
+reg    [ 8:0] dr_xpos;
+reg    [ 3:0] dr_ysub;
+reg           dr_hflip, dr_vflip, dr_draw;
+reg  [PW-5:0] dr_pal;
+
+generate
+    if( LATCH ) begin
+        always @(posedge clk) if( !busy ) begin
+            dr_draw  <= draw;
+            dr_code  <= code;
+            dr_xpos  <= xpos;
+            dr_ysub  <= ysub;
+            dr_hflip <= hflip;
+            dr_vflip <= vflip;
+            dr_pal   <= pal;
+        end
+    end else begin
+        always @* begin
+            dr_draw  = draw;
+            dr_code  = code;
+            dr_xpos  = xpos;
+            dr_ysub  = ysub;
+            dr_hflip = hflip;
+            dr_vflip = vflip;
+            dr_pal   = pal;
+        end
+    end
+endgenerate
+
 // if HJUMP is defined the 100~17F range is translated to 180~1FF
 assign aeff = HJUMP ? { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] } : buf_addr;
 
@@ -66,14 +101,14 @@ jtframe_draw #(
 )u_draw(
     .rst        ( rst       ),
     .clk        ( clk       ),
-    .draw       ( draw      ),
+    .draw       ( dr_draw   ),
     .busy       ( busy      ),
-    .code       ( code      ),
-    .xpos       ( xpos      ),
-    .ysub       ( ysub      ),
-    .hflip      ( hflip     ),
-    .vflip      ( vflip     ),
-    .pal        ( pal       ),
+    .code       ( dr_code   ),
+    .xpos       ( dr_xpos   ),
+    .ysub       ( dr_ysub   ),
+    .hflip      ( dr_hflip  ),
+    .vflip      ( dr_vflip  ),
+    .pal        ( dr_pal    ),
     .rom_addr   ( rom_addr  ),
     .rom_cs     ( rom_cs    ),
     .rom_ok     ( rom_ok    ),
