@@ -510,7 +510,8 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     simtime   = 0;
     frame_cnt = 0;
     last_VS   = 0;
-    convert_options = getenv("CONVERT_OPTIONS");
+    char *opt = getenv("CONVERT_OPTIONS");
+    if ( opt!=NULL ) convert_options = opt;
     // Derive the clock speed from _JTFRAME_PLL
 #ifdef _JTFRAME_PLL
     semi_period = (vluint64_t)(1e12/(16.0*_JTFRAME_PLL*1000.0));
