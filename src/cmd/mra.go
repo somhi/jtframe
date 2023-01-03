@@ -44,7 +44,7 @@ skip.Bootlegs=true # to skip bootlegs
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
 
 [header]
-len=16
+# Specify the length in macros.def: JTFRAME_HEADER=length
 fill=0xff
 dev=[ { dev="fd1089", byte=3, value=10 }, ...]
 data = [

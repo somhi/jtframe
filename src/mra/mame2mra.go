@@ -1886,6 +1886,12 @@ func parse_toml(args *Args) (mra_cfg Mame2MRA) {
 	if mra_cfg.Buttons.Core==0 {
 		mra_cfg.Buttons.Core, _ = strconv.Atoi(macros["JTFRAME_BUTTONS"])
 	}
+	if mra_cfg.Header.Len > 0 {
+		fmt.Println(`The use of header.len in the TOML file is deprecated.
+Set JTFRAME_HEADER=length in macros.def instead`)
+	}
+	aux, _ := strconv.ParseInt(macros["JTFRAME_HEADER"],0,32)
+	mra_cfg.Header.Len = int(aux)
 	if len(mra_cfg.Dipsw.Delete)==0 {
 		mra_cfg.Dipsw.Delete=[]string{"Unused","Unknown"}
 	}
