@@ -358,13 +358,15 @@ extra_loop:
 		if machine == nil {
 			break
 		}
-		fmt.Print("Found ", machine.Name)
-		if machine.Cloneof != "" {
-			fmt.Printf(" (%s)", machine.Cloneof)
+		if args.Verbose {
+			fmt.Print("Found ", machine.Name)
+			if machine.Cloneof != "" {
+				fmt.Printf(" (%s)", machine.Cloneof)
+			}
+			fmt.Println()
 		}
-		fmt.Println()
 		cloneof := false
-		if len(machine.Cloneof) > 0 {
+		if machine.Cloneof != "" {
 			cloneof = true
 		} else {
 			parent_names[machine.Name] = machine.Description
@@ -395,7 +397,9 @@ extra_loop:
 		parent_names[p.Name] = p.Description
 	}
 	// Dump MRA is delayed for later so we get all the parent names collected
-	fmt.Println("Total: ", len(data_queue), " games")
+	if args.Verbose || len(data_queue)==0 {
+		fmt.Println("Total: ", len(data_queue), " games")
+	}
 	for _, d := range data_queue {
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
@@ -906,7 +910,7 @@ func parse_straight_dump( split, split_minlen int, reg string, reg_roms []MameRO
 			if delta := fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p); delta < 0 {
 				fmt.Printf("Warning: ROM start overcome at 0x%X (expected 0x%X - delta=%X)\n",
 					*pos, ((offset&-2)-reg_pos)+*pos, delta)
-				fmt.Println("\t while parsing region ", r)
+				fmt.Printf("\t while parsing region %s of setname %s (%s)\n", r.Name, machine.Name, machine.Description)
 			}
 		}
 		rom_pos := *pos
@@ -1105,7 +1109,9 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	if len(machine.Rom) == 0 {
 		return
 	}
-	fmt.Println("Parsing ", machine.Name)
+	if args.Verbose {
+		fmt.Println("Parsing ", machine.Name)
+	}
 	// Create nodes
 	p := root.AddNode("rom").AddAttr("index", "0")
 	zipname := machine.Name + ".zip"
