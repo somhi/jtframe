@@ -35,6 +35,7 @@ DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
 SIMULATOR=verilator
+SETNAME=
 TOP=game_test
 TARGET=
 FILES=
@@ -112,6 +113,7 @@ Please support the development: https://patreon.com/jotego
     -pocket    Select PocketFPGA as target platform
     -questasim Use QuestaSim as the simulator
     -safe      Disable verilator optimizations that may halt the elaboration stage
+    -setname   Creates the .rom file for the given MAME setname by looking in the MRA folder
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis
     -synap     Use Synapticad's simulator
@@ -210,6 +212,17 @@ function require {
     fi
 }
 
+function enable_load {
+    # Moves away the old files to prevent mistakes
+    if [[ -e sdram_bank0.bin || -e sdram_bank0.hex ]]; then
+        echo "Moving old sdram_bank files to sdram.old"
+        mkdir -p sdram.old
+        mv sdram_bank?.* sdram.old > /dev/null
+    fi
+    add_macro LOADROM
+    echo ROM load through SPI enabled
+}
+
 preparse_args $*
 require "$JTFRAME" "You need to source the project setprj.sh"
 require "$MODULES" "Missing the modules path. You need to source the project setprj.sh"
@@ -305,6 +318,9 @@ case "$1" in
         add_macro NOSOUND
         add_macro NOFM
         add_macro NOSSG;;
+    -setname)
+        shift
+        SETNAME=$1;;
     -time)
         shift
         if [ "$1" = "" ]; then
@@ -335,14 +351,7 @@ case "$1" in
         VIDEO_DUMP=TRUE
         ;;
     -load)
-        # Moves away the old files to prevent mistakes
-        if [[ -e sdram_bank0.bin || -e sdram_bank0.hex ]]; then
-            echo "Moving old sdram_bank files to sdram.old"
-            mkdir -p sdram.old
-            mv sdram_bank?.* sdram.old > /dev/null
-        fi
-        add_macro LOADROM
-        echo ROM load through SPI enabled
+        enable_load
         ;;
     -lint)
         # only possible with verilator
@@ -380,6 +389,22 @@ if [ -z "$SYSNAME" ]; then
     fi
 fi
 require "$SYSNAME" "Missing core name. Specify it with -sysname"
+
+if [ ! -z "$SETNAME" ]; then
+    $JTFRAME/bin/getset.sh $SYSNAME $SETNAME || exit $?
+    ROMFILE=$ROM/$SETNAME.rom
+    if [ ! -e $ROMFILE ]; then
+        cat<<EOF
+jtsim: cannot produce $ROMFILE"
+    This may occur if the setname is long than 8 characters
+EOF
+        exit 1
+    fi
+    if [ `readlink rom.bin` != "$ROMFILE" ]; then
+        enable_load
+    fi
+    ln -srf $ROMFILE rom.bin
+fi
 
 # Add a local copy of the dump file if it doesn't exist
 if [ ! -e ${TARGET}_dump.v ]; then
