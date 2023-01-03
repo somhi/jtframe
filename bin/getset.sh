@@ -52,7 +52,7 @@ TOOL=mra
 
 # Fallback tool: orca
 # orca is a screen reader in Ubuntu. It can get confusing...
-if ! which orca > /dev/null; then
+if ! which mra > /dev/null; then
     TOOL=orca
 fi
 
