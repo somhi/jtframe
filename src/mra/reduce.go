@@ -68,7 +68,6 @@ func filter( xml_in string, src []string ) {
         			v := filepath.Base( strings.Trim(kv[1],"\">") )
 
         			for _, s := range src {
-        				fmt.Printf("Comparing %s with %s\n", s, v)
         				if s == v {
         					matched=true
         					break
