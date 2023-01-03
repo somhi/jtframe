@@ -1922,7 +1922,7 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 		if this.Start != "" {
 			start_str, good1 := macros[this.Start]
 			if !good1 {
-				fmt.Printf("ERROR: ROM region %s uses undefined macro %s\n", this.Name, this.Start )
+				fmt.Printf("ERROR: ROM region %s uses undefined macro %s in core %s\n", this.Name, this.Start, args.Def_cfg.Core )
 				os.Exit(1)
 			}
 			aux, err := strconv.ParseInt( start_str, 0, 64)
