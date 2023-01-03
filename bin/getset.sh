@@ -51,7 +51,8 @@ function require {
 TOOL=mra
 
 # Fallback tool: orca
-if which orca > /dev/null; then
+# orca is a screen reader in Ubuntu. It can get confusing...
+if ! which orca > /dev/null; then
     TOOL=orca
 fi
 
