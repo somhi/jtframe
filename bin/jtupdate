@@ -84,6 +84,7 @@ if [ -z "$NOGIT" ]; then
     fi
 fi
 
+# TASKS is a temporary file with the list of tasks
 TASKS=`mktemp`
 
 if [ -z "$ACTIONS" ]; then

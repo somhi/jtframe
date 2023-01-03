@@ -25,10 +25,11 @@ import (
 )
 
 var mra_args mra.Args
+var reduce bool
 
 // mraCmd represents the mra command
 var mraCmd = &cobra.Command{
-	Use:   "mra <core-name>",
+	Use:   "mra <core-name> or mra --reduce <path-to-mame.xml>",
 	Short: "Parses the core's TOML file to generate MRA files",
 	Long: `Parses the core's mame2mra.toml file to generate MRA files.
 
@@ -57,7 +58,7 @@ offset = { bits=8, reverse=true, regions=["maincpu","gfx1"...]}
 [ROM]
 # only specify regions that need parameters
 regions = [
-	{ name=maincpu, machine=optional, start=0, width=16, len=0x10000, reverse=true, no_offset=true },
+	{ name=maincpu, machine=optional, start="MACRONAME_START", width=16, len=0x10000, reverse=true, no_offset=true },
 	{ name==soundcpu, sequence=[2,1,0,0], no_offset=true } # inverts the order and repeats the first ROM
 	{ name=plds, skip=true },
 ]
@@ -65,10 +66,13 @@ regions = [
 order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		mra_args.Def_cfg.Core = args[0]
-		// mra_args.Toml_path = args[0] + ".toml"
-
-		mra.Run(mra_args)
+		if reduce {
+			mra.Reduce(args[0])
+		} else { // regular operation
+			mra_args.Def_cfg.Core = args[0]
+			mra_args.Xml_path=os.Getenv("JTROOT")+"/rom/mame.xml"
+			mra.Run(mra_args)
+		}
 	},
 	Args: cobra.ExactArgs(1),
 }
@@ -79,9 +83,10 @@ func init() {
 
 	mra_args.Def_cfg.Target = "mist"
 	flag.StringVar(&mra_args.Def_cfg.Commit, "commit", "", "result of running 'git rev-parse --short HEAD'")
-	flag.StringVar(&mra_args.Xml_path, "xml", os.Getenv("JTROOT")+"/rom/mame.xml", "Path to MAME XML file")
+	// flag.StringVar(&mra_args.Xml_path, "xml", os.Getenv("JTROOT")+"/rom/mame.xml", "Path to MAME XML file")
 	flag.StringVar(&mra_args.Year, "year", "", "Year string for MRA file comment")
 	flag.BoolVarP(&mra_args.Verbose, "verbose", "v", false, "verbose")
+	flag.BoolVarP(&reduce, "reduce", "r", false, "Reduce the size of the XML file by creating a new one with only the entries required by the cores.")
 	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA", "s", false, "Do not generate MRA files")
 	flag.BoolVar(&mra_args.SkipPocket, "skipPocket", false, "Do not generate JSON files for the Pocket")
 	flag.BoolVarP(&mra_args.Show_platform, "show_platform", "p", false, "Show platform name and quit")

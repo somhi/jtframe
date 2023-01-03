@@ -2,7 +2,7 @@ package mra
 
 import (
 	"encoding/xml"
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -149,7 +149,8 @@ func NewExtractor(path string) *Extractor {
 	var ex Extractor
 	ex.file, err = os.Open(path)
 	if err != nil {
-		log.Fatal("Cannot open file " + path)
+		fmt.Printf("ERROR: cannot open MAME XML file '%s'\n", path )
+		os.Exit(1)
 	}
 
 	ex.decoder = xml.NewDecoder(ex.file)

@@ -144,7 +144,7 @@ func Check_macros(def map[string]string) bool {
 	return true
 }
 
-func get_defpath(cfg Config) string {
+func DefPath(cfg Config) string {
 	jtroot := os.Getenv("JTROOT")
 	if cfg.Core != "" && jtroot != "" {
 		path := path.Join(jtroot, "cores", cfg.Core, "cfg", "macros.def")
@@ -161,7 +161,7 @@ func defined( macros map[string]string, key string ) bool {
 
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
-	parse_def(get_defpath(cfg), cfg, &macros)
+	parse_def(DefPath(cfg), cfg, &macros)
 	f, e := os.Open( filepath.Join(os.Getenv("CORES"), cfg.Core,"cfg","mem.yaml") )
 	f.Close()
 	mem_managed := e == nil // Using RTL generation for the memory

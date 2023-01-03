@@ -40,8 +40,10 @@ type Args struct {
 
 type RegCfg struct {
 	Name, Rename,
-	Machine, Setname string
-	Start, Width, Len int
+	Machine, Setname  string
+	Start             string // Matches a macro in macros.def that should be an integer value
+	start			  int    // Private translation of the Start value
+	Width, Len        int
 	Rom_len           int
 	Reverse, Skip     bool
 	No_offset         bool // Using the default offset helps in some CPU configurations. If the file order is not changed,
@@ -796,7 +798,7 @@ func make_devROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int) {
 	for _, dev := range machine.Devices {
 		if strings.Contains(dev.Name, "fd1089") {
 			reg_cfg := find_region_cfg( machine, "fd1089", cfg)
-			if delta := fill_upto(pos, reg_cfg.Start, root); delta < 0 {
+			if delta := fill_upto(pos, reg_cfg.start, root); delta < 0 {
 				fmt.Printf(
 					"\tstart offset overcome by 0x%X while adding FD1089 LUT\n", -delta)
 			}
@@ -1163,7 +1165,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			}
 		}
 		// Proceed with the ROM listing
-		if delta := fill_upto(&pos, reg_cfg.Start, p); delta < 0 {
+		if delta := fill_upto(&pos, reg_cfg.start, p); delta < 0 {
 			fmt.Printf(
 				"\tstart offset overcome by 0x%X while parsing region %s\n",
 				-delta, reg)
@@ -1857,7 +1859,12 @@ func (p *flag_info) Set(a string) error {
 
 func parse_toml(args *Args) (mra_cfg Mame2MRA) {
 	macros := jtdef.Make_macros(args.Def_cfg)
-
+	// fmt.Println(macros)
+	// Replaces words starting with $ with the corresponding macro
+	// and translates the hexadecimal 0x to 'h where needed
+	// This functionality is tagged for deletion in favour of
+	// using macro names as strings in the TOML, so the TOML
+	// syntax does not get broken
 	str := jtdef.Replace_Macros(args.Toml_path, macros)
 	str = Replace_Hex(str)
 	if args.Verbose {
@@ -1870,7 +1877,9 @@ func parse_toml(args *Args) (mra_cfg Mame2MRA) {
 
 	err := dec.Decode(&mra_cfg)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("jtframe mra: problem while parsing TOML file after JSON transformation:\n\t",err)
+		fmt.Println(json_enc)
+		os.Exit(1)
 	}
 	mra_cfg.Dipsw.base, _ = strconv.Atoi(macros["JTFRAME_MIST_DIPBASE"])
 	// Set the number of buttons to the definition in the macros.def
@@ -1895,8 +1904,23 @@ func parse_toml(args *Args) (mra_cfg Mame2MRA) {
 	}
 	// For each ROM region, set the no_offset flag if a
 	// sorting option was selected
+	// And translate the Start macro to the private start integer value
 	for k:=0; k<len(mra_cfg.ROM.Regions); k++ {
 		this := &mra_cfg.ROM.Regions[k]
+		if this.Start != "" {
+			start_str, good1 := macros[this.Start]
+			if !good1 {
+				fmt.Printf("ERROR: ROM region %s uses undefined macro %s\n", this.Name, this.Start )
+				os.Exit(1)
+			}
+			aux, err := strconv.ParseInt( start_str, 0, 64)
+			if err != nil {
+				fmt.Println("ERROR: Macro %s is used as a ROM start, but its value (%s) is not a number\n",
+					this.Start, start_str )
+				os.Exit(1)
+			}
+			this.start = int(aux)
+		}
 		if this.Sort_byext || this.Sort || this.Sort_alpha || this.Sort_even ||
 			this.Sort_reverse || this.Reverse || this.Width>8 ||
 			this.Singleton || len(this.Ext_sort)>0 ||
