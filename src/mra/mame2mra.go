@@ -401,6 +401,7 @@ extra_loop:
 	if args.Verbose || len(data_queue)==0 {
 		fmt.Println("Total: ", len(data_queue), " games")
 	}
+	main_copied := args.SkipMRA
 	for _, d := range data_queue {
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
@@ -408,12 +409,16 @@ extra_loop:
 				pocket_add(d.machine, mra_cfg, args, d.def_dipsw)
 			}
 			if !args.SkipMRA {
-				dump_mra(args, d.machine, d.mra_xml, d.cloneof, parent_names)
+				main_copied = dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
 			}
 		} else {
 			fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
 				d.machine.Name, d.machine.Cloneof)
 		}
+	}
+	if !main_copied {
+		fmt.Printf("ERROR (%s): No single MRA was highlighted as the main one. Set it in the TOML file parse.main key\n",args.Def_cfg.Core)
+		os.Exit(1)
 	}
 	if !args.SkipPocket {
 		pocket_save()
@@ -479,7 +484,7 @@ func fix_filename(filename string) string {
 	return strings.ReplaceAll(x, "?", "x")
 }
 
-func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, parent_names map[string]string ) {
+func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode, cloneof bool, parent_names map[string]string ) bool {
 	fname := args.outdir
 	game_name := strings.ReplaceAll(mra_xml.GetNode("name").text, ":", "")
 	game_name = strings.ReplaceAll(game_name, "/", "-")
@@ -493,8 +498,9 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 			log.Fatal(err, args.outdir)
 		}
 	}
-	// Create the directory for alt file
-	if cloneof {
+	// Redirect clones to their own folder
+	main_mra := (!cloneof && mra_cfg.Parse.Main=="") || (machine.Name == mra_cfg.Parse.Main)
+	if cloneof && !main_mra {
 		pure_name := parent_names[machine.Cloneof]
 		pure_name = strings.ReplaceAll(pure_name, ":", "")
 		if k := strings.Index(pure_name, "("); k != -1 {
@@ -520,7 +526,8 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 	b.WriteString( mra_xml.Dump() )
 	b.WriteString("\n")
 	os.WriteFile(fname, []byte(b.String()),0666)
-	if args.JTbin && !cloneof {
+	main_copied := !args.JTbin
+	if args.JTbin && main_mra {
 		// Look for the RBF name
 		rbf_name := mra_xml.FindNode("rbf").text // it must find it
 		rbf_name = rbf_name[2:] // deletes the initial jt
@@ -532,7 +539,9 @@ func dump_mra(args Args, machine *MachineXML, mra_xml *XMLNode, cloneof bool, pa
 			fmt.Println("Creating ",fname)
 		}
 		os.WriteFile(fname, []byte(b.String()),0666)
+		main_copied = true
 	}
+	return main_copied
 }
 
 func mra_disclaimer(machine *MachineXML, year string) string {
