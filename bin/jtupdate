@@ -3,6 +3,7 @@ MAX_JOBS=
 DRYRUN=
 NETWORK=
 NOGIT=
+CORESTAMP=$(date +"%Y%m%d")
 
 function show_help {
 cat<<HELP
@@ -41,6 +42,10 @@ function parse_args {
             -j|--jobs)
                 shift
                 MAX_JOBS="--jobs $1"
+                ;;
+            --corestamp)
+                shift
+                CORESTAMP=$1
                 ;;
             --dry|--dry-run)
                 DRYRUN=--dry-run
@@ -81,6 +86,9 @@ if [ -z "$NOGIT" ]; then
         if [ $CONT != y ]; then
             exit 1
         fi
+    fi
+    if [ `git branch --show-current` = master ]; then
+        git checkout -b `basename $JTROOT`_$CORESTAMP || exit $?
     fi
 fi
 

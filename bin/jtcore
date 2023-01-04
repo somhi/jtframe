@@ -72,6 +72,7 @@ EOF
 }
 
 ARC=FALSE
+BETA=FALSE
 CORESTAMP=$(date +"%Y%m%d")
 EXT=rbf
 FAIL=0
@@ -127,6 +128,7 @@ function parse_args {
                 TARGET=mister;;
             --def|-d)
                 shift
+                if [ $MACROS = BETA ]; then BETA=TRUE; fi
                 MACROS="$1 $MACROS"
                 ;;
             --git | -g) GIT=TRUE;;
@@ -565,15 +567,10 @@ esac
 cd $JTROOT
 mkdir -p releases/$TARGET
 
-# date stamp is only added to MiSTer (and family) output
-RELEASE=$corename
-if is_mister_family; then
-    RELEASE=${RELEASE}_$CORESTAMP
-fi
-
 if [ $SEED != 1 ]; then
     SEED_SUFFIX=_$SEED
 fi
+
 if is_mister_family; then
     RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/$corename.rbf
 else
@@ -586,10 +583,10 @@ if [ ! -e $RBF ]; then
 fi
 
 function archive_commit {
-    cp $VERBOSE $1 releases/$TARGET/$RELEASE.$EXT
+    cp $VERBOSE $1 releases/$TARGET/$corename.$EXT
     if [[ ${#PRJCOMMIT} = 7 || ${PRJCOMMIT:0:1} = v ]]; then
         mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
-        cp $VERBOSE $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$RELEASE.$EXT
+        cp $VERBOSE $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$corename.$EXT
         LATEST=$JTROOT/releases/$TARGET/latest
         rm -rf $LATEST
         ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $LATEST
@@ -617,28 +614,7 @@ if [ $TARGET = pocket ]; then
         fi
     fi
 else
-    cp $VERBOSE $RBF $RELEASE.rbf
-    archive_commit $RELEASE.rbf
-fi
-
-######################################################################################
-# Adds the file to the JTALPHA folder if it is a succesful compilation for MiSTer
-if [[ $FAIL = 0 && -n "$JTALPHA" && -d "$JTALPHA" && $TARGET == mister && \
-      $MACROS != *NOSOUND* && \
-      $MACROS != *MISTER_DEBUG_NOHDMI* && $PRIVATE = 1 ]]; then
-    if [ ! -z "$VERBOSE" ]; then echo "Copying to JTALPHA"; fi
-    JTALPHA_OUTPUT=$JTALPHA/$PRJ/cores/$PRJCOMMIT
-    mkdir -p $JTALPHA_OUTPUT
-    cp $VERBOSE $RELEASE.rbf $JTALPHA_OUTPUT/$corename.$EXT -v
-    echo git tag -f alpha_$RELEASE
-    git tag -f alpha_$RELEASE
-    cd $JTALPHA
-    git add $JTALPHA_OUTPUT
-    # The latest commit can be found following the 'latest' symbolic link
-    rm -f $JTALPHA/$PRJ/cores/latest
-    ln -sr $JTALPHA_OUTPUT $JTALPHA/$PRJ/cores/latest
-    git add $JTALPHA/$PRJ/cores/latest
-    cd -
+    archive_commit $RBF
 fi
 
 ######################################################################################
@@ -691,7 +667,7 @@ if [ $TARGET = mister ]; then
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
     if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
         if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
-        if sshpass -p $MISTERPASSWD scp $RELEASE.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+        if sshpass -p $MISTERPASSWD scp $corename.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
             echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
         else
             echo "Network copy to MiSTer failed"
@@ -701,15 +677,17 @@ if [ $TARGET = mister ]; then
     fi
     if [ -d /media/$USER/MiSTer_Data ]; then
         mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
-        cp $VERBOSE $RELEASE.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
+        cp $VERBOSE $corename.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
     fi
 fi
 
-# Copy to JTBIN
-if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
+# Copy to JTBIN  if --git is set, except for cores in beta
+# in which case only the MiSTer version is copied
+if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && $FAIL = 0 && \
+        ( is_mister_family || "$BETA" != TRUE  ) ]]; then
     if is_mister_family; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
-        BINRBF=$BINFOLDER/releases/${RELEASE}.$EXT
+        BINRBF=$BINFOLDER/releases/$corename.$EXT
         mkdir -p $BINFOLDER/releases
     else
         BINFOLDER=$JTBIN/$TARGET
@@ -721,46 +699,29 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && $GIT = TRUE && $FAIL = 0 ]]; then
     mkdir -p $(dirname $BINRBF)
     cp $RBF $BINRBF -v || exit 1
     # if [ -n "$SEED_SUFFIX" ]; then
-    #     cp $RELEASE.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
+    #     cp $corename.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
     # fi
-    git tag -f $RELEASE
-    # keep a log of compiled versions
+    # Add to git but don't commit
+    cd $JTBIN
+    RELEASE=$corename_$CORESTAMP
     if [ -e $BINFOLDER/version.log ]; then
         sed -i /$RELEASE/d  $BINFOLDER/version.log
     fi
     printf "%-24s %s\n" ${RELEASE} $PRJCOMMIT >> $BINFOLDER/version.log
-    # Add to git but don't commit
-    cd $JTBIN
+
+    git tag -f $corename_$CORESTAMP
     git add -f $BINRBF
     if is_mister_family; then
-        OTHER=$(append_if_exists $JTROOT/doc/$corename.md $JTROOT/README.md $JTROOT/README.txt )
+        OTHER=$(append_if_exists $JTROOT/doc/$corename.md $JTROOT/cores/$PRJ/README.md $JTROOT/README.md $JTROOT/README.txt )
         # remove blanks
         OTHER=${OTHER## }
         if [ -n "$OTHER" ]; then
             cp $OTHER $BINFOLDER;
         fi
-        # Add the main MRA file to git too
-        MAINMRA=$(grep --files-with-matches $corename $MRA/*.mra | head -n 1)
-        MRACNT=$(find $BINFOLDER/releases -name "*mra" | wc -l)
-        if [[ -z "$MAINMRA" && $MRACNT = 0 ]]; then
-            echo "Warning: No MRA for $CORENAME found in $MRA and no MRA files in $(pwd)"
-        else
-            NEWMRA="$BINFOLDER"/releases/$(basename "$MAINMRA")
-            pwd
-            if [[ $MRACNT = 0 || (-e "$NEWMRA" && "$NEWMRA" -ot "$MRA/$MAINMRA") ]]; then
-                # There was no MRA or the file present was older
-                cp -v "$MAINMRA" "$NEWMRA"
-                git add "$NEWMRA"
-            fi
-            # Always copy it to the SD card
-            if [ -d /media/$USER/MiSTer_Data/_$FTP_FOLDER ]; then
-                cp -v "$MAINMRA" /media/$USER/MiSTer_Data/_$FTP_FOLDER
-            fi
-        fi
     fi
     cd - > /dev/null
 fi
-rm -f $RELEASE.rbf
+rm -f $corename.rbf
 
 ###########################################
 ## Program the target device via JTAG
