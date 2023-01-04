@@ -358,9 +358,9 @@ function parse_macros {
         UM="--undef $UM"
     fi
     if [ ! -z "$VERBOSE" ]; then
-        echo jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit `no_v $PRJCOMMIT` $MM $UM --output $* > /dev/stderr
+        echo jtframe cfgstr $PRJ --target=$TARGET --commit `no_v $PRJCOMMIT` $MM $UM --output $* > /dev/stderr
     fi
-    jtframe cfgstr $PRJ --target=$TARGET $VERBOSE --commit `no_v $PRJCOMMIT` $MM $UM --output $*
+    jtframe cfgstr $PRJ --target=$TARGET --commit `no_v $PRJCOMMIT` $MM $UM --output $*
 }
 
 # qsf line to disable SOUND synthesis
@@ -670,10 +670,10 @@ if [ $TARGET = mister ]; then
     if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
     if [ -z "$MRUSER" ];       then MRUSER=root; fi
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
-    if [ -z "$FTP_FOLDER" ];   then FTP_FOLDER=JT fi
+    if [ -z "$FTP_FOLDER" ];   then FTP_FOLDER=JT; fi
     if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
         if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
-        if sshpass -p $MISTERPASSWD scp $RBF $MRUSER@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+        if sshpass -p $MISTERPASSWD scp $RBF ${MRUSER}@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
             echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
         else
             echo "Network copy to MiSTer failed"
@@ -689,7 +689,7 @@ fi
 
 # Copy to JTBIN  if --git is set, except for cores in beta
 # in which case only the MiSTer version is copied
-if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && $FAIL = 0 && \
+if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && "$FAIL" = 0 && \
         ( is_mister_family || "$BETA" != TRUE  ) ]]; then
     announce "Copy to JTBIN"
     if is_mister_family; then
