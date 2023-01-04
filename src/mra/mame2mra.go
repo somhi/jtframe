@@ -409,7 +409,10 @@ extra_loop:
 				pocket_add(d.machine, mra_cfg, args, d.def_dipsw)
 			}
 			if !args.SkipMRA {
-				main_copied = main_copied || dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
+				// Do not merge dump_mra and the OR in the same line, or the compiler may skip
+				// calling dump_mra if main_copied is already set
+				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
+				main_copied = dumped || main_copied
 			}
 		} else {
 			fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
