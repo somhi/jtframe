@@ -805,7 +805,7 @@ func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	if machine.Display.Rotate != 0 {
 		root.AddNode("Vertical game").comment = true
 		coremod |= 1
-		if machine.Display.Rotation!=90 {
+		if machine.Display.Rotate !=90 {
 			coremod |= 4
 		}
 	}
