@@ -237,12 +237,6 @@ fi
 
 if [ -e $JTROOT/.jtcore ]; then source $JTROOT/.jtcore; fi
 
-# The FTP folder can be set in the project's $JTROOT/setprj.sh file
-# This is the MiSTer folder to which files will be copied to via ssh
-if [ -z "$FTP_FOLDER" ]; then
-    FTP_FOLDER=JT
-fi
-
 cd $JTROOT
 MODULES=$JTROOT/modules
 JTFRAME=$MODULES/jtframe
@@ -555,6 +549,10 @@ function append_if_exists {
     echo $val
 }
 
+function announce {
+    if [ ! -z "$VERBOSE" ]; then echo "== $* =="; fi
+}
+
 ################# Store output file
 # Determine file extension
 case $TARGET in
@@ -596,6 +594,7 @@ function archive_commit {
 }
 
 if [ $TARGET = pocket ]; then
+    announce "Copying to SD card (Pocket core)"
     # The Pocket must have something misconnected inside
     # and it requires the bit order in each RBF byte to
     # be reversed
@@ -622,7 +621,7 @@ fi
 ######################################################################################
 # Copy the file to the SD card. The SD card must have the same name as the target platform
 if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
-    if [ ! -z "$VERBOSE" ]; then echo "Copying to SD card (non Pocket core)"; fi
+    announce "Copying to SD card (non Pocket core)"
     cd $JTROOT
     RENAME=${CORENAME^^}.$EXT
     # copy the file in three forms:
@@ -665,11 +664,16 @@ fi
 
 # If Mr is online, copy the file to the _Arcade/cores folder using MiSTer's SSH password
 if [ $TARGET = mister ]; then
+    announce "Copy to MiSTer (SSH/SD card)"
+
+    # Override these settings in the project's $JTROOT/setprj.sh file
     if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
+    if [ -z "$MRUSER" ];       then MRUSER=root; fi
     if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
+    if [ -z "$FTP_FOLDER" ];   then FTP_FOLDER=JT fi
     if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
         if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
-        if sshpass -p $MISTERPASSWD scp $corename.rbf root@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
+        if sshpass -p $MISTERPASSWD scp $RBF $MRUSER@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
             echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
         else
             echo "Network copy to MiSTer failed"
@@ -687,6 +691,7 @@ fi
 # in which case only the MiSTer version is copied
 if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && $FAIL = 0 && \
         ( is_mister_family || "$BETA" != TRUE  ) ]]; then
+    announce "Copy to JTBIN"
     if is_mister_family; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
         BINRBF=$BINFOLDER/releases/$corename.$EXT
@@ -699,7 +704,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && $FAIL = 0 && \
         BINRBF=$BINFOLDER/$corename.$EXT
     fi
     mkdir -p $(dirname $BINRBF)
-    cp $RBF $BINRBF -v || exit 1
+    cp -v $RBF $BINRBF || exit 1
     # if [ -n "$SEED_SUFFIX" ]; then
     #     cp $corename.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
     # fi
@@ -711,13 +716,12 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && $FAIL = 0 && \
     fi
     printf "%-24s %s\n" ${RELEASE} $PRJCOMMIT >> $BINFOLDER/version.log
 
-    git tag -f $corename_$CORESTAMP
     git add -f $BINRBF
     if is_mister_family; then
         OTHER=$(append_if_exists $JTROOT/doc/$corename.md $JTROOT/cores/$PRJ/README.md $JTROOT/README.md $JTROOT/README.txt )
         # remove blanks
         OTHER=${OTHER## }
-        if [ -n "$OTHER" ]; then
+        if [ ! -z "$OTHER" ]; then
             cp $OTHER $BINFOLDER;
         fi
     fi
@@ -728,6 +732,7 @@ rm -f $corename.rbf
 ###########################################
 ## Program the target device via JTAG
 if [ $PROG = TRUE ]; then
+    announce "Device programming"
     if [ $TARGET = mister ]; then
         CABLE="DE-SoC"
         cd $PRJPATH/mister
