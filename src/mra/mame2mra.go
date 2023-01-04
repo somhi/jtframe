@@ -70,6 +70,7 @@ type RegCfg struct {
 		// Machine, Setname string // Optional filters
 		Dev              string // Device name for assembler
 	}
+	Files []MameROM // This replaces the information in mame.xml completely if present
 }
 
 type HeaderCfg struct {
@@ -156,7 +157,7 @@ type Mame2MRA struct {
 	ROM struct {
 		Regions []RegCfg
 		Order   []string
-		Remove  []string
+		Remove  []string // Remove specific files from the dump
 		// Splits break a file into chunks using the offset and length MRA attributes
 		// Offset sets the break point, and Min_len the minimum length for each chunk
 		// This can be used to group several files in a different order (see Golden Axe)
@@ -1156,9 +1157,9 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		// Warn about unsorted regions
 		_, sorted := sorted_regs[reg]
 		if !sorted {
-			fmt.Println("\tunlisted region for sorting: ", reg)
+			fmt.Printf("\tunlisted region for sorting %s in %s\n", reg, machine.Name )
 		}
-		reg_roms := extract_region(reg, machine.Rom, cfg.ROM.Remove)
+		reg_roms := extract_region(reg_cfg, machine.Rom, cfg.ROM.Remove)
 		// Skip empty regions
 		if len(reg_roms) == 0 {
 			continue
@@ -1173,8 +1174,8 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		// Proceed with the ROM listing
 		if delta := fill_upto(&pos, reg_cfg.start, p); delta < 0 {
 			fmt.Printf(
-				"\tstart offset overcome by 0x%X while parsing region %s\n",
-				-delta, reg)
+				"\tstart offset overcome by 0x%X while parsing region %s in %s\n",
+				-delta, reg, machine.Name)
 		}
 		sdram_bank_comment( p, pos, args.macros )
 		// comment with start and length of region
@@ -1391,10 +1392,21 @@ func make_frac_map(reverse bool, bytes, total, step int) string {
 	return builder.String()
 }
 
-func extract_region(regname string, roms []MameROM, remove []string) (ext []MameROM) {
+func extract_region( reg_cfg *RegCfg, roms []MameROM, remove []string) (ext []MameROM) {
+	// Custom list
+	if len(reg_cfg.Files)>0 {
+		// fmt.Println("Using custom files for ", reg_cfg.Name)
+		ext = make( []MameROM, len(reg_cfg.Files))
+		copy( ext, reg_cfg.Files )
+		for k,_ := range ext {
+			ext[k].Region = reg_cfg.Name
+		}
+		return
+	}
+	// MAME list
 roms_loop:
 	for _, r := range roms {
-		if r.Region == regname {
+		if r.Region == reg_cfg.Name {
 			for _, rm := range remove {
 				if rm == r.Name {
 					continue roms_loop
@@ -1662,9 +1674,11 @@ func find_region_cfg(machine *MachineXML, regname string, cfg Mame2MRA) *RegCfg 
 			}
 		}
 	}
-	var dummy RegCfg
+	// the region does not have a configuration in the TOML file, set a default one:
 	if best == nil {
-		best = &dummy
+		best = &RegCfg{
+			Name: regname,
+		}
 	}
 	return best
 }

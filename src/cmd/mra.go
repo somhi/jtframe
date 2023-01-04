@@ -61,6 +61,8 @@ regions = [
 	{ name=maincpu, machine=optional, start="MACRONAME_START", width=16, len=0x10000, reverse=true, no_offset=true },
 	{ name==soundcpu, sequence=[2,1,0,0], no_offset=true } # inverts the order and repeats the first ROM
 	{ name=plds, skip=true },
+	{ name=gfx1, skip=true, remove=[ "notwanted"... ] }, # remove specific files from the dump
+	{ name=proms, files=[ {name="myname", crc="12345678", size=0x200 }... ] }	# Replace mame.xml information with specific files
 ]
 # this is the order in the MRA file
 order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
