@@ -805,6 +805,9 @@ func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	if machine.Display.Rotate != 0 {
 		root.AddNode("Vertical game").comment = true
 		coremod |= 1
+		if machine.Display.Rotation!=90 {
+			coremod |= 4
+		}
 	}
 	n := root.AddNode("rom").AddAttr("index", "1")
 	n = n.AddNode("part")

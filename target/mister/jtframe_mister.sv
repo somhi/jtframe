@@ -768,12 +768,6 @@ video_freak u_crop(
 wire rot_clk;
 
 `ifdef JTFRAME_VERTICAL
-    `ifdef JTFRAME_ROTCCW
-    localparam ROTCCW=1;
-    `else
-    localparam ROTCCW=0;
-    `endif
-
     screen_rotate u_rotate(
         .CLK_VIDEO      ( scan2x_clk     ),
         .CE_PIXEL       ( scan2x_cen     ),
@@ -785,7 +779,7 @@ wire rot_clk;
         .VGA_VS         ( scan2x_vs      ),
         .VGA_DE         ( scan2x_de      ),
 
-        .rotate_ccw     ( ROTCCW[0]      ),
+        .rotate_ccw     ( core_mod[2]    ),
         .no_rotate      ( ~rotate[0]     ),
         .flip           ( framebuf_flip  ),
         .video_rotated  ( video_rotated  ),
