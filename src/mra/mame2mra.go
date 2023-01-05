@@ -405,6 +405,7 @@ extra_loop:
 		fmt.Println("Total: ", len(data_queue), " games")
 	}
 	main_copied := args.SkipMRA
+	old_deleted := false
 	for _, d := range data_queue {
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
@@ -412,6 +413,20 @@ extra_loop:
 				pocket_add(d.machine, mra_cfg, args, d.def_dipsw)
 			}
 			if !args.SkipMRA {
+				// Delete old MRA files
+				if !old_deleted {
+					filepath.WalkDir( args.outdir, func( path string, d fs.DirEntry, err error) error {
+						if err != nil {
+							fmt.Println("jtframe mra: trouble walking the mra directory:\n\t", err )
+							os.Exit(1)
+						}
+						if !d.IsDir() && strings.HasSuffix(path,".mra") {
+							delete_old_mra( args, path )
+						}
+						return nil
+					} )
+					old_deleted = true
+				}
 				// Do not merge dump_mra and the OR in the same line, or the compiler may skip
 				// calling dump_mra if main_copied is already set
 				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
@@ -527,17 +542,6 @@ func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode
 			log.Fatal(err, args.outdir)
 		}
 	}
-	// Delete old MRA files
-	filepath.WalkDir( args.outdir, func( path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			fmt.Println("jtframe mra: trouble walking the mra directory:\n\t", err )
-			os.Exit(1)
-		}
-		if !d.IsDir() && strings.HasSuffix(path,".mra") {
-			delete_old_mra( args, path )
-		}
-		return nil
-	} )
 	// Redirect clones to their own folder
 	main_mra := (!cloneof && mra_cfg.Parse.Main=="") || (machine.Name == mra_cfg.Parse.Main)
 	if cloneof && !main_mra {
