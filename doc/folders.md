@@ -40,10 +40,21 @@ ver      | cores/foo       | verification files. A folder for each test bench
 cfg      | cores/foo       | configuration files (macros, RTL generation...)
 doc      | root            | documentation
 rom      | root            | ROM files used for simulation. MRA scripts and .toml files
-mra      | rom/mra         | MRA files
-pocket   | rom/pocket      | PocketFPGA JSON files
+mra      | rom/mra         | MRA files for debugging. Do not add to git
+pocket   | rom/pocket      | PocketFPGA JSON file for debugging. Do not add to git
 modules  | modules         | container for each git submodule.
 jtframe  | modules/jtframe | JTFRAME repository as a git submodule
+
+### JTBIN
+
+A special git repository for binaries is expected to exist for all JTFRAME based cores. The environment variable **JTBIN** should point to it. Many utilities will store files in it when called with the `--git` option.
+
+Files from JTBIN can be transfered to a SD card or to the MiSTer filesystem by using
+
+- jtbin2mr.sh, copies to a JTBIN folder in MiSTer over ssh
+- jtbin2sd.sh, copies to a SD card named MIST or SIDI
+
+These scripts will delete the previous contents of those folders, so a fresh test is possible.
 
 ### Macro definition
 
