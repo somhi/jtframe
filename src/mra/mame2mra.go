@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"io/fs"
 	"log"
 	"math"
 	"math/rand"
@@ -488,6 +490,29 @@ func fix_filename(filename string) string {
 	return strings.ReplaceAll(x, "?", "x")
 }
 
+func delete_old_mra( args Args, path string ) {
+	mradata, e := os.ReadFile( path )
+	if e != nil {
+		fmt.Println("Cannot read ", path )
+		os.Exit(1)
+	}
+	var testmra MRA
+	e = xml.Unmarshal(mradata, &testmra)
+	if e != nil {
+		fmt.Println("Cannot Unmarshal ", path,"\n\t",e )
+		os.Exit(1)
+	}
+	if strings.ToUpper(testmra.Rbf) == args.macros["CORENAME"] {
+		if e = os.Remove(path); e!=nil {
+			fmt.Println("Cannot delete ", path)
+			os.Exit(1)
+		}
+		if args.Verbose {
+			fmt.Println("Deleted ", path)
+		}
+	}
+}
+
 func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode, cloneof bool, parent_names map[string]string ) bool {
 	fname := args.outdir
 	game_name := strings.ReplaceAll(mra_xml.GetNode("name").text, ":", "")
@@ -502,6 +527,17 @@ func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode
 			log.Fatal(err, args.outdir)
 		}
 	}
+	// Delete old MRA files
+	filepath.WalkDir( args.outdir, func( path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			fmt.Println("jtframe mra: trouble walking the mra directory:\n\t", err )
+			os.Exit(1)
+		}
+		if !d.IsDir() && strings.HasSuffix(path,".mra") {
+			delete_old_mra( args, path )
+		}
+		return nil
+	} )
 	// Redirect clones to their own folder
 	main_mra := (!cloneof && mra_cfg.Parse.Main=="") || (machine.Name == mra_cfg.Parse.Main)
 	if cloneof && !main_mra {
