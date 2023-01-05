@@ -68,7 +68,10 @@ module jtframe_6809wait(
         cen_Q = cencnt==2'b10 && cen && gate;
     end
 
-    jtframe_z80wait #(1) u_wait(
+    // Uses the same logic to determine the clock gating in both
+    // Z80 and M6809. But, the clock cycle recovery is done
+    // differently
+    jtframe_z80wait #(.DEVCNT(1),.RECOVERY(0)) u_wait(
         .rst_n      ( rstn      ),
         .clk        ( clk       ),
         .cen_in     ( cen       ),
@@ -190,7 +193,7 @@ module jtframe_sys6809_dma #( parameter
     // DMA access to RAM
     input              dma_clk,
     input              dma_we,
-    input [RAM_AW-1:0] dma_addr,
+    input [RAM_AW==0? 0 : RAM_AW-1:0] dma_addr,
     input        [7:0] dma_din,
     output       [7:0] dma_dout
 );
@@ -240,6 +243,7 @@ module jtframe_sys6809_dma #( parameter
             );
         end else begin
             assign ram_dout = 0;
+            assign dma_dout = 0;
         end
     endgenerate
 

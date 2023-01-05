@@ -133,7 +133,8 @@ module jtframe_z80wait #(parameter DEVCNT=2, RECOVERY=1)(
 `ifdef JTFRAME_CLK24
 initial begin
     if(RECOVERY==1) begin
-       $display("WARNING: Do not use cycle recovery with a 24MHz clock and 6MHz pixel");
+       $display("WARNING: %m");
+       $display("         Do not use cycle recovery with a 24MHz clock and 6MHz pixel");
        $display("         that combination fails in jtkiwi.");
        $display("         See issue https://github.com/jotego/jtbubl/issues/27");
        $display("         This could affect 48MHz/8MHz combination too");
