@@ -28,6 +28,8 @@ Extracts the .rom file and places it in the $ROM folder.
 1. Regenerates the MRA files by running jtframe mra
 2. Searches through them looking for the right one to parse
 3. Runs the mra or orca tool to get the .rom file
+4. Creates a file in rom/setname.dip with the default DIP
+   switches, from MSB to LSB
 EOF
     exit 1
 fi
@@ -78,6 +80,12 @@ if [ `wc -l $MATCHES | cut -f 1 -d ' '` -gt 1 ]; then
     exit 1
 fi
 
+# Get the ROM
 $TOOL -z $HOME/.mame/roms "$(cat $MATCHES)" || echo $?
+# Get the DIP switch configuration
+DIPSW=$(xmlstarlet sel -t -m misterromdescription -m switches -v @default "$(cat $MATCHES)")
+DIPSW=$(echo $DIPSW | tr , '\n' | tac | tr -t '\n' ' ')
+printf "%s%s%s%s" $DIPSW > $SETNAME.dip
+
 rm -f $MATCHES
 

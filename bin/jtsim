@@ -392,6 +392,7 @@ require "$SYSNAME" "Missing core name. Specify it with -sysname"
 
 if [ ! -z "$SETNAME" ]; then
     $JTFRAME/bin/getset.sh $SYSNAME $SETNAME || exit $?
+    add_macro JTFRAME_SIM_DIPS=`cat $ROM/$SETNAME.dip`
     ROMFILE=$ROM/$SETNAME.rom
     if [ ! -e $ROMFILE ]; then
         cat<<EOF
