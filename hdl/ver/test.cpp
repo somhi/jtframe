@@ -33,12 +33,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef DUMP
+#ifdef _DUMP
     #include "verilated_vcd_c.h"
 #endif
 
-#ifndef DUMP_START
-    const int DUMP_START=0;
+#ifndef _DUMP_START
+    const int _DUMP_START=0;
 #endif
 
 #ifndef _JTFRAME_COLORW
@@ -114,7 +114,7 @@ public:
 #ifdef _JTFRAME_OSD_FLIP
         dut.dip_flip     = 0;
 #endif
-#ifdef SIM_INPUTS
+#ifdef _SIM_INPUTS
         line = 0;
         done = false;
         fin.open("sim_inputs.hex");
@@ -521,13 +521,13 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     semi_period = (vluint64_t)10416; // 48MHz
 #endif
     fprintf(stderr,"Simulation clock period set to %d ps (%f MHz)\n", ((int)semi_period<<1), 1e6/(semi_period<<1));
-#ifdef LOADROM
+#ifdef _LOADROM
     download = true;
 #else
     download = false;
 #endif
     parse_args( argc, argv );
-#ifdef DUMP
+#ifdef _DUMP
     if( trace ) {
         Verilated::traceEverOn(true);
         tracer = new VerilatedVcdC;
@@ -562,7 +562,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 }
 
 JTSim::~JTSim() {
-#ifdef DUMP
+#ifdef _DUMP
     delete tracer;
 #endif
 }
@@ -592,12 +592,12 @@ void JTSim::clock(int n) {
             if ( dwn.FullDownload() ) sdram.dump();
             reset(0);
         }
-#ifdef RST_DLY // reset delay in us
+#ifdef _RST_DLY // reset delay in us
         reset( simtime < RST_DLY*1000'000L ? 1 : 0);
 #endif
         last_dwnd = cur_dwn;
         simtime += semi_period;
-#ifdef DUMP
+#ifdef _DUMP
         if( tracer && dump_ok ) tracer->dump(simtime);
 #endif
         game.clk = 0;
@@ -609,13 +609,13 @@ void JTSim::clock(int n) {
         simtime += semi_period;
         ticks++;
 
-#ifdef DUMP
+#ifdef _DUMP
         if( tracer && dump_ok ) tracer->dump(simtime);
 #endif
         // frame counter & inputs
         if( game.VS && !last_VS ) {
             frame_cnt++;
-            if( frame_cnt == DUMP_START && !dump_ok ) {
+            if( frame_cnt == _DUMP_START && !dump_ok ) {
                 dump_ok = 1;
                 fprintf(stderr,"\nDump starts (frame %d)\n", frame_cnt);
             }
@@ -623,7 +623,7 @@ void JTSim::clock(int n) {
             // the display and fdisplay output of the verilog files
             if( !(frame_cnt & 0x3f) ) fputc('\n',stderr);
             sim_inputs.next();
-#ifdef JTFRAME_SIM_DEBUG
+#ifdef _JTFRAME_SIM_DEBUG
             game.debug_bus++;
 #endif
         }
@@ -712,7 +712,7 @@ void JTSim::parse_args( int argc, char *argv[] ) {
     for( int k=1; k<argc; k++ ) {
         if( strcmp( argv[k], "--trace")==0 ) {
             trace=true;
-            dump_ok = DUMP_START==0;
+            dump_ok = _DUMP_START==0;
             continue;
         }
         if( strcmp( argv[k], "-time")==0 ) {
@@ -732,8 +732,8 @@ void JTSim::parse_args( int argc, char *argv[] ) {
             continue;
         }
     }
-    #ifdef MAXFRAME
-    finish_frame = MAXFRAME;
+    #ifdef _MAXFRAME
+    finish_frame = _MAXFRAME;
     #endif
 }
 

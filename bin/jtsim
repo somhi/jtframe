@@ -57,8 +57,6 @@ START_TIME=$(date +%s)
 # Extra arguments for the simulator, passed with -args
 SIMULATOR_EXTRA=
 
-rm -f macros.f
-
 # sed and stat are different for MacOS and GNU
 if [ `uname` = Darwin ]; then
     MACOS=YES
@@ -228,7 +226,6 @@ require "$JTFRAME" "You need to source the project setprj.sh"
 require "$MODULES" "Missing the modules path. You need to source the project setprj.sh"
 
 function add_macro {
-    echo ${MACROPREFIX}$1 >> macros.f
     if [ ! -z "$ALLMACROS" ]; then
         ALLMACROS=${ALLMACROS},
     fi
@@ -392,7 +389,7 @@ require "$SYSNAME" "Missing core name. Specify it with -sysname"
 
 if [ ! -z "$SETNAME" ]; then
     $JTFRAME/bin/getset.sh $SYSNAME $SETNAME || exit $?
-    add_macro JTFRAME_SIM_DIPS=`cat $ROM/$SETNAME.dip`
+    add_macro JTFRAME_SIM_DIPS=0x`cat $ROM/$SETNAME.dip`
     ROMFILE=$ROM/$SETNAME.rom
     if [ ! -e $ROMFILE ]; then
         cat<<EOF
@@ -450,8 +447,13 @@ if [ ! -z "$MEM_CHECK_TIME" ]; then
 fi
 
 function jtcfgstr {
-    jtframe cfgstr $SYSNAME --target=$TARGET --output=$1
+    jtframe cfgstr $SYSNAME --target=$TARGET --output=$1 --def=$ALLMACROS
 }
+
+# Common macros
+add_macro SIM_MS=$SIM_MS
+add_macro SIMULATION
+add_macro $(echo $SIMULATOR | tr '[:lower:]' '[:upper:]')
 
 # Parse the core .def file
 if ! jtcfgstr $SIMULATOR > core.def; then
@@ -489,11 +491,6 @@ for i in ../../hdl/*.hex; do
     ln -fs $i $(basename $i)
 done
 
-# Common macros
-add_macro SIM_MS=$SIM_MS
-add_macro SIMULATION
-ALLMACROS=${ALLMACROS},$(echo $SIMULATOR | tr '[:lower:]' '[:upper:]')
-
 if [ -e $MODULES/fx68k ]; then
     # These files are read by the FX68K module but they must be in the
     # simulation folder. Forgetting to have them there results in X everywhere
@@ -513,9 +510,6 @@ if [ $GATES = NO ]; then
         verilator)
             $SED "/\.vhd/d" game.f
             $SED "/\.qip/d" game.f;;
-        ncverilog)
-            # quotes need escaping in ncverilog
-            $SED 's/"/\\"/g' macros.f;;
         modelsim|questasim)
             # ' induces new line by modelsim
             $SED "s/'h/\\\\'h/g" core.def;;
@@ -527,7 +521,6 @@ if [ $GATES = NO ]; then
     esac
     cat game.f jtsim.f >> tmp.f
     cat tmp.f | envsubst | grep -v "^#" | xargs realpath --relative-to=. | sort | uniq > game_env.f
-    cat macros.f >> game_env.f
     # Sort and delete duplicates
     emulate_F game_env.f | sort | uniq > filtered.f
     rm -f game_env.f tmp.f
@@ -557,7 +550,6 @@ else
 mist_dump.v \
 +define+GATES \
 >> filtered.f
-    cat macros.f >> filtered.f
     # Remove MiST definitions
     FILES=
 fi
@@ -642,22 +634,12 @@ verilator)
         cp $JTFRAME/hdl/ver/test.cpp .
         cp $JTFRAME/hdl/ver/game_test.v .
     fi
-    # Import macros for simulation
-    echo "// Macros from command line " >> defmacros.h
-    cp macros.f macros.f2
-    $SED "s/=/ /" macros.f2
-    $SED "s/$MACROPREFIX/#define /" macros.f2
-    cat macros.f2 >> defmacros.h
-    rm macros.f2
-    # Convert " to \" so verilator parses string macros correctly
-    $SED 's/"/\\"/g' filtered.f
     # verilog to C++ conversion
     GAME_VLT=
     if [ -e game.vlt ]; then
         GAME_VLT=game.vlt
     fi
     # Ignore FX68k in Verilator sims with this:
-    # $SED '/fx68k/d' filtered.f
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
     $SHOWCMD verilator -I../../hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
         game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
@@ -691,7 +673,7 @@ verilator)
 esac
 
 rm -f video.pipe frame.raw test.cpp game_test.v \
-   -f filtered.f  game.f  jtsim.f  jtsim_vhdl.f  macros.f simfile.f
+   game.f  jtsim.f  jtsim_vhdl.f simfile.f
 # killall --quiet raw2png
 
 # convert raw sound file to wav format
