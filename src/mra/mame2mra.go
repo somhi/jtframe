@@ -165,7 +165,7 @@ type Mame2MRA struct {
 		Splits []struct {
 			Machine, Setname string
 			Region  string
-			Namehas string	// The description of the game in MAME must contain the "namehas" string
+			Namehas string	// The setname of the game in MAME must contain the "namehas" string
 			Offset, Min_len  int
 		}
 		Blanks []struct {
@@ -1022,7 +1022,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 	reg_pos := 0
 	start_pos := *pos
 	if (len(reg_roms) % (reg_cfg.Width / 8)) != 0 {
-		msg := fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even", reg_cfg.Width, reg_cfg.Name)
+		msg := fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even in %s", reg_cfg.Width, reg_cfg.Name, machine.Name )
 		log.Fatal(msg)
 	}
 	mapstr := "01"
