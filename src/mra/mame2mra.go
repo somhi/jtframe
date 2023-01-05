@@ -164,7 +164,8 @@ type Mame2MRA struct {
 		// or to make a file look bigger than it is (see Bad Dudes)
 		Splits []struct {
 			Machine, Setname string
-			Namehas, Region  string
+			Region  string
+			Namehas string	// The description of the game in MAME must contain the "namehas" string
 			Offset, Min_len  int
 		}
 		Blanks []struct {
@@ -841,19 +842,15 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 	offset = 0
 	min_len = 0
 	for _, split := range cfg.ROM.Splits {
-		if split.Region != reg && split.Region != "" {
+		if 	(split.Region != ""  && split.Region != reg) ||
+			(split.Machine != "" && !is_family(split.Machine, machine)) ||
+			(split.Setname != "" && split.Setname != machine.Name) ||
+			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
+			fmt.Println("Skipping split")
 			continue
 		}
-		if (split.Machine == "" && split.Setname == "" && split.Namehas == "") || // apply to all
-			is_family(split.Machine, machine) || // apply to machine
-			(split.Setname == machine.Name) || // exact match
-			(len(split.Namehas) > 0 && strings.Contains(machine.Name, split.Namehas)) { // name contains substring
-			offset = split.Offset
-			min_len = split.Min_len
-		}
-	}
-	if offset != 0 && machine.Name == "mvp" {
-		fmt.Printf("\tSplit for region %s = 0x%X\n", reg, offset)
+		offset = split.Offset
+		min_len = split.Min_len
 	}
 	return offset, min_len
 }
