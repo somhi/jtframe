@@ -12,20 +12,36 @@ Usage:
 
 jtbin2sd.sh [-l|--local]
 
--l, --local     Uses JTROOT/release instead of JTBIN
+-l, --local     Uses JTROOT/release instead of JTBIN (default)
+-g, --git       Uses JTBIN as the target folder
+-v, --verbose
+
+future options:
+-s, --setname   Uses the given setname as the core.arc
 HELP
 }
 
+LOCAL=1
+V=
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        -l|--local)
-            export JTBIN=$JTROOT/release;;
+        -l|--local) LOCAL=1;;
+        -g|--git)
+            LOCAL=0;; # JTBIN will not be modified
+        -v|--verbose)
+            V=-v;;
         -h|--help)
             show_help
             exit 1;;
+        *) echo "Unknown argument $1"; exit 1;;
     esac
     shift
 done
+
+if [ $LOCAL = 1 ]; then
+    export JTBIN=$JTROOT/release
+fi
 
 cd $JTBIN/mra
 
@@ -48,14 +64,28 @@ for i in SIDI MIST POCKET; do
     make_roms
     wait
     if [ $i = POCKET ]; then
-        cp -r $JTBIN/pocket/raw/* $DST
+        cp -r $V $JTBIN/pocket/raw/* $DST
         # Copy Pocket assets
         for k in $ROM/cp_*sh; do
             $k $ROM
         done
     else
-        cp $TEMP/* $DST
-        cp $JTBIN/${i,,}/*rbf $DST
+        cp $V $TEMP/* $DST
+        cp $V $JTBIN/${i,,}/*rbf $DST
+        # Get the main MRA as the core's arc for JTAG programming
+        for CORE in $JTBIN/mister/*; do
+            MR=$CORE/releases
+            echo $MR
+            if [ ! -d "$MR" ]; then continue; fi
+            cd $MR
+            CORENAME=JT$(basename $CORE)
+            CORENAME=${CORENAME^^}
+            echo $CORENAME
+            FIRST=`find . -name "*.mra" | head -n 1`
+            if [ -z "$FIRST" ]; then continue; fi
+            mra -A -s -a $DST/$CORENAME.arc "$FIRST"
+            cp $V --no-clobber $DST/$CORENAME.arc $DST/core.arc
+        done
     fi
 done
 

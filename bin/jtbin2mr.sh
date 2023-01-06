@@ -13,20 +13,33 @@ Usage:
 
 jtbin2mr.sh [-l|--local]
 
--l, --local     Uses JTROOT/release instead of JTBIN
+-l, --local     Uses JTROOT/release instead of JTBIN (default)
+-g, --git       Uses JTBIN as the target folder
+-v, --verbose
 HELP
 }
 
+LOCAL=1
+V=
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        -l|--local)
-            export JTBIN=$JTROOT/release;;
+        -l|--local) LOCAL=1;;
+        -g|--git)
+            LOCAL=0;; # JTBIN will not be modified
+        -v|--verbose)
+            V=-v;;
         -h|--help)
             show_help
             exit 1;;
     esac
     shift
 done
+
+if [ $LOCAL = 1 ]; then
+    export JTBIN=$JTROOT/release
+fi
+
 
 if [ -z "$MISTERPASSWD" ]; then
     echo "Define the MiSTer password in the environment variable MISTERPASSWD"
