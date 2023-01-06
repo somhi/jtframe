@@ -416,12 +416,10 @@ extra_loop:
 				// Delete old MRA files
 				if !old_deleted {
 					filepath.WalkDir( args.outdir, func( path string, d fs.DirEntry, err error) error {
-						if err != nil {
-							fmt.Println("jtframe mra: trouble walking the mra directory:\n\t", err )
-							os.Exit(1)
-						}
-						if !d.IsDir() && strings.HasSuffix(path,".mra") {
-							delete_old_mra( args, path )
+						if err == nil {
+							if !d.IsDir() && strings.HasSuffix(path,".mra") {
+								delete_old_mra( args, path )
+							}
 						}
 						return nil
 					} )
@@ -537,7 +535,7 @@ func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode
 		if args.Verbose {
 			fmt.Println("Creating folder ", args.outdir)
 		}
-		err := os.Mkdir(args.outdir, 0777)
+		err := os.MkdirAll(args.outdir, 0777)
 		if err != nil && !os.IsExist(err) {
 			log.Fatal(err, args.outdir)
 		}
@@ -2066,19 +2064,15 @@ func parse_args(args *Args) {
 	if args.Verbose {
 		fmt.Println("Parsing ",args.Toml_path)
 	}
+	release_dir := filepath.Join(os.Getenv("JTROOT"), "release")
 	if args.JTbin {
-		jtbin_path := os.Getenv("JTBIN")
-		if jtbin_path=="" {
+		release_dir = os.Getenv("JTBIN")
+		if release_dir =="" {
 			log.Fatal("jtframe mra: JTBIN path must be defined")
 		}
-		args.outdir = filepath.Join( jtbin_path, "mra" )
-		args.altdir = filepath.Join( args.outdir, "_alternatives" )
-		args.pocketdir = filepath.Join( jtbin_path, "pocket", "raw" )
-
-	}  else {
-		args.outdir = filepath.Join( os.Getenv("JTROOT"), "rom", "mra" )
-		args.altdir = filepath.Join( args.outdir, "_alt" )
-		args.pocketdir = filepath.Join( os.Getenv("JTROOT"), "rom", "pocket" )
 	}
+	args.outdir = filepath.Join( release_dir, "mra" )
+	args.altdir = filepath.Join( args.outdir, "_alternatives" )
+	args.pocketdir = filepath.Join( release_dir, "pocket", "raw" )
 	args.firmware_dir = filepath.Join( cores,args.Def_cfg.Core,"firmware")
 }

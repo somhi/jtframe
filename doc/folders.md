@@ -39,9 +39,8 @@ hdl      | cores/foo       | HDL and include files for core foo
 ver      | cores/foo       | verification files. A folder for each test bench
 cfg      | cores/foo       | configuration files (macros, RTL generation...)
 doc      | root            | documentation
-rom      | root            | ROM files used for simulation. MRA scripts and .toml files
-mra      | rom/mra         | MRA files for debugging. Do not add to git
-pocket   | rom/pocket      | PocketFPGA JSON file for debugging. Do not add to git
+rom      | root            | ROM files used for simulation
+release  | root            | Do not add to git. Mock-up release folder for tests outside JTBIN
 modules  | modules         | container for each git submodule.
 jtframe  | modules/jtframe | JTFRAME repository as a git submodule
 

@@ -33,6 +33,10 @@ var mraCmd = &cobra.Command{
 	Short: "Parses the core's TOML file to generate MRA files",
 	Long: `Parses the core's mame2mra.toml file to generate MRA files.
 
+The input mame.xml must be placed in $JTROOT/rom/mame.xml
+The output will either be created in $JTROOT/release or in $JTBIN
+depending on the --git argument.
+
 TOML elements (see full reference in mame2mra.go)
 
 [parse]

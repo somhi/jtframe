@@ -312,6 +312,10 @@ if [ $GIT = TRUE ]; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
+else
+    # Use the local release folder
+    export JTBIN=$JTROOT/release
+    mkdir -p $JTBIN
 fi
 
 OUTPUTDIR=output_files
@@ -565,7 +569,6 @@ esac
 
 # Rename output file
 cd $JTROOT
-mkdir -p releases/$TARGET
 
 if [ $SEED != 1 ]; then
     SEED_SUFFIX=_$SEED
@@ -582,19 +585,7 @@ if [ ! -e $RBF ]; then
     exit 1
 fi
 
-function archive_commit {
-    cp $VERBOSE $1 releases/$TARGET/$corename.$EXT
-    if [[ ${#PRJCOMMIT} = 7 || ${PRJCOMMIT:0:1} = v ]]; then
-        mkdir -p $JTROOT/releases/$TARGET/$PRJCOMMIT
-        cp $VERBOSE $1 $JTROOT/releases/$TARGET/$PRJCOMMIT/$corename.$EXT
-        LATEST=$JTROOT/releases/$TARGET/latest
-        rm -rf $LATEST
-        ln -sr $JTROOT/releases/$TARGET/$PRJCOMMIT $LATEST
-    fi
-}
-
 if [ $TARGET = pocket ]; then
-    announce "Copying to SD card (Pocket core)"
     # The Pocket must have something misconnected inside
     # and it requires the bit order in each RBF byte to
     # be reversed
@@ -605,92 +596,14 @@ if [ $TARGET = pocket ]; then
         cd -
     fi
     $JTFRAME/bin/reverse_bits $RBF ${RBF}_r
-    archive_commit ${RBF}_r
-    if [ -e $ROM/pocket/Cores/jotego.$corename ]; then
-        cp ${RBF}_r $ROM/pocket/Cores/jotego.$corename
-        if [ -d /media/$USER/POCKET  ]; then
-            cp -v ${RBF}_r /media/$USER/POCKET/Cores/jotego.$corename
-        else
-            echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
-        fi
-    fi
-else
-    archive_commit $RBF
-fi
-
-######################################################################################
-# Copy the file to the SD card. The SD card must have the same name as the target platform
-if [[ -d /media/$USER/${TARGET^^} && $TARGET != pocket ]]; then
-    announce "Copying to SD card (non Pocket core)"
-    cd $JTROOT
-    RENAME=${CORENAME^^}.$EXT
-    # copy the file in three forms:
-    # with full date for reference, as core.rbf to start up with it
-    # and inside its own folder for use with ARC files
-    cp -v $RBF /media/$USER/${TARGET^^}/$CORENAME.$EXT
-    # Copy the file to the core folder so it can be used by ARC files
-    if [ -d /media/$USER/${TARGET^^}/$CORE_FOLDER ]; then
-        cp -v $RBF /media/$USER/${TARGET^^}/$CORE_FOLDER/$RENAME
-        # Make the folder visible by MiST firmware
-        fatattr +s /media/$USER/${TARGET^^}/$CORE_FOLDER
-    fi
-    # Copy the MRA file as ARC
-    if [[ $ARC = TRUE ]]; then
-        pushd . >/dev/null
-        cd $MRA
-        FIRSTMRA=$(find -maxdepth 1 -name "*.mra" -print0 | xargs -0 grep --files-with-matches "<rbf>$corename</rbf>" | head -n 1)
-        if [ -e "$FIRSTMRA" ]; then
-            mra -A -s "$FIRSTMRA"
-            FIRSTARC=$(basename "$FIRSTMRA" .mra)
-            if [ -e "$FIRSTARC".arc ]; then
-                cp -v "$FIRSTARC".arc /media/$USER/MIST/core.arc
-                mv -v "$FIRSTARC".arc /media/$USER/MIST/JT${PRJ^^}.arc
-            else
-                if [ $(ls *.arc | wc -l) = 1 ]; then
-                    cp -v *.arc /media/$USER/MIST/core.arc
-                    mv -v *.arc /media/$USER/MIST/JT${PRJ^^}.arc
-                else
-                    echo "Cannot find the ARC file $FIRSTARC".arc
-                    echo MRA file was "$FIRSTMRA"
-                    ls *.arc
-                fi
-            fi
-        fi
-        popd >/dev/null
-    fi
-elif [[ $TARGET != pocket && $TARGET != mister && $TARGET != sockit ]]; then
-    echo "No SD card detected on /media/$USER/${TARGET^^}. Skipping the RBF copy."
-fi
-
-# If Mr is online, copy the file to the _Arcade/cores folder using MiSTer's SSH password
-if [ $TARGET = mister ]; then
-    announce "Copy to MiSTer (SSH/SD card)"
-
-    # Override these settings in the project's $JTROOT/setprj.sh file
-    if [ -z "$MRSHOT" ];       then MRHOST=mister.home; fi
-    if [ -z "$MRUSER" ];       then MRUSER=root; fi
-    if [ -z "$MISTERPASSWD" ]; then MISTERPASSWD=1; fi
-    if [ -z "$FTP_FOLDER" ];   then FTP_FOLDER=JT; fi
-    if ping "$MRHOST" -w 1 -c 1 > /dev/null; then
-        if [ ! -z "$VERBOSE" ]; then echo "Attempting sshpass scp to MiSTer"; fi
-        if sshpass -p $MISTERPASSWD scp $RBF ${MRUSER}@${MRHOST}:/media/fat/_${FTP_FOLDER}/cores; then
-            echo "Copied to MiSTer in _${FTP_FOLDER}/cores"
-        else
-            echo "Network copy to MiSTer failed"
-        fi
-    else
-        echo "MiSTer is not online or unreachable"
-    fi
-    if [ -d /media/$USER/MiSTer_Data ]; then
-        mkdir -p /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
-        cp $VERBOSE $corename.rbf /media/$USER/MiSTer_Data/_${FTP_FOLDER}/cores
-    fi
+    RBF=${RBF}_r
 fi
 
 # Copy to JTBIN  if --git is set, except for cores in beta
 # in which case only the MiSTer version is copied
-if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && "$FAIL" = 0 && \
-        ( is_mister_family || "$BETA" != TRUE  ) ]]; then
+if [[ ! -z "$JTBIN" && -d "$JTBIN" && \
+        ( is_mister_family || "$BETA" != TRUE || "$GIT" != TRUE ) && \
+        ( "$GIT" = FALSE || "$FAIL" != 0 ) ]]; then
     announce "Copy to JTBIN"
     if is_mister_family; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
@@ -705,10 +618,7 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && "$FAIL" = 0 && \
     fi
     mkdir -p $(dirname $BINRBF)
     cp -v $RBF $BINRBF || exit 1
-    # if [ -n "$SEED_SUFFIX" ]; then
-    #     cp $corename.rbf ${BINRBF}${SEED_SUFFIX}.rbf -v
-    # fi
-    # Add to git but don't commit
+
     cd $JTBIN
     RELEASE=$corename_$CORESTAMP
     if [ -e $BINFOLDER/version.log ]; then
@@ -716,7 +626,6 @@ if [[ ! -z "$JTBIN" && -e "$JTBIN" && "$GIT" = TRUE && "$FAIL" = 0 && \
     fi
     printf "%-24s %s\n" ${RELEASE} $PRJCOMMIT >> $BINFOLDER/version.log
 
-    git add -f $BINRBF
     if is_mister_family; then
         OTHER=$(append_if_exists $JTROOT/doc/$corename.md $JTROOT/cores/$PRJ/README.md $JTROOT/README.md $JTROOT/README.txt )
         # remove blanks

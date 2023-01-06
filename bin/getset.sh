@@ -72,7 +72,7 @@ rm $AUX
 
 MATCHES=`mktemp`
 
-find mra -name "*.mra" -print0 | xargs -0 grep --files-with-matches ">$SETNAME<" > $MATCHES
+find $JTROOT/release/mra -name "*.mra" -print0 | xargs -0 grep --files-with-matches ">$SETNAME<" > $MATCHES
 if [ `wc -l $MATCHES | cut -f 1 -d ' '` -gt 1 ]; then
     echo "getset.sh: More than one MRA file contained $SETNAME"
     cat $MATCHES

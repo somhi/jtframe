@@ -11,10 +11,10 @@ All JT arcade cores depend on JTFRAME for compilation:
 
 ## Prerequisites
 
-1. A linux machine
+1. Ubuntu 20,04
 2. Quartus
-3. Python and Go installed
-4. Python `pypng` package
+
+After installing Quartus, run the [jotego_20.04.sh](jotego_20.04.sh) script to get the required packages in place.
 
 JTFRAME uses a submodule to give support to the *Analogue Pocket* target. This submodule is not open source and you will get an error if you try to initialize it. You can safely ignore this submodule, it is only needed to create Pocket files.
 
@@ -63,3 +63,11 @@ And that will produce the MiSTer version.
 Run `jtcore -h` to get help on the commands.
 
 jtcore can also program the FPGA (MiST or MiSTer) with the ```-p``` option. In order to use an USB Blaster cable in Ubuntu you need to setup two urules files. The script **jtblaster** does that for you.
+
+## jtupdate
+
+To compile all cores in a JTFRAME project, run
+
+`jtupdate --target mister --nogit`
+
+The output will be created in $JTROOT/release. See `jtupdate -h` for more details.

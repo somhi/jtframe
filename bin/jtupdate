@@ -90,6 +90,8 @@ if [ -z "$NOGIT" ]; then
     if [ `git branch --show-current` = master ]; then
         git checkout -b `basename $JTROOT`_$CORESTAMP || exit $?
     fi
+else
+    export JTBIN=$JTROOT/release
 fi
 
 # TASKS is a temporary file with the list of tasks
