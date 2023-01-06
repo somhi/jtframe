@@ -57,26 +57,14 @@ This text can be used in GitHub to generate a check list to use during code deve
 
 ## Beta core publishing
 
-**JTALPHA checks, if you didn't use jtbeta to make the JTALPHA files**
-- [ ] Update README
-- [ ] Folder Arcade/cores deleted in the other_zip
-- [ ] MRA files included in the other_zip
-- [ ] MiSTer file includes jtbeta.zip
+Use jtbeta for compiling. The files will be created in $JTROOT/release, and then copied to $JTFRIDAY and $JTBIN
+
 **JTBIN checks**
 - [ ] No files for non-beta RBF in JTBIN
 - [ ] JTBIN has been comitted and pushed
 - [ ] Correct link in JTBIN wiki
 - [ ] Run update_all and check the files
-- [ ] Files in Patreon, including jtbeta.zip as a separate file
-**If jtbeta did not generate all the files directly**
-- [ ] Files in github/jtbeta, including jtbeta.zip as a separate file
-- [ ] No MRA/JSON files for unsupported games
-- [ ] No empty folders in pocket
-- [ ] No half-baked folders in pocket
-- [ ] MRA files must be in JTBIN/mra and added to git
-- [ ] At least one MRA file in JTBIN/mister/core/releases and added to git
-- [ ] Beta MRA files should not load debug ROMs
-- [ ] No RBF files for non MiSTer platforms in JTBIN
+- [ ] Files in Patreon
 **After publishing**
 - [ ] Tweet about the beta
 - [ ] Files in #betafiles, including jtbeta.zip as a separate file
