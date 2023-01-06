@@ -695,7 +695,7 @@ if [ -e sound.raw ]; then
 fi
 
 if [ -z "$SETNAME" ]; then SUMNAME=frame.sum; else SUMNAME=$SETNAME.sum; fi
-shasum frame*jpg > SUMNAME.sum
+shasum frame*jpg > $SUMNAME.sum
 
 # Show simulation time
 END_TIME=$(date +%s)
