@@ -17,18 +17,16 @@ jtbin2mr.sh [-l|--local]
 HELP
 }
 
-function parse_args {
-    while [ $# -gt 0 ]; do
-        case "$1" in
-            -l|--local)
-                export JTBIN=$JTROOT/release;;
-            -h|--help)
-                show_help
-                exit 1;;
-        esac
-        shift
-    done
-}
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -l|--local)
+            export JTBIN=$JTROOT/release;;
+        -h|--help)
+            show_help
+            exit 1;;
+    esac
+    shift
+done
 
 if [ -z "$MISTERPASSWD" ]; then
     echo "Define the MiSTer password in the environment variable MISTERPASSWD"
