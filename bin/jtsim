@@ -31,6 +31,7 @@ if [ -n "$TERM" ]; then
     NC=`tput sgr0`
 fi
 
+DIR=
 DUMP=
 SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
@@ -81,6 +82,7 @@ Please support the development: https://patreon.com/jotego
     -args      Additional arguments for the simulator
     -d         Add specific Verilog macros for the simulation.
                Call jtmacros to display all macros.
+    -dir       Create directory for the simulation. Use with -setname
     -deep      Save all signals for scope verification. See -w below.
     -frame     Number of frames to simulate
     -gates     Gate-level simulation
@@ -259,6 +261,9 @@ case "$1" in
         shift
         add_macro $1
         ;;
+    -dir)
+        DIR=1
+        ;;
     -test)
         add_macro DIP_TEST;;
     -gates)
@@ -388,6 +393,10 @@ fi
 require "$SYSNAME" "Missing core name. Specify it with -sysname"
 
 if [ ! -z "$SETNAME" ]; then
+    if [ ! -z "$DIR" ]; then
+        mkdir -p "$SETNAME" || exit $?
+        cd "$SETNAME"
+    fi
     $JTFRAME/bin/getset.sh $SYSNAME $SETNAME || exit $?
     add_macro JTFRAME_SIM_DIPS=0x`cat $ROM/$SETNAME.dip`
     ROMFILE=$ROM/$SETNAME.rom
@@ -641,7 +650,7 @@ verilator)
     fi
     # Ignore FX68k in Verilator sims with this:
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
-    $SHOWCMD verilator -I../../hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
+    $SHOWCMD verilator -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
         game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
         --top-module game_test -o sim \
@@ -649,9 +658,12 @@ verilator)
          --cc test.cpp --exe $SIMULATOR_EXTRA \
          -Wwarn-UNDRIVEN --waiver-output waiver $GAME_VLT $VERILATOR_SAFE \
         || exit $?
+    # Only use parallel compilation if we are not in a regression. Otherwise
+    # all simulations will compete against each other for CPU resources
+    if [ -z "$JTFRAME_REGRESSION" ]; then MAKEJOBS=-j; fi
     # boost C++ optimization without affecting other settings
     # export CPPFLAGS=`echo "$CPPFLAGS" | sed s/-O1/-O3/`
-    if ! make -j -C obj_dir -f UUT.mk sim > make.log; then
+    if ! make $MAKEJOBS -C obj_dir -f UUT.mk sim > make.log; then
         cat make.log
         exit $?
     fi
@@ -681,6 +693,9 @@ if [ -e sound.raw ]; then
     $JTUTIL/bin/raw2wav $SAMPLING_RATE < sound.raw
     rm -f sound.raw
 fi
+
+if [ -z "$SETNAME" ]; then SUMNAME=frame.sum; else SUMNAME=$SETNAME.sum; fi
+shasum frame*jpg > SUMNAME.sum
 
 # Show simulation time
 END_TIME=$(date +%s)

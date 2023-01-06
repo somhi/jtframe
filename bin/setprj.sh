@@ -13,13 +13,11 @@ export JTFRAME=$JTROOT/modules/jtframe
 # . path comes before JTFRAME/bin as setprj.sh
 # can be in the working directory and in JTFRAME/bin
 PATH=$PATH:.:$JTFRAME/bin
-#unalias jtcore
-alias jtcore="$JTFRAME/bin/jtcore"
 
-# Runs jtframe mra for all core
-function jtmra {
-    for i in $CORES/*; do jtframe mra $(basename $i) $*; done
-}
+if [ -d "$JTBIN" ]; then
+    export JTBIN=$JTROOT/release
+    mkdir -p $JTBIN
+fi
 
 # derived variables
 if [ -e $JTROOT/cores ]; then
@@ -41,8 +39,11 @@ else
 fi
 
 export ROM=$JTROOT/rom
-export MRA=$ROM/mra
+export RLS=$JTROOT/release
+export MRA=$JTROOT/release/mra
+export MRA=$JTROOT/release/mra
 DOC=$JTROOT/doc
+MAME=$JTROOT/doc/mame
 export MODULES=$JTROOT/modules
 
 function swcore {
@@ -124,11 +125,6 @@ EOF
                 echo
             fi;;
     esac
-}
-
-function lnrom {
-    ln -srf $ROM/$1.rom rom.bin
-    ls -l rom.bin
 }
 
 # check that git hooks are present

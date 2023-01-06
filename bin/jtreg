@@ -1,0 +1,32 @@
+#!/bin/bash
+START_TIME=$(date +%s)
+CORE=$1
+
+jtframe mra $CORE
+
+# Get the core name
+eval `jtframe cfgstr $CORE --output=bash`
+CORENAME=${CORENAME,,}
+
+# Find all supported set names for the core
+SETNAMES=$(find $JTROOT/release/mra -name "*.mra" -print0 | xargs -0 -l \
+    xmlstarlet sel -t --var sp="' '" -m misterromdescription -i rbf="'$CORENAME'" -v setname -v \$sp )
+
+if [ -z "$SETNAMES" ]; then
+    echo "No MAME set supported for $CORENAME ($CORE)"
+    exit 0
+fi
+
+REGDIR=$CORES/$CORE/ver/regrun
+mkdir -p $REGDIR || exit $?
+cd $REGDIR
+
+export JTFRAME_REGRESSION=1
+parallel --delay 0.5 jtsim -sysname $CORE -video 500 -dir -setname ::: $SETNAMES
+END_TIME=$(date +%s)
+COMPILE_TIME=$[$END_TIME - $START_TIME]
+HOURS=$[$COMPILE_TIME / 3600]
+MINUTES=$[$COMPILE_TIME / 60]
+SECONDS=$[$COMPILE_TIME % 60]
+
+echo "====== $CORE regression finished in "$HOURS:$MINUTES:$SECONDS hours" ======" > /dev/stderr
