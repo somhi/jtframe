@@ -32,7 +32,7 @@ cd $JTBIN/mra
 TEMP=`mktemp --directory`
 ROMDONE=
 
-function make_roms{
+function make_roms {
     if [ -z "$ROMDONE" ]; then
         find -name "*.mra" -print0 | parallel -0 mra -z $HOME/.mame/roms -O $TEMP -A
         ROMDONE=TRUE
@@ -51,7 +51,7 @@ for i in SIDI MIST POCKET; do
         cp -r $JTBIN/pocket/raw/* $DST
         # Copy Pocket assets
         for k in $ROM/cp_*sh; do
-            $k
+            $k $ROM
         done
     else
         cp $TEMP/* $DST
