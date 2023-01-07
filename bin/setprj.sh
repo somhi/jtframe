@@ -128,7 +128,4 @@ EOF
 }
 
 # check that git hooks are present
-# Only the pre-commit is added automatically, the post-commit must
-# be copied manually as it implies automatic pushing to the server
-cp --no-clobber $JTFRAME/bin/pre-commit $JTROOT/.git/hooks/pre-commit
 cp $JTFRAME/bin/post-merge $(git rev-parse --git-path hooks)/post-merge
