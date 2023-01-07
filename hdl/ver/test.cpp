@@ -526,6 +526,9 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #else
     download = false;
 #endif
+#ifdef _JTFRAME_SIM_DEBUG
+    game.debug_bus = _JTFRAME_SIM_DEBUG;
+#endif
     parse_args( argc, argv );
 #ifdef _DUMP
     if( trace ) {

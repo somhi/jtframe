@@ -26,7 +26,9 @@ module jtframe_objdraw#( parameter
     CW    = 12,    // code width
     PW    =  8,    // pixel width (lower four bits come from ROM)
     SWAPH =  0,    // swaps the two horizontal halves of the tile
-    HJUMP =  0,    // Assumes that hdump goes from 0 to FF and then 180 to 1FF
+    HJUMP =  0,    // set to 0 if hdump is a continuous count
+                   // set to 1 if hdump jumps from  FF to 180  (like KIWI)
+                   // set to 2 if hdump jumps from 1FF to  80  (like JTTORA)
     LATCH =  0,    // If set, latches code, xpos, ysub, hflip, vflip and pal when draw is set and busy is low
     // object line buffer
     FLIP_OFFSET = 0,
@@ -58,7 +60,8 @@ module jtframe_objdraw#( parameter
 );
 
 wire [PW-1:0] buf_din;
-wire    [8:0] buf_addr, aeff;
+wire    [8:0] buf_addr;
+reg     [8:0] aeff;
 wire          buf_we;
 
 reg  [CW-1:0] dr_code;
@@ -91,8 +94,13 @@ generate
     end
 endgenerate
 
-// if HJUMP is defined the 100~17F range is translated to 180~1FF
-assign aeff = HJUMP ? { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] } : buf_addr;
+always @* begin
+    case( HJUMP )
+        1: aeff = { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] }; // 100~17F is translated to 180~1FF
+        2: aeff = { buf_addr[8],~buf_addr[8] | buf_addr[7], buf_addr[6:0] }; //  00~ 7F is translated to  80~ FF
+        default: aeff = buf_addr;
+    endcase
+end
 
 jtframe_draw #(
     .CW   ( CW    ),

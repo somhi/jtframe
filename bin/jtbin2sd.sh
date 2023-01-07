@@ -23,6 +23,7 @@ HELP
 
 LOCAL=1
 V=
+CNT=0
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -87,7 +88,11 @@ for i in SIDI MIST POCKET; do
             cp $V --no-clobber $DST/$CORENAME.arc $DST/core.arc
         done
     fi
+    CNT=$((CNT+1))
 done
 
+if [ $CNT = 0 ]; then
+    echo "Nothing done"
+fi
 
 rm -rf $TEMP
