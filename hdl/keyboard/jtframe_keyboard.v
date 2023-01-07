@@ -48,12 +48,9 @@ module jtframe_keyboard(
     output reg       debug_minus
 );
 
-wire valid;
-wire error;
-
-reg key_released;
-reg key_extended;
-reg [7:0] ps2byte;
+wire       valid, error;
+reg        key_released, key_extended;
+wire [7:0] ps2byte;
 
 /* Left e06b, right e074, up e075, down e072,
    CTRL 14, space 29, alt 11, "1" 16, "2" 1e
