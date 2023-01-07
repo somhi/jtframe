@@ -1328,7 +1328,7 @@ func fill_header(node *XMLNode, reg_offsets map[string]int,
 		for _, uk := range unknown_regions {
 			fmt.Printf(" %s", uk)
 		}
-		fmt.Printf(". Offset set to zero in the header\n")
+		fmt.Printf(". Offset set to zero in the header (%s)\n",machine.Name)
 	}
 	// Manual headers
 	for _, each := range cfg.Data {

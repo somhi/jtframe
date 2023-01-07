@@ -95,7 +95,7 @@ DEVICE_POCKET=5CEBA4F23C8
 DEVICE=$DEVICE_MIST
 
 # Define colours if running on a terminal
-if [ -n "$TERM" ]; then
+if [ -t 1 ]; then
     red=`tput setaf 1`
     green=`tput setaf 2`
     blue=`tput setaf 4`

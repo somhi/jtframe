@@ -221,6 +221,10 @@ function enable_load {
     fi
     add_macro LOADROM
     echo ROM load through SPI enabled
+    if [ ! -s rom.bin ]; then
+        echo "ERROR: file rom.bin is not valid."
+        exit 1
+    fi
 }
 
 preparse_args $*
@@ -407,10 +411,10 @@ jtsim: cannot produce $ROMFILE"
 EOF
         exit 1
     fi
-    if [ `readlink rom.bin` != "$ROMFILE" ]; then
+    if [[ ! -e rom.bin || `readlink rom.bin` != "$ROMFILE" ]]; then
+        ln -srf $ROMFILE rom.bin
         enable_load
     fi
-    ln -srf $ROMFILE rom.bin
 fi
 
 # Add a local copy of the dump file if it doesn't exist
