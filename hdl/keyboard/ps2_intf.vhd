@@ -37,10 +37,14 @@
 
 -- PS/2 interface (input only)
 -- Based loosely on ps2_ctrl.vhd (c) ALSE. http://www.alse-fr.com
+
+-- This module is not used directly in JTFRAME
+-- as it is used after translatation to verilog
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+--use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- This is input-only for the time being
 entity ps2_intf is

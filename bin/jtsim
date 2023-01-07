@@ -594,7 +594,9 @@ iverilog)
     rm -f $SIMEXE;;
 modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
-    $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
+    if [ ! -z `cat jtsim_vhdl.f` ]; then
+        $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
+    fi
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
         +initwireX $SIMULATOR_EXTRA \
         +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
