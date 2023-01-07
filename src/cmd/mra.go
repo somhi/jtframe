@@ -46,6 +46,11 @@ skip.Bootlegs=true # to skip bootlegs
 
 [dipsw]
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
+delete=[ "name"... ]
+# Add more options
+extra={
+	[ machine="", setname="", name="", options="", bits="" ],...
+}
 
 [header]
 # Specify the length in macros.def: JTFRAME_HEADER=length

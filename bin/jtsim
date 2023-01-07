@@ -594,7 +594,7 @@ iverilog)
     rm -f $SIMEXE;;
 modelsim|questasim)
     # vcom compiles VHDL, vlog compiles verilog
-    if [ ! -z `cat jtsim_vhdl.f` ]; then
+    if [ -s jtsim_vhdl.f ]; then
         $SHOWCMD vcom -f jtsim_vhdl.f || exit $?
     fi
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
@@ -696,7 +696,7 @@ if [ -e sound.raw ]; then
     rm -f sound.raw
 fi
 
-if [ -z "$SETNAME" ]; then SUMNAME=frame.sum; else SUMNAME=$SETNAME.sum; fi
+if [ -z "$SETNAME" ]; then SUMNAME=frame; else SUMNAME=$SETNAME; fi
 shasum frame*jpg > $SUMNAME.sum
 
 # Show simulation time

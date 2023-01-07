@@ -76,12 +76,10 @@ for i in SIDI MIST POCKET; do
         # Get the main MRA as the core's arc for JTAG programming
         for CORE in $JTBIN/mister/*; do
             MR=$CORE/releases
-            echo $MR
             if [ ! -d "$MR" ]; then continue; fi
             cd $MR
             CORENAME=JT$(basename $CORE)
             CORENAME=${CORENAME^^}
-            echo $CORENAME
             FIRST=`find . -name "*.mra" | head -n 1`
             if [ -z "$FIRST" ]; then continue; fi
             mra -A -s -a $DST/$CORENAME.arc "$FIRST"
