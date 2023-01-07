@@ -76,7 +76,7 @@ localparam [12:0] ARY = 13'd3;
 `endif
 
 `ifdef JTFRAME_OSD_FLIP
-assign dip_flip    = ~status[1]^MISTER[0];
+assign dip_flip    = ~status[1];
 `endif
 
 `ifdef JTFRAME_OSD_TEST
