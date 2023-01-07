@@ -143,10 +143,16 @@ func append_filelist(dest *[]FileList, src []FileList, other *[]string, origin O
 		}
 		// Only parses the section when the macro is defined
 		if each.When != "" {
+			found := false
 			for _,name := range( strings.Split(each.When,",")) {
-				if _, exists := macros[name]; !exists {
-					continue parse_section
+				if _, exists := macros[name]; exists {
+					found = true
+					break
 				}
+
+			}
+			if !found {
+				continue parse_section
 			}
 		}
 
