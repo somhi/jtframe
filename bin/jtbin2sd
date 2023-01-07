@@ -68,7 +68,7 @@ for i in SIDI MIST POCKET; do
         cp -r $V $JTBIN/pocket/raw/* $DST
         # Copy Pocket assets
         for k in $ROM/cp_*sh; do
-            $k $ROM
+            $k $TEMP
         done
     else
         cp $V $TEMP/* $DST
