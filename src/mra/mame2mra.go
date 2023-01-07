@@ -141,6 +141,7 @@ type Mame2MRA struct {
 		}
 		Rename []struct {
 			Name, To string // Will make Name <- To
+			Values []string // Will rename the values if present
 		}
 	}
 
@@ -1767,7 +1768,17 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 		// Rename the DIP
 		for _, each := range cfg.Dipsw.Rename {
 			if each.Name == ds.Name {
-				ds.Name = each.To
+				if each.To != "" {
+					ds.Name = each.To
+				}
+				for k, v := range each.Values {
+					if k>len(ds.Dipvalue) {
+						break
+					}
+					if v != "" {
+						ds.Dipvalue[k].Name = v
+					}
+				}
 				break
 			}
 		}
@@ -1819,6 +1830,8 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 			options = strings.Replace(options, " Coin", "", -1)
 			options = strings.Replace(options, " Credits", "", -1)
 			options = strings.Replace(options, " Credit", "", -1)
+			options = strings.Replace(options, " and every ", " & *", -1)
+			options = strings.Replace(options, "00000", "00k", -1)
 			options = strings.Replace(options, "0000", "0k", -1)
 			// remove comments
 			re := regexp.MustCompile(`\([^)]*\)`)

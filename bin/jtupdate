@@ -92,6 +92,8 @@ if [ -z "$NOGIT" ]; then
     fi
 else
     export JTBIN=$JTROOT/release
+    rm -rf $JTBIN
+    mkdir -p $JTBIN
 fi
 
 # TASKS is a temporary file with the list of tasks
