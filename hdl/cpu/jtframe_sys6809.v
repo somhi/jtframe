@@ -199,7 +199,6 @@ module jtframe_sys6809_dma #( parameter
 );
 
     wire    cen_E, cen_Q;
-    wire    ram_we = ram_cs & ~RnW & cen_Q;
     wire    BA, BS, AVMA;
     wire    OP;
     wire [7:0] din_dec;
@@ -227,6 +226,8 @@ module jtframe_sys6809_dma #( parameter
 
     generate
         if( RAM_AW != 0 ) begin
+            wire ram_we = ram_cs & ~RnW & cen_Q;
+
             jtframe_dual_ram #(.aw(RAM_AW)) u_ram(
                 // CPU access
                 .clk0   ( clk         ),
