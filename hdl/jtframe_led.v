@@ -37,18 +37,6 @@ localparam POL = 1;
 localparam POL = 0;
 `endif
 
-`ifdef JTFRAME_DEBUG
-    reg [6:0] fcnt;
-    always @(posedge clk,posedge rst) begin
-        if( rst ) begin
-            fcnt <= 0;
-        end else begin
-            if( !LVBL && last_LVBL ) fcnt <= fcnt+7'd1;
-        end
-    end
-`else
-`endif
-
 assign sys_led = ~( downloading | cheat_led /*| osd_shown*/);
 
 always @(posedge clk) begin

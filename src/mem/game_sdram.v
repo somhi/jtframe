@@ -190,10 +190,8 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .ioctl_din    ( ioctl_din      ),
 `endif
     // Debug  
-`ifdef JTFRAME_DEBUG
     .debug_bus    ( debug_bus      ),
     .debug_view   ( debug_view     ),
-`endif
 `ifdef JTFRAME_STATUS
     .st_addr      ( st_addr        ),
     .st_dout      ( st_dout        ),

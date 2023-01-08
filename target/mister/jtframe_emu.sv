@@ -814,11 +814,10 @@ assign sim_pxl_cen = pxl_cen;
         .st_addr  ( st_addr          ),
         .st_dout  ( st_dout          ),
     `endif
-    .gfx_en       ( gfx_en           )
-    `ifdef JTFRAME_DEBUG
-    ,.debug_bus   ( debug_bus        )
-    ,.debug_view  ( debug_view       )
-    `endif);
+    .gfx_en       ( gfx_en           ),
+    .debug_bus    ( debug_bus        ),
+    .debug_view   ( debug_view       )
+);
 
 `ifndef JTFRAME_STEREO
     assign snd_right = snd_left;

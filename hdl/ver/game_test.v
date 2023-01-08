@@ -691,16 +691,10 @@ u_game(
     .st_addr     ( st_addr        ),
     .st_dout     ( st_dout        ),
 `endif
-    .gfx_en      ( gfx_en         )
-`ifdef JTFRAME_DEBUG
-   ,.debug_bus   ( debug_bus      )
-   ,.debug_view  ( debug_view     )
-`endif
+    .gfx_en      ( gfx_en         ),
+    .debug_bus   ( debug_bus      ),
+    .debug_view  ( debug_view     )
 );
-
-`ifndef JTFRAME_DEBUG
-    assign debug_view = 0;
-`endif
 
 endmodule
 

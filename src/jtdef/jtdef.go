@@ -159,6 +159,14 @@ func defined( macros map[string]string, key string ) bool {
 	return e
 }
 
+func str2macro( a string ) string {
+	re := regexp.MustCompile("^[0-9]")
+	if re.MatchString(a) {
+		a = "_" + a
+	}
+	return strings.ToUpper(a)
+}
+
 func Make_macros(cfg Config) (macros map[string]string) {
 	macros = make(map[string]string)
 	parse_def(DefPath(cfg), cfg, &macros)
@@ -197,7 +205,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Macros with default values
 	year, month, day := time.Now().Date()
 	defaul_values := map[string]string{
-		strings.ToUpper(cfg.Core): "",				// the core is always set
+		str2macro(cfg.Core): "",				// the core is always set
 		"JTFRAME_COLORW": "4",
 		"JTFRAME_BUTTONS": "2",
 		"JTFRAME_MIST_DIPBASE": "16",
