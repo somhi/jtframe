@@ -117,6 +117,7 @@ type ParseCfg struct {
 		// empty arrays or strings are not used for comparison
 		// Descriptions []string
 		// Setnames     []string
+		Machines     []string
 		Devices 	 []string	// list of devices the game must contain to be parsed
 	}
 	Parents []struct {

@@ -479,17 +479,28 @@ func skip_game( machine *MachineXML, mra_cfg Mame2MRA, args Args ) bool {
 		}
 	}
 	// Parse Must-be conditions
-	skip := len(mra_cfg.Parse.Mustbe.Devices)>0
+	device_ok := len(mra_cfg.Parse.Mustbe.Devices)==0
 	device_check:
 	for _,each := range mra_cfg.Parse.Mustbe.Devices {
 		for _,check := range machine.Devices {
 			if each == check.Name {
-				skip = false
+				device_ok = true
 				break device_check
 			}
 		}
 	}
-	return skip
+	// Check must-be machine names
+	machine_ok := len(mra_cfg.Parse.Mustbe.Machines)==0
+	for _,each := range mra_cfg.Parse.Mustbe.Machines {
+		if is_family( each, machine ) {
+			if args.Verbose {
+				fmt.Println("Parsing ", machine.Description, "for matching machine name")
+			}
+			machine_ok = true
+			break
+		}
+	}
+	return !(device_ok && machine_ok)
 }
 
 func rm_spsp( a string ) string {
@@ -889,7 +900,6 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 			(split.Machine != "" && !is_family(split.Machine, machine)) ||
 			(split.Setname != "" && split.Setname != machine.Name) ||
 			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
-			fmt.Println("Skipping split")
 			continue
 		}
 		offset = split.Offset
@@ -1090,10 +1100,10 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 	deficit := 0
 	for split_phase := 0; split_phase <= split && split_phase < 2; split_phase++ {
 		if split_phase == 1 {
-			if delta := fill_upto(pos, start_pos+split, p); delta < 0 {
-				fmt.Printf("\tsplit for region %s starts %x bytes after the required offset\n",
-					reg, -delta)
-			}
+			// if delta := fill_upto(pos, start_pos+split, p); delta < 0 {
+			// 	fmt.Printf("\tsplit for region %s starts %x bytes after the required offset (%s)\n",
+			// 		reg, -delta, machine.Name)
+			// }
 			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
 		}
 		chunk0 := *pos
@@ -1143,7 +1153,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			}
 		}
 		if *pos-chunk0 < split_minlen {
-			fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0)
+			// fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0)
 			fill_upto(pos, split_minlen+chunk0, p)
 		}
 	}
@@ -1252,7 +1262,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		}
 
 		reg_offsets[reg] = pos
-		reg_roms = apply_sort(reg_cfg, reg_roms)
+		reg_roms = apply_sort(reg_cfg, reg_roms,machine.Name)
 		if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton( reg_roms, reg_cfg, p )
@@ -1504,7 +1514,7 @@ func cmp_count(a, b string, rmext bool) bool {
 	return low
 }
 
-func sort_byext(reg_cfg *RegCfg, roms []MameROM) {
+func sort_byext(reg_cfg *RegCfg, roms []MameROM, setname string) {
 	// If all the ROMs have the same extension,
 	// it will sort by name instead
 	allequal := true
@@ -1551,7 +1561,7 @@ func sort_byext(reg_cfg *RegCfg, roms []MameROM) {
 		})
 	} else {
 		// All extensions were equal, so sort by name
-		fmt.Printf("\tsorting by name as all extensions were equal\n")
+		fmt.Printf("\tsorting %s by name as all extensions were equal (%s)\n", reg_cfg.Name, setname)
 		sort.Slice(roms, func(i, j int) bool {
 			var a *MameROM = &roms[i]
 			var b *MameROM = &roms[j]
@@ -1657,7 +1667,7 @@ func apply_sequence(reg_cfg *RegCfg, roms []MameROM) []MameROM{
 	return seqd
 }
 
-func apply_sort(reg_cfg *RegCfg, roms []MameROM) []MameROM{
+func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string) []MameROM{
 	if len(reg_cfg.Sequence) > 0 {
 		return apply_sequence( reg_cfg, roms )
 	}
@@ -1678,7 +1688,7 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM) []MameROM{
 		return roms
 	}
 	if reg_cfg.Sort_byext {
-		sort_byext(reg_cfg, roms)
+		sort_byext(reg_cfg, roms, setname)
 		if reg_cfg.Sort_reverse {
 			base := make([]MameROM, len(roms))
 			copy(base, roms)

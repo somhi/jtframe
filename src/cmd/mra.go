@@ -49,6 +49,8 @@ TOML elements (see full reference in mame2mra.go)
 sourcefile="mamefile.cpp"
 skip.Setnames=["willskip1","willskip2"]
 skip.Bootlegs=true # to skip bootlegs
+mustbe.devices=[ "i8751"... ]
+mustbe.machines=[ "machine name"... ]
 
 [dipsw]
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
