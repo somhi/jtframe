@@ -19,16 +19,18 @@ type Customs map[string]string
 type Groups map[string]string
 
 type Config struct {
-	Max_jobs               int
-	Dryrun, Nogit, Nohdmi, Nosnd, Actions, Seed, Private, Skip bool
-	Network, Group, extra  string
-	Beta, Stamp					   string
-	cores                  []string
-	CoreList			   string
-	Targets                map[string]bool
+	Max_jobs              int
+	Git, Nohdmi   		  bool
+	Nosnd, Actions, Seed  bool
+	Private, Skip, Nodbg  bool
+	Group, extra 		  string
+	Beta, Stamp, Defs     string
+	cores                 []string
+	CoreList              string
+	Targets               map[string]bool
 	// enabled platforms
-	groups                 Groups
-	customs                Customs
+	groups  Groups
+	customs Customs
 }
 
 func make_key(target, core string) string {
@@ -118,12 +120,16 @@ func parse_cfgfile(cfg *Config, file *os.File) {
 }
 
 func update_actions(jtroot string, cfg Config) {
-	folder := jtroot + "/.github/workflows/"
+	folder := filepath.Join(jtroot, ".github", "workflows")
+	if err := os.MkdirAll( folder, 0775 ); err!=nil {
+		fmt.Println("jtframe update: problem creating ", folder, "\n\t", err )
+		os.Exit(1)
+	}
 	t := template.Must(template.New("yaml").Parse(yaml_code))
 	rand.Seed(time.Now().UnixNano())
 
 	for target, _ := range cfg.Targets {
-		if target=="mister" || target=="sockit" {
+		if target == "mister" || target == "sockit" {
 			continue // not ready yet
 		}
 		for _, core := range cfg.cores {
@@ -131,25 +137,25 @@ func update_actions(jtroot string, cfg Config) {
 			data := struct {
 				Corename, Target, Extra, Seed, Branches, Docker, OtherBranch string
 			}{
-				Corename: core,
-				Target:   target,
-				Docker:   "jtcore13",
-				Extra:    cfg.customs[key],
-				Seed:     "",
+				Corename:    core,
+				Target:      target,
+				Docker:      "jtcore13",
+				Extra:       cfg.customs[key],
+				Seed:        "",
 				OtherBranch: "",
 			}
-			if target=="mister" {
-				data.Docker="jtcore:20"
+			if target == "mister" {
+				data.Docker = "jtcore:20"
 			}
 			// MiST gets compiled for each update on the master branch
 			if target == "mist" {
 				data.OtherBranch = "master"
 			}
 			for cnt := 0; cnt < 5; cnt++ {
-			    var buffer bytes.Buffer
-                if cfg.Seed {
-				    data.Seed = fmt.Sprintf("--seed %d", rand.Int31())
-                }
+				var buffer bytes.Buffer
+				if cfg.Seed {
+					data.Seed = fmt.Sprintf("--seed %d", rand.Int31())
+				}
 				err := t.Execute(&buffer, data)
 				if err != nil {
 					log.Fatal(err)
@@ -160,10 +166,10 @@ func update_actions(jtroot string, cfg Config) {
 				// Save to file
 				var f *os.File
 				fname := folder + target + "_" + core
-                if cfg.Seed {
-                    fname += fmt.Sprintf("_%d", cnt)
-                }
-                fname = fname + ".yml"
+				if cfg.Seed {
+					fname += fmt.Sprintf("_%d", cnt)
+				}
+				fname = fname + ".yml"
 				f, err = os.Create(fname)
 				if err != nil {
 					log.Fatal(err)
@@ -171,9 +177,9 @@ func update_actions(jtroot string, cfg Config) {
 				//fmt.Println(fname)
 				f.Write(aux)
 				f.Close()
-        if !cfg.Seed {
-            break
-        }
+				if !cfg.Seed {
+					break
+				}
 			}
 		}
 	}
@@ -193,7 +199,7 @@ func dump_output(cfg Config) {
 	}
 	// Update MRA/JSON if needed
 	mra_str := "jtframe mra %s"
-	if !cfg.Nogit {
+	if cfg.Git {
 		mra_str += " --git"
 	}
 	mra_str += "\n"
@@ -204,6 +210,20 @@ func dump_output(cfg Config) {
 	if cfg.Skip {
 		return
 	}
+	// Prepare the build macros
+	defs := make([]string,0,16)
+	appendif := func(cond bool, macro ...string) {
+		if cond {
+			defs = append(defs, macro...)
+		}
+
+	}
+	appendif(cfg.Defs!="", strings.Split(cfg.Defs, ",")...)
+	appendif(cfg.Private, "JTFRAME_OSDCOLOR=(6'h20)")
+	appendif(cfg.Stamp != "", " --corestamp "+cfg.Stamp)
+	appendif(cfg.Nohdmi, "MISTER_DEBUG_NOHDMI")
+	appendif(cfg.Nosnd, "NOSOUND")
+	appendif(cfg.Beta != "", "BETA", "JTFRAME_CHEAT_SCRAMBLE", "JTFRAME_UNLOCKKEY="+cfg.Beta)
 	for target, valid := range cfg.Targets {
 		if !valid {
 			continue
@@ -215,33 +235,21 @@ func dump_output(cfg Config) {
 				cmd = "jtseed 6"
 			}
 			jtcore := fmt.Sprintf("%s %s -%s %s %s", cmd, c, target, cfg.customs[key], cfg.extra)
-			if cfg.Private {
-				jtcore = jtcore + " --private"
-			}
-			if cfg.Stamp!="" {
-				jtcore += " --corestamp " + cfg.Stamp
-			}
-			if cfg.Beta != "" {
-				jtcore +=" -d BETA -d JTFRAME_CHEAT_SCRAMBLE -d JTFRAME_UNLOCKKEY=" + cfg.Beta
-			}
-			if cfg.Nohdmi {
-				jtcore = jtcore + " -d MISTER_DEBUG_NOHDMI"
-			}
-			if cfg.Nosnd {
-				jtcore = jtcore + " -d NOSOUND"
-			}
 			// --git skipped if asked so, but also for all targets but mister in betas
-			dogit := !(cfg.Nogit || ( cfg.Beta!="" && target != "mister"))
-			if dogit || cfg.Beta != "" || cfg.Private {
-				jtcore = jtcore + " -d JTFRAME_RELEASE"
-			}
+			dogit := cfg.Git && !(cfg.Beta != "" && target != "mister")
 			if dogit {
-				jtcore = jtcore + " --git"
+				jtcore += " --git"
+			}
+			if dogit || cfg.Nodbg || cfg.Beta != "" || cfg.Private {
+				jtcore += " -d JTFRAME_RELEASE"
+			}
+			for _, each := range defs {
+				jtcore += " -d " + each
 			}
 			copy := false
-			for _,each := range os.Args {
-				if each=="--" {
-					copy=true
+			for _, each := range os.Args {
+				if each == "--" {
+					copy = true
 					continue
 				}
 				if copy {
@@ -265,7 +273,7 @@ func require_folder(path string) {
 	}
 }
 
-func parse_args(cfg *Config, cores_folder string, all_args []string ) {
+func parse_args(cfg *Config, cores_folder string, all_args []string) {
 
 	flag.Parse()
 
@@ -277,17 +285,17 @@ func parse_args(cfg *Config, cores_folder string, all_args []string ) {
 			break
 		}
 	}
-	for _,each := range strings.Split(cfg.CoreList,",") {
-		if each=="" {
+	for _, each := range strings.Split(cfg.CoreList, ",") {
+		if each == "" {
 			continue
 		}
 		// try to append name as core
-		require_folder( filepath.Join(cores_folder,each,"cfg" ) )
+		require_folder(filepath.Join(cores_folder, each, "cfg"))
 		cfg.cores = append(cfg.cores, each)
 	}
-	if cfg.cores==nil {
+	if cfg.cores == nil {
 		// Get all folders in $JTROOT/cores
-		f,err := os.Open( cores_folder )
+		f, err := os.Open(cores_folder)
 		if err != nil {
 			log.Fatal("jtframe update:", err)
 		}
@@ -295,19 +303,19 @@ func parse_args(cfg *Config, cores_folder string, all_args []string ) {
 		if err != nil {
 			log.Fatal("jtframe update:", err)
 		}
-		for _,each := range folders {
-			if folder_exists( filepath.Join(cores_folder,each.Name(),"cfg" ) ) {
+		for _, each := range folders {
+			if folder_exists(filepath.Join(cores_folder, each.Name(), "cfg")) {
 				cfg.cores = append(cfg.cores, each.Name())
 			}
 		}
 		f.Close()
 	}
-	if cfg.cores==nil {
+	if cfg.cores == nil {
 		log.Fatal("jtframe update: no cores Specified")
 	}
 }
 
-func Run( cfg *Config, all_args []string ) {
+func Run(cfg *Config, all_args []string) {
 	cfg.customs = make(Customs)
 	cfg.groups = make(Groups)
 
@@ -326,7 +334,7 @@ func Run( cfg *Config, all_args []string ) {
 		log.Fatal("jtupdate: JTROOT was undefined")
 	}
 
-	parse_args( cfg, cores_folder, all_args)
+	parse_args(cfg, cores_folder, all_args)
 
 	// parse .jtupdate file
 	file, err := os.Open(jtroot + "/.jtupdate")

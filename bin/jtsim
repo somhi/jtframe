@@ -397,11 +397,11 @@ fi
 require "$SYSNAME" "Missing core name. Specify it with -sysname"
 
 if [ ! -z "$SETNAME" ]; then
-    if [ ! -z "$DIR" ]; then
+    if [ ! -z "$DIR" ]; then # Run the simulation inside a folder named after the set
         mkdir -p "$SETNAME" || exit $?
         cd "$SETNAME"
     fi
-    $JTFRAME/bin/getset.sh $SYSNAME $SETNAME || exit $?
+    getset.sh $SYSNAME $SETNAME || exit $?
     add_macro JTFRAME_SIM_DIPS=0x`cat $ROM/$SETNAME.dip`
     ROMFILE=$ROM/$SETNAME.rom
     if [ ! -e $ROMFILE ]; then

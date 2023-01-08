@@ -32,7 +32,16 @@ var up_all bool
 var updateCmd = &cobra.Command{
 	Use:   "update --cores core1,core2,... <--target mist|mister...>",
 	Short: "Updates compiled files for cores or prepares GitHub action files",
-	Long: `Updates compiled files for cores or prepares GitHub action files`,
+	Long: `JTUPDATE (c) Jose Tejada 2022-2023
+
+A tool to run parallel compilations of FPGA cores and
+prepare GitHub actions.
+
+Arguments after -- are sent to jtcore directly.
+
+The output folder by default is \$JTROOT/release.
+Set --git to use \$JTBIN instead.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		up_cfg.Targets = make(map[string]bool)
 		for _,each := range up_targets {
@@ -62,20 +71,23 @@ func init() {
 	flag.StringSliceVarP( &up_targets, "target","t",[]string{"mist","sidi","mister","pocket"}, "Comma separated list of targets" )
 
 	flag.AddGoFlagSet( target_flag )
-	flag.BoolVar( &up_cfg.Dryrun,  "dry",     false, "Ignored")
-	flag.BoolVar( &up_cfg.Dryrun,  "dryrun",  false, "Ignored")
+	// Ignored flags, which are handled on the script side
+	flag.Bool( "dry",  false, "Shows the jobs without running them")
+	flag.Int( "jobs",     0, "Limits the number of parallel jobs")
+	flag.String( "network", "", "Host name to run the jobs")
+	// Actual flags
 	flag.BoolVar( &up_cfg.Nohdmi,  "nohdmi",  false, "HDMI disabled in MiSTer")
 	flag.BoolVar( &up_cfg.Nosnd,   "nosnd",   false, "define the NOSOUND macro")
-	flag.BoolVar( &up_cfg.Nogit,   "nogit",   false, "Does not store in git")
+	flag.BoolVar( &up_cfg.Nodbg,  "nodbg",  false, "defines the JTFRAME_RELEASE macro")
+	flag.BoolVar( &up_cfg.Git,   "git",   false, "Sets $JTBIN as the output and defines JTFRAME_RELEASE")
 	flag.BoolVar( &up_cfg.Seed,    "seed",    false, "Random seed iteration used for compilation")
-	flag.BoolVar( &up_cfg.Private, "private", false, "Build for JTALPHA team")
+	flag.BoolVar( &up_cfg.Private, "private", false, "Build for JTALPHA team (defines JTFRAME_RELEASE and a red OSD)")
 	flag.BoolVar( &up_cfg.Actions, "actions", false, "Updates GitHub actions")
 	flag.BoolVarP( &up_cfg.Skip, "skip-rbf", "s", false, "Skip RBF generation and update only MRA files")
 	flag.StringVar( &up_cfg.Beta,   "beta",    "", "Sets JTFRAME_UNLOCKKEY=<value> and sets BETA. Use with --corestamp")
 	flag.StringVar( &up_cfg.Stamp,  "corestamp",   "", "Date string for RBF file. Passed to jtcore")
-	flag.StringVar(&up_cfg.Network, "network", "", "Ignored")
 	flag.StringVarP(&up_cfg.CoreList, "cores",  "c", "", "Comma separated list of cores")
+	flag.StringVarP(&up_cfg.Defs, "def",  "d", "", "Comma separated list of macros")
 	flag.StringVar(&up_cfg.Group, "group",     "", "Core group specified in $JTROOT/.jtupdate")
-	flag.Int64("jobs", 0, "Ignored ")
 	flag.BoolVar( &up_all, "all", false, "updates all target platforms")
 }

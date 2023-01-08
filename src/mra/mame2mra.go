@@ -966,7 +966,7 @@ func parse_straight_dump( split, split_minlen int, reg string, reg_roms []MameRO
 			if delta := fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p); delta < 0 {
 				fmt.Printf("Warning: ROM start overcome at 0x%X (expected 0x%X - delta=%X)\n",
 					*pos, ((offset&-2)-reg_pos)+*pos, delta)
-				fmt.Printf("\t while parsing region %s of setname %s (%s)\n", r.Name, machine.Name, machine.Description)
+				fmt.Printf("\t while parsing region %s (%s)\n", reg_cfg.Name, machine.Name)
 			}
 		}
 		rom_pos := *pos

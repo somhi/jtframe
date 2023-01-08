@@ -68,6 +68,6 @@ jtcore can also program the FPGA (MiST or MiSTer) with the ```-p``` option. In o
 
 To compile all cores in a JTFRAME project, run
 
-`jtupdate --target mister --nogit`
+`jtupdate --target mister`
 
 The output will be created in $JTROOT/release. See `jtupdate -h` for more details.

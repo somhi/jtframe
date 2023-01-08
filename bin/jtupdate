@@ -2,44 +2,13 @@
 MAX_JOBS=
 DRYRUN=
 NETWORK=
-NOGIT=
+GIT=
 CORESTAMP=$(date +"%Y%m%d")
-
-function show_help {
-cat<<HELP
-    JTUPDATE (c) Jose Tejada 2022
-
-    A tool to run parallel compilations of FPGA cores and
-    prepare GitHub actions
-
-    jtupdate is a three layered process:
-        1. A GO program that prepares the list of tasks to run
-        2. A script that calls parallel for each task
-        3. The base jtcore script that runs each compilation
-
-    Arguments to the GO and main scripts are passed directly. Arguments
-    to jtcore are added after --.
-
-    The script responds to these arguments:
-
-    -j, --jobs       limits the number of parallel jobs
-    -d, --dry        shows the jobs without running them
-    -n, --network    host name to run the jobs
-    -a, --actions    updates the Github action files
-    -h, --help       shows this help
-
-    Arguments to the GO program can include specific cores after the
-    general arguments and before the --, like
-
-    jtupdate --all gng 1942 -- -q
-
-HELP
-}
 
 function parse_args {
     while [ $# -gt 0 ]; do
         case "$1" in
-            -j|--jobs)
+            --jobs)
                 shift
                 MAX_JOBS="--jobs $1"
                 ;;
@@ -47,13 +16,13 @@ function parse_args {
                 shift
                 CORESTAMP=$1
                 ;;
-            --dry|--dry-run)
+            --dry)
                 DRYRUN=--dry-run
                 ;;
-            --nogit)
-                NOGIT=1
+            --git)
+                GIT=1
                 ;;
-            -n|--network)
+            --network)
                 shift
                 if [ ! -e "$1" ]; then
                     echo "Specify the name of the hosts file to use after -network"
@@ -61,16 +30,12 @@ function parse_args {
                 fi
                 NETWORK="--sshloginfile $1"
                 ;;
-            -a|--actions)
-                if [ ! -d $JTROOT/.github/workflows ]; then
-                    mkdir -p $JTROOT/.github/workflows
-                fi
+            --actions)
                 ACTIONS=yes
                 ;;
             -h|--help)
-                show_help
                 jtframe update --help
-                exit 1;;
+                exit 0;;
         esac
         shift
     done
@@ -78,7 +43,13 @@ function parse_args {
 
 parse_args $* || exit $?
 
-if [ -z "$NOGIT" ]; then
+if [ -z "$GIT" ]; then
+    # Output to the release folder
+    export JTBIN=$JTROOT/release
+    rm -rf $JTBIN
+    mkdir -p $JTBIN
+else
+    # Output to JTBIN
     cd $JTBIN
     if git status --short | grep -i "^ M " > /dev/null; then
         echo "JTBIN has uncommited changes. Do you want to continue [y/n]?"
@@ -90,10 +61,6 @@ if [ -z "$NOGIT" ]; then
     if [ `git branch --show-current` = master ]; then
         git checkout -b `basename $JTROOT`_$CORESTAMP || exit $?
     fi
-else
-    export JTBIN=$JTROOT/release
-    rm -rf $JTBIN
-    mkdir -p $JTBIN
 fi
 
 # TASKS is a temporary file with the list of tasks
@@ -106,7 +73,6 @@ else
     jtframe update $*
     exit $?
 fi
-
 
 if [ $(cat $TASKS|wc -l) = 0 ]; then
     echo no jobs
@@ -121,4 +87,6 @@ mkdir -p $JTROOT/log
 rm -rf $JTROOT/log/*
 cat $TASKS | parallel --no-run-if-empty --colsep " "  --shuf  --workdir $JTROOT \
     $DRYRUN $NETWORK $MAX_JOBS\
-    --delay 0.25 $CMD {} $EXTRA $GIT | tee $JTROOT/log/update.log
+    --delay 0.25 $CMD {} $EXTRA | tee $JTROOT/log/update.log
+
+rm -f $TASKS

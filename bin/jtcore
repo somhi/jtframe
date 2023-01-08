@@ -51,7 +51,6 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --credits       Defines NOSOUND, MISTER_DEBUG_NOHDMI and NOMAIN. Sets MiSTer as target.
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
-    --private       Uses red for OSD and allows copying to JTALPHA
     --program | -p  Programs the FPGA via JTAG
     --quick|-q      Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
@@ -79,7 +78,6 @@ FAIL=0
 GIT=FALSE
 MACROS=
 OUTPUTDIR=output_files
-PRIVATE=0
 PRJ=
 PROG=FALSE
 SEED=1
@@ -161,18 +159,6 @@ function parse_args {
                 MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI"
                 GIT=FALSE
                 TARGET=mister;;
-            --private)
-                PRIVATE=1
-                MACROS="$MACROS JTFRAME_OSDCOLOR=(6'h20)"
-                if [ -z "$JTALPHA" ]; then
-                    echo "Error: you must defined the environment variable JTALPHA to use --private"
-                    exit 1
-                fi
-                if [ ! -d "$JTALPHA" ]; then
-                    echo "Error: JTALPHA points to a non existent folder $JTALPHA"
-                    exit 1
-                fi
-                ;;
             --sim)
                 SIM=TRUE;;
             --showmacros)
