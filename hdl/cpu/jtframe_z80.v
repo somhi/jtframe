@@ -234,7 +234,9 @@ module jtframe_z80_romwait (
     input         rom_cs,
     input         rom_ok
 );
-    jtframe_z80_devwait u_cpu(
+    parameter RECOVERY=1;
+
+    jtframe_z80_devwait #(.RECOVERY(RECOVERY)) u_cpu(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
