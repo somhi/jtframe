@@ -129,3 +129,12 @@ EOF
 
 # check that git hooks are present
 cp $JTFRAME/bin/post-merge $(git rev-parse --git-path hooks)/post-merge
+
+# Recompiles jtframe quietly after each commit
+cd $JTFRAME
+JTFRAME_POSTCOMMIT=$(git rev-parse --git-path hooks)/post-commit
+cat > $JTFRAME_POSTCOMMIT <<EOF
+#!/bin/bash
+jtframe > /dev/null
+EOF
+chmod +x $JTFRAME_POSTCOMMIT
