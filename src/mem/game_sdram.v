@@ -66,6 +66,9 @@ wire [21:0] raw_addr, post_addr;
 wire [24:0] pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
+wire        pass_io;
+
+assign pass_io = header | ioctl_ram;
 
 jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst        ( rst       ),
@@ -161,9 +164,9 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 {{- end}}
     // PROM writting
     .ioctl_addr   ( ioctl_addr     ),
-    .prog_addr    ( (header | ioctl_ram) ? ioctl_addr[21:0] : raw_addr      ),
-    .prog_data    ( header ? ioctl_dout : raw_data[7:0] ),
-    .prog_we      ( (header | ioctl_ram) ? ioctl_wr   : prog_we  ),
+    .prog_addr    ( pass_io ? ioctl_addr[21:0] : raw_addr      ),
+    .prog_data    ( pass_io ? ioctl_dout       : raw_data[7:0] ),
+    .prog_we      ( pass_io ? ioctl_wr         : prog_we       ),
     .prog_ba      ( prog_ba        ), // prog_ba supplied in case it helps re-mapping addresses
 `ifdef JTFRAME_PROM_START
     .prom_we      ( prom_we        ),
