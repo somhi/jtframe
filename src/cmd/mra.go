@@ -19,6 +19,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 	"github.com/jotego/jtframe/mra"
 
 	"github.com/spf13/cobra"
@@ -29,11 +30,16 @@ var reduce bool
 
 // mraCmd represents the mra command
 var mraCmd = &cobra.Command{
-	Use:   "mra <core-name> or mra --reduce <path-to-mame.xml>",
+	Use:   "mra <core-name,core-name...> or mra --reduce <path-to-mame.xml>",
 	Short: "Parses the core's TOML file to generate MRA files",
 	Long: `Parses the core's mame2mra.toml file to generate MRA files.
 
-The input mame.xml must be placed in $JTROOT/rom/mame.xml
+If called with --reduce, the argument must be the path to mame.xml,
+otherwise the file mame.xml in $JTROOT/rom/mame.xml will be used.
+
+Each repository is meant to have a reduced mame.xml file in $ROM as
+part of the source file commited in git.
+
 The output will either be created in $JTROOT/release or in $JTBIN
 depending on the --git argument.
 
@@ -79,10 +85,12 @@ order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
 	Run: func(cmd *cobra.Command, args []string) {
 		if reduce {
 			mra.Reduce(args[0])
-		} else { // regular operation
-			mra_args.Def_cfg.Core = args[0]
+		} else { // regular operation, core names are separated by commas
 			mra_args.Xml_path=os.Getenv("JTROOT")+"/rom/mame.xml"
-			mra.Run(mra_args)
+			for _, each := range strings.Split(args[0],",") {
+				mra_args.Def_cfg.Core = each
+				mra.Run(mra_args)
+			}
 		}
 	},
 	Args: cobra.ExactArgs(1),
