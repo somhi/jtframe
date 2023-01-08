@@ -197,6 +197,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Macros with default values
 	year, month, day := time.Now().Date()
 	defaul_values := map[string]string{
+		strings.ToUpper(cfg.Core): "",				// the core is always set
 		"JTFRAME_COLORW": "4",
 		"JTFRAME_BUTTONS": "2",
 		"JTFRAME_MIST_DIPBASE": "16",

@@ -10,6 +10,8 @@ There are two macros that define the core name the FPGA will use when communicat
 
 The core's game module that connects to the target top module is set by GAMETOP. If undefined, it will default to $CORENAME_game (or $CORENAME_game_sdram when cfg/mem.yaml exists). $CORENAME is used in lower case for the GAMETOP.
 
+A macro for the core folder name in capitals is always defined and can be used in `ifdef` statements when a file is common to several cores.
+
 Macro         |  Usage                  | Default Value
 --------------|-------------------------|------------------
 CORENAME      | Core name               | Core's folder name
