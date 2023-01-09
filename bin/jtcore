@@ -45,8 +45,6 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
 
     General options
 
-    --arc           Converts the first MRA found that uses this core to ARC
-                    and copies it to /media/$USER/MIST/core.arc
     --corestamp     Sets the date string attached to the RBF file name. Defaults to today
     --credits       Defines NOSOUND, MISTER_DEBUG_NOHDMI and NOMAIN. Sets MiSTer as target.
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
@@ -70,7 +68,6 @@ EOF
    exit 0
 }
 
-ARC=FALSE
 BETA=FALSE
 CORESTAMP=$(date +"%Y%m%d")
 EXT=rbf
@@ -117,8 +114,8 @@ function is_mister_family {
 function parse_args {
     while [ $# -gt 0 ]; do
         case "$1" in
-            --arc) ARC=TRUE;;
             --corestamp)
+                if [ -z "$1" ]; then echo "Error: expecting word after --corestamp"; exit 1; fi
                 shift
                 CORESTAMP=$1;;
             --credits)
@@ -131,8 +128,8 @@ function parse_args {
                     MACROS="$1 $MACROS"
                 fi
                 ;;
-            --git | -g) GIT=TRUE;;
-            --prog | -p) PROG=TRUE;;
+            --git|-g) GIT=TRUE;;
+            --prog|-p) PROG=TRUE;;
             --prog-only | -w)
                 PROG=TRUE
                 SKIP_COMPILE=TRUE;;
@@ -154,6 +151,7 @@ function parse_args {
                 TARGET=mister;;
             --mrpasswd)
                 shift
+                if [ -z "$1" ]; then echo "Error: expecting word after --mrpasswd"; exit 1; fi
                 MISTERPASSWD=$1;;
             -mrq)
                 MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI"
@@ -165,16 +163,21 @@ function parse_args {
                 SHOWMACROS=1;;
             --target|-t)
                 shift
-                if [ ! -d "$JTFRAME/target/$1" ]; then
+                if [[ ! -d "$JTFRAME/target/$1" || -z "$1" ]]; then
                     echo "Target $1 does not exist in $JTFRAME/target"
                     exit 1
                 fi
                 TARGET=$1;;
             --seed)
                 shift
+                if [[ ! $1 =~ ^[0-9]+$ ]]; then
+                    echo "Error: use an integer after --seed"
+                    exit 1
+                fi
                 SEED=$1;;
             --undef|-u)
                 shift
+                if [ -z "$1" ]; then echo "Error: expecting word after --undef"; exit 1; fi
                 UNMACROS="$1 $UNMACROS"
                 ;;
             --verbose | -v)
@@ -298,8 +301,10 @@ if [ $GIT = TRUE ]; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
+    if [ ! -z $VERBOSE ]; then echo "Using $JTBIN as JTBIN"; fi
 else
     # Use the local release folder
+    if [ ! -z $VERBOSE ]; then echo "Using 'release' as JTBIN"; fi
     export JTBIN=$JTROOT/release
     mkdir -p $JTBIN
 fi
