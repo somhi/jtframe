@@ -66,7 +66,7 @@ initial begin
 end
 `endif
 
-wire signed [WA-1:0] ch0_pre, ch1_pre, ch2_pre, ch3_pre;
+reg  signed [WA-1:0] ch0_pre, ch1_pre, ch2_pre, ch3_pre;
 reg  signed [WS-1:0] pre_sum; // 4 extra bits for overflow guard
 reg  signed [WM-1:0] sum;
 reg  signed [WI-1:0] pre_int; // no fractional part
@@ -85,10 +85,14 @@ wire signed [8:0]
     g2 = {1'b0, gain2},
     g3 = {1'b0, gain3};
 
-assign ch0_pre = g0 * scaled0;
-assign ch1_pre = g1 * scaled1;
-assign ch2_pre = g2 * scaled2;
-assign ch3_pre = g3 * scaled3;
+always @(posedge clk) begin
+    ch0_pre <= g0 * scaled0;
+    ch1_pre <= g1 * scaled1;
+    ch2_pre <= g2 * scaled2;
+    ch3_pre <= g3 * scaled3;
+    pre_sum <= ext(ch0_pre) + ext(ch1_pre) + ext(ch2_pre) + ext(ch3_pre);
+end
+
 assign mixed   = sum[WM-1:WM-WOUT];
 
 assign peak    = pre_int[WI-1:WM] != {WI-WM{pre_int[WM-1]}};
@@ -101,7 +105,6 @@ function [WS-1:0] ext;
 endfunction
 
 always @(*) begin
-    pre_sum = ext(ch0_pre) + ext(ch1_pre) + ext(ch2_pre) + ext(ch3_pre);
     pre_int = pre_sum[WS-1:WD];
 end
 

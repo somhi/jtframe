@@ -59,7 +59,7 @@ always @(posedge clk)
     if( rst ) begin
         integ <= {SW+DW+1{1'b0}};
         error <= {SW+DW+1{1'b0}};
-    end else if( sample    ) begin
+    end else if( sample ) begin
         /* verilator lint_off WIDTH */
         integ <= integ + pre_dout; //mult[SW+DW*2:DW];
         /* verilator lint_on WIDTH */
