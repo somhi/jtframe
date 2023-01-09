@@ -47,18 +47,19 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
 
     --corestamp     Sets the date string attached to the RBF file name. Defaults to today
     --credits       Defines NOSOUND, MISTER_DEBUG_NOHDMI and NOMAIN. Sets MiSTer as target.
+    --force | -f    Forces --git even if it is not clean.
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
     --program | -p  Programs the FPGA via JTAG
-    --quick|-q      Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
+    --quick |-q     Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
     -qs             Same as -q but with sound.
-    --quicker|-qq   Same as -q but it also disabled HDMI output and sets MiSTer as target
+    --quicker | -qq Same as -q but it also disabled HDMI output and sets MiSTer as target
     --seed          Sets random seed for compilation
     --sim           Prepares Quartus simulation
     --skip | -s     skips the compilation but executes the rest of the commands
     --showmacros    Shows the macros used for compilation and exits
-    --target|-t <target>
+    --target | -t <target>
                     Specifies the target platform
     --verbose | -v  verbose
     --version       Shows the core version. Use "jtmerge -v" to see the JTFRAME version
@@ -72,6 +73,7 @@ BETA=FALSE
 CORESTAMP=$(date +"%Y%m%d")
 EXT=rbf
 FAIL=0
+FORCE=
 GIT=FALSE
 MACROS=
 OUTPUTDIR=output_files
@@ -128,6 +130,7 @@ function parse_args {
                     MACROS="$1 $MACROS"
                 fi
                 ;;
+            --force|-f) FORCE=TRUE;;
             --git|-g) GIT=TRUE;;
             --prog|-p) PROG=TRUE;;
             --prog-only | -w)
@@ -297,7 +300,7 @@ if [ -z "$CORE_FOLDER" ]; then
 fi
 
 if [ $GIT = TRUE ]; then
-    if is_dirty; then
+    if [[ is_dirty && -z "$FORCE" ]]; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
@@ -307,6 +310,11 @@ else
     if [ ! -z $VERBOSE ]; then echo "Using 'release' as JTBIN"; fi
     export JTBIN=$JTROOT/release
     mkdir -p $JTBIN
+fi
+
+if [[ -z "$JTBIN" || ! -d "$JTBIN" ]]; then
+    echo "JTBIN $JTBIN is not valid"
+    exit 1
 fi
 
 OUTPUTDIR=output_files
@@ -592,10 +600,8 @@ fi
 
 # Copy to JTBIN  if --git is set, except for cores in beta
 # in which case only the MiSTer version is copied
-if [[ ! -z "$JTBIN" && -d "$JTBIN" && \
-        ( is_mister_family || "$BETA" != TRUE || "$GIT" != TRUE ) && \
-        ( "$GIT" = FALSE || "$FAIL" != 0 ) ]]; then
-    announce "Copy to JTBIN"
+if [[ ( "$GIT" = FALSE || (( is_mister_family || "$BETA" != TRUE ) && "$FAIL" = 0 )) ]]; then
+    announce "Copy to $JTBIN"
     if is_mister_family; then
         BINFOLDER=$JTBIN/$TARGET/$PRJ
         BINRBF=$BINFOLDER/releases/$corename.$EXT
@@ -626,6 +632,8 @@ if [[ ! -z "$JTBIN" && -d "$JTBIN" && \
         fi
     fi
     cd - > /dev/null
+elif [ ! -z "$VERBOSE" ]; then
+    echo "Skipping copy to JTBIN or release"
 fi
 rm -f $corename.rbf
 
