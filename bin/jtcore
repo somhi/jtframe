@@ -331,14 +331,19 @@ case $TARGET in
                 cd $(ls | head -n 1)
                 PATH=$PATH:`pwd`/quartus/bin
             else
-                echo "Cannot find Quartus in /opt/intelFPGA_lite"
+                echo "Cannot find Quartus in /opt/intelFPGA_lite (`hostname`)"
                 exit 1
             fi
         fi;;
     *)
         if ! (which quartus_sh|grep 13 -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
-            PATH=$PATH:$(locate altera/13.1/quartus/bin | head -1)
+            if [ -d "/opt/altera/13.1" ]; then
+                PATH=$PATH:/opt/altera/13.1/quartus/bin
+            else
+                echo "Cannot find Quartus 13 in /opt/altera/13.1 (`hostname`)"
+                exit 1
+            fi
         fi;;
 esac
 export PATH=$PATH:$JTFRAME/bin

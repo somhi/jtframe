@@ -11,10 +11,12 @@ All JT arcade cores depend on JTFRAME for compilation:
 
 ## Prerequisites
 
-1. Ubuntu 20,04
-2. Quartus
+- Ubuntu 20.04
+- Install Quartus 13.1 to compile for MiST, SiDi and the Pocket in `/opt/altera/13.1`
+- Install Quartus 17 or higher to compile for MiSTer in `/opt/intelFPGA_lite`
+- Run the [jotego_20.04.sh](jotego_20.04.sh) script to get other required packages in place
 
-After installing Quartus, run the [jotego_20.04.sh](jotego_20.04.sh) script to get the required packages in place.
+For parallel compilation across network machines, create a file `$HOME/.parallel/sshloginfile` with one host name per line. Configure SSH correctly across the machines, using `ssh-copy-id`, etc.
 
 JTFRAME uses a submodule to give support to the *Analogue Pocket* target. This submodule is not open source and you will get an error if you try to initialize it. You can safely ignore this submodule, it is only needed to create Pocket files.
 

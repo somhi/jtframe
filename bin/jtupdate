@@ -83,7 +83,12 @@ source `which env_parallel.bash`
 
 mkdir -p $JTROOT/log
 rm -rf $JTROOT/log/*
-cat $TASKS | parallel --no-run-if-empty --colsep " "  --shuf  --workdir $JTROOT \
+if [ ! -z "$NETWORK" ]; then
+    sed -i "s/^/.\/modules/jframe/bin/jtnet.sh /g" $TASKS
+fi
+
+cat $TASKS | parallel --no-run-if-empty --colsep " " --sshdelay 0.25 \
+    --load 80% --memfree 4G --shuf  --workdir $JTROOT \
     $DRYRUN $NETWORK $MAX_JOBS\
     --delay 0.25 $CMD {} $EXTRA | tee $JTROOT/log/update.log
 

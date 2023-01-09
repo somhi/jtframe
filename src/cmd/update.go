@@ -74,7 +74,7 @@ func init() {
 	// Ignored flags, which are handled on the script side
 	flag.Bool( "dry",  false, "Shows the jobs without running them")
 	flag.Int( "jobs",     0, "Limits the number of parallel jobs")
-	flag.String( "network", "", "Host name to run the jobs")
+	flag.Bool( "network", false, "Use network resources")
 	// Actual flags
 	flag.BoolVar( &up_cfg.Nohdmi,  "nohdmi",  false, "HDMI disabled in MiSTer")
 	flag.BoolVar( &up_cfg.Nosnd,   "nosnd",   false, "define the NOSOUND macro")
