@@ -315,7 +315,7 @@ else
 fi
 
 if [[ -z "$JTBIN" || ! -d "$JTBIN" ]]; then
-    echo "JTBIN $JTBIN is not valid"
+    echo "JTBIN ($JTBIN) is not valid"
     exit 1
 fi
 

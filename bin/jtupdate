@@ -84,7 +84,7 @@ source `which env_parallel.bash`
 mkdir -p $JTROOT/log
 rm -rf $JTROOT/log/*
 if [ ! -z "$NETWORK" ]; then
-    sed -i "s/^/.\/modules\/jtframe\/bin\/jtnet.sh /g" $TASKS
+    sed -i "s/^/.\/modules\/jtframe\/bin\/jtnet.sh $JTBIN /g" $TASKS
 fi
 
 cat $TASKS | parallel --no-run-if-empty --colsep " " --sshdelay 0.25 \
