@@ -85,8 +85,8 @@ mkdir -p $JTROOT/log
 rm -rf $JTROOT/log/*
 if [ ! -z "$NETWORK" ]; then
     TEMP=`mktemp`
-    while read line; do
-        echo "./modules/jtframe/bin/jtnet.sh $JTBIN $line" >> $TEMP
+    while read LINE; do
+        echo "./modules/jtframe/bin/jtnet.sh $JTBIN $LINE" >> $TEMP
     done < $TASKS
     rm -f $TASKS
     TASKS=$TEMP
