@@ -301,10 +301,12 @@ fi
 
 if [ $GIT = TRUE ]; then
     is_dirty
-    if [[ $? != 0 && -z "$FORCE" ]]; then
+    if [[ $? = 0 && -z "$FORCE" ]]; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
+        git status --short
         exit 1
     fi
+    exit 0
     if [ ! -z $VERBOSE ]; then echo "Using $JTBIN as JTBIN"; fi
 else
     # Use the local release folder
