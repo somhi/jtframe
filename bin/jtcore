@@ -300,7 +300,8 @@ if [ -z "$CORE_FOLDER" ]; then
 fi
 
 if [ $GIT = TRUE ]; then
-    if [[ is_dirty && -z "$FORCE" ]]; then
+    is_dirty
+    if [[ $? != 0 && -z "$FORCE" ]]; then
         echo "Error: cannot use -git if git isn't clean. Commit and try again"
         exit 1
     fi
