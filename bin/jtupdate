@@ -86,7 +86,7 @@ rm -rf $JTROOT/log/*
 if [ ! -z "$NETWORK" ]; then
     TEMP=`mktemp`
     while read line; do
-        echo "./modules/jtframe/bin/jtnet.sh $JTBIN $TASKS" >> $TEMP
+        echo "./modules/jtframe/bin/jtnet.sh $JTBIN $line" >> $TEMP
     done < $TASKS
     rm -f $TASKS
     TASKS=$TEMP
