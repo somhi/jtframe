@@ -257,7 +257,7 @@ else
     PRJTAG=`git tag --contains $PRJCOMMIT | grep "^v[0-9]\+\.[0-9]\+\.[0-9]\+$" | tail -n 1`
     if [ ! -z "$PRJTAG" ]; then
         PRJCOMMIT=$PRJTAG;
-        echo "Using version tag $PRJCOMMIT"
+        if [ ! -z "$VERBOSE" ]; then echo "Using version tag $PRJCOMMIT"; fi
     elif [ $GIT = TRUE ]; then
         echo "Error: cannot use --git if there is no version tag for the commit"
         echo "Create the first version tag manually. Use jtmerge to create the tags after that."
@@ -306,7 +306,6 @@ if [ $GIT = TRUE ]; then
         git status --short
         exit 1
     fi
-    exit 0
     if [ ! -z $VERBOSE ]; then echo "Using $JTBIN as JTBIN"; fi
 else
     # Use the local release folder
