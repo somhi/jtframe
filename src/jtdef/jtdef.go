@@ -206,6 +206,8 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	year, month, day := time.Now().Date()
 	defaul_values := map[string]string{
 		str2macro(cfg.Core): "",				// the core is always set
+		"JTFRAME_ARX": "4",
+		"JTFRAME_ARY": "3",
 		"JTFRAME_COLORW": "4",
 		"JTFRAME_BUTTONS": "2",
 		"JTFRAME_MIST_DIPBASE": "16",
