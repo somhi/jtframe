@@ -380,20 +380,13 @@ localparam B0 = 0;
 
 wire [COLW*3-1:0] dim = { 1'b0, rgb_in[R1:R0+1], 1'b0, rgb_in[G1:G0+1], 1'b0, rgb_in[B1:B0+1] };
 
+// COLW must be >= 4
 function [COLW*3-1:0] extend;
     input [11:0] rgb4;
-    extend =
-        COLW==5 ? {
-            rgb4[11:8], rgb4[11],
-            rgb4[7:4],  rgb4[7],
-            rgb4[3:0],  rgb4[3]
-        } : (
-        COLW==4 ? rgb4 :
-        {
-            rgb4[11:8], rgb4[11:8],
-            rgb4[7:4],  rgb4[7:4],
-            rgb4[3:0],  rgb4[3:0]
-        });
+    reg [7:0] b = {2{rgb4[3:0]}};
+    extend[COLW*3-1-:8] = {2{rgb4[11:8]}};
+    extend[COLW*2-1-:8] = {2{rgb4[ 7:4]}};
+    extend[COLW*1-1-:0] = b[7-:COLW];
 endfunction
 
 always @(posedge clk, posedge rst) begin

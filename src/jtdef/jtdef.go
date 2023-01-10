@@ -244,6 +244,11 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	} else {
 		macros["CORE_OSD"] = ""
 	}
+	// Do not accept less than 4bpp
+	colorw,_ := strconv.Atoi(macros["JTFRAME_COLORW"])
+	if colorw<4 || colorw>8 {
+		log.Fatal("JTFRAME: macro JTFRAME_COLORW must be between 4 and 8")
+	}
 	// Delete macros listed in cfg.discard
 	for _, undef := range cfg.Discard {
 		delete(macros, undef)
