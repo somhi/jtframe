@@ -221,10 +221,6 @@ function enable_load {
     fi
     add_macro LOADROM
     echo ROM load through SPI enabled
-    if [ ! -s rom.bin ]; then
-        echo "ERROR: file rom.bin is not valid."
-        exit 1
-    fi
 }
 
 preparse_args $*
@@ -415,6 +411,11 @@ EOF
         ln -srf $ROMFILE rom.bin
         enable_load
     fi
+fi
+
+if [ ! -s rom.bin ]; then
+    echo "ERROR: file rom.bin is not valid."
+    exit 1
 fi
 
 # Add a local copy of the dump file if it doesn't exist
