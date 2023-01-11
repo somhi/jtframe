@@ -220,7 +220,6 @@ func dump_output(cfg Config) {
 	}
 	appendif(cfg.Defs!="", strings.Split(cfg.Defs, ",")...)
 	appendif(cfg.Private, "JTFRAME_OSDCOLOR=(6'h20)")
-	appendif(cfg.Stamp != "", " --corestamp "+cfg.Stamp)
 	appendif(cfg.Nohdmi, "MISTER_DEBUG_NOHDMI")
 	appendif(cfg.Nosnd, "NOSOUND")
 	appendif(cfg.Beta != "", "BETA", "JTFRAME_CHEAT_SCRAMBLE", "JTFRAME_UNLOCKKEY="+cfg.Beta)
@@ -235,6 +234,9 @@ func dump_output(cfg Config) {
 				cmd = "jtseed 6"
 			}
 			jtcore := fmt.Sprintf("%s %s -%s %s %s", cmd, c, target, cfg.customs[key], cfg.extra)
+			if cfg.Stamp != "" {
+				jtcore += "--corestamp " + cfg.Stamp
+			}
 			// --git skipped if asked so, but also for all targets but mister in betas
 			dogit := cfg.Git && !(cfg.Beta != "" && target != "mister")
 			if dogit {
