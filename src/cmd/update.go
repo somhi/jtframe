@@ -73,7 +73,7 @@ func init() {
 	flag.AddGoFlagSet( target_flag )
 	// Ignored flags, which are handled on the script side
 	flag.Bool( "dry",  false, "Shows the jobs without running them")
-	flag.Int( "jobs",     0, "Limits the number of parallel jobs")
+	flag.String( "jobs",  "", "Limits the number of parallel jobs")
 	flag.Bool( "network", false, "Use network resources")
 	// Actual flags
 	flag.BoolVar( &up_cfg.Nohdmi,  "nohdmi",  false, "HDMI disabled in MiSTer")
