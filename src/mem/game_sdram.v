@@ -46,7 +46,7 @@ wire     {{ addr_range . }} {{.Name}}_addr;
 wire     {{ data_range . }} {{.Name}}_din;
 wire     {{ data_range . }} {{.Name}}_dout;
 {{ if .Dual_port.Name }}
-{{ if not .Dual_port.Cs }}wire    {{.Dual_port.Name}}_cs; // Dual port for {{.Dual_port.Name}}
+{{ if not .Dual_port.We }}wire    {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}}{{.Dual_port.Name}}_we; // Dual port for {{.Dual_port.Name}}
 {{end}}{{end}}
 {{- end}}
 // SDRAM buses
@@ -157,9 +157,8 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 {{- range .BRAM }}
     {{if not .Addr}}.{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if .Rw }}
     {{if not .Din}}.{{.Name}}_din  ( {{.Name}}_din  ),{{end}}{{end}}
-    .{{.Name}}_dout ( {{.Name}}_dout ),
-    {{ if .Dual_port.Name -}}
-    {{ if not .Dual_port.Cs }}.{{.Dual_port.Name}}_cs ( {{.Dual_port.Name}}_cs ),  // Dual port for {{.Dual_port.Name}}{{end}}
+    .{{.Name}}_dout ( {{.Name}}_dout ),{{ if .Dual_port.Name }}
+    {{ if not .Dual_port.We }}.{{.Dual_port.Name}}_we ( {{.Dual_port.Name}}_we ),  // Dual port for {{.Dual_port.Name}}{{end}}
     {{- end}}
 {{- end}}
     // PROM writting
@@ -334,7 +333,7 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .clk0   ( clk ),
     .addr0  ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),{{ if $bus.Rw }}
     .data0  ( {{$bus.Name}}_din  ),
-    .we0    ( {2{ {{$bus.Cs}} }} & ~{{$bus.Name}}.dsn ), {{ else }}
+    .we0    ( {{$bus.We}} }} {{$bus.Name}}_we ), {{ else }}
     .data0  ( {{$bus.Data_width}}'h0 ),
     .we0    ( 2'd0 ),{{end}}
     .q0     ( {{$bus.Name}}_dout ),
@@ -342,7 +341,7 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .clk1   ( clk ),
     .data1  ( {{if $bus.Dual_port.Din}}{{$bus.Dual_port.Din}}{{else}}{{$bus.Dual_port.Name}}_dout{{end}} ),
     .addr1  ( {{$bus.Dual_port.Name}}_addr{{ addr_range $bus }}),{{ if $bus.Dual_port.Rw }}
-    .we1    ( {2{ {{if $bus.Dual_port.Cs}}{{$bus.Dual_port.Cs}}{{else}}{{$bus.Dual_port.Name}}_cs{{end}} }} & ~{{$bus.Dual_port.Name}}_dsn ), {{ else }}
+    .we1    ( {{if $bus.Dual_port.We}}{{$bus.Dual_port.We}}{{else}}{{$bus.Dual_port.Name}}_we{{end}}  ), {{ else }}
     .we1    ( 2'd0 ),{{end}}
     .q1     ( {{$bus.Name}}2{{$bus.Dual_port.Name}}_data )
 );{{else}}
@@ -355,9 +354,8 @@ jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .clk    ( clk  ),{{ if eq $bus.Data_width 8 }}
     .cen    ( 1'b1 ),{{end}}
     .addr   ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),
-    .data   ( {{if $bus.Din}}{{$bus.Din}}{{else}}{{$bus.Name}}_din{{end}}  ),{{ if eq $bus.Data_width 16 }}
-    .we     ( {2{ {{if $bus.Cs}}{{$bus.Cs}}{{else}}{{$bus.Name}}_cs{{end}} }} & ~{{$bus.Name}}.dsn ),{{else}}
-    .we     ( {{$bus.Name}}_we   ),{{end}}
+    .data   ( {{if $bus.Din }}{{$bus.Din }}{{else}}{{$bus.Name}}_din {{end}} ),
+    .we     ( {{if $bus.We  }}{{$bus.We  }}{{else}}{{$bus.Name}}_we  {{end}} ),
     .q      ( {{$bus.Name}}_dout )
 );{{ end }}
 {{ end }}

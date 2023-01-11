@@ -63,7 +63,7 @@ type BRAMBus struct {
 	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
 	Data_width int    `yaml:"data_width"`
 	Rw         bool   `yaml:"rw"`
-	Cs         string `yaml:"cs"`
+	We         string `yaml:"we"`
 	Addr       string `yaml:"addr"`
 	Din		   string `yaml:"din"`  // optional name for din signal
 	Sim_file   bool   `yaml:"sim_file"`
@@ -71,7 +71,7 @@ type BRAMBus struct {
 		Name string `yaml:"name"`
 		Din	 string `yaml:"din"`  // optional name for din signal
 		Rw   bool   `yaml:"rw"`
-		Cs   string `yaml:"cs"`
+		We   string `yaml:"we"`
 	} `yaml:"dual_port"`
 }
 

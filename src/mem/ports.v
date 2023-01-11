@@ -32,7 +32,7 @@
     {{if not .Din}}output   {{ data_range . }} {{.Name}}_din,{{end}}{{end}}
     input    {{ data_range . }} {{.Name}}_dout,
     {{- if .Dual_port.Name }}
-    {{ if not .Dual_port.Cs }}input    {{.Dual_port.Name}}_cs, // Dual port for {{.Dual_port.Name}}
+    {{ if not .Dual_port.We }}output   {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}} {{.Dual_port.Name}}_we, // Dual port for {{.Dual_port.Name}}
     {{end}}{{end}}
 {{- end}}
 {{- $first := true -}}
