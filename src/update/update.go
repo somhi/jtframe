@@ -244,7 +244,10 @@ func dump_output(cfg Config) {
 				jtcore += " -d JTFRAME_RELEASE"
 			}
 			for _, each := range defs {
-				jtcore += " -d " + each
+				each = strings.TrimSpace(each)
+				if each != "" {
+					jtcore += " -d " + each
+				}
 			}
 			copy := false
 			for _, each := range os.Args {
