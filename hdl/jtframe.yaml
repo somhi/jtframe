@@ -47,4 +47,6 @@ jtframe:
       - jtframe_cheat_rom.v
   - from: sound
     get:
+      - jtframe_mixer_en.v
+      - jtframe_mixer.v
       - jtframe_uprate2_fir.yaml
