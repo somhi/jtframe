@@ -252,9 +252,14 @@ function no_v {
 if is_dirty; then
     PRJCOMMIT="$(git rev-parse --short HEAD)-dirty"
 else
-    PRJCOMMIT=`version_ok.sh` || test $GIT = TRUE || echo \
-"Error: cannot use --git if there is no version tag for the commit" \
-"Create the first version tag manually. Use jtmerge to create the tags after that."; exit 1
+    PRJCOMMIT=`version_ok.sh`
+    if [[ $? = 0 && $GIT = TRUE ]]; then
+        cat << EOF
+Error: cannot use --git if there is no version tag for the commit
+Create the first version tag manually. Use jtmerge to create the tags after that
+EOF
+        exit 1
+    fi
 fi
 
 if [ "$VERBOSE" = -v ]; then echo "Using version tag $PRJCOMMIT"; fi
