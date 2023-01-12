@@ -119,7 +119,7 @@ a clean folder.
 Delete it y/n?
 EOF
     read CONT
-    if [ $CONT != y ]; then rm -rf $JTROOT/release; fi
+    if [ $CONT = y ]; then rm -rf $JTROOT/release; fi
 fi
 
 # Check whether the patrons/msg file has been updated
@@ -175,13 +175,13 @@ git add *
 git commit -m "JTFriday "$(date --date=friday +"%Y-%m-%d")
 git tag --force $TAG
 
-# Add the reference to JTBIN's wiki
+echo "Adding the reference to JTBIN's wiki"
 cd $JTBIN/../jtbin.wiki
 git pull
 if ! grep -i "\[$CORE\] Home.md" > /dev/null; then
     ./addcore.sh $CORE
     git commit -m "Added $CORE"
-    git push
+    # git push
 fi
 
 # Prepare the zip files
