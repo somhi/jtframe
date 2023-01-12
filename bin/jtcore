@@ -253,7 +253,8 @@ PRJCOMMIT=$(git rev-parse --short HEAD)
 if is_dirty; then
     PRJCOMMIT="$PRJCOMMIT-dirty"
 elif [ $GIT = TRUE ]; then
-    version_ok.sh $VERBOSE || exit $?
+    PRJCOMMIT=`version_ok.sh` || exit $?
+    if [ "$VERBOSE" = -v ]; then echo "Using version tag $PRJCOMMIT"; fi
 fi
 
 if [ ! -e "$JTFRAME" ]; then
