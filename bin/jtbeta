@@ -178,7 +178,7 @@ git tag --force $TAG
 echo "Adding the reference to JTBIN's wiki"
 cd $JTBIN/../jtbin.wiki
 git pull
-if ! grep -i "\[$CORE\] Home.md" > /dev/null; then
+if ! grep -i "\[$CORE\]" Home.md > /dev/null; then
     ./addcore.sh $CORE
     git commit -m "Added $CORE"
     # git push
