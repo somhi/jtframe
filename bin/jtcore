@@ -249,13 +249,15 @@ function no_v {
     fi
 }
 
-PRJCOMMIT=$(git rev-parse --short HEAD)
 if is_dirty; then
-    PRJCOMMIT="$PRJCOMMIT-dirty"
-elif [ $GIT = TRUE ]; then
-    PRJCOMMIT=`version_ok.sh` || exit $?
-    if [ "$VERBOSE" = -v ]; then echo "Using version tag $PRJCOMMIT"; fi
+    PRJCOMMIT="$(git rev-parse --short HEAD)-dirty"
+else
+    PRJCOMMIT=`version_ok.sh` || test $GIT = TRUE || echo \
+"Error: cannot use --git if there is no version tag for the commit" \
+"Create the first version tag manually. Use jtmerge to create the tags after that."; exit 1
 fi
+
+if [ "$VERBOSE" = -v ]; then echo "Using version tag $PRJCOMMIT"; fi
 
 if [ ! -e "$JTFRAME" ]; then
     echo -e "${rBG}ERROR:${NC}${wBG} cannot locate jtframe folder.${NC}"

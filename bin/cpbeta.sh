@@ -98,4 +98,11 @@ if [ -d "$JTFRIDAY" ]; then
     cp *.zip "$JTFRIDAY"/$SHORTSTAMP
 fi
 
+cd $JTROOT
 rm -rf $DEST
+
+# Copies to SD and MiSTer
+cd $JTROOT
+jtbin2sd &
+jtbin2mr
+wait

@@ -25,9 +25,6 @@ if [ ! -z "$PRJTAG" ]; then
     echo $PRJTAG;
     exit 0
 else
-    cat > /dev/stderr <<EOF
-Error: cannot use --git if there is no version tag for the commit
-Create the first version tag manually. Use jtmerge to create the tags after that.
-EOF
+    echo $PRJCOMMIT
     exit 1
 fi

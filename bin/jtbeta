@@ -1,3 +1,6 @@
+###########################################
+## Copy to MiST, SiDi and Pocket
+###########################################
 #!/bin/bash
 # This file is part of JTFRAME.
 # JTFRAME program is free software: you can redistribute it and/or modify
@@ -97,7 +100,7 @@ if (git status --short | grep -i "^ M " > /dev/null); then
     exit 1
 fi
 
-version_ok.sh -v || exit $?
+version_ok.sh > /dev/null || echo "Missing version tag"; exit $?
 
 if [ $WEEK_COMMIT != $MASTER_COMMIT ]; then
     echo The $MASTER branch is not at the same commit as the week branch.
