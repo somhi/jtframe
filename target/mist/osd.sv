@@ -237,17 +237,17 @@ wire	   back_pixel = 1'b1;
 
 always @(posedge clk_sys) begin
 	if (ce_pix) begin
-		osd_buffer_addr <= rotate[0] ? {rotate[1] ? osd_hcnt_next2[7:5] : ~osd_hcnt_next2[7:5],
-		                   rotate[1] ? (doublescan ? ~osd_vcnt[7:0] : ~{osd_vcnt[6:0], 1'b0}) :
-		                               (doublescan ?  osd_vcnt[7:0]  : {osd_vcnt[6:0], 1'b0})} :
+		osd_buffer_addr <= rotate[0] ? {rotate[1] ? ~osd_hcnt_next2[7:5] : osd_hcnt_next2[7:5],
+		                   rotate[1] ? (doublescan ?  osd_vcnt[7:0] :  {osd_vcnt[6:0], 1'b0}) :
+		                               (doublescan ? ~osd_vcnt[7:0] : ~{osd_vcnt[6:0], 1'b0})} :
 		                   // no rotation
 		                               {doublescan ? osd_vcnt[7:5] : osd_vcnt[6:4], osd_hcnt_next2[7:0]};
 
-		osd_pixel <= rotate[0]  ? osd_byte[rotate[1] ? osd_hcnt_next[4:2] : ~osd_hcnt_next[4:2]] :
+		osd_pixel <= rotate[0]  ? osd_byte[rotate[1] ? ~osd_hcnt_next[4:2] : osd_hcnt_next[4:2]] :
 		                          osd_byte[doublescan ? osd_vcnt[4:2] : osd_vcnt[3:1]];
 		`ifndef JTFRAME_OSD_NOLOGO
 		back_pixel <= rotate[0]  ?
-                              back_byte[rotate[1] ? osd_hcnt_next[4:2] : ~osd_hcnt_next[4:2]] :
+                              back_byte[rotate[1] ? ~osd_hcnt_next[4:2] : osd_hcnt_next[4:2]] :
                               // no rotation:
                               back_byte[doublescan ? osd_vcnt[4:2] : osd_vcnt[3:1]];
 		`endif

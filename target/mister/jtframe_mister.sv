@@ -779,7 +779,7 @@ wire rot_clk;
         .VGA_VS         ( scan2x_vs      ),
         .VGA_DE         ( scan2x_de      ),
 
-        .rotate_ccw     ( core_mod[2]    ),
+        .rotate_ccw     (  rotate[1]     ),
         .no_rotate      ( ~rotate[0]     ),
         .flip           ( framebuf_flip  ),
         .video_rotated  ( video_rotated  ),

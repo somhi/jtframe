@@ -158,7 +158,7 @@ endgenerate
 
 // all signals that are not direct re-wirings are latched
 always @(posedge clk) begin
-    rotate      <= { ~dip_flip, tate && !rot_control };
+    rotate      <= { dip_flip ^ core_mod[2], tate && !rot_control }; // rotate[1] keeps the image upright regardless of dip_flip
     dip_fxlevel <= 2'b10 ^ status[7:6];
     en_mixing   <= ~status[3];
     `ifndef JTFRAME_OSD_SND_EN
