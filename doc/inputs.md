@@ -114,7 +114,7 @@ A more comprehensive trackball emulator that already instantiates internally the
 # Paddle
 **Paddle support is preliminary**
 
-A [paddle](https://en.wikipedia.org/wiki/Paddle_%28game_controller%29) has a range of values and can hold a position. For some games, it is convenient to use the analog sticks found in modern gamepads. For other, the mouse may be a better interface. JTFRAME provides four 8-bit paddle signals, that can be mapped to other controllers
+A [paddle](https://en.wikipedia.org/wiki/Paddle_%28game_controller%29) has a range of values and can hold a position. For some games, it is convenient to use the analog sticks found in modern gamepads. For other, the mouse may be a better interface. JTFRAME provides four 8-bit paddle signals, that can be mapped to other controllers.
 
 Paddle # | Mouse axis | Joystick   | Analog stick
 ---------|------------|------------|-------------------
@@ -123,7 +123,9 @@ Paddle # | Mouse axis | Joystick   | Analog stick
   2      |            | 2P, L/R    | 2P left stick L/R
   3      |            | 2P, U/D    | 2P left stick U/D
 
-The macro **JTFRAME_PADDLE=max** enables the paddle inputs to the game module. The macro should be defined to the maximum value the paddle can handle, otherwise the maximum is 8'hff and the minimum is 8'h0. The paddle value is unsigned.
+The macro **JTFRAME_PADDLE** enables the paddle inputs to the game module. The macro **JTFRAME_PADDLE_MAX=max** sets the maximum value the paddle can handle, otherwise the maximum is 8'hff and the minimum is 8'h0. The paddle value is unsigned.
+
+Paddle emulation is provided for MiST. For MiSTer, the regular paddle signals sent by the MiSTer firmware are used.
 
 # Mouse
 

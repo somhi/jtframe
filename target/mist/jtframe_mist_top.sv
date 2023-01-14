@@ -100,10 +100,6 @@ wire [15:0] ba0_din, ba1_din, ba2_din, ba3_din;
 wire [ 1:0] ba0_dsn, ba1_dsn, ba2_dsn, ba3_dsn;
 wire [15:0] sdram_dout;
 
-`ifndef JTFRAME_COLORW
-`define JTFRAME_COLORW 4
-`endif
-
 localparam COLORW=`JTFRAME_COLORW;
 
 wire [COLORW-1:0] red;
@@ -127,7 +123,7 @@ wire pll_locked, clk_pico;
 
 
 `ifndef JTFRAME_STEREO
-assign snd_right = snd_left;
+    assign snd_right = snd_left;
 `endif
 
 `ifndef JTFRAME_SDRAM_BANKS
@@ -195,10 +191,6 @@ assign sim_dwnld_busy = dwnld_busy;
 `define JTFRAME_SIGNED_SND 1'b1
 `endif
 
-`ifndef JTFRAME_BUTTONS
-`define JTFRAME_BUTTONS 2
-`endif
-
 `ifdef JTFRAME_MIST_DIPBASE
 localparam DIPBASE=`JTFRAME_MIST_DIPBASE;
 `else
@@ -214,13 +206,9 @@ jtframe_mist #(
     .SIGNED_SND   ( `JTFRAME_SIGNED_SND    ),
     .BUTTONS      ( GAME_BUTTONS   ),
     .DIPBASE      ( DIPBASE        ),
-    .COLORW       ( COLORW         )
-    `ifdef JTFRAME_WIDTH
-    ,.VIDEO_WIDTH ( `JTFRAME_WIDTH )
-    `endif
-    `ifdef JTFRAME_HEIGHT
-    ,.VIDEO_HEIGHT(`JTFRAME_HEIGHT )
-    `endif
+    .COLORW       ( COLORW         ),
+    .VIDEO_WIDTH  ( `JTFRAME_WIDTH ),
+    .VIDEO_HEIGHT ( `JTFRAME_HEIGHT)
 )
 u_frame(
     .clk_sys        ( clk_sys        ),
@@ -275,25 +263,15 @@ u_frame(
     .CONF_DATA0     ( CONF_DATA0     ),
 
     // ROM access from game
-    // Bank 0: allows R/W
-    .ba0_addr   ( ba0_addr      ),
-    .ba1_addr   ( ba1_addr      ),
-    .ba2_addr   ( ba2_addr      ),
-    .ba3_addr   ( ba3_addr      ),
-    .ba_rd      ( ba_rd         ),
-    .ba_wr      ( ba_wr         ),
-    .ba_dst     ( ba_dst        ),
-    .ba_dok     ( ba_dok        ),
-    .ba_rdy     ( ba_rdy        ),
-    .ba_ack     ( ba_ack        ),
-    .ba0_din    ( ba0_din       ),
-    .ba0_dsn    ( ba0_dsn       ),
-    .ba1_din    ( ba1_din       ),
-    .ba1_dsn    ( ba1_dsn       ),
-    .ba2_din    ( ba2_din       ),
-    .ba2_dsn    ( ba2_dsn       ),
-    .ba3_din    ( ba3_din       ),
-    .ba3_dsn    ( ba3_dsn       ),
+    .ba0_addr   ( ba0_addr      ), .ba1_addr   ( ba1_addr      ),
+    .ba2_addr   ( ba2_addr      ), .ba3_addr   ( ba3_addr      ),
+    .ba_rd      ( ba_rd         ), .ba_wr      ( ba_wr         ),
+    .ba_dst     ( ba_dst        ), .ba_dok     ( ba_dok        ),
+    .ba_rdy     ( ba_rdy        ), .ba_ack     ( ba_ack        ),
+    .ba0_din    ( ba0_din       ), .ba0_dsn    ( ba0_dsn       ),
+    .ba1_din    ( ba1_din       ), .ba1_dsn    ( ba1_dsn       ),
+    .ba2_din    ( ba2_din       ), .ba2_dsn    ( ba2_dsn       ),
+    .ba3_din    ( ba3_din       ), .ba3_dsn    ( ba3_dsn       ),
 
     // ROM-load interface
     .prog_addr  ( prog_addr     ),
@@ -400,11 +378,7 @@ u_frame(
 `endif
 `endif
 
-`ifdef JTFRAME_4PLAYERS
-localparam STARTW=4;
-`else
-localparam STARTW=2;
-`endif
+localparam STARTW=`ifdef JTFRAME_4PLAYERS 4 `else 2 `endif;
 
 // For simulation, either ~32'd0 or `JTFRAME_SIM_DIPS will be used for DIPs
 `ifdef SIMULATION
@@ -419,176 +393,11 @@ localparam STARTW=2;
     wire [31:0] dipsw = status[31+DIPBASE:DIPBASE];
 `endif
 
-`GAMETOP
-u_game(
-    .rst         ( game_rst       ),
-    // The main clock is always the same one as the SDRAM
-    .clk         ( clk_rom        ),
-`ifdef JTFRAME_CLK96
-    .clk96       ( clk96          ),
-    .rst96       ( rst96          ),
-`endif
-`ifdef JTFRAME_CLK48
-    .clk48       ( clk48          ),
-    .rst48       ( rst48          ),
-`endif
-`ifdef JTFRAME_CLK24
-    .clk24       ( clk24          ),
-    .rst24       ( rst24          ),
-`endif
-`ifdef JTFRAME_CLK6
-    .clk6        ( clk6           ),
-    .rst6        ( rst6           ),
-`endif
-    // Video
-    .pxl2_cen    ( pxl2_cen       ),
-    .pxl_cen     ( pxl_cen        ),
-    .red         ( red            ),
-    .green       ( green          ),
-    .blue        ( blue           ),
-    .LHBL        ( LHBL           ),
-    .LVBL        ( LVBL           ),
-    .HS          ( hs             ),
-    .VS          ( vs             ),
-    // LED
-    .game_led    ( game_led[0]    ),
+wire game_tx, game_rx;
 
-    .start_button( game_start[STARTW-1:0] ),
-    .coin_input  ( game_coin[STARTW-1:0]  ),
-    // Joysticks
-    .joystick1    ( game_joy1[GAME_BUTTONS+3:0]   ),
-    .joystick2    ( game_joy2[GAME_BUTTONS+3:0]   ),
-    `ifdef JTFRAME_4PLAYERS
-    .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
-    .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
-    `endif
-`ifdef JTFRAME_PADDLE
-    .paddle_0     ( paddle_0         ),
-    .paddle_1     ( paddle_1         ),
-    .paddle_2     ( paddle_2         ),
-    .paddle_3     ( paddle_3         ),
-`endif
-`ifdef JTFRAME_MOUSE
-    .mouse_1p     ( mouse_1p         ),
-    .mouse_2p     ( mouse_2p         ),
-`endif
-`ifdef JTFRAME_ANALOG
-    .joyana_l1    ( joyana_l1        ),
-    .joyana_l2    ( joyana_l2        ),
-    `ifdef JTFRAME_ANALOG_DUAL
-        .joyana_r1    ( joyana_r1        ),
-        .joyana_r2    ( joyana_r2        ),
-    `endif
-    `ifdef JTFRAME_4PLAYERS
-        .joyana_l3( joyana_l3        ),
-        .joyana_l4( joyana_l4        ),
-        `ifdef JTFRAME_ANALOG_DUAL
-            .joyana_r3( joyana_r3        ),
-            .joyana_r4( joyana_r4        ),
-        `endif
-    `endif
-`endif
+assign UART_TX = game_tx,
+       UART_RX = game_rx;
 
-    // Sound control
-    .enable_fm   ( enable_fm      ),
-    .enable_psg  ( enable_psg     ),
-    // PROM programming
-    .ioctl_addr  ( ioctl_addr     ),
-    .ioctl_dout  ( ioctl_dout     ),
-    .ioctl_wr    ( ioctl_wr       ),
-`ifdef JTFRAME_IOCTL_RD
-    .ioctl_ram   ( ioctl_ram      ),
-    .ioctl_din   ( ioctl_din      ),
-`endif
-    // ROM load
-    .downloading ( downloading    ),
-    .dwnld_busy  ( dwnld_busy     ),
-    .data_read   ( sdram_dout     ),
-
-`ifdef JTFRAME_SDRAM_BANKS
-    // Bank 0: allows R/W
-    .ba0_addr   ( ba0_addr      ),
-    .ba1_addr   ( ba1_addr      ),
-    .ba2_addr   ( ba2_addr      ),
-    .ba3_addr   ( ba3_addr      ),
-    .ba_rd      ( ba_rd         ),
-    .ba_wr      ( ba_wr         ),
-    .ba_dst     ( ba_dst        ),
-    .ba_dok     ( ba_dok        ),
-    .ba_rdy     ( ba_rdy        ),
-    .ba_ack     ( ba_ack        ),
-    .ba0_din    ( ba0_din       ),
-    .ba0_dsn    ( ba0_dsn       ),
-    .ba1_din    ( ba1_din       ),
-    .ba1_dsn    ( ba1_dsn       ),
-    .ba2_din    ( ba2_din       ),
-    .ba2_dsn    ( ba2_dsn       ),
-    .ba3_din    ( ba3_din       ),
-    .ba3_dsn    ( ba3_dsn       ),
-
-    .prog_ba    ( prog_ba       ),
-    .prog_rdy   ( prog_rdy      ),
-    .prog_ack   ( prog_ack      ),
-    .prog_dok   ( prog_dok      ),
-    .prog_dst   ( prog_dst      ),
-    .prog_data  ( prog_data     ),
-`else
-    .sdram_req  ( ba_rd[0]      ),
-    .sdram_addr ( ba0_addr      ),
-    .data_dst   ( ba_dst[0] | prog_dst ),
-    .data_rdy   ( ba_rdy[0] | prog_rdy ),
-    .sdram_ack  ( ba_ack[0] | prog_ack ),
-
-    .prog_data  ( prog_data8    ),
-`endif
-
-    // common ROM-load interface
-    .prog_addr  ( prog_addr     ),
-    .prog_rd    ( prog_rd       ),
-    .prog_we    ( prog_we       ),
-    .prog_mask  ( prog_mask     ),
-
-    // DIP switches
-    .status      ( status[31:0]   ),
-    .dip_pause   ( dip_pause      ),
-    .dip_flip    ( dip_flip       ),
-    .dip_test    ( dip_test       ),
-    .dip_fxlevel ( dip_fxlevel    ),
-    .service     ( game_service   ),
-    .tilt        ( game_tilt      ),
-    .dipsw       ( dipsw          ),
-
-`ifdef JTFRAME_GAME_UART
-    .uart_tx     ( UART_TX        ),
-    .uart_rx     ( UART_RX        ),
-`endif
-
-    // sound
-`ifndef JTFRAME_STEREO
-    .snd         ( snd_left       ),
-`else
-    .snd_left    ( snd_left       ),
-    .snd_right   ( snd_right      ),
-    `endif
-    .sample      ( sample         ),
-    // Debug
-`ifdef JTFRAME_STATUS
-    .st_addr     ( st_addr        ),
-    .st_dout     ( st_dout        ),
-`endif
-    .gfx_en      ( gfx_en         ),
-    .debug_bus   ( debug_bus      ),
-    .debug_view  ( debug_view     )
-);
-
-`ifdef SIMULATION
-integer fsnd;
-initial begin
-    fsnd=$fopen("sound.raw","wb");
-end
-always @(posedge sample) begin
-    $fwrite(fsnd,"%u", {snd_left, snd_right});
-end
-`endif
+`include "jtframe_game_instance.v"
 
 endmodule

@@ -238,12 +238,12 @@ always @* begin
     end
 
     if( (view_on | view_hex_on) ) begin
-        if( view_sel==1 ) begin
+        if( view_sel==SYS_INFO ) begin
             // system info is shown reddish
             gout[COLORW-1] = 0;
             bout[COLORW-1] = 0;
         end
-        if( view_sel==2 ) begin
+        if( view_sel==TARGET_INFO ) begin
             // target info is shown blueish
             rout[COLORW-1] = 0;
             gout[COLORW-1] = 0;

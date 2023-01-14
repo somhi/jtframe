@@ -23,9 +23,8 @@ module jtframe_paddle(
     input              mouse_st,
     output reg   [7:0] paddle
 );
-
-`ifdef JTFRAME_PADDLE
-    localparam [7:0] PADDLE_MAX = `JTFRAME_PADDLE;
+`ifdef JTFRAME_PADDLE_MAX
+    localparam [7:0] PADDLE_MAX = `JTFRAME_PADDLE_MAX;
 `else
     localparam [7:0] PADDLE_MAX = 0;
 `endif
@@ -50,8 +49,7 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         paddle <= 0;
     end else begin
-        if( mouse_st ) paddle <= nx_x[7:0] > PADDLE_MAX ? PADDLE_MAX : nx_x[7:0];
+        if( mouse_st ) paddle <= nx_x[7:0] >= PADDLE_MAX ? PADDLE_MAX : nx_x[7:0];
     end
 end
-
 endmodule

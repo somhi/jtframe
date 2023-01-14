@@ -626,6 +626,17 @@ jtframe_dip u_dip(
     );
 `endif
 
+
+`ifdef SIMULATION
+    integer fsnd;
+    initial begin
+        fsnd=$fopen("sound.raw","wb");
+    end
+    always @(posedge snd_sample) begin
+        $fwrite(fsnd,"%u", {snd_lin, snd_rin});
+    end
+`endif
+
 // support for 48MHz
 // Above 64MHz HF should be 1. SHIFTED depends on whether the SDRAM
 // clock is shifted or not.

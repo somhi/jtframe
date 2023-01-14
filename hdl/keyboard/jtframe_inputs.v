@@ -284,6 +284,7 @@ always @(posedge clk, posedge rst) begin
     end
 end
 
+// Paddle emulation using the mouse
 jtframe_paddle u_paddle(
     .rst        ( rst          ),
     .clk        ( clk          ),

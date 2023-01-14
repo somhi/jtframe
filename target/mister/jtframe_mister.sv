@@ -182,6 +182,15 @@ module jtframe_mister #(parameter
     output  [ 3:0]  game_start,
     output          game_service,
     output          game_tilt,
+    // paddle 0..255
+    output  [ 7:0]  paddle_0,
+    output  [ 7:0]  paddle_1,
+    output  [ 7:0]  paddle_2,
+    output  [ 7:0]  paddle_3,
+    output  [ 8:0]  spinner_0,
+    output  [ 8:0]  spinner_1,
+    output  [ 8:0]  spinner_2,
+    output  [ 8:0]  spinner_3,
     // mouse
     output  [15:0]  mouse_1p,
     output  [15:0]  mouse_2p,
@@ -292,9 +301,11 @@ wire  [2:0] crop_scale; //0 - normal, 1 - V-integer, 2 - HV-Integer-, 3 - HV-Int
 wire        crop_en;    // OSD control by the user
 reg         crop_ok;    // whether the mister.ini video settings tolerate cropping
 wire  [3:0] vcopt;
-reg        en216p;
-reg  [4:0] voff;
-reg        pxl1_cen;
+reg         en216p;
+reg   [4:0] voff;
+reg         pxl1_cen;
+
+reg   [7:0] target_info;
 
 // Vertical crop
 assign crop_en    = status[41];
@@ -336,11 +347,40 @@ assign mouse_dy = { mouse_f[5], ps2_mouse[23:16] };
 
 always @(posedge clk_sys) begin
     ps2_mouse_l <= ps2_mouse[24];
+
+    target_info <= 0;
+    case( debug_bus[7:6] )
+        0: target_info <= st_lpbuf;
+        1: case( debug_bus[3:0] )
+            0:  target_info <= joyana_l1[7:0];
+            1:  target_info <= joyana_l1[15:8];
+            2:  target_info <= joyana_r1[7:0];
+            3:  target_info <= joyana_r1[15:8];
+            4:  target_info <= spinner_0;
+            5:  target_info <= spinner_1;
+            6:  target_info <= spinner_2;
+            7:  target_info <= spinner_3;
+            8:  target_info <= paddle_0;
+            9:  target_info <= paddle_1;
+            10: target_info <= paddle_2;
+            11: target_info <= paddle_3;
+            12: target_info <= joystick1[7:0];
+            13: target_info <= joystick2[7:0];
+            14: target_info <= joystick1[7:0];
+            15: target_info <= joystick2[7:0];
+            16: target_info <= mouse_1p[7:0];
+            17: target_info <= mouse_1p[15:8];
+            18: target_info <= mouse_2p[7:0];
+            19: target_info <= mouse_2p[15:8];
+            default:;
+        endcase
+        default:;
+    endcase
 end
 
 jtframe_resync u_resync(
     .clk        ( clk_sys       ),
-    .pxl_cen    ( pxl1_cen       ),
+    .pxl_cen    ( pxl1_cen      ),
     .hs_in      ( hs            ),
     .vs_in      ( vs            ),
     .LVBL       ( LVBL          ),
@@ -526,6 +566,17 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .joystick_r_analog_3( joyana_r4   ),
     .ps2_kbd_clk_out ( ps2_kbd_clk    ),
     .ps2_kbd_data_out( ps2_kbd_data   ),
+
+    // paddle 0..255
+    .paddle_0        ( paddle_0       ),
+    .paddle_1        ( paddle_1       ),
+    .paddle_2        ( paddle_2       ),
+    .paddle_3        ( paddle_3       ),
+
+    .spinner_0       ( spinner_0      ),
+    .spinner_1       ( spinner_1      ),
+    .spinner_2       ( spinner_2      ),
+    .spinner_3       ( spinner_3      ),
     // Unused:
     .ps2_key         (                ),
     .RTC             (                ),
@@ -721,7 +772,7 @@ jtframe_board #(
     .ioctl_addr     ( ioctl_addr[7:0] ),
     .st_addr        ( st_addr         ),
     .st_dout        ( st_dout         ),
-    .target_info    ( st_lpbuf        ),
+    .target_info    ( target_info     ),
     // Base video
     .osd_rotate     ( rotate          ),
     .game_r         ( hsize_r         ),

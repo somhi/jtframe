@@ -384,15 +384,8 @@ wire [15:0] sdram_dout;
 `endif
 
 wire [ 7:0] st_addr, st_dout;
+wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
 wire [15:0] mouse_1p, mouse_2p;
-
-`ifndef JTFRAME_COLORW
-`define JTFRAME_COLORW 4
-`endif
-
-`ifndef JTFRAME_BUTTONS
-`define JTFRAME_BUTTONS 2
-`endif
 
 localparam COLORW=`JTFRAME_COLORW;
 localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
@@ -594,6 +587,11 @@ u_frame(
     .joyana_r2      ( joyana_r2      ),
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
+    // Paddle inputs
+    .paddle_0       ( paddle_0       ),
+    .paddle_1       ( paddle_1       ),
+    .paddle_2       ( paddle_2       ),
+    .paddle_3       ( paddle_3       ),
     // Mouse inputs
     .mouse_1p       ( mouse_1p       ),
     .mouse_2p       ( mouse_2p       ),
@@ -646,191 +644,10 @@ assign sim_pxl_clk = clk_sys;
 assign sim_pxl_cen = pxl_cen;
 `endif
 
-`GAMETOP u_game
-(
-    .rst          ( game_rst         ),
-    // clock inputs
-    // By default clk is 48MHz, but JTFRAME_CLK96 overrides it to 96MHz
-    .clk          ( clk_rom          ),
-`ifdef JTFRAME_CLK96
-    .clk96        ( clk96            ),
-    .rst96        ( rst96            ),
-`endif
-`ifdef JTFRAME_CLK48
-    .clk48        ( clk48            ),
-    .rst48        ( rst48            ),
-`endif
-`ifdef JTFRAME_CLK24
-    .clk24        ( clk24            ),
-    .rst24        ( rst24            ),
-`endif
-`ifdef JTFRAME_CLK6
-    .clk6         ( clk6             ),
-    .rst6         ( rst6             ),
-`endif
-    .pxl2_cen     ( pxl2_cen         ),
-    .pxl_cen      ( pxl_cen          ),
-
-    .red          ( game_r           ),
-    .green        ( game_g           ),
-    .blue         ( game_b           ),
-    .LHBL         ( LHBL             ), // Final timing
-    .LVBL         ( LVBL             ),
-    .HS           ( hs               ),
-    .VS           ( vs               ),
-`ifdef JTFRAME_INTERLACED
-    .field        ( field            ),
-`endif
-    // LED
-    .game_led    ( game_led[0]    ),
-
-    .start_button ( game_start       ),
-    .coin_input   ( game_coin        ),
-    // Joysticks
-    .joystick1    ( game_joy1[GAME_BUTTONS+3:0]   ),
-    .joystick2    ( game_joy2[GAME_BUTTONS+3:0]   ),
-    `ifdef JTFRAME_4PLAYERS
-    .joystick3    ( game_joy3[GAME_BUTTONS+3:0]   ),
-    .joystick4    ( game_joy4[GAME_BUTTONS+3:0]   ),
-    `endif
-`ifdef JTFRAME_MOUSE
-    .mouse_1p     ( mouse_1p         ),
-    .mouse_2p     ( mouse_2p         ),
-`endif
-`ifdef JTFRAME_ANALOG
-    .joyana_l1    ( joyana_l1        ),
-    .joyana_l2    ( joyana_l2        ),
-    `ifdef JTFRAME_ANALOG_DUAL
-        .joyana_r1    ( joyana_r1        ),
-        .joyana_r2    ( joyana_r2        ),
-    `endif
-    `ifdef JTFRAME_4PLAYERS
-        .joyana_l3( joyana_l3        ),
-        .joyana_l4( joyana_l4        ),
-        `ifdef JTFRAME_ANALOG_DUAL
-            .joyana_r3( joyana_r3        ),
-            .joyana_r4( joyana_r4        ),
-        `endif
-    `endif
-`endif
-    // Sound control
-    .enable_fm    ( enable_fm        ),
-    .enable_psg   ( enable_psg       ),
-    // PROM programming
-    .ioctl_addr   ( ioctl_addr       ),
-    .ioctl_dout   ( ioctl_dout       ),
-    .ioctl_wr     ( ioctl_wr         ),
-`ifdef JTFRAME_IOCTL_RD
-    .ioctl_ram    ( ioctl_ram        ),
-    .ioctl_din    ( ioctl_din        ),
-`endif
-
-`ifdef JTFRAME_LF_BUFFER
-    // line-frame buffer
-    .game_vrender ( game_vrender     ),
-    .game_hdump   ( game_hdump       ),
-    .ln_addr      ( ln_addr          ),
-    .ln_data      ( ln_data          ),
-    .ln_done      ( ln_done          ),
-    .ln_hs        ( ln_hs            ),
-    .ln_pxl       ( ln_pxl           ),
-    .ln_v         ( ln_v             ),
-    .ln_we        ( ln_we            ),
-`endif
-
-    // ROM load
-    .downloading ( downloading    ),
-    .dwnld_busy  ( dwnld_busy     ),
-    .data_read   ( sdram_dout     ),
-
-`ifdef JTFRAME_SDRAM_BANKS
-    // Bank 0: allows R/W
-    .ba0_addr   ( ba0_addr      ),
-    .ba1_addr   ( ba1_addr      ),
-    .ba2_addr   ( ba2_addr      ),
-    .ba3_addr   ( ba3_addr      ),
-    .ba_rd      ( ba_rd         ),
-    .ba_wr      ( ba_wr         ),
-    .ba_dst     ( ba_dst        ),
-    .ba_dok     ( ba_dok        ),
-    .ba_rdy     ( ba_rdy        ),
-    .ba_ack     ( ba_ack        ),
-    .ba0_din    ( ba0_din       ),
-    .ba0_dsn    ( ba0_dsn       ),
-    .ba1_din    ( ba1_din       ),
-    .ba1_dsn    ( ba1_dsn       ),
-    .ba2_din    ( ba2_din       ),
-    .ba2_dsn    ( ba2_dsn       ),
-    .ba3_din    ( ba3_din       ),
-    .ba3_dsn    ( ba3_dsn       ),
-
-    .prog_ba    ( prog_ba       ),
-    .prog_rdy   ( prog_rdy      ),
-    .prog_ack   ( prog_ack      ),
-    .prog_dok   ( prog_dok      ),
-    .prog_dst   ( prog_dst      ),
-    .prog_data  ( prog_data     ),
-`else
-    .sdram_req  ( ba_rd[0]      ),
-    .sdram_addr ( ba0_addr      ),
-    .data_dst   ( ba_dst[0] | prog_dst ),
-    .data_rdy   ( ba_rdy[0] | prog_rdy ),
-    .sdram_ack  ( ba_ack[0] | prog_ack ),
-
-    .prog_data  ( prog_data8    ),
-`endif
-
-    // common ROM-load interface
-    .prog_addr  ( prog_addr     ),
-    .prog_rd    ( prog_rd       ),
-    .prog_we    ( prog_we       ),
-    .prog_mask  ( prog_mask     ),
-
-    // DIP switches
-    .status       ( status           ),
-    .service      ( game_service     ),
-    .tilt         ( game_tilt        ),
-    .dip_pause    ( dip_pause        ),
-    .dip_flip     ( dip_flip         ),
-    .dip_test     ( dip_test         ),
-    .dip_fxlevel  ( dip_fxlevel      ),
-    .dipsw        ( dipsw            ),
-
-`ifdef JTFRAME_UART
-    .uart_tx      ( game_tx          ),
-    .uart_rx      ( game_rx          ),
-`endif
-
-`ifdef JTFRAME_STEREO
-    .snd_left     ( snd_left         ),
-    .snd_right    ( snd_right        ),
-`else
-    .snd          ( snd_left         ),
-`endif
-    // unconnected
-    .sample       ( sample           ),
-
-    `ifdef JTFRAME_STATUS
-        .st_addr  ( st_addr          ),
-        .st_dout  ( st_dout          ),
-    `endif
-    .gfx_en       ( gfx_en           ),
-    .debug_bus    ( debug_bus        ),
-    .debug_view   ( debug_view       )
-);
+`include "jtframe_game_instance.v"
 
 `ifndef JTFRAME_STEREO
     assign snd_right = snd_left;
-`endif
-
-`ifdef SIMULATION
-integer fsnd;
-initial begin
-    fsnd=$fopen("sound.raw","wb");
-end
-always @(posedge sample) begin
-    $fwrite(fsnd,"%u", {AUDIO_L, AUDIO_R});
-end
 `endif
 
 endmodule

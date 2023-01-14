@@ -28,10 +28,13 @@
     input   [`JTFRAME_BUTTONS+3:0] joystick1, joystick2,
 `endif
 `ifdef JTFRAME_PADDLE
-    input   [ 7:0]  paddle_0, paddle_1, paddle_2, paddle_3,
+    input   [ 7:0]  paddle_0, paddle_1, `ifdef JTFRAME_4PLAYERS paddle_2, paddle_3, `endif
 `endif
 `ifdef JTFRAME_MOUSE
     input   [15:0]  mouse_1p, mouse_2p,
+`endif
+`ifdef JTFRAME_SPINNER
+    input   [ 7:0]  spinner_1p, spinner_2p,
 `endif
 `ifdef JTFRAME_ANALOG
     input   [15:0]  joyana_l1, joyana_l2,
