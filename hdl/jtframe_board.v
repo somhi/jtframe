@@ -391,6 +391,7 @@ jtframe_keyboard u_keyboard(
             .clk        ( clk_sys       ),
             .sample     ( snd_sample    ),
             .dip_pause  ( dip_pause     ),
+            .dip_flip   ( dip_flip      ),
             .LVBL       ( LVBL          ),
             .ba_rdy     ( bax_rdy       ),
             .st_addr    ( debug_bus     ),

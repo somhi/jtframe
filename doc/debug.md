@@ -25,6 +25,7 @@ st_addr[7:6] |  Read
   00         |  SDRAM stats
   01         |  Frame count (BCD)
   10         |  Sample rate (BCD)
+  11         | { 7'd0, dip_flip }
 
 ### Frame Count
 
