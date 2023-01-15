@@ -26,16 +26,14 @@ module jtframe_mist #(parameter
     VIDEO_HEIGHT           = 224,
     SDRAMW                 = 23
 )(
-    input           clk_sys,
-    input           clk_rom,
-    input           clk_pico,
-    input           pll_locked,
+    input              clk_sys,
+    input              clk_rom,
+    input              clk_pico,
+    input              pll_locked,
     // interface with microcontroller
-    output  [63:0]  status,
+    output      [63:0] status,
     // Base video
-    input [COLORW-1:0] game_r,
-    input [COLORW-1:0] game_g,
-    input [COLORW-1:0] game_b,
+    input [COLORW-1:0] game_r, game_g, game_b,
     input              LHBL,
     input              LVBL,
     input              hs,
@@ -45,139 +43,107 @@ module jtframe_mist #(parameter
     // LED
     input        [1:0] game_led,
     // MiST VGA pins
-    output       [5:0] VGA_R,
-    output       [5:0] VGA_G,
-    output       [5:0] VGA_B,
+    output       [5:0] VGA_R, VGA_G, VGA_B,
     output             VGA_HS,
     output             VGA_VS,
     // ROM programming
-    input  [SDRAMW-1:0] prog_addr,
-    input        [15:0] prog_data,
-    input        [ 1:0] prog_mask,
-    input        [ 1:0] prog_ba,
-    input               prog_we,
-    input               prog_rd,
-    output              prog_dst,
-    output              prog_dok,
-    output              prog_rdy,
-    output              prog_ack,
+    input [SDRAMW-1:0] prog_addr,
+    input       [15:0] prog_data,
+    input       [ 1:0] prog_mask, prog_ba,
+    input              prog_we,
+    input              prog_rd,
+    output             prog_dst,
+    output             prog_dok,
+    output             prog_rdy,
+    output             prog_ack,
     // ROM access from game
-    input  [SDRAMW-1:0] ba0_addr,
-    input  [SDRAMW-1:0] ba1_addr,
-    input  [SDRAMW-1:0] ba2_addr,
-    input  [SDRAMW-1:0] ba3_addr,
-    input         [3:0] ba_rd,
-    input         [3:0] ba_wr,
-    output        [3:0] ba_ack,
-    output        [3:0] ba_rdy,
-    output        [3:0] ba_dst,
-    output        [3:0] ba_dok,
-    input        [15:0] ba0_din,
-    input        [ 1:0] ba0_dsn,  // write mask
-    input        [15:0] ba1_din,
-    input        [ 1:0] ba1_dsn,
-    input        [15:0] ba2_din,
-    input        [ 1:0] ba2_dsn,
-    input        [15:0] ba3_din,
-    input        [ 1:0] ba3_dsn,
-    output       [15:0] sdram_dout,
+    input [SDRAMW-1:0] ba0_addr,ba1_addr,ba2_addr,ba3_addr,
+    input        [3:0] ba_rd,   ba_wr,
+    output       [3:0] ba_ack,  ba_rdy,  ba_dst,  ba_dok,
+    input       [15:0] ba0_din, ba1_din, ba2_din, ba3_din,
+    input       [ 1:0] ba0_dsn, ba1_dsn, ba2_dsn, ba3_dsn,
+    output      [15:0] sdram_dout,
     // UART
-    input           uart_rx,
-    output          uart_tx,
+    input              uart_rx,
+    output             uart_tx,
     // SDRAM interface
-    inout    [15:0] SDRAM_DQ,       // SDRAM Data bus 16 Bits
-    output   [12:0] SDRAM_A,        // SDRAM Address bus 13 Bits
-    output          SDRAM_DQML,     // SDRAM Low-byte Data Mask
-    output          SDRAM_DQMH,     // SDRAM High-byte Data Mask
-    output          SDRAM_nWE,      // SDRAM Write Enable
-    output          SDRAM_nCAS,     // SDRAM Column Address Strobe
-    output          SDRAM_nRAS,     // SDRAM Row Address Strobe
-    output          SDRAM_nCS,      // SDRAM Chip Select
-    output    [1:0] SDRAM_BA,       // SDRAM Bank Address
-    output          SDRAM_CKE,      // SDRAM Clock Enable
+    inout       [15:0] SDRAM_DQ,       // SDRAM Data bus 16 Bits
+    output      [12:0] SDRAM_A,        // SDRAM Address bus 13 Bits
+    output             SDRAM_DQML,     // SDRAM Low-byte Data Mask
+    output             SDRAM_DQMH,     // SDRAM High-byte Data Mask
+    output             SDRAM_nWE,      // SDRAM Write Enable
+    output             SDRAM_nCAS,     // SDRAM Column Address Strobe
+    output             SDRAM_nRAS,     // SDRAM Row Address Strobe
+    output             SDRAM_nCS,      // SDRAM Chip Select
+    output       [1:0] SDRAM_BA,       // SDRAM Bank Address
+    output             SDRAM_CKE,      // SDRAM Clock Enable
     // SPI interface to arm io controller
-    inout           SPI_DO,
-    input           SPI_DI,
-    input           SPI_SCK,
-    input           SPI_SS2,
-    input           SPI_SS3,
-    input           SPI_SS4,
-    input           CONF_DATA0,
+    inout              SPI_DO,
+    input              SPI_DI,
+    input              SPI_SCK,
+    input              SPI_SS2,
+    input              SPI_SS3,
+    input              SPI_SS4,
+    input              CONF_DATA0,
     // Buttons for MC2(+)
-    input    [ 3:0] BUTTON_n,
+    input       [ 3:0] BUTTON_n,
     // PS2 are input pins for Neptuno
     // and outputs for MiST
-    inout           ps2_clk,
-    inout           ps2_dout,
+    inout              ps2_clk,
+    inout              ps2_dout,
     // Joystick
-    input     [5:0] joy1_bus,
-    input     [5:0] joy2_bus,
-    output          JOY_SELECT,
+    input        [5:0] joy1_bus, joy2_bus,
+    output             JOY_SELECT,
     // ROM load from SPI
-    output   [24:0] ioctl_addr,
-    output   [ 7:0] ioctl_dout,
-    output          ioctl_wr,
-    input    [ 7:0] ioctl_din,
-    output          ioctl_ram,
-    input           dwnld_busy,
-    output          downloading,
+    output      [24:0] ioctl_addr,
+    output      [ 7:0] ioctl_dout,
+    output             ioctl_wr,
+    input       [ 7:0] ioctl_din,
+    output             ioctl_ram,
+    input              dwnld_busy,
+    output             downloading,
 
 //////////// board
-    output          rst,      // synchronous reset
-    output          rst_n,    // asynchronous reset
-    output          game_rst,
-    output          game_rst_n,
+    output             rst,      // synchronous reset
+    output             rst_n,    // asynchronous reset
+    output             game_rst,
+    output             game_rst_n,
     // reset forcing signals:
-    input           rst_req,
+    input              rst_req,
     // Sound
-    input   [15:0]  snd_left,
-    input   [15:0]  snd_right,
-    input           snd_sample,
-    output          AUDIO_L,
-    output          AUDIO_R,
+    input       [15:0] snd_left, snd_right,
+    input              snd_sample,
+    output             AUDIO_L,
+    output             AUDIO_R,
     // joystick
-    output   [9:0]  game_joystick1,
-    output   [9:0]  game_joystick2,
-    output   [9:0]  game_joystick3,
-    output   [9:0]  game_joystick4,
-    output   [3:0]  game_coin,
-    output   [3:0]  game_start,
-    output          game_service,
-    output          game_tilt,
-    output  [15:0]  joyana_l1,
-    output  [15:0]  joyana_r1,
-    output  [15:0]  joyana_l2,
-    output  [15:0]  joyana_r2,
-    output  [15:0]  joyana_l3,
-    output  [15:0]  joyana_r3,
-    output  [15:0]  joyana_l4,
-    output  [15:0]  joyana_r4,
+    output       [9:0] game_joystick1, game_joystick2, game_joystick3, game_joystick4,
+    output       [3:0] game_coin, game_start,
+    output       [1:0] dial_x,    dial_y,
+    output             game_service,
+    output             game_tilt,
+    output      [15:0] joyana_l1, joyana_r1, joyana_l2, joyana_r2, joyana_l3, joyana_r3, joyana_l4, joyana_r4,
     // Paddle
-    output  [ 7:0]  paddle_0,
-    output  [ 7:0]  paddle_1,
-    output  [ 7:0]  paddle_2,
-    output  [ 7:0]  paddle_3,
+    output      [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3,
 
     // Mouse
-    output  [15:0]  mouse_1p,
-    output  [15:0]  mouse_2p,
+    output      [15:0] mouse_1p, mouse_2p,
 
     // DIP and OSD settings
-    output          enable_fm,
-    output          enable_psg,
+    output             enable_fm,
+    output             enable_psg,
 
-    output          dip_test,
+    output             dip_test,
     // non standard:
-    output          dip_pause,
-    inout           dip_flip,     // A change in dip_flip implies a reset
-    output  [ 1:0]  dip_fxlevel,
+    output             dip_pause,
+    inout              dip_flip,     // A change in dip_flip implies a reset
+    output      [ 1:0] dip_fxlevel,
     // Debug
-    output          LED,
-    output   [ 7:0] st_addr,
-    input    [ 7:0] st_dout,
-    output   [3:0]  gfx_en,
-    output   [7:0]  debug_bus,
-    input    [7:0]  debug_view
+    output             LED,
+    output      [ 7:0] st_addr,
+    input       [ 7:0] st_dout,
+    output      [ 3:0] gfx_en,
+    output      [ 7:0] debug_bus,
+    input       [ 7:0] debug_view
 );
 
 // control
@@ -355,6 +321,8 @@ jtframe_board #(
     .game_start     ( game_start      ),
     .game_service   ( game_service    ),
     .game_tilt      ( game_tilt       ),
+    .dial_x         ( dial_x          ),
+    .dial_y         ( dial_y          ),
     // Mouse & paddle
     .bd_mouse_dx    ( bd_mouse_dx     ),
     .bd_mouse_dy    ( bd_mouse_dy     ),

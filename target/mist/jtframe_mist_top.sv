@@ -69,13 +69,14 @@ module mist_top(
     localparam SDRAMW=22; // 32 MB
 `endif
 
-wire          rst, rst_n, clk_sys, clk_rom, clk6, clk24, clk48, clk96;
-wire [63:0]   status;
-wire [31:0]   joystick1, joystick2;
-wire [24:0]   ioctl_addr;
-wire [ 7:0]   ioctl_dout, ioctl_din;
-wire          ioctl_wr;
-wire          ioctl_ram;
+wire        rst, rst_n, clk_sys, clk_rom, clk6, clk24, clk48, clk96;
+wire [63:0] status;
+wire [31:0] joystick1, joystick2;
+wire [24:0] ioctl_addr;
+wire [ 7:0] ioctl_dout, ioctl_din;
+wire        ioctl_wr;
+wire        ioctl_ram;
+wire [ 1:0] dial_x, dial_y;
 
 wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
             joyana_r1, joyana_r2, joyana_r3, joyana_r4;
@@ -321,6 +322,9 @@ u_frame(
     .mouse_1p       ( mouse_1p       ),
     .mouse_2p       ( mouse_2p       ),
     .LED            ( LED            ),
+    // Dial emulation
+    .dial_x         ( dial_x         ),
+    .dial_y         ( dial_y         ),
     // Unused in MiST
     .BUTTON_n       ( 4'hf           ),
     .ps2_clk        (                ),

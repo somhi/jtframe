@@ -43,9 +43,7 @@ module jtframe_mister #(parameter
     output          game_rx,
     output          show_osd,
     // Base video
-    input [COLORW-1:0] game_r,
-    input [COLORW-1:0] game_g,
-    input [COLORW-1:0] game_b,
+    input [COLORW-1:0] game_r, game_g, game_b,
     input           LHBL,
     input           LVBL,
     input           hs,
@@ -53,10 +51,8 @@ module jtframe_mister #(parameter
     inout           pxl_cen,
     inout           pxl2_cen,
     // Audio
-    input  signed [15:0] snd_lin,
-    input  signed [15:0] snd_rin,
-    output signed [15:0] snd_lout,
-    output signed [15:0] snd_rout,
+    input  signed [15:0] snd_lin,  snd_rin,
+    output signed [15:0] snd_lout, snd_rout,
     input                snd_sample,
     // SDRAM interface
     inout  [15:0]   SDRAM_DQ,       // SDRAM Data bus 16 Bits
@@ -137,24 +133,11 @@ module jtframe_mister #(parameter
     output              prog_rdy,
     output              prog_ack,
     // ROM access from game
-    input  [SDRAMW-1:0] ba0_addr,
-    input  [SDRAMW-1:0] ba1_addr,
-    input  [SDRAMW-1:0] ba2_addr,
-    input  [SDRAMW-1:0] ba3_addr,
-    input         [3:0] ba_rd,
-    input         [3:0] ba_wr,
-    output        [3:0] ba_ack,
-    output        [3:0] ba_rdy,
-    output        [3:0] ba_dst,
-    output        [3:0] ba_dok,
-    input        [15:0] ba0_din,
-    input        [ 1:0] ba0_dsn,  // write mask
-    input        [15:0] ba1_din,
-    input        [ 1:0] ba1_dsn,
-    input        [15:0] ba2_din,
-    input        [ 1:0] ba2_dsn,
-    input        [15:0] ba3_din,
-    input        [ 1:0] ba3_dsn,
+    input  [SDRAMW-1:0] ba0_addr, ba1_addr, ba2_addr, ba3_addr,
+    input         [3:0] ba_rd,    ba_wr,
+    output        [3:0] ba_ack,   ba_rdy,   ba_dst,   ba_dok,
+    input        [15:0] ba0_din,  ba1_din,  ba2_din,  ba3_din,
+    input        [ 1:0] ba0_dsn,  ba1_dsn,  ba2_dsn,  ba3_dsn,
     output       [15:0] sdram_dout,
 //////////// board
     output          rst,      // synchronous reset
@@ -164,41 +147,24 @@ module jtframe_mister #(parameter
     // reset forcing signals:
     input           rst_req,
     // joystick
-    output  [ 9:0]  game_joystick1,
-    output  [ 9:0]  game_joystick2,
-    output  [ 9:0]  game_joystick3,
-    output  [ 9:0]  game_joystick4,
+    output  [ 9:0]  game_joystick1, game_joystick2, game_joystick3, game_joystick4,
     // left analogue stick
-    output  [15:0]  joyana_l1,
-    output  [15:0]  joyana_l2,
-    output  [15:0]  joyana_l3,
-    output  [15:0]  joyana_l4,
+    output  [15:0]  joyana_l1, joyana_l2, joyana_l3, joyana_l4,
     // right analogue stick
-    output  [15:0]  joyana_r1,
-    output  [15:0]  joyana_r2,
-    output  [15:0]  joyana_r3,
-    output  [15:0]  joyana_r4,
-    output  [ 3:0]  game_coin,
-    output  [ 3:0]  game_start,
+    output  [15:0]  joyana_r1, joyana_r2, joyana_r3, joyana_r4,
+    output  [ 3:0]  game_coin, game_start,
     output          game_service,
     output          game_tilt,
     // paddle 0..255
-    output  [ 7:0]  paddle_0,
-    output  [ 7:0]  paddle_1,
-    output  [ 7:0]  paddle_2,
-    output  [ 7:0]  paddle_3,
-    output  [ 8:0]  spinner_0,
-    output  [ 8:0]  spinner_1,
-    output  [ 8:0]  spinner_2,
-    output  [ 8:0]  spinner_3,
+    output  [ 7:0]  paddle_0,  paddle_1,  paddle_2,  paddle_3,
+    output  [ 8:0]  spinner_0, spinner_1, spinner_2, spinner_3,
     // mouse
-    output  [15:0]  mouse_1p,
-    output  [15:0]  mouse_2p,
+    output  [15:0]  mouse_1p,  mouse_2p,
+    // Dial
+    output  [ 1:0]  dial_x,    dial_y,
     // HDMI
-    output  [12:0]  hdmi_arx,
-    output  [12:0]  hdmi_ary,
-    input   [11:0]  hdmi_width,
-    input   [11:0]  hdmi_height,
+    output  [12:0]  hdmi_arx,  hdmi_ary,
+    input   [11:0]  hdmi_width,hdmi_height,
     // DIP and OSD settings
     output  [ 1:0]  rotate,
 
@@ -207,9 +173,7 @@ module jtframe_mister #(parameter
 
     output          dip_test,
     // scan doubler
-    output    [7:0] scan2x_r,
-    output    [7:0] scan2x_g,
-    output    [7:0] scan2x_b,
+    output    [7:0] scan2x_r, scan2x_g, scan2x_b,
     output          scan2x_hs,
     output          scan2x_vs,
     output          scan2x_clk,
@@ -682,6 +646,8 @@ jtframe_board #(
     .paddle_0       (                 ),
     .mouse_1p       ( mouse_1p        ),
     .mouse_2p       ( mouse_2p        ),
+    .dial_x         ( dial_x          ),
+    .dial_y         ( dial_y          ),
     // DIP and OSD settings
     .status         ( status          ),
     .enable_fm      ( enable_fm       ),

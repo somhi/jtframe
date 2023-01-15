@@ -20,6 +20,7 @@ module jtframe_inputs(
     input             rst,
     input             clk,
     input             vs,
+    input             LHBL,
 
     input             dip_flip,
     input             autofire0,
@@ -27,18 +28,11 @@ module jtframe_inputs(
     output reg        soft_rst,
     output reg        game_pause,
 
-    input      [15:0] board_joy1,
-    input      [15:0] board_joy2,
-    input      [15:0] board_joy3,
-    input      [15:0] board_joy4,
-    input       [3:0] board_coin,
-    input       [3:0] board_start,
+    input      [15:0] board_joy1, board_joy2, board_joy3, board_joy4,
+    input       [3:0] board_coin, board_start,
 
-    input       [9:0] key_joy1,
-    input       [9:0] key_joy2,
-    input       [9:0] key_joy3,
-    input       [3:0] key_start,
-    input       [3:0] key_coin,
+    input       [9:0] key_joy1, key_joy2, key_joy3,
+    input       [3:0] key_start, key_coin,
     input             key_service,
     input             key_test,
     input             key_tilt,
@@ -48,27 +42,22 @@ module jtframe_inputs(
     input             key_reset,
     input             rot_control,
 
-    output reg [9:0]  game_joy1,
-    output reg [9:0]  game_joy2,
-    output reg [9:0]  game_joy3,
-    output reg [9:0]  game_joy4,
-    output reg [3:0]  game_coin,
-    output reg [3:0]  game_start,
+    output reg [9:0]  game_joy1, game_joy2, game_joy3, game_joy4,
+    output reg [3:0]  game_coin, game_start,
     output reg        game_service,
     output            game_test,
     output reg        game_tilt,
     input             lock, // disable joystick inputs
 
     // Mouse & Paddle
-    input signed [8:0] bd_mouse_dx,
-    input signed [8:0] bd_mouse_dy,
+    input signed [8:0] bd_mouse_dx, bd_mouse_dy,
     input        [7:0] bd_mouse_f,
     input              bd_mouse_st,
     input              bd_mouse_idx,
 
-    output      [15:0] mouse_1p,
-    output      [15:0] mouse_2p,
+    output      [15:0] mouse_1p, mouse_2p,
     output       [7:0] paddle,
+    output      [ 1:0] dial_x, dial_y,
 
     // For simulation only
     input              downloading
@@ -283,6 +272,17 @@ always @(posedge clk, posedge rst) begin
         end
     end
 end
+
+// Dial emulation
+jtframe_dial u_dial(
+    .rst        ( rst           ),
+    .clk        ( clk           ),
+    .LHBL       ( LHBL          ),
+    .joystick1  ( game_joy1[6:0]),
+    .joystick2  ( game_joy2[6:0]),
+    .dial_x     ( dial_x        ),
+    .dial_y     ( dial_y        )
+);
 
 // Paddle emulation using the mouse
 jtframe_paddle u_paddle(

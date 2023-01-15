@@ -146,6 +146,7 @@ wire [ 7:0]   ioctl_dout;
 wire [ 7:0]   ioctl_din;
 wire          ioctl_wr;
 wire          ioctl_ram;
+wire [ 1:0]   dial_x, dial_y;
 
 wire [15:0] joyana_l1, joyana_l2, joyana_l3, joyana_l4,
             joyana_r1, joyana_r2, joyana_r3, joyana_r4;
@@ -432,6 +433,8 @@ u_frame(
     .joyana_r2      ( joyana_r2      ),
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
+    .dial_x         ( dial_x         ),
+    .dial_y         ( dial_y         ),
     .LED            ( LED            ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),

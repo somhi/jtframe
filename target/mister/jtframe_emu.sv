@@ -188,6 +188,7 @@ assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 
 wire [3:0] hoffset, voffset;
+wire [1:0] dial_x, dial_y;
 
 ////////////////////   CLOCKS   ///////////////////
 
@@ -591,6 +592,9 @@ u_frame(
     .mouse_1p       ( mouse_1p       ),
     .mouse_2p       ( mouse_2p       ),
     .LED            ( LED_USER       ),
+    // Dial emulation
+    .dial_x         ( dial_x         ),
+    .dial_y         ( dial_y         ),
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
     .enable_psg     ( enable_psg     ),
