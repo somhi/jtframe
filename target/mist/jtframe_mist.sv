@@ -123,7 +123,7 @@ module jtframe_mist #(parameter
     output             game_tilt,
     output      [15:0] joyana_l1, joyana_r1, joyana_l2, joyana_r2, joyana_l3, joyana_r3, joyana_l4, joyana_r4,
     // Paddle
-    output      [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3,
+    output      [ 7:0] paddle_1, paddle_2, paddle_3, paddle_4,
 
     // Mouse
     output      [15:0] mouse_1p, mouse_2p,
@@ -169,9 +169,8 @@ wire  [ 7:0]  bd_mouse_f;
 
 
 assign board_status = { {64-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
-assign paddle_1 = 0;
-assign paddle_2 = 0;
 assign paddle_3 = 0;
+assign paddle_4 = 0;
 
 jtframe_mist_base #(
     .SIGNED_SND     ( SIGNED_SND    ),
@@ -330,7 +329,10 @@ jtframe_board #(
     .bd_mouse_f     ( bd_mouse_f      ),
     .bd_mouse_idx   ( bd_mouse_idx    ),
 
-    .paddle_0       ( paddle_0        ),
+    .board_paddle_1 ( 8'd0            ),
+    .board_paddle_2 ( 8'd0            ),
+    .game_paddle_1  ( paddle_1        ),
+    .game_paddle_2  ( paddle_2        ),
     .mouse_1p       ( mouse_1p        ),
     .mouse_2p       ( mouse_2p        ),
     // DIP and OSD settings

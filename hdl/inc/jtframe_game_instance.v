@@ -82,8 +82,8 @@ u_game(
     .start_button ( game_start[STARTW-1:0]      ), .coin_input ( game_coin[STARTW-1:0]       ),
     .joystick1    ( game_joy1[`JTFRAME_BUTTONS+3:0] ), .joystick2  ( game_joy2[`JTFRAME_BUTTONS+3:0] ), `ifdef JTFRAME_4PLAYERS
     .joystick3    ( game_joy3[`JTFRAME_BUTTONS+3:0] ), .joystick4  ( game_joy4[`JTFRAME_BUTTONS+3:0] ), `endif `ifdef JTFRAME_PADDLE
-    .paddle_0     ( paddle_0         ), .paddle_1     ( paddle_1         ), `ifdef JTFRAME_4PLAYERS
-    .paddle_2     ( paddle_2         ), .paddle_3     ( paddle_3         ), `endif `endif `ifdef JTFRAME_MOUSE
+    .paddle_1     ( paddle_1         ), .paddle_2     ( paddle_2         ), `ifdef JTFRAME_4PLAYERS
+    .paddle_3     ( paddle_3         ), .paddle_4     ( paddle_4         ), `endif `endif `ifdef JTFRAME_MOUSE
     .mouse_1p     ( mouse_1p         ), .mouse_2p     ( mouse_2p         ), `endif `ifdef JTFRAME_SPINNER
     .spinner_1p   ( spinner_1p       ), .spinner_2p   ( spinner_2p       ), `endif `ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ), .joyana_l2    ( joyana_l2        ), `ifdef JTFRAME_ANALOG_DUAL

@@ -100,7 +100,9 @@ module jtframe_board #(parameter
     input               bd_mouse_idx,
     input               bd_mouse_st,
 
-    output       [ 7:0] paddle_0,
+    input        [ 7:0] board_paddle_1, board_paddle_2,
+    input        [ 8:0] spinner_1,      spinner_2,
+    output       [ 7:0] game_paddle_1, game_paddle_2,
     output       [ 1:0] dial_x, dial_y,
 
     // DIP and OSD settings
@@ -444,9 +446,14 @@ jtframe_inputs #(
     .bd_mouse_f     ( bd_mouse_f      ),
     .bd_mouse_st    ( bd_mouse_st     ),
 
-    .paddle         ( paddle_0        ),
+    .board_paddle_1 ( board_paddle_1  ),
+    .board_paddle_2 ( board_paddle_2  ),
+    .game_paddle_1  ( game_paddle_1   ),
+    .game_paddle_2  ( game_paddle_2   ),
     .mouse_1p       ( mouse_1p        ),
     .mouse_2p       ( mouse_2p        ),
+    .spinner_1      ( spinner_1       ),
+    .spinner_2      ( spinner_2       ),
     .dial_x         ( dial_x          ),
     .dial_y         ( dial_y          ),
 

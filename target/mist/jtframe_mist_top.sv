@@ -177,7 +177,7 @@ wire        enable_fm, enable_psg;
 wire        dip_pause, dip_flip, dip_test;
 wire        pxl_cen, pxl2_cen;
 wire [ 7:0] st_addr, st_dout;
-wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
+wire [ 7:0] paddle_1, paddle_2, paddle_3, paddle_4;
 wire [15:0] mouse_1p, mouse_2p;
 
 `ifdef JTFRAME_MIST_DIPBASE
@@ -314,10 +314,10 @@ u_frame(
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
     // Paddle inputs
-    .paddle_0       ( paddle_0       ),
     .paddle_1       ( paddle_1       ),
     .paddle_2       ( paddle_2       ),
     .paddle_3       ( paddle_3       ),
+    .paddle_4       ( paddle_4       ),
     // Mouse inputs
     .mouse_1p       ( mouse_1p       ),
     .mouse_2p       ( mouse_2p       ),

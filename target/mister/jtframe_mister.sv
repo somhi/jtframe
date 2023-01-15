@@ -156,8 +156,8 @@ module jtframe_mister #(parameter
     output          game_service,
     output          game_tilt,
     // paddle 0..255
-    output  [ 7:0]  paddle_0,  paddle_1,  paddle_2,  paddle_3,
-    output  [ 8:0]  spinner_0, spinner_1, spinner_2, spinner_3,
+    output  [ 7:0]  game_paddle_1, game_paddle_2, game_paddle_3, game_paddle_4,
+    output  [ 8:0]  spinner_1, spinner_2, spinner_3, spinner_4,
     // mouse
     output  [15:0]  mouse_1p,  mouse_2p,
     // Dial
@@ -220,6 +220,7 @@ wire        video_rotated;
 
 wire [ 6:0] core_mod;
 wire [ 7:0] st_lpbuf;
+wire [ 7:0] paddle_1, paddle_2, paddle_3, paddle_4;
 // Mouse support
 wire [24:0] ps2_mouse;
 reg         ps2_mouse_l;
@@ -283,6 +284,9 @@ assign { voffset, hoffset } = status[60:53];
 assign hsize_enable = status[48];
 assign hsize_scale  = status[52:49];
 
+assign game_paddle_3 = paddle_3;
+assign game_paddle_4 = paddle_4;
+
 `ifdef JTFRAME_VERTICAL
 assign {FB_PAL_CLK, FB_FORCE_BLANK, FB_PAL_ADDR, FB_PAL_DOUT, FB_PAL_WR} = '0;
 `endif
@@ -320,22 +324,18 @@ always @(posedge clk_sys) begin
             1:  target_info <= joyana_l1[15:8];
             2:  target_info <= joyana_r1[7:0];
             3:  target_info <= joyana_r1[15:8];
-            4:  target_info <= spinner_0;
-            5:  target_info <= spinner_1;
-            6:  target_info <= spinner_2;
-            7:  target_info <= spinner_3;
-            8:  target_info <= paddle_0;
-            9:  target_info <= paddle_1;
-            10: target_info <= paddle_2;
-            11: target_info <= paddle_3;
-            12: target_info <= joystick1[7:0];
-            13: target_info <= joystick2[7:0];
-            14: target_info <= joystick1[7:0];
-            15: target_info <= joystick2[7:0];
-            16: target_info <= mouse_1p[7:0];
-            17: target_info <= mouse_1p[15:8];
-            18: target_info <= mouse_2p[7:0];
-            19: target_info <= mouse_2p[15:8];
+            4:  target_info <= { spinner_4[8:7], spinner_3[8:7], spinner_2[8:7], spinner_1[8:7] };
+            5:  target_info <= 0;
+            6:  target_info <= game_paddle_1;
+            7:  target_info <= game_paddle_2;
+            8:  target_info <= joystick1[7:0];
+            9:  target_info <= joystick2[7:0];
+            10: target_info <= { 6'd0, dial_x };
+            11: target_info <= { 6'd0, dial_y };
+            12: target_info <= mouse_1p[7:0];
+            13: target_info <= mouse_1p[15:8];
+            14: target_info <= mouse_2p[7:0];
+            15: target_info <= mouse_2p[15:8];
             default:;
         endcase
         default:;
@@ -532,15 +532,15 @@ hps_io #( .STRLEN(0), .PS2DIV(32), .WIDE(JTFRAME_MR_FASTIO) ) u_hps_io
     .ps2_kbd_data_out( ps2_kbd_data   ),
 
     // paddle 0..255
-    .paddle_0        ( paddle_0       ),
-    .paddle_1        ( paddle_1       ),
-    .paddle_2        ( paddle_2       ),
-    .paddle_3        ( paddle_3       ),
+    .paddle_0        ( paddle_1       ),
+    .paddle_1        ( paddle_2       ),
+    .paddle_2        ( paddle_3       ),
+    .paddle_3        ( paddle_4       ),
 
-    .spinner_0       ( spinner_0      ),
-    .spinner_1       ( spinner_1      ),
-    .spinner_2       ( spinner_2      ),
-    .spinner_3       ( spinner_3      ),
+    .spinner_0       ( spinner_1      ),
+    .spinner_1       ( spinner_2      ),
+    .spinner_2       ( spinner_3      ),
+    .spinner_3       ( spinner_4      ),
     // Unused:
     .ps2_key         (                ),
     .RTC             (                ),
@@ -643,9 +643,14 @@ jtframe_board #(
     .bd_mouse_f     ( mouse_f         ),
     .bd_mouse_idx   ( 1'b0            ),    // MiSTer only supports one mouse
 
-    .paddle_0       (                 ),
+    .board_paddle_1 ( paddle_1        ),
+    .board_paddle_2 ( paddle_2        ),
+    .game_paddle_1  ( game_paddle_1   ),
+    .game_paddle_2  ( game_paddle_2   ),
     .mouse_1p       ( mouse_1p        ),
     .mouse_2p       ( mouse_2p        ),
+    .spinner_1      ( spinner_1       ),
+    .spinner_2      ( spinner_2       ),
     .dial_x         ( dial_x          ),
     .dial_y         ( dial_y          ),
     // DIP and OSD settings

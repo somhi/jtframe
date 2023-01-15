@@ -385,7 +385,8 @@ wire [15:0] sdram_dout;
 `endif
 
 wire [ 7:0] st_addr, st_dout;
-wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
+wire [ 7:0] paddle_1,  paddle_2,  paddle_3,  paddle_4,
+            spinner_1, spinner_2, spinner_3, spinner_4;
 wire [15:0] mouse_1p, mouse_2p;
 
 localparam COLORW=`JTFRAME_COLORW;
@@ -584,10 +585,14 @@ u_frame(
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
     // Paddle inputs
-    .paddle_0       ( paddle_0       ),
-    .paddle_1       ( paddle_1       ),
-    .paddle_2       ( paddle_2       ),
-    .paddle_3       ( paddle_3       ),
+    .game_paddle_1  ( paddle_1       ),
+    .game_paddle_2  ( paddle_2       ),
+    .game_paddle_3  ( paddle_3       ),
+    .game_paddle_4  ( paddle_4       ),
+    .spinner_1      ( spinner_1      ),
+    .spinner_2      ( spinner_2      ),
+    .spinner_3      ( spinner_3      ),
+    .spinner_4      ( spinner_4      ),
     // Mouse inputs
     .mouse_1p       ( mouse_1p       ),
     .mouse_2p       ( mouse_2p       ),

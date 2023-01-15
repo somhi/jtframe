@@ -55,8 +55,11 @@ module jtframe_inputs(
     input              bd_mouse_st,
     input              bd_mouse_idx,
 
+    input       [ 7:0] board_paddle_1, board_paddle_2,
+    input       [ 8:0] spinner_1,      spinner_2,
+
     output      [15:0] mouse_1p, mouse_2p,
-    output       [7:0] paddle,
+    output      [ 7:0] game_paddle_1, game_paddle_2,
     output      [ 1:0] dial_x, dial_y,
 
     // For simulation only
@@ -75,6 +78,9 @@ wire [ 2:0] mouse_but_1p, mouse_but_2p;
 `else
     wire en4way = 0;
 `endif
+
+// This one passes unfiltered
+assign game_paddle_2 = board_paddle_2;
 
 always @(posedge clk) begin
     joy1_sync <= { board_joy1[15:4], joy4way1p[3:0] };
@@ -280,17 +286,20 @@ jtframe_dial u_dial(
     .LHBL       ( LHBL          ),
     .joystick1  ( game_joy1[6:0]),
     .joystick2  ( game_joy2[6:0]),
+    .spinner_1  ( spinner_1     ),
+    .spinner_2  ( spinner_2     ),
     .dial_x     ( dial_x        ),
     .dial_y     ( dial_y        )
 );
 
 // Paddle emulation using the mouse
 jtframe_paddle u_paddle(
-    .rst        ( rst          ),
-    .clk        ( clk          ),
-    .mouse_dx   ( bd_mouse_dx  ),
-    .mouse_st   ( bd_mouse_st  ),
-    .paddle     ( paddle       )
+    .rst        ( rst            ),
+    .clk        ( clk            ),
+    .hw_paddle  ( board_paddle_1 ),
+    .mouse_dx   ( bd_mouse_dx    ),
+    .mouse_st   ( bd_mouse_st    ),
+    .paddle     ( game_paddle_1  )
 );
 
 jtframe_mouse u_mouse(

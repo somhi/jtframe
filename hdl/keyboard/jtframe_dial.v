@@ -22,37 +22,63 @@ module jtframe_dial(
     input           rst,
     input           clk,
     input           LHBL,
-    input     [6:0] joystick1,
-    input     [6:0] joystick2,
-    output    [1:0] dial_x,
-    output    [1:0] dial_y
+    // emulation based on joysticks
+    input     [6:0] joystick1, joystick2,
+    input     [8:0] spinner_1, spinner_2,
+    output    [1:0] dial_x,    dial_y
 );
 
 reg  [1:0] dial_pulse;
-reg        LHBL_l;
+reg        LHBL_l, sel;
+reg        inc_1p, inc_2p,
+           dec_1p, dec_2p,
+           up_1p, up_2p,
+           last1,  last2;
 
+wire       toggle1, toggle2, line,
+           up_joy;
 
-// The dial update ryhtm is set to once every four lines
+assign toggle1 = last1 != spinner_1[8],
+       toggle2 = last2 != spinner_2[8];
+assign up_joy  = dial_pulse[1] & line;
+assign line    = LHBL & ~LHBL_l;
+
+always @* begin
+    inc_1p   = sel ? !joystick1[5] :  spinner_1[7];
+    dec_1p   = sel ? !joystick1[6] : !spinner_1[7];
+    inc_2p   = sel ? !joystick2[5] :  spinner_2[7];
+    dec_2p   = sel ? !joystick2[6] : !spinner_2[7];
+end
+
+// The dial update rythm is set to once every four lines
 always @(posedge clk) begin
     LHBL_l <= LHBL;
-    if( LHBL && !LHBL_l ) dial_pulse <= dial_pulse+2'd1;
+    if( line ) dial_pulse <= dial_pulse+2'd1;
+    up_1p <= up_joy || toggle1;
+    up_2p <= up_joy || toggle2;
+    sel   <= up_joy;
+end
+
+always @(posedge clk) begin
+    last1 <= spinner_1[8];
+    last2 <= spinner_2[8];
 end
 
 jt4701_dialemu u_dial1p(
-    .clk        ( clk           ),
     .rst        ( rst           ),
-    .pulse      ( dial_pulse[1] ),
-    .inc        ( ~joystick1[5] ),
-    .dec        ( ~joystick1[6] ),
+    .clk        ( clk           ),
+    .pulse      ( up_1p         ),
+    .inc        ( inc_1p        ),
+    .dec        ( dec_1p        ),
     .dial       ( dial_x        )
 );
 
 jt4701_dialemu u_dial2p(
-    .clk        ( clk           ),
     .rst        ( rst           ),
-    .pulse      ( dial_pulse[1] ),
-    .inc        ( ~joystick2[5] ),
-    .dec        ( ~joystick2[6] ),
+    .clk        ( clk           ),
+    .pulse      ( up_2p         ),
+    .inc        ( inc_2p        ),
+    .dec        ( dec_2p        ),
     .dial       ( dial_y        )
 );
 

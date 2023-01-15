@@ -163,6 +163,8 @@ wire [ 7:0]   prog_data8;
 `endif
 wire [ 1:0]   prog_mask, prog_ba;
 wire          prog_we, prog_rd, prog_rdy, prog_ack, prog_dst, prog_dok;
+wire [ 7:0]   st_addr, st_dout;
+wire [ 7:0]   paddle_1, paddle_2, paddle_3, paddle_4;
 
 // ROM access from game
 wire [SDRAMW-1:0] ba0_addr, ba1_addr, ba2_addr, ba3_addr;
@@ -192,7 +194,7 @@ wire        sample;
 
 wire [9:0] game_joy1, game_joy2, game_joy3, game_joy4;
 wire [3:0] game_coin, game_start;
-wire       game_rst, game_service;
+wire       game_rst, game_service, game_tilt;
 wire       rst96, rst48, rst24, rst6;
 wire [3:0] gfx_en;
 // SDRAM
@@ -425,6 +427,7 @@ u_frame(
     .game_coin      ( game_coin      ),
     .game_start     ( game_start     ),
     .game_service   ( game_service   ),
+    .game_tilt      ( game_tilt      ),
     .joyana_l1      ( joyana_l1      ),
     .joyana_l2      ( joyana_l2      ),
     .joyana_l3      ( joyana_l3      ),
@@ -433,6 +436,10 @@ u_frame(
     .joyana_r2      ( joyana_r2      ),
     .joyana_r3      ( joyana_r3      ),
     .joyana_r4      ( joyana_r4      ),
+    .paddle_1       ( paddle_1       ),
+    .paddle_2       ( paddle_2       ),
+    .paddle_3       ( paddle_3       ),
+    .paddle_4       ( paddle_4       ),
     .dial_x         ( dial_x         ),
     .dial_y         ( dial_y         ),
     .LED            ( LED            ),
@@ -444,6 +451,8 @@ u_frame(
     .dip_flip       ( dip_flip       ),
     .dip_fxlevel    ( dip_fxlevel    ),
     // Debug
+    .st_addr        ( st_addr        ),
+    .st_dout        ( st_dout        ),
     .gfx_en         ( gfx_en         ),
     .debug_bus      ( debug_bus      ),
     .debug_view     ( debug_view     )

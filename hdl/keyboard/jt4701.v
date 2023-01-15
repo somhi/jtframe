@@ -141,8 +141,8 @@ end
 endmodule
 
 module jt4701_dialemu(
-    input            clk,
     input            rst,
+    input            clk,
     input            pulse,
     input            inc,
     input            dec,
@@ -158,14 +158,14 @@ always @(posedge clk, posedge rst) begin
     if( rst ) begin
         dial <= 2'b0;
         s    <= 0;
-    end else if( pulse && !last_pulse ) begin
+    end else if( pulse && !last_pulse && (inc||dec)) begin
         s <= ~s;
         if( inc ) begin
             if( !s ) dial[0] <= ~dial[0];
-            if(  s ) dial[1] <= dial[0];
+            if(  s ) dial[1] <=  dial[0];
         end else if( dec ) begin
             if( !s ) dial[1] <= ~dial[1];
-            if(  s ) dial[0] <= dial[1];
+            if(  s ) dial[0] <=  dial[1];
         end else begin
             dial[0] <= 0;
             dial[1] <= 0;
