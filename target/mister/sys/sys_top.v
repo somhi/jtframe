@@ -1301,7 +1301,7 @@ osd vga_osd
 	.io_osd(io_osd_vga),
 	.io_strobe(io_strobe),
 	.io_din(io_din),
-	// .osd_status(osd_status),
+	.osd_status(osd_status),
 
 	.clk_video(clk_vid),
 	.din(vga_data_sl),

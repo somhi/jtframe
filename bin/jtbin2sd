@@ -56,11 +56,29 @@ function make_roms {
     fi
 }
 
+function cp_mist {
+    cp $V $TEMP/* $DST
+    cp $V $JTBIN/${i,,}/*rbf $DST
+    # Get the main MRA as the core's arc for JTAG programming
+    for CORE in $JTBIN/mister/*; do
+        MR=$CORE/releases
+        if [ ! -d "$MR" ]; then continue; fi
+        cd $MR
+        CORENAME=JT$(basename $CORE)
+        CORENAME=${CORENAME^^}
+        FIRST=`find . -name "*.mra" | head -n 1`
+        if [ -z "$FIRST" ]; then continue; fi
+        mra -A -s -a $DST/$CORENAME.arc "$FIRST"
+        cp $V --no-clobber $DST/$CORENAME.arc $DST/core.arc
+    done
+}
+
 for i in SIDI MIST POCKET; do
     DST=/media/$USER/$i
     if [ ! -d $DST ]; then
         continue
     fi
+    echo "`basename $DST` found"
     rm -rf $DST/* &
     make_roms
     wait
@@ -71,23 +89,12 @@ for i in SIDI MIST POCKET; do
             $k $TEMP
         done
     else
-        cp $V $TEMP/* $DST
-        cp $V $JTBIN/${i,,}/*rbf $DST
-        # Get the main MRA as the core's arc for JTAG programming
-        for CORE in $JTBIN/mister/*; do
-            MR=$CORE/releases
-            if [ ! -d "$MR" ]; then continue; fi
-            cd $MR
-            CORENAME=JT$(basename $CORE)
-            CORENAME=${CORENAME^^}
-            FIRST=`find . -name "*.mra" | head -n 1`
-            if [ -z "$FIRST" ]; then continue; fi
-            mra -A -s -a $DST/$CORENAME.arc "$FIRST"
-            cp $V --no-clobber $DST/$CORENAME.arc $DST/core.arc
-        done
+        cp_mist &
     fi
     CNT=$((CNT+1))
 done
+
+wait
 
 if [ $CNT = 0 ]; then
     echo "Nothing done"

@@ -28,7 +28,6 @@ module osd (
 	output reg       HSync_out,
 	output reg       VSync_out,
 
-
 	output reg	 osd_shown
 );
 

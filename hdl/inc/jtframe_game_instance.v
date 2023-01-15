@@ -18,6 +18,38 @@
 
 // Game instantiation. Shared by all target top-level modules
 
+localparam STARTW=`ifdef JTFRAME_4PLAYERS 4 `else 2 `endif;
+
+`ifdef SIMULATION
+assign sim_hb         = ~LHBL;
+assign sim_vb         = ~LVBL;
+assign sim_pxl_clk    = clk_sys;
+assign sim_pxl_cen    = pxl_cen;
+assign sim_dwnld_busy = dwnld_busy;
+
+`ifdef TESTINPUTS
+    test_inputs u_test_inputs(
+        .loop_rst       ( downloading    ),
+        .LVBL           ( LVBL           ),
+        .game_joystick1 ( game_joy1[6:0] ),
+        .button_1p      ( game_start[0]  ),
+        .coin_left      ( game_coin[0]   )
+    );
+    assign game_start[1] = 1'b1;
+    assign game_coin[1]  = 1'b1;
+    assign game_joystick2 = ~10'd0;
+    assign game_joystick3 = ~10'd0;
+    assign game_joystick4 = ~10'd0;
+    assign game_joystick1[9:7] = 3'b111;
+    assign sim_vb = vs;
+    assign sim_hb = hs;
+`endif
+// For simulation, either ~32'd0 or `JTFRAME_SIM_DIPS will be used for DIPs
+`ifndef JTFRAME_SIM_DIPS
+    `define JTFRAME_SIM_DIPS ~32'd0
+`endif
+`endif
+
 `GAMETOP
 u_game(
     .rst         ( game_rst       ),
@@ -48,8 +80,8 @@ u_game(
 
     // Inputs
     .start_button ( game_start[STARTW-1:0]      ), .coin_input ( game_coin[STARTW-1:0]       ),
-    .joystick1    ( game_joy1[GAME_BUTTONS+3:0] ), .joystick2  ( game_joy2[GAME_BUTTONS+3:0] ), `ifdef JTFRAME_4PLAYERS
-    .joystick3    ( game_joy3[GAME_BUTTONS+3:0] ), .joystick4  ( game_joy4[GAME_BUTTONS+3:0] ), `endif `ifdef JTFRAME_PADDLE
+    .joystick1    ( game_joy1[`JTFRAME_BUTTONS+3:0] ), .joystick2  ( game_joy2[`JTFRAME_BUTTONS+3:0] ), `ifdef JTFRAME_4PLAYERS
+    .joystick3    ( game_joy3[`JTFRAME_BUTTONS+3:0] ), .joystick4  ( game_joy4[`JTFRAME_BUTTONS+3:0] ), `endif `ifdef JTFRAME_PADDLE
     .paddle_0     ( paddle_0         ), .paddle_1     ( paddle_1         ), `ifdef JTFRAME_4PLAYERS
     .paddle_2     ( paddle_2         ), .paddle_3     ( paddle_3         ), `endif `endif `ifdef JTFRAME_MOUSE
     .mouse_1p     ( mouse_1p         ), .mouse_2p     ( mouse_2p         ), `endif `ifdef JTFRAME_SPINNER

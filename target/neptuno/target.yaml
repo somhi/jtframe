@@ -12,3 +12,8 @@ here:
   - jtframe_neptuno_top.sv
   - ../mist/jtframe_mist.sv
   - data_io_mc2.sv
+
+jtframe:
+  - from: keyboard
+    get:
+      - ps2_intf.vhd

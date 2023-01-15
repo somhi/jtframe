@@ -179,18 +179,6 @@ wire [ 7:0] st_addr, st_dout;
 wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
 wire [15:0] mouse_1p, mouse_2p;
 
-`ifdef SIMULATION
-assign sim_pxl_clk    = clk_sys;
-assign sim_pxl_cen    = pxl_cen;
-assign sim_vb         = ~LVBL;
-assign sim_hb         = ~LHBL;
-assign sim_dwnld_busy = dwnld_busy;
-`endif
-
-`ifndef JTFRAME_SIGNED_SND
-`define JTFRAME_SIGNED_SND 1'b1
-`endif
-
 `ifdef JTFRAME_MIST_DIPBASE
 localparam DIPBASE=`JTFRAME_MIST_DIPBASE;
 `else
@@ -199,12 +187,10 @@ localparam DIPBASE=16;
 
 assign game_led[1] = 1'b0; // Let system LED info go through too
 
-localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
-
 jtframe_mist #(
     .SDRAMW       ( SDRAMW         ),
     .SIGNED_SND   ( `JTFRAME_SIGNED_SND    ),
-    .BUTTONS      ( GAME_BUTTONS   ),
+    .BUTTONS      ( `JTFRAME_GAME_BUTTONS  ),
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         ),
     .VIDEO_WIDTH  ( `JTFRAME_WIDTH ),
@@ -358,45 +344,18 @@ u_frame(
     .debug_view     ( debug_view     )
 );
 
-`ifdef SIMULATION
-`ifdef TESTINPUTS
-    test_inputs u_test_inputs(
-        .loop_rst       ( downloading    ),
-        .LVBL           ( LVBL           ),
-        .game_joystick1 ( game_joy1[6:0] ),
-        .button_1p      ( game_start[0]  ),
-        .coin_left      ( game_coin[0]   )
-    );
-    assign game_start[1] = 1'b1;
-    assign game_coin[1]  = 1'b1;
-    assign game_joystick2 = ~10'd0;
-    assign game_joystick3 = ~10'd0;
-    assign game_joystick4 = ~10'd0;
-    assign game_joystick1[9:7] = 3'b111;
-    assign sim_vb = vs;
-    assign sim_hb = hs;
-`endif
-`endif
+wire        game_tx, game_rx;
+wire [31:0] dipsw;
 
-localparam STARTW=`ifdef JTFRAME_4PLAYERS 4 `else 2 `endif;
-
-// For simulation, either ~32'd0 or `JTFRAME_SIM_DIPS will be used for DIPs
-`ifdef SIMULATION
-`ifndef JTFRAME_SIM_DIPS
-    `define JTFRAME_SIM_DIPS ~32'd0
-`endif
-`endif
-
-`ifdef JTFRAME_SIM_DIPS
-    wire [31:0] dipsw = `JTFRAME_SIM_DIPS;
-`else
-    wire [31:0] dipsw = status[31+DIPBASE:DIPBASE];
-`endif
-
-wire game_tx, game_rx;
-
+`ifdef JTFRAME_UART
 assign UART_TX = game_tx,
-       UART_RX = game_rx;
+       game_rx = UART_RX;
+`endif
+
+assign dipsw = `ifdef JTFRAME_SIM_DIPS
+    `JTFRAME_SIM_DIPS `else
+    status[31+DIPBASE:DIPBASE]; `endif
+
 
 `include "jtframe_game_instance.v"
 

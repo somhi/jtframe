@@ -21,7 +21,7 @@ jtframe:
       - jtframe_inputs.v
       - jtframe_paddle.v
       - jtframe_mouse.v
-      - ps2_intf.v
+      - ps2_intf_v.v
   - from: video
     get:
       - jtframe_resync.v

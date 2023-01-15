@@ -1,4 +1,4 @@
-module ps2_intf
+module ps2_intf_v
   (input  CLK,
    input  nRESET,
    input  PS2_CLK,

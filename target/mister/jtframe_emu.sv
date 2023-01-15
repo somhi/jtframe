@@ -388,9 +388,8 @@ wire [ 7:0] paddle_0, paddle_1, paddle_2, paddle_3;
 wire [15:0] mouse_1p, mouse_2p;
 
 localparam COLORW=`JTFRAME_COLORW;
-localparam GAME_BUTTONS=`JTFRAME_BUTTONS;
 
-wire [COLORW-1:0] game_r, game_g, game_b;
+wire [COLORW-1:0] red, green, blue;
 wire              LHBL, LVBL;
 wire              hs, vs, sample;
 wire              ioctl_ram;
@@ -420,14 +419,10 @@ wire [15:0] ln_pxl, ln_data;
 
 jtframe_mister #(
     .SDRAMW        ( SDRAMW         ),
-    .BUTTONS       ( GAME_BUTTONS   ),
-    .COLORW        ( COLORW         )
-    `ifdef JTFRAME_WIDTH
-    ,.VIDEO_WIDTH  ( `JTFRAME_WIDTH   )
-    `endif
-    `ifdef JTFRAME_HEIGHT
-    ,.VIDEO_HEIGHT ( `JTFRAME_HEIGHT  )
-    `endif
+    .BUTTONS       ( `JTFRAME_GAME_BUTTONS   ),
+    .COLORW        ( COLORW         ),
+    .VIDEO_WIDTH   ( `JTFRAME_WIDTH   ),
+    .VIDEO_HEIGHT  ( `JTFRAME_HEIGHT  )
 )
 u_frame(
     .clk_sys        ( clk_sys        ),
@@ -449,9 +444,9 @@ u_frame(
     .game_tx        ( game_tx        ),
     .show_osd       ( show_osd       ),
     // Base video
-    .game_r         ( game_r         ),
-    .game_g         ( game_g         ),
-    .game_b         ( game_b         ),
+    .game_r         ( red            ),
+    .game_g         ( green          ),
+    .game_b         ( blue           ),
     .LHBL           ( LHBL           ),
     .LVBL           ( LVBL           ),
     .hs             ( hs             ),
@@ -629,20 +624,6 @@ u_frame(
     .debug_bus      ( debug_bus      ),
     .debug_view     ( debug_view     )
 );
-
-`ifdef SIMULATION
-assign sim_hb = ~LHBL;
-assign sim_vb = ~LVBL;
-assign sim_pxl_clk = clk_sys;
-assign sim_pxl_cen = pxl_cen;
-`endif
-
-///////////////////////////////////////////////////////////////////
-
-`ifdef SIMULATION
-assign sim_pxl_clk = clk_sys;
-assign sim_pxl_cen = pxl_cen;
-`endif
 
 `include "jtframe_game_instance.v"
 
