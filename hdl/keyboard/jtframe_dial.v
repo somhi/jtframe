@@ -25,15 +25,17 @@ module jtframe_dial(
     // emulation based on joysticks
     input     [6:0] joystick1, joystick2,
     input     [8:0] spinner_1, spinner_2,
+    input     [4:0] sens,
     output    [1:0] dial_x,    dial_y
 );
 
 reg  [1:0] dial_pulse;
+reg  [7:0] cnt1, cnt2;
 reg        LHBL_l, sel;
 reg        inc_1p, inc_2p,
            dec_1p, dec_2p,
            up_1p, up_2p,
-           last1,  last2;
+           last1,  last2, cen=0;
 
 wire       toggle1, toggle2, line,
            up_joy;
@@ -44,19 +46,28 @@ assign up_joy  = dial_pulse[1] & line;
 assign line    = LHBL & ~LHBL_l;
 
 always @* begin
-    inc_1p   = sel ? !joystick1[5] :  spinner_1[7];
-    dec_1p   = sel ? !joystick1[6] : !spinner_1[7];
-    inc_2p   = sel ? !joystick2[5] :  spinner_2[7];
-    dec_2p   = sel ? !joystick2[6] : !spinner_2[7];
+    inc_1p   = sel ? !joystick1[5] :  cnt1[7];
+    dec_1p   = sel ? !joystick1[6] : !cnt1[7];
+    inc_2p   = sel ? !joystick2[5] :  cnt2[7];
+    dec_2p   = sel ? !joystick2[6] : !cnt2[7];
 end
 
 // The dial update rythm is set to once every four lines
 always @(posedge clk) begin
     LHBL_l <= LHBL;
+    cen    <= ~cen;
     if( line ) dial_pulse <= dial_pulse+2'd1;
-    up_1p <= up_joy || toggle1;
-    up_2p <= up_joy || toggle2;
+    up_1p <= up_joy;
+    up_2p <= up_joy;
     sel   <= up_joy;
+    if( !up_joy && cen ) begin
+        up_1p <= cnt1 != 0;
+        up_2p <= cnt2 != 0;
+        if( cnt1 != 0 ) cnt1 <= cnt1 + (cnt1[7] ? 8'd1 : 8'hff );
+        if( cnt2 != 0 ) cnt2 <= cnt2 + (cnt2[7] ? 8'd1 : 8'hff );
+    end
+    if( toggle1 ) cnt1 <= { spinner_1[7],  {7{spinner_1[7]}} ^ {sens,2'd3} };
+    if( toggle2 ) cnt2 <= { spinner_2[7],  {7{spinner_2[7]}} ^ {sens,2'd3} };
 end
 
 always @(posedge clk) begin

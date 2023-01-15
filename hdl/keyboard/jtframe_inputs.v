@@ -62,6 +62,7 @@ module jtframe_inputs(
     output      [ 7:0] game_paddle_1, game_paddle_2,
     output      [ 1:0] dial_x, dial_y,
 
+    input       [ 7:0] debug_bus,
     // For simulation only
     input              downloading
 );
@@ -288,6 +289,7 @@ jtframe_dial u_dial(
     .joystick2  ( game_joy2[6:0]),
     .spinner_1  ( spinner_1     ),
     .spinner_2  ( spinner_2     ),
+    .sens       ( debug_bus[4:0]),
     .dial_x     ( dial_x        ),
     .dial_y     ( dial_y        )
 );

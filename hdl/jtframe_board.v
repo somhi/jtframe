@@ -457,6 +457,7 @@ jtframe_inputs #(
     .dial_x         ( dial_x          ),
     .dial_y         ( dial_y          ),
 
+    .debug_bus      ( debug_bus       ),
     // Simulation helpers
     .game_pause     ( game_pause      )
 );
