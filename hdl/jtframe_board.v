@@ -228,8 +228,8 @@ wire         cheat_led, pre_pause;
 
 wire   [9:0] key_joy1, key_joy2, key_joy3;
 wire   [7:0] key_digit;
-wire   [3:0] key_start, key_coin;
-wire   [3:0] key_gfx;
+wire   [3:0] key_start, key_coin, key_gfx,
+             sensty;
 wire         key_service, key_tilt;
 wire         lock;
 wire         autofire0;
@@ -244,11 +244,8 @@ wire [ 1:0] bax_dsn;
 wire [ 3:0] bax_rdy, bax_dst;
 wire [SDRAMW-1:0] bax_addr;
 
-`ifdef JTFRAME_AUTOFIRE0
-    assign autofire0=status[18];
-`else
-    assign autofire0=0;
-`endif
+assign autofire0 = `ifdef JTFRAME_AUTOFIRE0 status[18] `else 0 `endif;
+assign sensty    = status[33:32];
 
 assign base_rgb  = { dbg_r, dbg_g, dbg_b };
 assign base_LHBL = pre2x_LHBL;
@@ -405,6 +402,7 @@ jtframe_inputs #(
     .downloading    ( downloading     ),
     .dip_flip       ( dip_flip        ),
     .autofire0      ( autofire0       ),
+    .sensty         ( sensty          ),
 
     .soft_rst       ( soft_rst        ),
 

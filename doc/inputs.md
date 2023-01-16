@@ -135,6 +135,14 @@ By default, the mouse input can be emulated by using the regular joystick and ke
 
 The game *Block* of the [JTPANG](https://www.github.com/jotego/jtpang) can serve as an example.
 
+# Spinner
+
+Support is enabled with the **JTFRAME_DIAL** macro. This will add the *dial_x* and *dial_y* inputs to the game module. The core is expected to use the [jt4701](../hdl/keyboard/jt4701.v) to convert the dial signals to a number. Many arcade games expect an interface like the one provided by the **jt4701**, which needs dial signals to operate with and not an absolute spinner value.
+
+Keeping the game module compatible with dial signals make it easier to hook directly to a bare spinner in the future. The **jt4701** does not clamp the values, so it cannot be connected to a paddle signal because after some turns, the paddle will get stuck at its limits. **jt4701** requires the dial signals. **jtframe_board** translates joystick and and spinner signals to dial pulses.
+
+The only spinner tested so far is the one from Ultimate MiSTer (not affiliated to JOTEGO). For this, MiSTer always seems to send a delta of just 1 or 2. **jtdial** ignores MiSTer's delta and set its own one based on the OSD settings.
+
 # UART
 
 JTFRAME comes with a simple [UART interface](../hdl/jtframe_uart.v) that can serve to connect to an external computer.

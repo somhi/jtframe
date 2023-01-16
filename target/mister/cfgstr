@@ -26,10 +26,11 @@ P1oEF,Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;
 {{ if .CORE_OSD }}
     {{ .CORE_OSD }}
 {{ end }}
-{{ if .JTFRAME_OSD_VOL }}           O67,FX volume, high, very high, very low, low; {{ end }}
+{{ if .JTFRAME_OSD_VOL }}           O67,FX volume,high,highest,lowest,low; {{ end }}
 {{ if .JTFRAME_OSD_SND_EN }}        O8,FX,On,Off; O9,FM,On,Off; {{ end }}
 {{ if .JTFRAME_OSD_TEST }}          OA,Service mode,Off,On; {{ end }}
 {{ if .JTFRAME_AUTOFIRE0}}          OI,Autofire button 0,Off,On; {{ end }}
+{{ if .JTFRAME_DIAL }}              o03,Sensitivity,high,highest,lowest,low;{{end}}
 {{ if .JTFRAME_UART }}
     {{ if .JTFRAME_NO_DB15 }}       o6,User port,Off,UART; {{ else }}
                                     o56,User port,Off,DB15 Joystick,UART; {{ end }}

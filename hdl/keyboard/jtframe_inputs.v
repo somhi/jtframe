@@ -56,6 +56,7 @@ module jtframe_inputs(
     input              bd_mouse_idx,
 
     input       [ 7:0] board_paddle_1, board_paddle_2,
+    input       [ 1:0] sensty,
     input       [ 8:0] spinner_1,      spinner_2,
 
     output      [15:0] mouse_1p, mouse_2p,
@@ -289,7 +290,7 @@ jtframe_dial u_dial(
     .joystick2  ( game_joy2[6:0]),
     .spinner_1  ( spinner_1     ),
     .spinner_2  ( spinner_2     ),
-    .sens       ( debug_bus[4:0]),
+    .sensty     ( sensty        ),
     .dial_x     ( dial_x        ),
     .dial_y     ( dial_y        )
 );
