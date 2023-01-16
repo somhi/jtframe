@@ -17,6 +17,9 @@ type MameROM struct {
 	Offset_str string `xml:"offset,attr"`
 	Status     string `xml:"status,attr"`
 	Offset     int
+	// filled by mam2mra.go
+	group      int
+	wlen 	   int		// word length in bytes
 }
 
 type MameDevice struct {

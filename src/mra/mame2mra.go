@@ -1074,42 +1074,75 @@ func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, ar
 func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int ) {
 	reg_pos := 0
 	start_pos := *pos
-	if (len(reg_roms) % (reg_cfg.Width / 8)) != 0 {
-		msg := fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even in %s", reg_cfg.Width, reg_cfg.Name, machine.Name )
-		log.Fatal(msg)
-	}
-	mapstr := "01"
-	if reg_cfg.Width == 32 {
-		mapstr = "0001"
-	}
-	if reg_cfg.Reverse {
-		step := reg_cfg.Width>>3
-		if step==0 {
-			step = 2
-		}
-		for k := 0; k < len(reg_roms); k += step {
-			buf := make( []MameROM, step )
-			copy( buf, reg_roms[k:k+step] )
-			for j,l:=k,step-1; l>=0; j++ {
-				reg_roms[j] = buf[l]
-				l--
+	group_cnt := 0
+	if !reg_cfg.No_offset {
+		// Try to determine from the offset the word-length of each ROM
+		// as well as the isolated ones
+		fmt.Println("Parsing ", reg_cfg.Name)
+		for k:=0; k<len(reg_roms); {
+			// Try to make a group
+			kmin := k
+			kmax := kmin
+			wlen := 8
+			for j:=kmin; j<len(reg_roms); j++ {
+				if (reg_roms[kmin].Offset&^0xf) != (reg_roms[j].Offset&^0xf ) {
+					break
+				}
+				if reg_roms[j].Offset & 1 != 0 {
+					wlen = 1
+				}
+				if wlen > 1 && (reg_roms[j].Offset & 2) != 0 {
+					wlen = 2
+				}
+				if wlen > 2 && (reg_roms[j].Offset & 4) != 0 {
+					wlen = 4
+				}
+				kmax=j
 			}
+			if kmin!=kmax {
+				fmt.Printf("\tGroup found (%d-%d)\n",kmin,kmax)
+				group_cnt++
+				if (kmax-kmin+1)*wlen != (reg_cfg.Width>>3) {
+					fmt.Printf("jtframe mra: the number of ROMs for the %d-bit region (%s) is not even (%s).\nUsing ROMs:\n",
+						reg_cfg.Width, reg_cfg.Name, machine.Name )
+					for j:=kmin;j<=kmax;j++ {
+						fmt.Printf("\t%s\n",reg_roms[j].Name)
+					}
+					os.Exit(1)
+				}
+			}
+			for j:=kmin; j<=kmax && kmin!=kmax; j++ {
+				reg_roms[j].group = group_cnt
+				reg_roms[j].wlen  = wlen
+				fmt.Println("\t\t",reg_roms[j].Name)
+			}
+			group_cnt += kmax-kmin+1
+			k = kmax+1
 		}
+	} else {
+		// If no_offset is set, then assume all are grouped together and the word length is 1 byte
+		if (len(reg_roms) % (reg_cfg.Width / 8)) != 0 {
+			log.Fatal(fmt.Sprintf("The number of ROMs for the %d-bit region (%s) is not even in %s",
+				reg_cfg.Width, reg_cfg.Name, machine.Name ))
+		}
+		for j,_ := range reg_roms {
+			reg_roms[j].group = 1
+			reg_roms[j].wlen  = 1
+		}
+		group_cnt = len(reg_roms)
 	}
-	var n *XMLNode
+	n := p
 	deficit := 0
 	for split_phase := 0; split_phase <= split && split_phase < 2; split_phase++ {
 		if split_phase == 1 {
-			// if delta := fill_upto(pos, start_pos+split, p); delta < 0 {
-			// 	fmt.Printf("\tsplit for region %s starts %x bytes after the required offset (%s)\n",
-			// 		reg, -delta, machine.Name)
-			// }
 			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
 		}
 		chunk0 := *pos
-		roms_per_chunk := reg_cfg.Width / 8 // 2 or 4
-		for k, r := range reg_roms {
-			if k%roms_per_chunk == 0 {
+		for k := 0; k <len(reg_roms); {
+			r := reg_roms[k]
+			mapstr := ""
+			rom_cnt := 1
+			if r.group != 0 {
 				// make interleave node at the expected position
 				if deficit > 0 {
 					fill_upto(pos, *pos+deficit, p)
@@ -1122,27 +1155,52 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 				fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
 				deficit = 0
 				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-			}
-			m := add_rom(n, r)
-			m.AddAttr("map", mapstr)
-			mapstr = mapstr[1:] + mapstr[0:1] // rotate the active byte
-			if split != 0 {
-				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-				if split_phase == 1 {
-					m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
+				// Prepare the map
+				for j:=r.wlen; j>0; j-- {
+					mapstr = mapstr + strconv.Itoa(j)
 				}
-				*pos += r.Size / 2
+				for j:=r.wlen; j<(reg_cfg.Width>>3); j++ {
+					mapstr = "0" + mapstr
+				}
+				rom_cnt = (reg_cfg.Width>>3)/r.wlen;
+			}
+			process_rom := func( j int) {
+				r = reg_roms[j]
+				fmt.Println("Parsing ",r.Name)
+				m := add_rom( n, r)
+				if( mapstr!="") {
+					m.AddAttr("map", mapstr)
+					mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
+				}
+				if split != 0 {
+					m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
+					if split_phase == 1 {
+						m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
+					}
+					*pos += r.Size / 2
+				} else {
+					*pos += r.Size
+					if reg_cfg.Rom_len > r.Size {
+						deficit += reg_cfg.Rom_len - r.Size
+					}
+				}
+				reg_pos = *pos - start_pos
+				if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+					fill_upto( pos, *pos+blank_len, p)
+					p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
+				}
+			}
+			if reg_cfg.Reverse {
+				for j:=k+rom_cnt-1; j>=k;j-- {
+					process_rom(j)
+				}
 			} else {
-				*pos += r.Size
-				if reg_cfg.Rom_len > r.Size {
-					deficit += reg_cfg.Rom_len - r.Size
+				for j:=k;j<k+rom_cnt;j++ {
+					process_rom(j)
 				}
 			}
-			reg_pos = *pos - start_pos
-			if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
-				fill_upto( pos, *pos+blank_len, p)
-				p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
-			}
+			n=p
+			k += rom_cnt
 		}
 		if *pos-chunk0 < split_minlen {
 			// fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0)
@@ -1261,7 +1319,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		} else {
 			split, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
-			if (reg_cfg.Width == 16 || reg_cfg.Width == 32) && len(reg_roms) > 1  {
+			if (reg_cfg.Width!=0 && reg_cfg.Width!=8) && len(reg_roms) > 1  {
 				parse_regular_interleave( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
 			}
 			if reg_cfg.Frac.Parts != 0 {
@@ -2017,8 +2075,7 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 			this.start = int(aux)
 		}
 		if this.Sort_byext || this.Sort || this.Sort_alpha || this.Sort_even ||
-			this.Sort_reverse || this.Reverse || this.Width>8 ||
-			this.Singleton || len(this.Ext_sort)>0 ||
+			this.Sort_reverse || this.Singleton || len(this.Ext_sort)>0 ||
 			len(this.Name_sort)>0 || len(this.Regex_sort)>0 || len(this.Sequence)>0 {
 			this.No_offset = true
 		}
