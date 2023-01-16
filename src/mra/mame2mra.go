@@ -1125,15 +1125,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			}
 			m := add_rom(n, r)
 			m.AddAttr("map", mapstr)
-			if reg_cfg.Width == 16 {
-				if mapstr == "01" {
-					mapstr = "10"
-				} else {
-					mapstr = "01"
-				}
-			} else { // rotate the active byte
-				mapstr = mapstr[1:4] + mapstr[0:1]
-			}
+			mapstr = mapstr[1:] + mapstr[0:1] // rotate the active byte
 			if split != 0 {
 				m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
 				if split_phase == 1 {

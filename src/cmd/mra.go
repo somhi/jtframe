@@ -71,6 +71,10 @@ data = [
 
 offset = { bits=8, reverse=true, regions=["maincpu","gfx1"...]}
 
+[buttons]
+names=[
+	{ setname="...", machine="...", names="shot,jump" }
+]
 
 [ROM]
 # only specify regions that need parameters
