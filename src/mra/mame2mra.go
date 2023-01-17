@@ -1101,6 +1101,9 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 	reg_pos := 0
 	start_pos := *pos
 	group_cnt := 0
+	if args.Verbose{
+		fmt.Printf("\tRegular interleave for %s (%s)\n",reg_cfg.Name, machine.Name)
+	}
 	if !reg_cfg.No_offset {
 		// Try to determine from the offset the word-length of each ROM
 		// as well as the isolated ones
@@ -1185,6 +1188,9 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 				fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
 				deficit = 0
 				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+				if args.Verbose {
+					fmt.Printf("Made %d-bit interleave for %s\n", reg_cfg.Width, reg_cfg.Name)
+				}
 				// Prepare the map
 				for j:=r.wlen; j>0; j-- {
 					mapstr = mapstr + strconv.Itoa(j)
@@ -1197,7 +1203,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			process_rom := func( j int) {
 				r = reg_roms[j]
 				if args.Verbose {
-					fmt.Println("Parsing ",r.Name)
+					fmt.Printf("Parsing %s (%d-byte words - mapstr=%s)\n",r.Name,r.wlen,mapstr)
 				}
 				m := add_rom( n, r)
 				if( mapstr!="") {
@@ -1224,6 +1230,10 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			}
 			if reg_cfg.Reverse {
 				for j:=k+rom_cnt-1; j>=k;j-- {
+					if reg_roms[j].group==0 && reg_cfg.Reverse {
+						mapstr="12"	// Should this try to contemplate other cases different from 16 bits?
+						n = p.AddNode("interleave").AddAttr("output", "16" )
+					}
 					process_rom(j)
 				}
 			} else {
