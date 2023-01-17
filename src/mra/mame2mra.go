@@ -1853,17 +1853,48 @@ func find_region_cfg(machine *MachineXML, regname string, cfg Mame2MRA) *RegCfg 
 	return best
 }
 
-// make_DIP
-func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) string {
-	if len(machine.Dipswitch) ==0 {
-		return "ff,ff"
+func add_extra_dip(n *XMLNode, create_parent bool, machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode{
+	// Add DIP switches in the extra section, note that these
+	// one will always have a default value of 1
+	for _, each := range cfg.Dipsw.Extra {
+		if args.Verbose {
+			fmt.Printf("\tChecking extra DIPSW %s for %s/%s (current %s/%s)\n",
+				each.Name, each.Machine, each.Setname, machine.Cloneof, machine.Name)
+		}
+		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
+			(each.Machine == "" && each.Setname == "") {
+			if create_parent {
+				n = add_switches_parent( n, cfg )
+				create_parent = false
+			}
+			m := n.AddNode("dip")
+			m.AddAttr("name", each.Name)
+			m.AddAttr("ids", each.Options)
+			m.AddAttr("bits", each.Bits)
+		}
 	}
-	def_str := ""
+	return n
+}
+
+func add_switches_parent(root *XMLNode, cfg Mame2MRA) *XMLNode {
 	n := root.AddNode("switches")
 	// Switch for MiST
 	n.AddAttr("page_id", "1")
 	n.AddAttr("page_name", "Switches")
 	n.AddIntAttr("base", cfg.Dipsw.base)
+	return n
+}
+
+// make_DIP
+func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) string {
+	if len(machine.Dipswitch) ==0 {
+		if len(cfg.Dipsw.Extra)>0 {
+			add_extra_dip( root, true, machine, cfg, args).AddAttr("default","ff,ff")
+		}
+		return "ff,ff"
+	}
+	def_str := ""
+	n:=add_switches_parent(root,cfg)
 	last_tag := ""
 	base := 0
 	def_cur := 0xff
@@ -2006,21 +2037,7 @@ func make_switches(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) 
 		}
 	}
 	n.AddAttr("default", def_str)
-	// Add DIP switches in the extra section, note that these
-	// one will always have a default value of 1
-	for _, each := range cfg.Dipsw.Extra {
-		if args.Verbose {
-			fmt.Printf("\tChecking extra DIPSW %s for %s/%s (current %s/%s)\n",
-				each.Name, each.Machine, each.Setname, machine.Cloneof, machine.Name)
-		}
-		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
-			(each.Machine == "" && each.Setname == "") {
-			m := n.AddNode("dip")
-			m.AddAttr("name", each.Name)
-			m.AddAttr("ids", each.Options)
-			m.AddAttr("bits", each.Bits)
-		}
-	}
+	add_extra_dip(n,false,machine, cfg, args)
 	return def_str
 }
 
