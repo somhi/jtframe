@@ -87,6 +87,10 @@ regions = [
 ]
 # this is the order in the MRA file
 order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
+# Default NVRAM contents, usually not needed
+nvram = [
+	{ machine="...", setname="...", data="00 22 33..." },...
+]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if reduce {

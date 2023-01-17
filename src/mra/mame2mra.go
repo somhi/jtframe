@@ -75,17 +75,19 @@ type RegCfg struct {
 	Files []MameROM // This replaces the information in mame.xml completely if present
 }
 
+type RawData struct {
+	Machine, Setname string
+	Pointer          int
+	Data             string
+}
+
 type HeaderCfg struct {
 	Len, Fill int
 	Dev       []struct {
 		Byte, Value int
 		Dev         string
 	}
-	Data []struct {
-		Machine, Setname string
-		Pointer          int
-		Data             string
-	}
+	Data []RawData
 	Offset struct {
 		Bits    int
 		Reverse bool
@@ -113,8 +115,8 @@ type Mame2MRA struct {
 	}
 
 	Features struct {
-		Ddr, Beta, Debug, Qsound, Cheat bool
-		Nvram                           int
+		Ddr, Beta, Debug, Cheat bool
+		Nvram                   int
 	}
 
 	Parse ParseCfg
@@ -180,6 +182,7 @@ type Mame2MRA struct {
 			Offset           int
 			Value            string
 		}
+		Nvram []RawData // Initial value for NVRAM
 	}
 }
 
@@ -779,6 +782,23 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 	}
 	// NVRAM
 	if cfg.Features.Nvram != 0 {
+		var raw *RawData
+		for k,each := range cfg.ROM.Nvram {
+			if each.Machine=="" && each.Setname=="" && raw==nil {
+				raw = &cfg.ROM.Nvram[k]
+			}
+			if is_family( each.Machine, machine ) {
+				raw = &cfg.ROM.Nvram[k]
+			}
+			if each.Setname == machine.Name {
+				raw = &cfg.ROM.Nvram[k]
+				break
+			}
+		}
+		if raw != nil {
+			rawbytes := rawdata2bytes(raw.Data)
+			root.AddNode("rom").AddAttr("index","2").SetText("\n"+hexdump(rawbytes, 16))
+		}
 		n := root.AddNode("nvram").AddAttr("index", "2")
 		n.AddIntAttr("size", cfg.Features.Nvram)
 	}
@@ -1014,6 +1034,9 @@ func parse_straight_dump( split, split_minlen int, reg string, reg_roms []MameRO
 			m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
 			*pos += rom_len
 		} else {
+			if reg_cfg.Rom_len!=0 {
+				m.AddAttr("length", fmt.Sprintf("0x%X", reg_cfg.Rom_len))
+			}
 			*pos += r.Size
 		}
 		if reg_cfg.Rom_len > r.Size {
@@ -1074,14 +1097,14 @@ func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, ar
 	return false
 }
 
-func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int ) {
+func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int ) {
 	reg_pos := 0
 	start_pos := *pos
 	group_cnt := 0
 	if !reg_cfg.No_offset {
 		// Try to determine from the offset the word-length of each ROM
 		// as well as the isolated ones
-		fmt.Println("Parsing ", reg_cfg.Name)
+		// fmt.Println("Parsing ", reg_cfg.Name)
 		for k:=0; k<len(reg_roms); {
 			// Try to make a group
 			kmin := k
@@ -1103,7 +1126,9 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 				kmax=j
 			}
 			if kmin!=kmax {
-				fmt.Printf("\tGroup found (%d-%d)\n",kmin,kmax)
+				if args.Verbose{
+					fmt.Printf("\tGroup found (%d-%d)\n",kmin,kmax)
+				}
 				group_cnt++
 				if (kmax-kmin+1)*wlen != (reg_cfg.Width>>3) {
 					fmt.Printf("jtframe mra: the number of ROMs for the %d-bit region (%s) is not even (%s).\nUsing ROMs:\n",
@@ -1117,7 +1142,9 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			for j:=kmin; j<=kmax && kmin!=kmax; j++ {
 				reg_roms[j].group = group_cnt
 				reg_roms[j].wlen  = wlen
-				fmt.Println("\t\t",reg_roms[j].Name)
+				if args.Verbose {
+					fmt.Println("\t\t",reg_roms[j].Name)
+				}
 			}
 			group_cnt += kmax-kmin+1
 			k = kmax+1
@@ -1169,7 +1196,9 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			}
 			process_rom := func( j int) {
 				r = reg_roms[j]
-				fmt.Println("Parsing ",r.Name)
+				if args.Verbose {
+					fmt.Println("Parsing ",r.Name)
+				}
 				m := add_rom( n, r)
 				if( mapstr!="") {
 					m.AddAttr("map", mapstr)
@@ -1304,7 +1333,6 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		start_pos := pos
 
 		if nodump {
-
 			if parse_custom( reg_cfg, p, machine, &pos, args ) {
 				fill_upto(&pos, start_pos+reg_cfg.Len, p)
 			} else {
@@ -1323,7 +1351,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			split, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
 			if (reg_cfg.Width!=0 && reg_cfg.Width!=8) && len(reg_roms) > 1  {
-				parse_regular_interleave( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos )
+				parse_regular_interleave( split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg,  args, &pos )
 			}
 			if reg_cfg.Frac.Parts != 0 {
 				pos += make_frac(p, reg_cfg, reg_roms)
@@ -1364,6 +1392,21 @@ func set_header_offset(headbytes []byte, pos int, reverse bool, bits, offset int
 	}
 }
 
+func rawdata2bytes( rawstr string) []byte {
+	rawbytes := make([]byte,0,1024)
+	datastr := strings.ReplaceAll(rawstr,"\n"," ")
+	datastr  = strings.ReplaceAll(datastr,"\t"," ")
+	datastr  = strings.TrimSpace(datastr)
+	for _, hexbyte := range strings.Split(datastr, " ") {
+		if hexbyte=="" {
+			continue
+		}
+		conv, _ := strconv.ParseInt(hexbyte, 16, 0)
+		rawbytes = append(rawbytes, byte(conv) )
+	}
+	return rawbytes
+}
+
 func make_header(node *XMLNode, reg_offsets map[string]int,
 	total int, cfg HeaderCfg, machine *MachineXML) {
 	devs := machine.Devices
@@ -1400,20 +1443,12 @@ func make_header(node *XMLNode, reg_offsets map[string]int,
 			continue // skip it
 		}
 		pos := each.Pointer
-		datastr := strings.ReplaceAll(each.Data,"\n"," ")
-		datastr  = strings.ReplaceAll(datastr,"\t"," ")
-		datastr  = strings.TrimSpace(datastr)
-		for _, hexbyte := range strings.Split(datastr, " ") {
-			if pos > len(headbytes) {
-				log.Fatal("Header pointer larger than declared header")
-			}
-			if hexbyte=="" {
-				continue
-			}
-			conv, _ := strconv.ParseInt(hexbyte, 16, 0)
-			headbytes[pos] = byte(conv)
-			pos++
-		}
+		rawbytes := rawdata2bytes( each.Data )
+		// if pos+len(rawbytes) > len(headbytes) {
+		// 	log.Fatal("Header pointer larger than declared header")
+		// }
+		copy( headbytes[pos:], rawbytes )
+		pos+=len(rawbytes)
 	}
 	// Device dependent values
 	for _, d := range cfg.Dev {
