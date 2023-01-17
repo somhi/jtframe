@@ -52,6 +52,8 @@ case "$1" in
         fi
         STASHED=0
         if is_dirty; then git stash; STASHED=1; fi
+        # Make sure we edit on top of the latest commit
+        git checkout master
         git pull --recurse-submodules
         git checkout -b $EDITS
         if [ $STASHED = 1 ]; then git stash apply; fi
