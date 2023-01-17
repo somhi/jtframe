@@ -812,6 +812,9 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		// default definition is allowed
 		if (b.Machine == "" && b.Setname == "" && !button_set) || is_family(b.Machine,machine) {
 			button_def = b.Names
+			if args.Verbose {
+				fmt.Printf("Buttons set to %s for %s\n",b.Names,machine.Name)
+			}
 			button_set = true
 		}
 	}
@@ -1335,7 +1338,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	p.AddNode(fmt.Sprintf("Total 0x%X bytes - %d kBytes", pos, pos>>10)).comment = true
 	make_patches(p, machine, cfg)
 	if header != nil {
-		fill_header(header, reg_offsets, pos, cfg.Header, machine)
+		make_header(header, reg_offsets, pos, cfg.Header, machine)
 	}
 }
 
@@ -1361,7 +1364,7 @@ func set_header_offset(headbytes []byte, pos int, reverse bool, bits, offset int
 	}
 }
 
-func fill_header(node *XMLNode, reg_offsets map[string]int,
+func make_header(node *XMLNode, reg_offsets map[string]int,
 	total int, cfg HeaderCfg, machine *MachineXML) {
 	devs := machine.Devices
 	headbytes := make([]byte, cfg.Len)
@@ -1382,7 +1385,7 @@ func fill_header(node *XMLNode, reg_offsets map[string]int,
 			set_header_offset(headbytes, pos, cfg.Offset.Reverse, cfg.Offset.Bits, offset)
 			pos += 2
 		}
-		set_header_offset(headbytes, pos, cfg.Offset.Reverse, cfg.Offset.Bits, total)
+		//set_header_offset(headbytes, pos, cfg.Offset.Reverse, cfg.Offset.Bits, total)
 	}
 	if len(unknown_regions) > 0 {
 		fmt.Printf("\tmissing region(s)")
@@ -1397,12 +1400,19 @@ func fill_header(node *XMLNode, reg_offsets map[string]int,
 			continue // skip it
 		}
 		pos := each.Pointer
-		for k, hexbyte := range strings.Split(each.Data, " ") {
-			if pos+k > len(headbytes) {
+		datastr := strings.ReplaceAll(each.Data,"\n"," ")
+		datastr  = strings.ReplaceAll(datastr,"\t"," ")
+		datastr  = strings.TrimSpace(datastr)
+		for _, hexbyte := range strings.Split(datastr, " ") {
+			if pos > len(headbytes) {
 				log.Fatal("Header pointer larger than declared header")
 			}
+			if hexbyte=="" {
+				continue
+			}
 			conv, _ := strconv.ParseInt(hexbyte, 16, 0)
-			headbytes[pos+k] = byte(conv)
+			headbytes[pos] = byte(conv)
+			pos++
 		}
 	}
 	// Device dependent values
