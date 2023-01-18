@@ -50,7 +50,8 @@ jt4701_axis u_axisx(
     .sigin      ( x_in      ),
     .flag_clrn  ( csn       ),
     .flagn      ( xflagn    ),
-    .axis       ( cntx      )
+    .axis       ( cntx      ),
+    .dir        (           )
 );
 
 jt4701_axis u_axisy(
@@ -59,7 +60,8 @@ jt4701_axis u_axisy(
     .sigin      ( y_in      ),
     .flag_clrn  ( csn       ),
     .flagn      ( yflagn    ),
-    .axis       ( cnty      )
+    .axis       ( cnty      ),
+    .dir        (           )
 );
 
 always @(posedge clk, posedge rst) begin
@@ -82,7 +84,8 @@ module jt4701_axis(
     input      [1:0]    sigin,
     input               flag_clrn,
     output reg          flagn,
-    output reg [11:0]   axis
+    output reg [11:0]   axis,
+    output reg          dir
 );
 
 wire [1:0] xedge;
@@ -113,6 +116,7 @@ always @(posedge clk) begin
         locked <= 2'b00;
         ping   <= 0;
         pong   <= 0;
+        dir    <= 0;
     end else begin
         flagn      <= !flag_clrn || !(xedge!=2'b00 && locked[0]!=locked[1]);
         last_in    <= sigin;
@@ -128,10 +132,16 @@ always @(posedge clk) begin
         end
 
         if( (posedge_a && !sigin[0]) || (negedge_a && sigin[0]) ) begin
-            if( pong ) axis <= axis + 12'd1;
+            if( pong ) begin
+                axis <= axis + 12'd1;
+                dir  <= 1;
+            end
         end else begin
             if( (posedge_b && !sigin[1]) || (negedge_b && sigin[1]) ) begin
-                if(ping) axis <= axis - 12'd1;
+                if(ping) begin
+                    axis <= axis - 12'd1;
+                    dir  <= 0;
+                end
             end
         end
 
