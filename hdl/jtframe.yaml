@@ -21,6 +21,8 @@ jtframe:
       - jtframe_inputs.v
       - jtframe_paddle.v
       - jtframe_mouse.v
+      - jtframe_dial.v
+      - jt4701.v
       - ps2_intf_v.v
   - from: video
     get:

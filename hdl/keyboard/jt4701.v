@@ -33,7 +33,8 @@ module jt4701(
     input               xn_y,       // select x or y for reading
     output reg          cfn,        // counter flag
     output reg          sfn,        // switch flag
-    output reg [7:0]    dout
+    output reg [7:0]    dout,
+    output reg          dir
 );
 
 wire [11:0] cntx, cnty;
@@ -51,7 +52,7 @@ jt4701_axis u_axisx(
     .flag_clrn  ( csn       ),
     .flagn      ( xflagn    ),
     .axis       ( cntx      ),
-    .dir        (           )
+    .dir        ( dirx      )
 );
 
 jt4701_axis u_axisy(
@@ -61,7 +62,7 @@ jt4701_axis u_axisy(
     .flag_clrn  ( csn       ),
     .flagn      ( yflagn    ),
     .axis       ( cnty      ),
-    .dir        (           )
+    .dir        ( diry      )
 );
 
 always @(posedge clk, posedge rst) begin
@@ -73,6 +74,7 @@ always @(posedge clk, posedge rst) begin
         sfn  <= leftn && middlen && rightn;
         cfn  <= xflagn && yflagn;
         dout <= uln ? upper : lower;
+        dir  <= xn_y ? diry : dirx;
     end
 end
 
