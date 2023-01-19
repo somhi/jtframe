@@ -742,7 +742,7 @@ jtframe_sdram64 #(
     assign hide_credits = `ifdef JTFRAME_CREDITS_HIDEVERT core_mod[0] `else 0 `endif ;
     assign show_credits = ~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif ;
 
-    always @(posedge clk) begin
+    always @(posedge clk_sys) begin
         fast_scroll <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
     end
 
