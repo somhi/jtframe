@@ -733,25 +733,18 @@ jtframe_sdram64 #(
 `endif
 
 `ifdef JTFRAME_CREDITS
-    `ifndef JTFRAME_CREDITS_PAGES
-    `define JTFRAME_CREDITS_PAGES 3
-    `endif
     wire invert_inputs = GAME_INPUTS_ACTIVE_LOW[0];
     wire toggle = |(game_start ^ {4{invert_inputs}});
-    wire fast_scroll = |({game_joystick1[2], game_joystick2[2]} ^ {2{invert_inputs}});
+    reg  fast_scroll;
     wire show_credits, hide_credits;
 
-    `ifdef JTFRAME_CREDITS_HIDEVERT
-        assign hide_credits = core_mod[0];
-    `else
-        assign hide_credits = 0;
-    `endif
 
-    `ifdef MISTER
-        assign show_credits = ~dip_pause & ~status[12] & ~hide_credits;
-    `else
-        assign show_credits = ~dip_pause & ~hide_credits;
-    `endif
+    assign hide_credits = `ifdef JTFRAME_CREDITS_HIDEVERT core_mod[0] `else 0 `endif ;
+    assign show_credits = ~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif ;
+
+    always @(posedge clk) begin
+        fast_scroll <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
+    end
 
     // To do: HS and VS should actually be delayed inside jtframe_credits too
     jtframe_credits #(
@@ -770,7 +763,7 @@ jtframe_sdram64 #(
         `ifdef JTFRAME_CREDITS_NOROTATE
             .rotate ( 2'd0          ),
         `else
-            .rotate ( { ~rotate[1], core_mod[0] }  ),
+            .rotate ( { rotate[1], core_mod[0] }  ),
         `endif
         .toggle     ( toggle        ),
         .fast_scroll( fast_scroll   ),

@@ -145,7 +145,7 @@ reg        autofire, vsl, service_l, pause_frame;
 reg  [2:0] firecnt;
 
 `ifdef POCKET   // The Pocket only uses the small buttons at the front for these functions
-    assign joy_pause = 0;
+    assign joy_pause = board_coin[0] & board_joy1[4];
     assign joy_start = 0;
     assign joy_coin  = 0;
 `else
