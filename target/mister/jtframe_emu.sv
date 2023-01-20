@@ -421,7 +421,7 @@ wire [15:0] ln_pxl, ln_data;
 
 jtframe_mister #(
     .SDRAMW        ( SDRAMW         ),
-    .BUTTONS       ( `JTFRAME_GAME_BUTTONS   ),
+    .BUTTONS       ( `JTFRAME_BUTTONS   ),
     .COLORW        ( COLORW         ),
     .VIDEO_WIDTH   ( `JTFRAME_WIDTH   ),
     .VIDEO_HEIGHT  ( `JTFRAME_HEIGHT  )

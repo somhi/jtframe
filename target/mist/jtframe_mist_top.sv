@@ -191,7 +191,7 @@ assign game_led[1] = 1'b0; // Let system LED info go through too
 jtframe_mist #(
     .SDRAMW       ( SDRAMW         ),
     .SIGNED_SND   ( `JTFRAME_SIGNED_SND    ),
-    .BUTTONS      ( `JTFRAME_GAME_BUTTONS  ),
+    .BUTTONS      ( `JTFRAME_BUTTONS  ),
     .DIPBASE      ( DIPBASE        ),
     .COLORW       ( COLORW         ),
     .VIDEO_WIDTH  ( `JTFRAME_WIDTH ),
