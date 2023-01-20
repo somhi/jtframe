@@ -31,6 +31,7 @@ module jtframe_tilemap #( parameter
     MAP_HW = 8,    // size of the map in pixels
     MAP_VW = 8,
     FLIP_MSB  = 1, // set to 0 for scroll tile maps
+    FLIP_HDUMP= 1,
     XOR_HFLIP = 0, // set to 1 so hflip gets ^ with flip
     XOR_VFLIP = 0  // set to 1 so vflip gets ^ with flip
 )(
@@ -71,7 +72,7 @@ wire    [8:0] veff;
 assign veff = vdump ^ { FLIP_MSB[0]&flip, {MAP_VW-1{flip}}};
 
 always @* begin
-    heff = hdump ^ {MAP_HW{flip}};
+    heff = FLIP_HDUMP ? hdump ^ {MAP_HW{flip}} : hdump;
     if( flip ) heff = heff - 9'd7;
 end
 

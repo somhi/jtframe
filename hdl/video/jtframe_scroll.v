@@ -63,9 +63,12 @@ module jtframe_scroll #( parameter
 
 reg        hsl;
 reg  [8:0] veff;
-wire [8:0] heff;
+reg  [8:0] hdf, heff;
 
-assign heff = hdump + scrx;
+always @* begin
+    hdf  = hdump ^ { 1'b0, {8{flip}} };
+    heff = hdf + scrx;
+end
 
 always @(posedge clk) begin
     hsl <= hs;
@@ -79,6 +82,7 @@ jtframe_tilemap #(
     .PW         ( PW        ),
     .MAP_HW     ( MAP_HW    ),
     .MAP_VW     ( MAP_VW    ),
+    .FLIP_HDUMP ( 0         ), // hdump is already flipped, don't flip it again
     .FLIP_MSB   ( 0         ),
     .XOR_HFLIP  ( XOR_HFLIP ),
     .XOR_VFLIP  ( XOR_VFLIP )
