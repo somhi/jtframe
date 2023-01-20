@@ -61,7 +61,7 @@ module jtframe_objdraw#( parameter
 
 wire [PW-1:0] buf_din;
 wire    [8:0] buf_addr;
-reg     [8:0] aeff;
+reg     [8:0] aeff, hdf;
 wire          buf_we;
 
 reg  [CW-1:0] dr_code;
@@ -96,9 +96,18 @@ endgenerate
 
 always @* begin
     case( HJUMP )
-        1: aeff = { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] }; // 100~17F is translated to 180~1FF
-        2: aeff = { buf_addr[8],~buf_addr[8] | buf_addr[7], buf_addr[6:0] }; //  00~ 7F is translated to  80~ FF
-        default: aeff = buf_addr;
+        1: begin
+            aeff = { buf_addr[8], buf_addr[8] | buf_addr[7], buf_addr[6:0] }; // 100~17F is translated to 180~1FF
+            hdf  = hdump ^ { 1'b0, flip&~hdump[8], {7{flip}} };
+        end
+        2: begin
+            aeff = { buf_addr[8],~buf_addr[8] | buf_addr[7], buf_addr[6:0] }; //  00~ 7F is translated to  80~ FF
+            hdf  = hdump ^ { 1'b0, flip&hdump[8], {7{flip}} }; // untested line
+        end
+        default: begin
+            aeff = buf_addr;
+            hdf  = hdump ^ { 1'b0, , {8{flip}} }; // untested line
+        end
     endcase
 end
 
@@ -133,7 +142,7 @@ jtframe_obj_buffer #(
     .FLIP_OFFSET( FLIP_OFFSET )
 ) u_linebuf(
     .clk        ( clk       ),
-    .flip       ( flip      ),
+    .flip       ( 1'b0      ),
     .LHBL       ( ~hs       ),
     // New line writting
     .we         ( buf_we    ),
@@ -141,7 +150,7 @@ jtframe_obj_buffer #(
     .wr_addr    ( aeff      ),
     // Previous line reading
     .rd         ( pxl_cen   ),
-    .rd_addr    ( hdump     ),
+    .rd_addr    ( hdf       ),
     .rd_data    ( pxl       )
 );
 

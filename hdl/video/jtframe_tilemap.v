@@ -69,10 +69,10 @@ reg     [8:0] heff;
 wire    [8:0] veff;
 
 // not flipping the MSB is usually needed in scroll layers
-assign veff = vdump ^ { FLIP_MSB[0]&flip, {MAP_VW-1{flip}}};
+assign veff = vdump ^ { FLIP_MSB[0]&flip, {8{flip}}};
 
 always @* begin
-    heff = FLIP_HDUMP ? hdump ^ {MAP_HW{flip}} : hdump;
+    heff = FLIP_HDUMP ? hdump ^ {9{flip}} : hdump;
     if( flip ) heff = heff - 9'd7;
 end
 
