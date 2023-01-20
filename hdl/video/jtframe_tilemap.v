@@ -32,6 +32,7 @@ module jtframe_tilemap #( parameter
     MAP_VW = 8,
     FLIP_MSB  = 1, // set to 0 for scroll tile maps
     FLIP_HDUMP= 1,
+    FLIP_VDUMP= 1,
     XOR_HFLIP = 0, // set to 1 so hflip gets ^ with flip
     XOR_VFLIP = 0  // set to 1 so vflip gets ^ with flip
 )(
@@ -69,7 +70,7 @@ reg     [8:0] heff;
 wire    [8:0] veff;
 
 // not flipping the MSB is usually needed in scroll layers
-assign veff = vdump ^ { FLIP_MSB[0]&flip, {8{flip}}};
+assign veff = FLIP_VDUMP ? vdump ^ { FLIP_MSB[0]&flip, {8{flip}}} : vdump;
 
 always @* begin
     heff = FLIP_HDUMP ? hdump ^ {9{flip}} : hdump;

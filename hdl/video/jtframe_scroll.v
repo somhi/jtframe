@@ -39,8 +39,8 @@ module jtframe_scroll #( parameter
 
     input              hs,
 
-    input [MAP_VW-1:0] vdump,
-    input [MAP_HW-1:0] hdump,
+    input        [8:0] vdump,
+    input        [8:0] hdump,
     input              blankn,  // if !blankn there are no ROM requests
     input              flip,    // Screen flip
     input      [ 8:0]  scrx,
@@ -62,17 +62,18 @@ module jtframe_scroll #( parameter
 );
 
 reg        hsl;
-reg  [8:0] veff;
+reg  [8:0] veff, vdf;
 reg  [8:0] hdf, heff;
 
 always @* begin
     hdf  = hdump ^ { 1'b0, {8{flip}} };
     heff = hdf + scrx;
+    vdf  = vdump ^ { 1'b0, {8{flip}} };
 end
 
 always @(posedge clk) begin
     hsl <= hs;
-    if( ~hs & hsl ) veff <= vdump + scry;
+    if( ~hs & hsl ) veff <= vdf + scry;
 end
 
 jtframe_tilemap #( 
@@ -83,6 +84,7 @@ jtframe_tilemap #(
     .MAP_HW     ( MAP_HW    ),
     .MAP_VW     ( MAP_VW    ),
     .FLIP_HDUMP ( 0         ), // hdump is already flipped, don't flip it again
+    .FLIP_VDUMP ( 0         ), // same for vdump
     .FLIP_MSB   ( 0         ),
     .XOR_HFLIP  ( XOR_HFLIP ),
     .XOR_VFLIP  ( XOR_VFLIP )
