@@ -38,8 +38,8 @@ module jtframe_tilemap #( parameter
     input              clk,
     input              pxl_cen,
 
-    input [MAP_VW-1:0] vdump,
-    input [MAP_HW-1:0] hdump,
+    input        [8:0] vdump,
+    input        [8:0] hdump,
     input              blankn,  // if !blankn there are no ROM requests
     input              flip,    // Screen flip
 
@@ -60,16 +60,20 @@ module jtframe_tilemap #( parameter
 
 localparam VW = SIZE==8 ? 3 : SIZE==16 ? 4:5;
 
-reg  [      31:0] pxl_data;
-reg  [    PW-5:0] cur_pal, nx_pal;
-wire              vflip_g;
-reg               hflip_g, nx_hf;
-wire [MAP_HW-1:0] heff;
-wire [MAP_VW-1:0] veff;
+reg  [  31:0] pxl_data;
+reg  [PW-5:0] cur_pal, nx_pal;
+wire          vflip_g;
+reg           hflip_g, nx_hf;
+reg     [8:0] heff;
+wire    [8:0] veff;
 
 // not flipping the MSB is usually needed in scroll layers
-assign heff = hdump ^ {MAP_HW{flip}}; //{ FLIP_MSB[0]&flip, {MAP_HW-1{flip}}};
 assign veff = vdump ^ { FLIP_MSB[0]&flip, {MAP_VW-1{flip}}};
+
+always @* begin
+    heff = hdump ^ {MAP_HW{flip}};
+    if( flip ) heff = heff - 9'd7;
+end
 
 initial begin
     if( SIZE==32 ) begin
@@ -96,8 +100,8 @@ always @(posedge clk, posedge rst) begin
             rom_cs <= ~rst & blankn;
             rom_addr[0+:VW] <= veff[0+:VW]^{VW{vflip_g}};
             rom_addr[VR-1-:CW] <= code;
-            if( SIZE==16 ) rom_addr[VW]      <= heff[3]^flip;
-            if( SIZE==32 ) rom_addr[VW+1-:2] <= heff[4:3]^{2{flip}};
+            if( SIZE==16 ) rom_addr[VW]      <= heff[3];
+            if( SIZE==32 ) rom_addr[VW+1-:2] <= heff[4:3];
             pxl_data <= rom_data;
             // draw information is eight pixels behind
             nx_pal   <= pal;
