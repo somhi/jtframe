@@ -322,6 +322,8 @@ jtframe_board #(
     .game_tilt      ( game_tilt       ),
     .dial_x         ( dial_x          ),
     .dial_y         ( dial_y          ),
+    .spinner_1      ( 8'd0            ),
+    .spinner_2      ( 8'd0            ),
     // Mouse & paddle
     .bd_mouse_dx    ( bd_mouse_dx     ),
     .bd_mouse_dy    ( bd_mouse_dy     ),

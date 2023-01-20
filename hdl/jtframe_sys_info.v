@@ -25,6 +25,7 @@ module jtframe_sys_info(
     input               dip_pause,
     input               dip_flip,
     input               LVBL,
+    input         [6:0] core_mod,
     input         [3:0] ba_rdy,
     input         [7:0] st_addr,
     output reg    [7:0] st_dout
@@ -62,7 +63,7 @@ always @(posedge clk, posedge rst) begin
             0: st_dout <= stats;
             1: st_dout <= st_addr[0] ? frame_cnt[15:8] : frame_cnt[7:0];
             2: st_dout <= srate;
-            3: st_dout <= { 7'd0, dip_flip };
+            3: st_dout <= { core_mod[3:0], 3'd0, dip_flip };
             default: st_dout <= 0;
         endcase
     end

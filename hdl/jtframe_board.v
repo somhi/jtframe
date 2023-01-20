@@ -319,6 +319,7 @@ jtframe_keyboard u_keyboard(
 
     `ifndef JTFRAME_RELEASE
         wire [7:0] sys_info;
+        wire       flip_info = dip_flip & ~core_mod[0]; // Do not flip the debug display for vertical games
 
         jtframe_debug #(.COLORW(COLORW)) u_debug(
             .clk         ( clk_sys       ),
@@ -334,7 +335,7 @@ jtframe_keyboard u_keyboard(
 
             // overlay the value on video
             .pxl_cen     ( pxl_cen       ),
-            .dip_flip    ( dip_flip      ),
+            .dip_flip    ( flip_info     ),
             .rin         ( pre2x_r       ),
             .gin         ( pre2x_g       ),
             .bin         ( pre2x_b       ),
@@ -358,6 +359,7 @@ jtframe_keyboard u_keyboard(
             .dip_pause  ( dip_pause     ),
             .dip_flip   ( dip_flip      ),
             .LVBL       ( LVBL          ),
+            .core_mod   ( core_mod      ),
             .ba_rdy     ( bax_rdy       ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )

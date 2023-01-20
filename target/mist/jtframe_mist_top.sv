@@ -358,7 +358,7 @@ assign UART_TX = game_tx,
 
 assign dipsw = `ifdef JTFRAME_SIM_DIPS
     `JTFRAME_SIM_DIPS `else
-    status[31+DIPBASE:DIPBASE]; `endif
+    status[31+DIPBASE:DIPBASE] `endif;
 
 
 `include "jtframe_game_instance.v"

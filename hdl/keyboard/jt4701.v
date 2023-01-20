@@ -230,7 +230,8 @@ module jt4701_dialemu_2axis(
         .xn_y       ( xn_y      ),        // select x or y for reading
         .cfn        ( cfn       ),        // counter flag
         .sfn        ( sfn       ),        // switch flag
-        .dout       ( dout      )
+        .dout       ( dout      ),
+        .dir        (           )
     );
 
     jt4701_dialemu u_dial1p(
