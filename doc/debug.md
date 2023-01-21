@@ -27,6 +27,8 @@ st_addr[7:6] |  Read
   10         |  Sample rate (BCD)
   11         | { core_mod[3:0], 3'd0, dip_flip }
 
+See core_mod description [here](osd.md)
+
 ### Frame Count
 
 This is the total number of frames since the last reset. The count gets halted during pause.
