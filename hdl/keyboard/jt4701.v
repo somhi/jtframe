@@ -38,7 +38,7 @@ module jt4701(
 );
 
 wire [11:0] cntx, cnty;
-wire        xflagn, yflagn;
+wire        xflagn, yflagn, xdir, ydir;
 
 wire [ 7:0] upper, lower;
 
@@ -52,7 +52,7 @@ jt4701_axis u_axisx(
     .flag_clrn  ( csn       ),
     .flagn      ( xflagn    ),
     .axis       ( cntx      ),
-    .dir        ( dirx      )
+    .dir        ( xdir      )
 );
 
 jt4701_axis u_axisy(
@@ -62,7 +62,7 @@ jt4701_axis u_axisy(
     .flag_clrn  ( csn       ),
     .flagn      ( yflagn    ),
     .axis       ( cnty      ),
-    .dir        ( diry      )
+    .dir        ( ydir      )
 );
 
 always @(posedge clk, posedge rst) begin
@@ -74,7 +74,7 @@ always @(posedge clk, posedge rst) begin
         sfn  <= leftn && middlen && rightn;
         cfn  <= xflagn && yflagn;
         dout <= uln ? upper : lower;
-        dir  <= xn_y ? diry : dirx;
+        dir  <= xn_y ? ydir : xdir;
     end
 end
 
