@@ -13,7 +13,7 @@
     along with JTFRAME.  If not, see <http://www.gnu.org/licenses/>.
 
     Author: Jose Tejada Gomez. Twitter: @topapate
-    Date: 28-8-20122 */
+    Date: 28-8-2022 */
 
 package cmd
 

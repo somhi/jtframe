@@ -197,14 +197,18 @@ func dump_output(cfg Config) {
 	} else {
 		all_cores = cfg.cores
 	}
-	// Update MRA/JSON if needed
+	// Update MRA/JSON and sch if needed
 	mra_str := "jtframe mra %s"
+	sch_str := "jtframe sch %s"
 	if cfg.Git {
 		mra_str += " --git"
+		sch_str += " --git"
 	}
 	mra_str += "\n"
+	sch_str += "\n"
 	for _, each := range all_cores {
 		fmt.Printf(mra_str, each)
+		fmt.Printf(sch_str, each)
 	}
 	// Update the RBF files
 	if cfg.Skip {

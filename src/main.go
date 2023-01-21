@@ -20,8 +20,22 @@
 
 package main
 
-import "github.com/jotego/jtframe/cmd"
+import (
+    "fmt"
+    "os"
+    "github.com/jotego/jtframe/cmd"
+)
+
+func RequireEnv( v string ) {
+    if os.Getenv(v)=="" {
+        fmt.Println("Define and export the ",v," environment variable before calling jtframe")
+        os.Exit(1)
+    }
+}
 
 func main() {
+    for _, each := range []string{"JTROOT","CORES","JTBIN","JTFRAME"} {
+        RequireEnv(each)
+    }
 	cmd.Execute()
 }
