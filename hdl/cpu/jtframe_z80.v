@@ -55,9 +55,10 @@ module jtframe_sysz80(
     input         rom_ok
 );
     parameter
-        RAM_AW  = 12,
-        CLR_INT = 0,   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
-        M1_WAIT = 0;
+        RAM_AW   = 12,
+        CLR_INT  = 0,   // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+        M1_WAIT  = 0,
+        RECOVERY = 1;
 
     jtframe_sysz80_nvram#(
         .RAM_AW  ( RAM_AW   ),
@@ -98,9 +99,10 @@ endmodule
 ///////////////////////////////////////////////////////////////
 
 module jtframe_sysz80_nvram#( parameter
-    RAM_AW  = 12,
-    CLR_INT = 0,  // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
-    M1_WAIT = 0
+    RAM_AW   = 12,
+    CLR_INT  = 0,  // if 0, int_n is the Z80 port, if 1, int_n is latched and cleared with m1 and iorq signals
+    M1_WAIT  = 0,
+    RECOVERY = 1
 )(
     input         rst_n,
     input         clk,
@@ -186,7 +188,7 @@ end
         .q1     ( prog_din    )
     );
 
-    jtframe_z80_romwait u_z80wait(
+    jtframe_z80_romwait #(.RECOVERY(RECOVERY)) u_z80wait(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),

@@ -50,6 +50,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --force | -f    Forces --git even if it is not clean.
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
+    --nodbg         Defines JTFRAME_RELEASE
     --program | -p  Programs the FPGA via JTAG
     --quick |-q     Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
@@ -160,10 +161,9 @@ function parse_args {
                 MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI"
                 GIT=FALSE
                 TARGET=mister;;
-            --sim)
-                SIM=TRUE;;
-            --showmacros)
-                SHOWMACROS=1;;
+            --nodbg)      MACROS="$MACROS JTFRAME_RELEASE";;
+            --sim)        SIM=TRUE;;
+            --showmacros) SHOWMACROS=1;;
             --target|-t)
                 shift
                 if [[ ! -d "$JTFRAME/target/$1" || -z "$1" ]]; then
