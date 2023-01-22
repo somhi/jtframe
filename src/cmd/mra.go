@@ -78,6 +78,7 @@ names=[
 
 [ROM]
 # only specify regions that need parameters
+ddr_load=true
 regions = [
 	{ name=maincpu, machine=optional, start="MACRONAME_START", width=16, len=0x10000, reverse=true, no_offset=true },
 	{ name==soundcpu, sequence=[2,1,0,0], no_offset=true } # inverts the order and repeats the first ROM
@@ -88,9 +89,12 @@ regions = [
 # this is the order in the MRA file
 order = [ "maincpu", "soundcpu", "gfx1", "gfx2" ]
 # Default NVRAM contents, usually not needed
-nvram = [
-	{ machine="...", setname="...", data="00 22 33..." },...
-]
+nvram = {
+	machines=[ "supports nvram..." ] # NVRAM on all machines by default
+	data=[
+		{ machine="...", setname="...", data="00 22 33..." },...
+	]
+}
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if reduce {

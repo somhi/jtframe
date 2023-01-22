@@ -67,6 +67,10 @@ type RegCfg struct {
 	Frac      struct {
 		Bytes, Parts int
 	}
+	Overrules []struct{ // Overrules the region settings for specific files
+		Names []string
+		Reverse bool
+	}
 	Custom struct { // If there is not dump available, jtframe will try to make one
 		// the assembly source code must be in cores/corename/firmware/machine.s or setname.s
 		// Machine, Setname string // Optional filters
@@ -115,8 +119,7 @@ type Mame2MRA struct {
 	}
 
 	Features struct {
-		Ddr, Beta, Debug, Cheat bool
-		Nvram                   int
+		Beta, Debug, Cheat bool
 	}
 
 	Parse ParseCfg
@@ -160,6 +163,7 @@ type Mame2MRA struct {
 	Header HeaderCfg
 
 	ROM struct {
+		Ddr_load bool
 		Regions []RegCfg
 		Order   []string
 		Remove  []string // Remove specific files from the dump
@@ -182,7 +186,11 @@ type Mame2MRA struct {
 			Offset           int
 			Value            string
 		}
-		Nvram []RawData // Initial value for NVRAM
+		Nvram struct{
+			length	int // set internally
+			Machines []string // machines with NVRAM support, if null, all have support
+			Defaults []RawData // Initial value for NVRAM
+		}
 	}
 }
 
@@ -781,26 +789,37 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 		n.AddNode("part").AddAttr("name", "debug.bin")
 	}
 	// NVRAM
-	if cfg.Features.Nvram != 0 {
-		var raw *RawData
-		for k,each := range cfg.ROM.Nvram {
-			if each.Machine=="" && each.Setname=="" && raw==nil {
-				raw = &cfg.ROM.Nvram[k]
-			}
-			if is_family( each.Machine, machine ) {
-				raw = &cfg.ROM.Nvram[k]
-			}
-			if each.Setname == machine.Name {
-				raw = &cfg.ROM.Nvram[k]
-				break
+	if cfg.ROM.Nvram.length != 0 {
+		add_nvram := len(cfg.ROM.Nvram.Machines)==0
+		if !add_nvram {
+			for _, each := range cfg.ROM.Nvram.Machines {
+				if machine.Name == each {
+					add_nvram = true
+					break
+				}
 			}
 		}
-		if raw != nil {
-			rawbytes := rawdata2bytes(raw.Data)
-			root.AddNode("rom").AddAttr("index","2").SetText("\n"+hexdump(rawbytes, 16))
+		if add_nvram {
+			var raw *RawData
+			for k,each := range cfg.ROM.Nvram.Defaults {
+				if each.Machine=="" && each.Setname=="" && raw==nil {
+					raw = &cfg.ROM.Nvram.Defaults[k]
+				}
+				if is_family( each.Machine, machine ) {
+					raw = &cfg.ROM.Nvram.Defaults[k]
+				}
+				if each.Setname == machine.Name {
+					raw = &cfg.ROM.Nvram.Defaults[k]
+					break
+				}
+			}
+			if raw != nil {
+				rawbytes := rawdata2bytes(raw.Data)
+				root.AddNode("rom").AddAttr("index","2").SetText("\n"+hexdump(rawbytes, 16))
+			}
+			n := root.AddNode("nvram").AddAttr("index", "2")
+			n.AddIntAttr("size", cfg.ROM.Nvram.length)
 		}
-		n := root.AddNode("nvram").AddAttr("index", "2")
-		n.AddIntAttr("size", cfg.Features.Nvram)
 	}
 	// coreMOD
 	make_coreMOD(&root, machine, cfg)
@@ -1230,7 +1249,7 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			}
 			if reg_cfg.Reverse {
 				for j:=k+rom_cnt-1; j>=k;j-- {
-					if reg_roms[j].group==0 && reg_cfg.Reverse {
+					if reg_roms[j].group==0 && get_reverse( reg_cfg, reg_roms[j].Name ) {
 						mapstr="12"	// Should this try to contemplate other cases different from 16 bits?
 						n = p.AddNode("interleave").AddAttr("output", "16" )
 					}
@@ -1249,6 +1268,17 @@ func parse_regular_interleave( split, split_minlen int, reg string, reg_roms []M
 			fill_upto(pos, split_minlen+chunk0, p)
 		}
 	}
+}
+
+func get_reverse( reg_cfg *RegCfg, name string ) bool {
+	for _, k := range reg_cfg.Overrules {
+		for _, j := range k.Names {
+			if j == name {
+				return k.Reverse
+			}
+		}
+	}
+	return reg_cfg.Reverse
 }
 
 func sdram_bank_comment( root *XMLNode, pos int, macros map[string]string) {
@@ -1281,6 +1311,9 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	}
 	p.AddAttr("zip", zipname)
 	p.AddAttr("md5", "None")
+	if( cfg.ROM.Ddr_load ) {
+		p.AddAttr("address", "0x30000000")
+	}
 	regions := cfg.ROM.Order
 	// Add regions unlisted in the config to the final list
 	sorted_regs := make(map[string]bool)
@@ -1317,10 +1350,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			fmt.Printf("\tunlisted region for sorting %s in %s\n", reg, machine.Name )
 		}
 		reg_roms := extract_region(reg_cfg, machine.Rom, cfg.ROM.Remove)
-		// Skip empty regions
-		if len(reg_roms) == 0 {
-			continue
-		}
+		// Do not skip empty regions, in case they have a minimum length to fill
 		// Skip regions with "nodump" ROMs
 		nodump := false
 		for _, each := range reg_roms {
@@ -2116,12 +2146,8 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 	}
 	// Add the NVRAM section if it was in the .def file
 	if macros["JTFRAME_IOCTL_RD"] != "" {
-		if mra_cfg.Features.Nvram != 0 {
-			log.Printf(`The use of nvram in the TOML file is deprecated. Just define the macro
-	JTFRAME_IOCTL_RD in macros.def instead.\nFound nvram=%d`,mra_cfg.Features.Nvram)
-		}
 		aux, err := strconv.ParseInt(macros["JTFRAME_IOCTL_RD"],0,32)
-		mra_cfg.Features.Nvram = int(aux)
+		mra_cfg.ROM.Nvram.length = int(aux)
 		if err != nil {
 			fmt.Println("JTFRAME_IOCTL_RD was ill defined")
 			fmt.Println(err)
