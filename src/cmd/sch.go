@@ -23,12 +23,12 @@ import (
 	"path/filepath"
 	"os"
 	"os/exec"
-	// "strings"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-var jtbin bool
+var jtbin, verbose bool
 var output_folder string
 
 func parse_folder( corename string, cores_fs fs.FS, path string) {
@@ -42,14 +42,19 @@ func parse_folder( corename string, cores_fs fs.FS, path string) {
 		} else if k.Name() == corename+".kicad_sch" {
 			// fullpath := filepath.Join( path, k.Name() )
 			os.Chdir(filepath.Join("cores",path))
-			// fmt.Println(path)
-			// fmt.Println("kicad-cli-nightly","sch","export","pdf",
-			// "--output", filepath.Join(output_folder,corename+".pdf"), k.Name())
-			cmd := exec.Command("kicad-cli-nightly","sch","export","pdf",
-				"--output", filepath.Join(output_folder,corename+".pdf"), k.Name())
+			cmd_args := []string{
+				"kicad-cli-nightly","sch","export","pdf",
+				"--output", filepath.Join(output_folder,corename+".pdf"), k.Name(),
+			}
+			if verbose {
+				fmt.Printf("Running %s\n\tin %s\n", strings.Join(cmd_args," "), path)
+			}
+			cmd := exec.Command( cmd_args[0], cmd_args[1:]... )
 			e = cmd.Run()
 			if e != nil {
 				fmt.Println(e)
+			} else if verbose {
+				fmt.Printf("\tcompleted.\n")
 			}
 			os.Chdir(os.Getenv("JTROOT"))
 		}
@@ -95,4 +100,5 @@ func init() {
 	flag := schCmd.Flags()
 
 	flag.BoolVarP(&jtbin, "git", "g", false, "Save files to $JTBIN/sch")
+	flag.BoolVarP(&verbose, "verbose", "v", false, "Verbose")
 }
