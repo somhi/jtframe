@@ -106,7 +106,7 @@ always @* begin
         end
         default: begin
             aeff = buf_addr;
-            hdf  = hdump ^ { 1'b0, , {8{flip}} }; // untested line
+            hdf  = hdump ^ { 1'b0, {8{flip}} }; // untested line
         end
     endcase
 end
