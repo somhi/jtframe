@@ -52,7 +52,8 @@ jt4701_axis u_axisx(
     .flag_clrn  ( csn       ),
     .flagn      ( xflagn    ),
     .axis       ( cntx      ),
-    .dir        ( xdir      )
+    .dir        ( xdir      ),
+    .step       (           )
 );
 
 jt4701_axis u_axisy(
@@ -62,7 +63,8 @@ jt4701_axis u_axisy(
     .flag_clrn  ( csn       ),
     .flagn      ( yflagn    ),
     .axis       ( cnty      ),
-    .dir        ( ydir      )
+    .dir        ( ydir      ),
+    .step       (           )
 );
 
 always @(posedge clk, posedge rst) begin
@@ -87,10 +89,15 @@ module jt4701_axis(
     input               flag_clrn,
     output reg          flagn,
     output reg [11:0]   axis,
-    output reg          dir
+    output reg          dir,  // valid value if step is set, 1 for inc 0 for dec
+    output reg          step  // high if a step has occured
 );
 
+parameter HOTONE=0,
+          SLOWN =9; // bits for slowdown counter (only used if HOTONE is 1)
+
 wire [1:0] xedge;
+reg  [SLOWN-1:0] subcnt=0;
 reg  [1:0] last_in, locked, last_xedge;
 wire       posedge_a, posedge_b, negedge_a, negedge_b;
 reg        ping, pong;
@@ -112,13 +119,14 @@ end
 
 always @(posedge clk) begin
     if( rst ) begin
-        axis   <= 12'd0;
+        axis   <= HOTONE ? 12'd1 : 12'd0;
         last_in<= 2'b0;
         flagn  <= 1;
         locked <= 2'b00;
         ping   <= 0;
         pong   <= 0;
         dir    <= 0;
+        step   <= 0;
     end else begin
         flagn      <= !flag_clrn || !(xedge!=2'b00 && locked[0]!=locked[1]);
         last_in    <= sigin;
@@ -133,20 +141,36 @@ always @(posedge clk) begin
             pong <= 0;
         end
 
-        if( (posedge_a && !sigin[0]) || (negedge_a && sigin[0]) ) begin
-            if( pong ) begin
-                axis <= axis + 12'd1;
-                dir  <= 1;
-            end
-        end else begin
-            if( (posedge_b && !sigin[1]) || (negedge_b && sigin[1]) ) begin
-                if(ping) begin
+        step <= 0;
+        if( (posedge_b && !sigin[1]) || (negedge_b && sigin[1]) ) begin
+            if(ping) begin
+                subcnt <= subcnt + 1'd1;
+                if( !HOTONE ) begin
                     axis <= axis - 12'd1;
                     dir  <= 0;
+                    step <= 1;
+                end else if(&subcnt) begin
+                    axis <= {axis[0],axis[11:1]};
+                    dir  <= 0;
+                    step <= 1;
                 end
             end
         end
-
+        if( (posedge_a && !sigin[0]) || (negedge_a && sigin[0]) ) begin
+            if( pong ) begin
+                subcnt <= subcnt + 1'd1;
+                if( !HOTONE ) begin
+                    axis <= axis + 12'd1;
+                    dir  <= 1;
+                    step <= 1;
+                end else if(&subcnt) begin
+                    axis <= {axis[10:0],axis[11]};
+                    dir  <= 1;
+                    step <= 1;
+                end
+            end
+        end
+        if( axis==0 ) axis <= 1;
     end
 end
 
