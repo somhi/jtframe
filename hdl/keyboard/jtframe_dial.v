@@ -23,11 +23,14 @@ module jtframe_dial(
     input           clk,
     input           LHBL,
     // emulation based on joysticks
-    input     [6:0] joystick1, joystick2,
+    input     [9:0] joystick1, joystick2,
     input     [8:0] spinner_1, spinner_2,
     input     [1:0] sensty,
     output    [1:0] dial_x,    dial_y
 );
+
+localparam B0 = `JTFRAME_DIALEMU_LEFT,
+           B1 = B0+1;
 
 reg  [2:0] dial_pulse;
 reg  [7:0] cnt1, cnt2;
@@ -51,10 +54,10 @@ always @* begin
         2: up_joy = dial_pulse[2:0] < 1;
     endcase
     up_joy = up_joy & line;
-    inc_1p   = sel ? !joystick1[5] :  cnt1[7];
-    dec_1p   = sel ? !joystick1[6] : !cnt1[7];
-    inc_2p   = sel ? !joystick2[5] :  cnt2[7];
-    dec_2p   = sel ? !joystick2[6] : !cnt2[7];
+    inc_1p   = sel ? !joystick1[B0] :  cnt1[7];
+    dec_1p   = sel ? !joystick1[B1] : !cnt1[7];
+    inc_2p   = sel ? !joystick2[B0] :  cnt2[7];
+    dec_2p   = sel ? !joystick2[B1] : !cnt2[7];
 end
 
 // The dial update rythm is set to once every four lines

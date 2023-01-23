@@ -213,6 +213,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 		"JTFRAME_SIGNED_SND":    "1",
 		"JTFRAME_MIST_DIPBASE": "16",
 		"JTFRAME_CREDITS_PAGES": "3",
+		"JTFRAME_DIALEMU_LEFT":  "5",
 		"JTFRAME_TIMESTAMP":fmt.Sprintf("%d", time.Now().Unix()),
 		"CORENAME": cfg.Core,
 		"DATE": fmt.Sprintf("%d%02d%02d", year%100, month, day),
