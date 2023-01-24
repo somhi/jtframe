@@ -70,13 +70,14 @@ if [ -d $JTBIN/mister ]; then
 fi
 
 cp -r $JTBIN/mra/_alternatives $ROOT
+cp -r $JTBIN/games $ROOT
 
 # Copy the files to MiSTer
 sshpass -p $MISTERPASSWD ssh -l $MRUSER mister.home "rm -rf /media/fat/_JTBIN"
 if sshpass -p $MISTERPASSWD scp -r $TEMP/* $MRUSER@${MRHOST}:/media/fat; then
     rm -rf $TEMP
 else
-    echo "Copy to MiSTer failes. Temporary files in " $TEMP
+    echo "Copy to MiSTer failed. Temporary files in " $TEMP
     exit 1
 fi
 

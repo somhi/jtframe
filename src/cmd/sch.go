@@ -87,7 +87,7 @@ var schCmd = &cobra.Command{
 		} else {
 			output_folder = filepath.Join(os.Getenv("JTROOT"),"release","sch")
 		}
-		os.MkdirAll(output_folder,0755)
+		os.MkdirAll(output_folder,0776)
 		for _, corename := range args {
 			parse_folder( corename, cores_fs, filepath.Join(corename,"sch") )
 		}

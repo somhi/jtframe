@@ -418,6 +418,7 @@ jtframe_uart #(
 );
 
 jtframe_cheat_rom #(.AW(CHEATW)) u_rom(
+    .rst        ( rst       ),
     .clk_rom    ( clk_rom   ),
     .clk_pico   ( clk_pico  ),
     .iaddr      ( iaddr[CHEATW-1:0] ),

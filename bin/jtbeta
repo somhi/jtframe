@@ -148,15 +148,11 @@ if [ ! -s $JTUTIL/.jtbeta ]; then
 fi
 
 source $JTUTIL/.jtbeta
-# generate the beta file
+# generate the jtbeta.zip file
+# the assembler file for the pico is in asm/beta.s
 cd $JTUTIL/pico
 echo cheatzip beta -beta $BETAKEY
 cheatzip beta -beta $BETAKEY
-# Copy it to the MiSTer and Sockit folders
-for i in mister sockit; do
-    mkdir -p $CORES/$CORE/$i || exit $?
-    cp -v --no-clobber beta.hex $CORES/$CORE/$i/cheat.hex || exit $?
-done
 
 jtupdate --cores $CORE --seed $DEFAULT_TARGET \
     --beta $BETAKEY --corestamp $CORESTAMP $* \

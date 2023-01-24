@@ -1,4 +1,5 @@
 *.log
+*.fmt
 sim
 *.lxt
 *.bin

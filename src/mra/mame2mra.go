@@ -27,13 +27,15 @@ import (
 type Args struct {
 	Def_cfg                   jtdef.Config
 	Toml_path, Xml_path       string
-	outdir, altdir, pocketdir string
+	outdir, altdir            string
+	cheatdir, pocketdir       string
 	Info                      []Info
 	Buttons                   string
 	Year                      string
 	Verbose, SkipMRA, SkipPocket bool
 	Show_platform             bool
-	JTbin                     bool  // copy to JTbin
+	Beta             		  bool
+	JTbin                     bool  // copy to JTbin & disable debug features
 	Author, URL  		      string
 	// private
 	firmware_dir			  string
@@ -118,8 +120,12 @@ type Mame2MRA struct {
 		}
 	}
 
-	Features struct {
-		Beta, Debug, Cheat bool
+	Cheat struct {
+		Disable bool
+		Files []struct{
+			Machine, Setname, AsmFile string
+			Skip bool
+		}
 	}
 
 	Parse ParseCfg
@@ -579,7 +585,7 @@ func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode
 		pure_name = rm_spsp(pure_name)
 		fname = filepath.Join( args.altdir, "_" + pure_name )
 
-		err := os.MkdirAll(fname, 0777)
+		err := os.MkdirAll(fname, 0775)
 		if err != nil && !os.IsExist(err) {
 			log.Fatal(err, fname)
 		}
@@ -778,15 +784,47 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 	// ROM load
 	make_ROM(&root, machine, cfg, args )
 	// Beta
-	if cfg.Features.Beta {
+	if args.Beta {
 		n := root.AddNode("rom").AddAttr("index", "17")
 		n.AddAttr("zip", "jtbeta.zip").AddAttr("md5", "None")
 		n.AddNode("part").AddAttr("name", "beta.bin")
 	}
-	if cfg.Features.Debug {
-		n := root.AddNode("rom").AddAttr("index", "16")
-		n.AddAttr("zip", "debug.zip").AddAttr("md5", "None")
-		n.AddNode("part").AddAttr("name", "debug.bin")
+	if !cfg.Cheat.Disable {
+		skip := false
+		filename := ""
+		family_match := false
+		for _,each := range cfg.Cheat.Files {
+			if each.Machine=="" && each.Setname=="" && !family_match {
+				filename = each.AsmFile
+				skip = each.Skip
+			}
+			if is_family(each.Machine,machine) {
+				filename = each.AsmFile
+				skip = each.Skip
+				family_match = true
+			}
+			if each.Setname==machine.Name {
+				filename = each.AsmFile
+				skip = each.Skip
+				break
+			}
+		}
+		if filename=="" {
+			filename=args.Def_cfg.Core+".s"
+		}
+		asmhex := picoasm(filename,machine,cfg,args) // the filename is ignored for betas
+		if asmhex!=nil && len(asmhex)>0 && (!skip || args.Beta) {
+			root.AddNode("Machine code for the Picoblaze CPU").comment=true
+			n := root.AddNode("rom").AddAttr("index", "16")
+			if args.JTbin || args.Beta {
+				n.AddNode("part").SetText(hexdump( asmhex , 32)).indent_txt = true
+			} else {
+			    re := regexp.MustCompile("\\..*$")
+    			basename := filepath.Base(re.ReplaceAllString(filename,""))
+				n.AddAttr("zip", basename+"_cheat.zip").AddAttr("md5", "None")
+				n.AddNode("part").AddAttr("name",basename+".bin")
+			}
+		}
 	}
 	// NVRAM
 	if cfg.ROM.Nvram.length != 0 {
@@ -2245,6 +2283,7 @@ func parse_args(args *Args) {
 			log.Fatal("jtframe mra: JTBIN path must be defined")
 		}
 	}
+	args.cheatdir = filepath.Join( release_dir, "games", "mame" )
 	args.outdir = filepath.Join( release_dir, "mra" )
 	args.altdir = filepath.Join( args.outdir, "_alternatives" )
 	args.pocketdir = filepath.Join( release_dir, "pocket", "raw" )

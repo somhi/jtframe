@@ -52,6 +52,15 @@ skip.Bootlegs=true # to skip bootlegs
 mustbe.devices=[ "i8751"... ]
 mustbe.machines=[ "machine name"... ]
 
+[cheat]
+# Cheat file is read by default from cores/core/cheat/machine.s
+# It can disabled globally or skipped based on machine/setname
+disable=false
+files=[
+	{ filename="sameforall.s" }, # use the same file for all games
+	{ machine="baddudes", setname="", filename="hbarrel.s", skip=false },
+]
+
 [dipsw]
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
 delete=[ "name"... ]
@@ -122,6 +131,7 @@ func init() {
 	flag.BoolVarP(&reduce, "reduce", "r", false, "Reduce the size of the XML file by creating a new one with only the entries required by the cores.")
 	flag.BoolVarP(&mra_args.SkipMRA, "skipMRA", "s", false, "Do not generate MRA files")
 	flag.BoolVar(&mra_args.SkipPocket, "skipPocket", false, "Do not generate JSON files for the Pocket")
+	flag.BoolVar(&mra_args.Beta, "beta", false, "Generates the files for a beta core")
 	flag.BoolVarP(&mra_args.Show_platform, "show_platform", "p", false, "Show platform name and quit")
 	flag.BoolVarP(&mra_args.JTbin, "git", "g", false, "Save files to JTBIN")
 	flag.StringVar(&mra_args.Buttons, "buttons", "", "Buttons used by the game -upto six-")

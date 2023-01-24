@@ -97,23 +97,20 @@ always @(posedge clk_rom) begin
         if( word_we ) prom_addr <= prom_addr+1'd1;
     end
 end
-/*
-jtframe_prom #(
-    .dw(18),
-    .aw(AW),
-    `ifdef JTFRAME_CHEAT_FIRMWARE
-        .synhex("cheat.hex"),
-    `endif
-    .simhex("cheat.hex")
-) u_irom(
-    .clk    ( clk       ),
-    .cen    ( 1'b1      ),
-    .data   ( prog_word ),
-    .rd_addr( iaddr[AW-1:0] ),
-    .wr_addr( prom_addr ),
-    .we     ( word_we   ),
-    .q      ( idata     )
-);*/
+
+wire [17:0] iraw;
+reg irom_ok;
+
+// If the ROM has not been loaded, it outputs 0
+assign idata = irom_ok ? iraw : 18'd0;
+
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        irom_ok <= 0;
+    end else begin
+        if(word_we) irom_ok <= 1;
+    end
+end
 
 jtframe_dual_ram #(
     .dw(18),
@@ -134,7 +131,7 @@ jtframe_dual_ram #(
     .data1  (           ),
     .addr1  ( iaddr[AW-1:0] ),
     .we1    ( 1'b0      ),
-    .q1     ( idata     )
+    .q1     ( iraw      )
 );
 
 endmodule

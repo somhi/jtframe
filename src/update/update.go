@@ -204,6 +204,9 @@ func dump_output(cfg Config) {
 		mra_str += " --git"
 		sch_str += " --git"
 	}
+	if cfg.Beta != "" {
+		mra_str += " --beta"
+	}
 	mra_str += "\n"
 	sch_str += "\n"
 	for _, each := range all_cores {
