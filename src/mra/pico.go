@@ -137,14 +137,20 @@ func dump_bin(fname string, data []byte) {
 func picoasm( filename string, machine *MachineXML, cfg Mame2MRA, args Args) []byte {
     olddir,_ := os.Getwd()
     path := filepath.Join(os.Getenv("CORES"),args.Def_cfg.Core,"cheat")
+    // Check if the cheat folder exists
+    f, e := os.Open(path)
+    folder_ok := e==nil
+    f.Close()
     if args.Beta {
         path = filepath.Join(os.Getenv("JTFRAME"),"asm")
         filename = "beta.s"
     }
-    e := os.Chdir(path)
+    e = os.Chdir(path)
     defer os.Chdir(olddir)
     if e!=nil {
-        fmt.Printf("Warning: cannot open %s/%s\n",path,filename)
+        if folder_ok || args.Verbose { // only warns when the core/cheat folder exists but the file was not present
+            fmt.Printf("Warning: cannot open %s/%s\n",path,filename)
+        }
         return nil
     }
     // Open PicoBlaze Assembler

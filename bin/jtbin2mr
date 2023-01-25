@@ -54,8 +54,9 @@ if [ -z "$MRUSER" ]; then
     MRUSER=root
 fi
 
+########################################################
+if [ "$V" = -v ]; then echo "Gathering the files from $JTBIN"; fi
 TEMP=`mktemp --directory`
-
 ROOT=$TEMP/_JTBIN
 CORES=$ROOT/cores
 
@@ -73,6 +74,7 @@ cp -r $JTBIN/mra/_alternatives $ROOT
 cp -r $JTBIN/games $ROOT
 
 # Copy the files to MiSTer
+if [ "$V" = -v ]; then echo -e "\nCopying the files to MiSTer"; fi
 sshpass -p $MISTERPASSWD ssh -l $MRUSER mister.home "rm -rf /media/fat/_JTBIN"
 if sshpass -p $MISTERPASSWD scp -r $TEMP/* $MRUSER@${MRHOST}:/media/fat; then
     rm -rf $TEMP
@@ -81,3 +83,4 @@ else
     exit 1
 fi
 
+rm -rf $TEMP
