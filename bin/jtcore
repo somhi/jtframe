@@ -253,7 +253,7 @@ if is_dirty; then
     PRJCOMMIT="$(git rev-parse --short HEAD)-dirty"
 else
     PRJCOMMIT=`version_ok.sh`
-    if [[ $? = 0 && $GIT = TRUE ]]; then
+    if [[ $? != 0 && $GIT = TRUE ]]; then
         cat << EOF
 Error: cannot use --git if there is no version tag for the commit
 Create the first version tag manually. Use jtmerge to create the tags after that
