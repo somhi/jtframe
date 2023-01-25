@@ -17,6 +17,7 @@
     Date: 1-6-2021 */
 
 module jtframe_cheat_rom #(parameter AW=10)(
+    input           rst,
     input           clk_rom,
     input           clk_pico,
     input  [AW-1:0] iaddr,
@@ -104,7 +105,7 @@ reg irom_ok;
 // If the ROM has not been loaded, it outputs 0
 assign idata = irom_ok ? iraw : 18'd0;
 
-always @(posedge clk, posedge rst) begin
+always @(posedge clk_rom, posedge rst) begin
     if( rst ) begin
         irom_ok <= 0;
     end else begin
@@ -113,12 +114,9 @@ always @(posedge clk, posedge rst) begin
 end
 
 jtframe_dual_ram #(
-    .dw(18),
-    .aw(AW),
-    .synfile("cheat.hex"),  // there must always be a firmware file,
-                            // to prevent the CPU from going crazy
+    .dw     ( 18        ),
+    .aw     ( AW        ),
     .simhexfile("cheat.hex")
-
 ) u_irom(
     .clk0   ( clk_rom   ),
     .clk1   ( clk_pico  ),
