@@ -245,7 +245,7 @@ wire [ 3:0] bax_rdy, bax_dst;
 wire [SDRAMW-1:0] bax_addr;
 
 assign autofire0 = `ifdef JTFRAME_AUTOFIRE0 status[18] `else 0 `endif;
-assign sensty    = status[33:32];
+assign sensty    = status[33:32]; // MiST should drive these pins
 
 assign base_rgb  = { dbg_r, dbg_g, dbg_b };
 assign base_LHBL = pre2x_LHBL;

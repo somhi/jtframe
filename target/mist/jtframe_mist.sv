@@ -148,7 +148,7 @@ module jtframe_mist #(parameter
 
 // control
 wire [31:0]   joystick1, joystick2, joystick3, joystick4;
-wire [63:0] board_status;
+reg  [63:0]   board_status;
 wire          ps2_kbd_clk, ps2_kbd_data;
 wire          osd_shown;
 
@@ -168,9 +168,15 @@ wire          bd_mouse_st, bd_mouse_idx;
 wire  [ 7:0]  bd_mouse_f;
 
 
-assign board_status = { {64-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
 assign paddle_3 = 0;
 assign paddle_4 = 0;
+
+always @* begin
+    board_status = { {64-DIPBASE{1'b0}}, status[DIPBASE-1:0] };
+    // bits 7:6 are also used for FX Volume, so cannot use both JTFRAME_SPINNER
+    // and JTFRAME_OSD_VOL together
+    board_status[33:32] = status[7:6];
+end
 
 jtframe_mist_base #(
     .SIGNED_SND     ( SIGNED_SND    ),
