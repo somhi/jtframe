@@ -37,7 +37,14 @@ These two modules offer a Z80 CPU plus:
 
 ## 6502
 
-The recommended CPU core is the netlist to verilog conversion by [Andrew Holme](http://www.aholme.co.uk/6502/Main.htm). This version requires a clock at least 16x faster than the target 6502 speed, and a 50% duty cycle for a PHI signal that represents the actual 6502 clock. The output has glitches similar to the original ones (not necessarily at the same time). Because of this, the connection is not straight forward. The wrapper [jtframe_mos6502](../hdl/cpu/jtframe_mos6502.v) takes care of these things.
+There are two versions of the 6502 in JTFRAME:
+
+- the T65, a re-implementation in VHDL
+- the chip6502, a 1:1 translation of the original netlist by [Andrew Holme](http://www.aholme.co.uk/6502/Main.htm)
+
+The netlist to verilog conversion requires a clock at least 16x faster than the target 6502 speed, and a 50% duty cycle for a PHI signal that represents the actual 6502 clock. The output has glitches similar to the original ones (not necessarily at the same time). Because of this, the connection is not straight forward. The wrapper [jtframe_mos6502](../hdl/cpu/jtframe_mos6502.v) takes care of these things. However, trying to use the ready signal so the CPU waits for memory data does not seem to operate reliably.
+
+Because of the issue with the ready signal, the recommended CPU core is the T65 one. T65 also has a smaller footprint.
 
 ## VHDL
 
