@@ -575,6 +575,9 @@ u_game(
     .joystick4    ( joystick4[GAME_BUTTONS+3:0]   ),
     `endif
 
+`ifdef JTFRAME_DIAL
+    .dial_x (2'd0), .dial_y(2'd0), `endif
+
 `ifdef JTFRAME_ANALOG
     .joyana_l1    ( joyana_l1        ),
     .joyana_l2    ( joyana_l2        ),
