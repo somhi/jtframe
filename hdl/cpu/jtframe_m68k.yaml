@@ -9,8 +9,4 @@ jtframe:
 modules:
   other:
     - from: fx68k
-      unless: LINT
-      get:
-      - fx68k.sv
-      - fx68kAlu.sv
-      - uaddrPla.sv
+      get: [ fx68k.yaml ]
