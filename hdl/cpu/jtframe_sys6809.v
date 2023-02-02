@@ -164,7 +164,8 @@ endmodule
 module jtframe_sys6809_dma #( parameter
     RAM_AW   = 12,
     RECOVERY = 1,   // Recover clock cycles if needed
-    KONAMI   = 0    // Enable Konami-1/2 mode
+    KONAMI   = 0,   // Enable Konami-1/2 mode
+    IRQFF    = KONAMI==2   // Add latches for IRQ signals
 )
 (
     input           rstn,
@@ -202,6 +203,7 @@ module jtframe_sys6809_dma #( parameter
     wire    BA, BS, AVMA;
     wire    OP;
     wire [7:0] din_dec;
+    wire    irqn_eff, firqn_eff, nmin_eff;
 
     assign  irq_ack = {BA,BS}==2'b01;
 
@@ -211,6 +213,50 @@ module jtframe_sys6809_dma #( parameter
         else
             if( cen_E ) VMA <= AVMA;
     end
+
+    generate
+        if( IRQFF ) begin
+            jtframe_ff u_ff_irq(
+                .clk      ( clk         ),
+                .rst      ( ~rstn       ),
+                .cen      ( 1'b1        ),
+                .din      ( 1'b1        ),
+                .q        (             ),
+                .qn       ( irqn_eff    ),
+                .set      (             ),
+                .clr      ( irq_ack     ),
+                .sigedge  ( ~nIRQ       )
+            );
+
+            jtframe_ff u_ff_firq(
+                .clk      ( clk         ),
+                .rst      ( ~rstn       ),
+                .cen      ( 1'b1        ),
+                .din      ( 1'b1        ),
+                .q        (             ),
+                .qn       ( firqn_eff   ),
+                .set      (             ),
+                .clr      ( irq_ack     ),
+                .sigedge  ( ~nFIRQ      )
+            );
+
+            jtframe_ff u_ff_nmi(
+                .clk      ( clk         ),
+                .rst      ( ~rstn       ),
+                .cen      ( 1'b1        ),
+                .din      ( 1'b1        ),
+                .q        (             ),
+                .qn       ( nmin_eff    ),
+                .set      (             ),
+                .clr      ( irq_ack     ),
+                .sigedge  ( ~nNMI       )
+            );
+        end else begin
+            assign irqn_eff  = nIRQ,
+                   firqn_eff = nFIRQ,
+                   nmin_eff  = nNMI;
+        end
+    endgenerate
 
     jtframe_6809wait #(.RECOVERY(RECOVERY)) u_wait(
         .rstn       ( rstn      ),
@@ -265,9 +311,9 @@ module jtframe_sys6809_dma #( parameter
                 .cen_Q   ( cen_Q   ),
                 .BS      ( BS      ),
                 .BA      ( BA      ),
-                .nIRQ    ( nIRQ    ),
-                .nFIRQ   ( nFIRQ   ),
-                .nNMI    ( nNMI    ),
+                .nIRQ    ( irqn_eff),
+                .nFIRQ   (firqn_eff),
+                .nNMI    (nmin_eff ),
                 .AVMA    ( AVMA    ),
                 .BUSY    (         ),
                 .LIC     (         ),
