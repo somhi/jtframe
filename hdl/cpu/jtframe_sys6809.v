@@ -93,7 +93,7 @@ endmodule
 module jtframe_sys6809 #( parameter
     RAM_AW   = 12,
     RECOVERY = 1,   // Recover clock cycles if needed
-    KONAMI1  = 0    // Enable Konami-1 mode
+    KONAMI   = 0    // Enable Konami-1 mode
 )(
     input           rstn,
     input           clk,
@@ -123,7 +123,7 @@ module jtframe_sys6809 #( parameter
     jtframe_sys6809_dma #(
         .RAM_AW     ( RAM_AW    ),
         .RECOVERY   ( RECOVERY  ),
-        .KONAMI1    ( KONAMI1   )
+        .KONAMI     ( KONAMI    )
     ) u_sys6809(
         .rstn       ( rstn      ),
         .clk        ( clk       ),
@@ -164,7 +164,7 @@ endmodule
 module jtframe_sys6809_dma #( parameter
     RAM_AW   = 12,
     RECOVERY = 1,   // Recover clock cycles if needed
-    KONAMI1  = 0    // Enable Konami-1 mode
+    KONAMI   = 0    // Enable Konami-1/2 mode
 )
 (
     input           rstn,
@@ -248,33 +248,60 @@ module jtframe_sys6809_dma #( parameter
         end
     endgenerate
 
-    assign din_dec = !(KONAMI1 && OP) ? cpu_din :
+    assign din_dec = !(KONAMI==1 && OP) ? cpu_din :
         cpu_din ^ {A[1], 1'b0, ~A[1], 1'b0, A[3], 1'b0, ~A[3], 1'b0};
     // cycle accurate core
     wire [111:0] RegData;
 
-    mc6809i u_cpu(
-        .D       ( din_dec ),
-        .DOut    ( cpu_dout),
-        .ADDR    ( A       ),
-        .RnW     ( RnW     ),
-        .clk     ( clk     ),
-        .cen_E   ( cen_E   ),
-        .cen_Q   ( cen_Q   ),
-        .BS      ( BS      ),
-        .BA      ( BA      ),
-        .nIRQ    ( nIRQ    ),
-        .nFIRQ   ( nFIRQ   ),
-        .nNMI    ( nNMI    ),
-        .AVMA    ( AVMA    ),
-        .BUSY    (         ),
-        .LIC     (         ),
-        .nDMABREQ( 1'b1    ),
-        .nHALT   ( 1'b1    ),
-        .nRESET  ( rstn    ),
-        .OP      ( OP      ),
-        .RegData ( RegData )
-    );
+    generate
+        if( KONAMI!=2 ) begin
+            mc6809i u_cpu(
+                .D       ( din_dec ),
+                .DOut    ( cpu_dout),
+                .ADDR    ( A       ),
+                .RnW     ( RnW     ),
+                .clk     ( clk     ),
+                .cen_E   ( cen_E   ),
+                .cen_Q   ( cen_Q   ),
+                .BS      ( BS      ),
+                .BA      ( BA      ),
+                .nIRQ    ( nIRQ    ),
+                .nFIRQ   ( nFIRQ   ),
+                .nNMI    ( nNMI    ),
+                .AVMA    ( AVMA    ),
+                .BUSY    (         ),
+                .LIC     (         ),
+                .nDMABREQ( 1'b1    ),
+                .nHALT   ( 1'b1    ),
+                .nRESET  ( rstn    ),
+                .OP      ( OP      ),
+                .RegData ( RegData )
+            );
+        end else begin
+            jtkcpu u_cpu(
+                .D       ( din_dec ),
+                .DOut    ( cpu_dout),
+                .ADDR    ( A       ),
+                .RnW     ( RnW     ),
+                .clk     ( clk     ),
+                .cen_E   ( cen_E   ),
+                .cen_Q   ( cen_Q   ),
+                .BS      ( BS      ),
+                .BA      ( BA      ),
+                .nIRQ    ( nIRQ    ),
+                .nFIRQ   ( nFIRQ   ),
+                .nNMI    ( nNMI    ),
+                .AVMA    ( AVMA    ),
+                .BUSY    (         ),
+                .LIC     (         ),
+                .nDMABREQ( 1'b1    ),
+                .nHALT   ( 1'b1    ),
+                .nRESET  ( rstn    ),
+                .OP      ( OP      ),
+                .RegData ( RegData )
+            );
+        end
+    endgenerate
 
     `ifdef SIMULATION
     wire [ 7:0] reg_a  = RegData[7:0];
