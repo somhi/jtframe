@@ -53,7 +53,11 @@
     // DIP switches
     input   [31:0]  status, dipsw,
     input           dip_pause, dip_test, service, tilt,
-    inout           dip_flip,
+`ifdef JTFRAME_OSD_FLIP // splits the declaration because verilator doesn't handle the inout well
+    input           dip_flip,
+`else
+    output           dip_flip,
+`endif
     input   [ 1:0]  dip_fxlevel,
 `ifdef JTFRAME_GAME_UART
     output          uart_tx,
