@@ -400,7 +400,8 @@ if [ ! -z "$SETNAME" ]; then
         cd "$SETNAME"
     fi
     getset.sh $SYSNAME $SETNAME || exit $?
-    add_macro JTFRAME_SIM_DIPS=0x`cat $ROM/$SETNAME.dip`
+    DIPS=`cat $ROM/$SETNAME.dip`
+    if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
     ROMFILE=$ROM/$SETNAME.rom
     if [ ! -e $ROMFILE ]; then
         cat<<EOF

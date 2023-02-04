@@ -1830,6 +1830,10 @@ func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
 func apply_sequence(reg_cfg *RegCfg, roms []MameROM) []MameROM{
 	kmax := len(roms)
 	seqd := make([]MameROM,len(reg_cfg.Sequence))
+	if( len(roms)==0 ) {
+		fmt.Printf("Warning: attempting to sort empty region %s\n",reg_cfg.Name)
+		return roms
+	}
 	copy(seqd,roms)
 	for i, k := range reg_cfg.Sequence {
 		if k >= kmax {
