@@ -49,6 +49,7 @@ always @(posedge clk)
                     cpu_BGACKn <= 1'b1; // frees the bus
                 end
             end
+            default:;
         endcase
     end
 
