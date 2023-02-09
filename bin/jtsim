@@ -133,6 +133,14 @@ Please support the development: https://patreon.com/jotego
 EOF
 }
 
+function clean_up {
+    rm -f video.pipe frame.raw \
+       game.f  jtsim.f  jtsim_vhdl.f simfile.f *bak *.def
+    if [ -z "$TESTCPP" ]; then rm -f test.cpp game_test.v; fi
+}
+
+trap "clean_up; exit 1" INT KILL
+
 function add_dir {
     if [ ! -d "$1" ]; then
         echo "${rBG}Error:${NC} add_dir (sim.sh) failed because $1 is not a directory" 1>&2
@@ -695,9 +703,7 @@ verilator)
     fi
 esac
 
-rm -f video.pipe frame.raw test.cpp game_test.v \
-   game.f  jtsim.f  jtsim_vhdl.f simfile.f
-# killall --quiet raw2png
+clean_up
 
 # convert raw sound file to wav format
 if [ -e sound.raw ]; then

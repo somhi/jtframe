@@ -127,6 +127,13 @@ EOF
     esac
 }
 
+# Cleans up the simulation folder
+function cleansim {
+    rm -f *.wav *.f *.def *bak *.raw *.bin test.* game_test.v frame*jpg \
+          microrom.mem nanorom.mem *.log *.h waiver
+    rm -rf obj_dir sdram.old cfg history
+}
+
 # check that git hooks are present
 cp $JTFRAME/bin/post-merge $(git rev-parse --git-path hooks)/post-merge
 

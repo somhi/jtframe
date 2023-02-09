@@ -538,19 +538,19 @@ u_game(
     .clk         ( clk_rom        ),
 `ifdef JTFRAME_CLK96
     .clk96       ( clk96          ),
-    .rst96       ( rst96          ),
+    .rst96       ( rst            ),
 `endif
 `ifdef JTFRAME_CLK48
     .clk48       ( clk48          ),
-    .rst48       ( rst48          ),
+    .rst48       ( rst            ),
 `endif
 `ifdef JTFRAME_CLK24
     .clk24       ( clk24          ),
-    .rst24       ( rst24          ),
+    .rst24       ( rst            ),
 `endif
 `ifdef JTFRAME_CLK6
     .clk6        ( clk6           ),
-    .rst6        ( rst6           ),
+    .rst6        ( rst            ),
 `endif
     // Video
     .pxl2_cen    ( pxl2_cen       ),

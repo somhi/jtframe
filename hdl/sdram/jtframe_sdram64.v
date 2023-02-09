@@ -624,7 +624,9 @@ end
 always @(posedge clk) begin
     if( (rd!=0 || wr!=0) && init ) begin
         $display("\nERROR: SDRAM rd/wr inputs should be zero during initialization (%m)");
+        `ifndef VERILATOR
         $finish;
+        `endif
     end
 end
 `endif
