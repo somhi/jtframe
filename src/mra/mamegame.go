@@ -18,8 +18,8 @@ type MameROM struct {
 	Status     string `xml:"status,attr"`
 	Offset     int
 	// filled by mame2mra.go
-	group      int    	// interleave group to which the ROM belongs
-	wlen 	   int		// word length in bytes
+	group int // interleave group to which the ROM belongs
+	wlen  int // word length in bytes
 }
 
 type MameDevice struct {
@@ -80,14 +80,14 @@ type MachineXML struct {
 		} `xml:"control"`
 	} `xml:"input"`
 	Dipswitch []struct {
-		Name        string `xml:"name,attr"`
-		Tag         string `xml:"tag,attr"`
-		Mask        int    `xml:"mask,attr"`
-		Condition   struct { // The meaning of some DIP switches may change upon other switches' value
-			Tag		string `xml:"tag,attr"`
-			Mask	int    `xml:"mask,attr"`
+		Name      string   `xml:"name,attr"`
+		Tag       string   `xml:"tag,attr"`
+		Mask      int      `xml:"mask,attr"`
+		Condition struct { // The meaning of some DIP switches may change upon other switches' value
+			Tag      string `xml:"tag,attr"`
+			Mask     int    `xml:"mask,attr"`
 			Relation string `xml:"relation,attr"`
-			Value   int `xml:"value,attr"`
+			Value    int    `xml:"value,attr"`
 		} `xml:"condition"`
 		Diplocation []struct {
 			Name   string `xml:"name,attr"`
@@ -120,8 +120,8 @@ type ParseCfg struct {
 		// empty arrays or strings are not used for comparison
 		// Descriptions []string
 		// Setnames     []string
-		Machines     []string
-		Devices 	 []string	// list of devices the game must contain to be parsed
+		Machines []string
+		Devices  []string // list of devices the game must contain to be parsed
 	}
 	Parents []struct {
 		Name, Description string
@@ -154,7 +154,7 @@ func NewExtractor(path string) *Extractor {
 	var ex Extractor
 	ex.file, err = os.Open(path)
 	if err != nil {
-		fmt.Printf("ERROR: cannot open MAME XML file '%s'\n", path )
+		fmt.Printf("ERROR: cannot open MAME XML file '%s'\n", path)
 		os.Exit(1)
 	}
 
