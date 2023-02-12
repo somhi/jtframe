@@ -440,7 +440,6 @@ fi
 # Add a local copy of the dump file if it doesn't exist
 if [ ! -e ${TARGET}_dump.v ]; then
     cp $JTFRAME/target/$TARGET/ver/${TARGET}_dump.v .
-    git add -v ${TARGET}_dump.v
 fi
 FILES="$FILES ${TARGET}_dump.v"
 
