@@ -53,6 +53,16 @@ func (n *XMLNode) AddAttr(name, value string) *XMLNode {
 	return n
 }
 
+func (n *XMLNode) ChangeAttr(name, value string) *XMLNode {
+    for k,_ := range n.attr {
+        if n.attr[k].Name == name {
+            n.attr[k].Value = value
+            return n
+        }
+    }
+    return n.AddAttr(name,value) // Adds it if it doesn't exist
+}
+
 func (n *XMLNode) AddIntAttr(name string, value int) *XMLNode {
 	n.attr = append(n.attr, XMLAttr{name, strconv.Itoa(value)})
 	return n

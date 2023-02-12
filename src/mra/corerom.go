@@ -2,6 +2,7 @@ package mra
 
 import (
 	"archive/zip"
+    "crypto/md5"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -15,7 +16,7 @@ import (
 	"strings"
 )
 
-func mra2rom(root *XMLNode) {
+func mra2rom(root *XMLNode, verbose bool) {
 	rbf := root.GetNode("setname")
 	xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "0" })
 	if xml_rom == nil || rbf == nil {
@@ -30,7 +31,12 @@ func mra2rom(root *XMLNode) {
 			zf = append(zf, aux)
 		}
 	}
+    if verbose {
+        fmt.Println("Creating .rom file for ", rbf.text )
+    }
 	parts2rom(zf, xml_rom, &rombytes)
+    update_md5( xml_rom, rombytes )
+    patchrom( xml_rom, &rombytes )
 	fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", rbf.text+".rom") // rbf.text should be shortened to match mra.exe's output
 	fout, err := os.Create(fout_name)
 	if err != nil {
@@ -41,32 +47,76 @@ func mra2rom(root *XMLNode) {
 	fout.Close()
 }
 
+func update_md5( n *XMLNode, rb []byte ) {
+    if rb==nil {
+        return
+    }
+    md5sum := md5.Sum(rb)
+    n.ChangeAttr("md5",fmt.Sprintf("%X",md5sum))
+}
+
+func patchrom( n *XMLNode, rb *[]byte) {
+    for _,each := range n.children {
+        if each.name!="patch" {
+            continue
+        }
+        data := text2data(each)
+        k, err := strconv.ParseInt( each.GetAttr("offset"), 0, 32 )
+        if err != nil {
+            fmt.Println(err)
+        }
+        for _,each := range data {
+            (*rb)[k] = each
+            k++
+        }
+    }
+}
+
 func parts2rom(zf []*zip.ReadCloser, n *XMLNode, rb *[]byte) {
 	for _, each := range n.children {
-		if each.name == "part" {
-			fname := each.GetAttr("name")
-			if fname == "" {
-				// Convert internal text to bytes
-                data := make([]byte,0)
-				for _, token := range strings.Split(each.text, " \n\t") {
-					if token == "" {
-						continue
-					}
-					v, _ := strconv.ParseInt(token, 16, 16)
-					data = append(data, byte(v&0xff))
-				}
+		switch each.name {
+        case "part":
+            fname := each.GetAttr("name")
+            if fname == "" {
+                // Convert internal text to bytes
                 rep,_ := strconv.ParseInt(each.GetAttr("repeat"),0,32)
                 if rep==0 {
                     rep = 1
                 }
+                data := text2data(each)
+                // fmt.Printf("Adding rep x len(data) = $%x x $%x\n",rep,len(data))
                 for ;rep>0;rep-- {
                     *rb = append( *rb, data... )
                 }
-			} else {
-				*rb = append(*rb, readrom(zf, each)...)
-			}
-		}
+            } else {
+                *rb = append(*rb, readrom(zf, each)...)
+            }
+        case "interleave":
+            data := interleave2rom(zf, each)
+            if data==nil {
+                *rb = nil
+                return      // abort
+            }
+            *rb = append(*rb, data... )
+        }
 	}
+}
+
+func text2data( n *XMLNode) (data []byte){
+    data = make([]byte,0)
+    re := regexp.MustCompile("[ \n\t]")
+    for _, token := range re.Split(n.text, -1) {
+        if token == "" {
+            continue
+        }
+        token = strings.TrimSpace(strings.ToLower(token))
+        v, err := strconv.ParseInt( token, 16, 16)
+        if err != nil {
+            fmt.Println(err)
+        }
+        data = append(data, byte(v&0xff))
+    }
+    return data
 }
 
 func readrom(allzips []*zip.ReadCloser, n *XMLNode) (rdin []byte) {
@@ -101,6 +151,71 @@ lookup:
 	return rdin
 }
 
+func interleave2rom( allzips []*zip.ReadCloser, n *XMLNode ) (data []byte) {
+    width,_ := strconv.ParseInt(n.GetAttr("output"),0,32)
+    width = width>>3
+    type finger struct{
+        data []byte
+        mapstr string
+        step, pos int
+    }
+    fingers := make([]finger,0)
+    for _, each := range n.children {
+        if each.name!="part" {
+            continue
+        }
+        var f finger
+        f.data = readrom( allzips, each )
+        f.mapstr = each.GetAttr("map")
+        if len(f.data)==0 {
+            fmt.Printf("Skipping ROM generation. Missing files for interleave\n")
+            return nil
+        }
+        for _,k := range f.mapstr {
+            kint := int(k-'0')
+            if kint > f.step {
+                f.step = kint
+            }
+        }
+        fingers = append(fingers,f)
+        // fmt.Printf("Finger %s len = %X\n",f.mapstr,len(f.data))
+    }
+    if len(fingers)==0 {
+        fmt.Printf("Unexpected empty interleave")
+        return nil
+    }
+    // map each output byte to the input file that has it
+    sel := make([]int,width)
+    fingersel_loop:
+    for j:=0; j<int(width);j++ {
+        for k:=0; k<len(fingers); k++ {
+            if fingers[k].mapstr[j]!='0' {
+                sel[j]=k
+                continue fingersel_loop
+            }
+        }
+    }
+    // fmt.Println("Mapping as ",sel)
+    data = make([]byte,0,len(fingers[0].data))
+    jmax := int(width)-1
+    interleave_loop:
+    for {
+        for j:=jmax; j>=0; j-- {
+            offs := int(fingers[sel[j]].mapstr[j]-'1')&0xff
+            // fmt.Printf("%X ", fingers[sel[j]].data[k+offs])
+            data=append(data,fingers[sel[j]].data[fingers[sel[j]].pos+offs])
+        }
+        for j,_ := range fingers {
+            fingers[j].pos += fingers[j].step
+            if fingers[j].pos >= len(fingers[j].data) {
+                break interleave_loop
+            }
+        }
+    }
+    // fmt.Printf("Interleaved length %X\n",len(data))
+    return data
+}
+
 func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	if len(machine.Rom) == 0 {
 		return
@@ -118,7 +233,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		zipname += "|" + cfg.Global.Zip.Alt
 	}
 	p.AddAttr("zip", zipname)
-	p.AddAttr("md5", "None")
+	p.AddAttr("md5", "None") // We do not know the value yet
 	if cfg.ROM.Ddr_load {
 		p.AddAttr("address", "0x30000000")
 	}

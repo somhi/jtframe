@@ -30,6 +30,7 @@ type Args struct {
 	Buttons                      string
 	Year                         string
 	Verbose, SkipMRA, SkipPocket bool
+	SkipROM						 bool // By skipping the ROM generation, the md5 will be set to None
 	Show_platform                bool
 	Beta                         bool
 	JTbin                        bool // copy to JTbin & disable debug features
@@ -308,7 +309,9 @@ extra_loop:
 					})
 					old_deleted = true
 				}
-				mra2rom(d.mra_xml)
+				if !args.SkipROM {
+					mra2rom(d.mra_xml,args.Verbose)
+				}
 				// Do not merge dump_mra and the OR in the same line, or the compiler may skip
 				// calling dump_mra if main_copied is already set
 				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
