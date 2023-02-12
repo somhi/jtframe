@@ -2,8 +2,10 @@ package mra
 
 import (
 	"archive/zip"
+	"bytes"
     "crypto/md5"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -171,17 +173,23 @@ lookup:
 	offset, _ := strconv.ParseInt(n.GetAttr("offset"), 0, 32)
 	lenght, _ := strconv.ParseInt(n.GetAttr("length"), 0, 32)
 	zpart, _ := f.Open()
-	alldata := make([]byte, f.UncompressedSize64)
-	// io.CopyN(alldata, zpart, int64(f.UncompressedSize64))
-	zpart.Read(alldata)
+	var buf bytes.Buffer
+	rdcnt, err := io.CopyN(&buf, zpart, int64(f.UncompressedSize64)) // CopyN is needed because using zpart.Read does not return all the data at once
+	if err != nil {
+		fmt.Println(err)
+	}
+	if rdcnt != int64(f.UncompressedSize64) {
+		fmt.Println("\tzipped data partially read")
+	}
 	if lenght == 0 {
 		lenght = int64(f.UncompressedSize64)
 	} else {
 		lenght += offset
 	}
+	alldata := buf.Bytes()
 	rdin = alldata[offset:lenght]
     if verbose {
-        fmt.Printf("\tread %x bytes from %s (%x) read from %x upto %x\n",len(rdin),n.GetAttr("name"),crc,offset,lenght)
+        fmt.Printf("\tread %x bytes from %s (%x) read from %x up to %x\n",len(rdin),n.GetAttr("name"),crc,offset,lenght)
     }
 	defer zpart.Close()
 	return rdin

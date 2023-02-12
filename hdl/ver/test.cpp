@@ -683,6 +683,10 @@ void JTSim::video_dump() {
                 activeh= cnth[1];
                 cnth[0]=0; cnth[1]=0;
                 dump.reset();
+                int CCW = (coremod&2)>>2;
+#ifndef _JTFRAME_OSD_FLIP
+                CCW ^= game.dip_flip&1;
+#endif
                 if( dump.diff() ) {
                     // converts image to jpg in a different fork
                     // I suppose a thread would be faster...
@@ -695,7 +699,7 @@ void JTSim::video_dump() {
                             snprintf(exes,512,"convert -filter Point "
                                 "-size %dx%d %s -depth 8 RGBA:frame.raw %s frame_%d.jpg",
                                 activew, activeh,
-                                (coremod&1) ? ((coremod&2)? "-rotate -90" : "-rotate 90") : "", // rotate vertical games
+                                (coremod&1) ? (CCW ? "-rotate -90" : "-rotate 90") : "", // rotate vertical games
                                 convert_options.c_str(), frame_cnt);
                             if( system(exes) ) {
                                 printf("WARNING: (test.cpp) convert tool did not succeed\n");
