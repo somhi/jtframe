@@ -112,7 +112,7 @@ public:
         dut.tilt         = 1;
         dut.dip_test     = 1;
 #ifdef _JTFRAME_OSD_FLIP
-        dut.dip_flip     = 0;
+        dut.dip_flip     = 1; // Disable OSD-based flip
 #endif
 #ifdef _SIM_INPUTS
         line = 0;

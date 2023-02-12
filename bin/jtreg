@@ -19,7 +19,7 @@ mkdir -p $REGDIR || exit $?
 cd $REGDIR
 
 export JTFRAME_REGRESSION=1
-parallel --delay 0.5 jtsim -sysname $CORE -video 500 -dir -skipROM $* -setname ::: $SETNAMES
+parallel --delay 0.5 jtsim -sysname $CORE -video 900 -dir -skipROM $* -setname ::: $SETNAMES
 END_TIME=$(date +%s)
 COMPILE_TIME=$[$END_TIME - $START_TIME]
 HOURS=$[$COMPILE_TIME / 3600]
