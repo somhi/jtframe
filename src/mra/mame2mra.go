@@ -154,15 +154,16 @@ type Mame2MRA struct {
 		}
 	}
 
-	Rbf struct {
-		Name string
-		Dev  []struct {
-			Dev, Rbf string
-		}
-		Machines []struct {
-			Machine, Setname, Rbf string
-		}
-	}
+	rbf string
+	// Rbf struct {
+	// 	Name string
+	// 	Dev  []struct {
+	// 		Dev, Rbf string
+	// 	}
+	// 	Machines []struct {
+	// 		Machine, Setname, Rbf string
+	// 	}
+	// }
 
 	Header HeaderCfg
 
@@ -225,9 +226,10 @@ func Run(args Args) {
 	ex := NewExtractor(args.Xml_path)
 	parent_names := make(map[string]string)
 	// Set the RBF Name if blank
-	if mra_cfg.Rbf.Name == "" {
-		mra_cfg.Rbf.Name = "jt" + args.Def_cfg.Core
-	}
+	// if mra_cfg.Rbf.Name == "" {
+	// 	mra_cfg.Rbf.Name = "jt" + args.Def_cfg.Core
+	// }
+	mra_cfg.rbf = "jt" + args.Def_cfg.Core
 	// Set the platform name if blank
 	if mra_cfg.Global.Platform == "" {
 		mra_cfg.Global.Platform = "jt" + args.Def_cfg.Core
@@ -290,6 +292,7 @@ extra_loop:
 	}
 	main_copied := args.SkipMRA
 	old_deleted := false
+	valid_setnames := []string{}
 	for _, d := range data_queue {
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
@@ -316,18 +319,33 @@ extra_loop:
 				// calling dump_mra if main_copied is already set
 				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
 				main_copied = dumped || main_copied
+				valid_setnames = append( valid_setnames, d.machine.Name )
 			}
 		} else {
 			fmt.Printf("Skipping derivative '%s' as parent '%s' was not found\n",
 				d.machine.Name, d.machine.Cloneof)
 		}
 	}
+	dump_setnames( args.Def_cfg.Core, valid_setnames )
 	if !main_copied {
 		fmt.Printf("ERROR (%s): No single MRA was highlighted as the main one. Set it in the TOML file parse.main key\n", args.Def_cfg.Core)
 		os.Exit(1)
 	}
 	if !args.SkipPocket {
 		pocket_save()
+	}
+}
+
+func dump_setnames( corefolder string, sn []string ) {
+	fname := filepath.Join(os.Getenv("CORES"), corefolder, "ver", "setnames.txt" )
+	f, err := os.Create(fname)
+	defer f.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for _,each := range sn {
+		fmt.Fprintln(f,each)
 	}
 }
 
@@ -561,40 +579,40 @@ func guess_world_region(name string) string {
 }
 
 func set_rbfname(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) *XMLNode {
-	name := cfg.Rbf.Name
-check_devs:
-	for _, cfg_dev := range cfg.Rbf.Dev {
-		for _, mac_dev := range machine.Devices {
-			if cfg_dev.Dev == mac_dev.Name {
-				name = cfg_dev.Rbf
-				break check_devs
-			}
-		}
-	}
-	// Machine definitions override DEV definitions
-	for _, each := range cfg.Rbf.Machines {
-		if each.Machine == "" {
-			continue
-		}
-		if machine.Cloneof == each.Machine || machine.Name == each.Machine {
-			name = each.Rbf
-			break
-		}
-	}
-	// setname definitions have the highest priority
-	for _, each := range cfg.Rbf.Machines {
-		if each.Setname == "" {
-			continue
-		}
-		if machine.Name == each.Setname {
-			name = each.Rbf
-			break
-		}
-	}
-	if name == "" {
-		fmt.Printf("\tWarning: no RBF name defined\n")
-	}
-	return root.AddNode("rbf", name)
+// 	name := cfg.Rbf.Name
+// check_devs:
+// 	for _, cfg_dev := range cfg.Rbf.Dev {
+// 		for _, mac_dev := range machine.Devices {
+// 			if cfg_dev.Dev == mac_dev.Name {
+// 				name = cfg_dev.Rbf
+// 				break check_devs
+// 			}
+// 		}
+// 	}
+// 	// Machine definitions override DEV definitions
+// 	for _, each := range cfg.Rbf.Machines {
+// 		if each.Machine == "" {
+// 			continue
+// 		}
+// 		if machine.Cloneof == each.Machine || machine.Name == each.Machine {
+// 			name = each.Rbf
+// 			break
+// 		}
+// 	}
+// 	// setname definitions have the highest priority
+// 	for _, each := range cfg.Rbf.Machines {
+// 		if each.Setname == "" {
+// 			continue
+// 		}
+// 		if machine.Name == each.Setname {
+// 			name = each.Rbf
+// 			break
+// 		}
+// 	}
+// 	if name == "" {
+// 		fmt.Printf("\tWarning: no RBF name defined\n")
+// 	}
+	return root.AddNode("rbf", cfg.rbf)
 }
 
 func mra_name(machine *MachineXML, cfg Mame2MRA) string {

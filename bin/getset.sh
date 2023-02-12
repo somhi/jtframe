@@ -19,9 +19,9 @@
 
 # Finds the right MRA file and extracts the rom file for it
 
-if [ $# -ne 2 ]; then
+if [ $# -lt 2 ]; then
     cat <<EOF
-get.sh <core name> <MAME setname>
+get.sh <core name> <MAME setname> [options to jtframe mra]
 
 Extracts the .rom file and places it in the $ROM folder.
 
@@ -41,6 +41,8 @@ fi
 
 CORENAME=$1
 SETNAME=$2
+shift
+shift
 
 function require {
     if [ ! -e "$1" ]; then
@@ -50,20 +52,12 @@ function require {
 
 }
 
-TOOL=mra
-
-# Fallback tool: orca
-# orca is a screen reader in Ubuntu. It can get confusing...
-if ! which mra > /dev/null; then
-    TOOL=orca
-fi
-
 require "$CORES/$CORENAME/cfg/mame2mra.toml"
 require "$ROM/mame.xml"
 
 cd $ROM
 AUX=`mktemp`
-if ! jtframe mra $CORENAME > $AUX; then
+if ! jtframe mra $CORENAME $* > $AUX; then
     cat $AUX
     rm $AUX
     exit 1
@@ -80,8 +74,6 @@ if [ `wc -l $MATCHES | cut -f 1 -d ' '` -gt 1 ]; then
     exit 1
 fi
 
-# Get the ROM
-$TOOL -z $HOME/.mame/roms "$(cat $MATCHES)" || echo $?
 # Get the DIP switch configuration
 DIPSW=$(xmlstarlet sel -t -m misterromdescription -m switches -v @default "$(cat $MATCHES)")
 DIPSW=$(echo $DIPSW | tr , '\n' | tac | tr -t '\n' ' ')

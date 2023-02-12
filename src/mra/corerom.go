@@ -41,7 +41,7 @@ func mra2rom(root *XMLNode, verbose bool) {
     }
     update_md5( xml_rom, rombytes )
     patchrom( xml_rom, &rombytes )
-	fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", rbf.text+".rom") // rbf.text should be shortened to match mra.exe's output
+	fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", shorten_name(rbf.text)+".rom") // rbf.text should be shortened to match mra.exe's output
 	fout, err := os.Create(fout_name)
 	if err != nil {
 		fmt.Println(err)
@@ -1157,4 +1157,13 @@ func parse_regular_interleave(split, split_minlen int, reg string, reg_roms []Ma
 			fill_upto(pos, split_minlen+chunk0, p)
 		}
 	}
+}
+
+// The MRA tool shortens ROM file names to 8 characters
+// We need to match that
+func shorten_name(name string) string {
+    if len(name) <= 8 {
+        return name
+    }
+    return name[0:5] + name[len(name)-3:]
 }

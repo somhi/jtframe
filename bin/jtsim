@@ -37,6 +37,7 @@ SIM_MS=1
 SIMARGS="-f core.def -f filtered.f"
 SIMULATOR=verilator
 SETNAME=
+SKIPROM=
 TOP=game_test
 TARGET=
 FILES=
@@ -121,6 +122,7 @@ Please support the development: https://patreon.com/jotego
     -time      Number of milliseconds to simulate
     -test      Enable test DIP setting. Same as -d DIP_TEST
     -keepcpp   Do not overwrite the test.cpp file from the JTUTIL version
+    -skipROM   Do not generate .rom files
     -slowpll   Simulate using Altera's model for PLLs
     -showcmd   Display the simulation command only. Do not run any simulation.
     -sysname   Specify the name of the core
@@ -300,6 +302,7 @@ case "$1" in
         add_macro MAXFRAME=$1
         echo Simulate up to $1 frames
         ;;
+    -skipROM) SKIPROM="--skipROM";;
     -srate)
         shift
         if [ "$1" = "" ]; then
@@ -407,7 +410,7 @@ if [ ! -z "$SETNAME" ]; then
         mkdir -p "$SETNAME" || exit $?
         cd "$SETNAME"
     fi
-    getset.sh $SYSNAME $SETNAME || exit $?
+    if [ -z "$SKIPROM" ]; then getset.sh $SYSNAME $SETNAME $SKIPROM || exit $?; fi
     DIPS=`cat $ROM/$SETNAME.dip`
     if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
     ROMFILE=$ROM/$SETNAME.rom
