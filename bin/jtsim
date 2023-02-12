@@ -137,7 +137,8 @@ EOF
 
 function clean_up {
     rm -f video.pipe frame.raw \
-       game.f  jtsim.f  jtsim_vhdl.f simfile.f *bak *.def
+       game.f  jtsim.f  jtsim_vhdl.f simfile.f *bak *.def \
+       make.log defmacros.h filtered.f microrom.mem nanorom.mem
     if [ -z "$TESTCPP" ]; then rm -f test.cpp game_test.v; fi
 }
 
@@ -425,6 +426,7 @@ EOF
         ln -srf $ROMFILE rom.bin
         enable_load
     fi
+    if [ -e $ROM/$SETNAME.mod ]; then cp $ROM/$SETNAME.mod core.mod; fi
 fi
 
 if [ ! -s rom.bin ]; then

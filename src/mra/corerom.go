@@ -17,38 +17,59 @@ import (
 )
 
 func mra2rom(root *XMLNode, verbose bool) {
-	rbf := root.GetNode("setname")
-	xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "0" })
-	if xml_rom == nil || rbf == nil {
-		fmt.Printf("Warning: malformed MRA file")
-		return
-	}
-	rombytes := make([]byte,0)
-	var zf []*zip.ReadCloser
-	for _, each := range strings.Split(xml_rom.GetAttr("zip"), "|") {
-		aux := get_zipfile(each)
-		if aux != nil {
-			zf = append(zf, aux)
-		}
-	}
-    if verbose {
-        fmt.Println("**** Creating .rom file for", rbf.text )
+    save_rom(root,verbose)
+    save_coremod(root,verbose)
+}
+
+func save_coremod(root *XMLNode, verbose bool) {
+    setname := root.GetNode("setname")
+    xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "1" })
+    if xml_rom == nil || setname == nil {
+        fmt.Printf("Warning: malformed MRA file")
+        return
     }
-	parts2rom(zf, xml_rom, &rombytes, verbose)
+    rombytes := make([]byte,0)
+    parts2rom(nil, xml_rom, &rombytes, verbose)
+    rom_file( setname, ".mod", rombytes )
+}
+
+func save_rom(root *XMLNode, verbose bool) {
+    setname := root.GetNode("setname")
+    xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "0" })
+    if xml_rom == nil || setname == nil {
+        fmt.Printf("Warning: malformed MRA file")
+        return
+    }
+    rombytes := make([]byte,0)
+    var zf []*zip.ReadCloser
+    for _, each := range strings.Split(xml_rom.GetAttr("zip"), "|") {
+        aux := get_zipfile(each)
+        if aux != nil {
+            zf = append(zf, aux)
+        }
+    }
+    if verbose {
+        fmt.Println("**** Creating .rom file for", setname.text )
+    }
+    parts2rom(zf, xml_rom, &rombytes, verbose)
     if rombytes==nil {
-        fmt.Printf("\tNo .rom created for %s\n",rbf.text)
+        fmt.Printf("\tNo .rom created for %s\n",setname.text)
         return
     }
     update_md5( xml_rom, rombytes )
     patchrom( xml_rom, &rombytes )
-	fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", shorten_name(rbf.text)+".rom") // rbf.text should be shortened to match mra.exe's output
-	fout, err := os.Create(fout_name)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fout.Write(rombytes)
-	fout.Close()
+    rom_file( setname, ".rom", rombytes )
+}
+
+func rom_file( setname *XMLNode, ext string, rombytes []byte) {
+    fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", shorten_name(setname.text)+ext) // setname.text should be shortened to match mra.exe's output
+    fout, err := os.Create(fout_name)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fout.Write(rombytes)
+    fout.Close()
 }
 
 func update_md5( n *XMLNode, rb []byte ) {
