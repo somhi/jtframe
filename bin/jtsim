@@ -55,6 +55,7 @@ GATES=NO
 MACOS=NO
 KEEP_FX68K=
 SED="sed -i"
+SHAUP=
 START_TIME=$(date +%s)
 # Extra arguments for the simulator, passed with -args
 SIMULATOR_EXTRA=
@@ -116,6 +117,7 @@ Please support the development: https://patreon.com/jotego
     -questasim Use QuestaSim as the simulator
     -safe      Disable verilator optimizations that may halt the elaboration stage
     -setname   Creates the .rom file for the given MAME setname by looking in the MRA folder
+    -shaup     Update the .sha file with the shasum for each frame.jpg
     -srate     Sampling rate of the .wav file
     -stats     Run SDRAM usage analysis
     -synap     Use Synapticad's simulator
@@ -337,6 +339,7 @@ case "$1" in
     -setname)
         shift
         SETNAME=$1;;
+    -shaup) SHAUP=1;;
     -time)
         shift
         if [ "$1" = "" ]; then
@@ -716,8 +719,13 @@ if [ -e sound.raw ]; then
     rm -f sound.raw
 fi
 
-if [ -z "$SETNAME" ]; then SUMNAME=frame; else SUMNAME=$SETNAME; fi
-shasum frame*jpg > $SUMNAME.sum
+if [ ! -z "$SETNAME" ]; then
+    if [ ! -z "$SHAUP" ]; then
+        shasum frame*jpg > ../$SETNAME.sha;
+    elif [ -e ../$SETNAME.sha ]; then
+        if shasum --check ../$SETNAME.sha; then echo PASS; else echo FAIL; fi
+    fi
+fi
 
 # Show simulation time
 END_TIME=$(date +%s)
