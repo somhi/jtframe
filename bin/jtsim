@@ -686,7 +686,7 @@ verilator)
     fi
     # Ignore FX68k in Verilator sims with this:
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
-    if [ ! -z VERILATOR_ROOT ]; then VERILATOR_PATH=${VERILATOR_ROOT}/bin/; fi
+    if [ ! -z "$VERILATOR_ROOT" ]; then VERILATOR_PATH=${VERILATOR_ROOT}/bin/; fi
     $SHOWCMD ${VERILATOR_PATH}verilator -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc --timescale 1ps/1ps \
         game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
