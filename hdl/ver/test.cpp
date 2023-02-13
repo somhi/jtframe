@@ -210,7 +210,12 @@ public:
     void update() {
         dut.ioctl_wr = 0;
         if( !done && dut.downloading ) {
-            switch( ticks & 15 ) { // ~ 12 MBytes/s - at 6MHz jtframe_sdram64 misses writes
+#ifdef _JTFRAME_SIM_SLOWLOAD
+            const int STEP=31;
+#else
+            const int STEP=15;
+#endif
+            switch( ticks & STEP ) { // ~ 12 MBytes/s - at 6MHz jtframe_sdram64 misses writes
                 case 0:
                     addr++;
                     dut.ioctl_addr = addr;

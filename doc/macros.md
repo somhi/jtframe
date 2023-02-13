@@ -163,6 +163,7 @@ JTFRAME_SIM_ROMRQ_NOCHECK|         | Disable protocol checking of romrq
 JTFRAME_SIM_SCAN2X       |         | Enables scan doubler simulation
 JTFRAME_SIM_GFXEN        |         | Sets the gfx_en value (4 bits). See [debug.md](debug.md)
 JTFRAME_SIM_DEBUG        |verilator| debug_bus is increased by one each frame. See [debug.md](debug.md)
+JTFRAME_SIM_SLOWLOAD     |verilator| slows down the ROM load in case the core needs extra time
 SIMULATION               |         | Enables simulation features
 VIDEO_START              |         | First frame for which video output is provided use it to prevent a split first frame
 DUMP_6809                |         | Generates a m6809.log during simulation with register dumps
