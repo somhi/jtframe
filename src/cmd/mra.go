@@ -65,9 +65,15 @@ files=[
 rename=[ {name="Bonus Life", to="Bonus" }, ... ]
 delete=[ "name"... ]
 # Add more options
-extra={
-	[ machine="", setname="", name="", options="", bits="" ],...
-}
+extra=[
+	{ machine="", setname="", name="", options="", bits="" },...
+]
+# specify default values, useful when different settings
+# affect common bits
+defaults=[
+	# byte by byte, from LSB to MSB, comma separated
+	{ machine="", setname="", value="ff,ff" }
+]
 
 [header]
 # Specify the length in macros.def: JTFRAME_HEADER=length

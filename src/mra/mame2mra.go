@@ -140,10 +140,10 @@ type Mame2MRA struct {
 		Delete []string
 		base   int // Define it macros.def as JTFRAME_MIST_DIPBASE
 		Bitcnt int // Total bit count (including all switches)
-		// Defaults [] struct {
-		// 	Machine, Setname string
-		// 	Value			 int
-		// }
+		Defaults [] struct {
+			Machine, Setname string
+			Value			 string // used big-endian order, comma separated
+		}
 		Extra []struct {
 			Machine, Setname    string
 			Name, Options, Bits string
@@ -1071,6 +1071,13 @@ diploop:
 		for k := base; k < game_bitcnt; k += 8 {
 			def_str += ",ff"
 			// fmt.Printf("\tn. def_str=%s. base/game_bitcnt = %d/%d \n", def_str, base, game_bitcnt)
+		}
+	}
+	// Override the defaults is set so in the TOML
+	for _,each := range cfg.Dipsw.Defaults {
+		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
+			(each.Machine == "" && each.Setname == "") {
+			def_str = each.Value
 		}
 	}
 	n.AddAttr("default", def_str)
