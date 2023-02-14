@@ -60,7 +60,6 @@ if [ -z "$GIT" ]; then
     # Output to the release folder
     export JTBIN=$JTROOT/release
     rm -rf $JTBIN
-    rm $ROM/cp_*.sh
     mkdir -p $JTBIN
 else
     # Output to JTBIN
@@ -76,6 +75,7 @@ else
         git checkout -b `basename $JTROOT`_$CORESTAMP || exit $?
     fi
 fi
+rm $ROM/cp_*.sh $ROM/*.rom
 
 # TASKS is a temporary file with the list of tasks
 TASKS=`mktemp`

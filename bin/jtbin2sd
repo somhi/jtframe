@@ -58,6 +58,7 @@ function make_roms {
 
 function cp_mist {
     cp $V $TEMP/* $DST
+    cp $V $ROM/*rom $DST
     cp $V $JTBIN/${i,,}/*rbf $DST
     # Get the main MRA as the core's arc for JTAG programming
     for CORE in $JTBIN/mister/*; do
@@ -80,13 +81,13 @@ for i in SIDI MIST POCKET; do
     fi
     echo "`basename $DST` found"
     rm -rf $DST/* &
-    make_roms
     wait
+    cd $ROM
     if [ $i = POCKET ]; then
         cp -r $V $JTBIN/pocket/raw/* $DST
         # Copy Pocket assets
-        for k in $ROM/cp_*sh; do
-            $k $TEMP
+        for k in $cp_*sh; do
+            $k $ROM
         done
     else
         cp_mist &
