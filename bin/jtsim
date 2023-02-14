@@ -527,11 +527,10 @@ if [[ "$VIDEO_DUMP" = TRUE && $SIMULATOR != verilator ]]; then
 fi
 
 # Link to hex files in HDL folder
-for i in ../../hdl/*.hex; do
-    if [ $i = "../../hdl/*.hex" ]; then
-        break
+for i in $CORES/$SYSNAME/hdl/*.hex; do
+    if [ -e $i ]; then
+        ln -fs $i $(basename $i)
     fi
-    ln -fs $i $(basename $i)
 done
 
 if [ -e $MODULES/fx68k ]; then
