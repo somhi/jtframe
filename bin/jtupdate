@@ -63,7 +63,11 @@ parse_args $* || exit $?
 if [ -z "$GIT" ]; then
     # Output to the release folder
     export JTBIN=$JTROOT/release
-    if [ -z "$KEEP" ]; then rm -rf $JTBIN; fi
+    if [ -z "$KEEP" ]; then
+        rm -rf $JTROOT/release.bak
+        mv $JTROOT/release $JTROOT/release.bak
+        rm -rf
+    $JTBIN; fi
     mkdir -p $JTBIN
 else
     # Output to JTBIN
