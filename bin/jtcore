@@ -379,7 +379,7 @@ function copy_templates {
     # Replace core name and path to modules
     # do not leave a space in the line below sedstr!
     sedstr='s/${CORENAME}/'$corename'/g;s/${DATE}/'${datestr}'/g;s/${MODULES}/'$(escape_bars ${MODULES})'/g;s/${PRJPATH}/'$(escape_bars ${PRJPATH})'/g;'\
-'s/${OUTPUTDIR}/'${OUTPUTDIR}'/g'
+'s/${OUTPUTDIR}/'${OUTPUTDIR}'/g;s/{$TARGET}/'${TARGET}'/g'
     sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qpf > $PRJPATH/$TARGET/$corename.qpf
     sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qsf > $PRJPATH/$TARGET/$corename.qsf
     # TCL in HDL folder is always appended

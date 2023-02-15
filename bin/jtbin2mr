@@ -71,7 +71,7 @@ if [ -d $JTBIN/mister ]; then
 fi
 
 cp -r $JTBIN/mra/_alternatives $ROOT
-cp -r $JTBIN/games $ROOT
+if [ -d $JTBIN/games ]; then cp -r $JTBIN/games $ROOT; fi
 
 # Copy the files to MiSTer
 if [ "$V" = -v ]; then echo -e "\nCopying the files to MiSTer"; fi

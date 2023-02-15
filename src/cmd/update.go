@@ -75,6 +75,7 @@ func init() {
 	flag.Bool( "dry",  false, "Shows the jobs without running them")
 	flag.String( "jobs",  "", "Limits the number of parallel jobs")
 	flag.Bool( "network", false, "Use network resources")
+	flag.Bool( "keep", false, "Do not delete the release folder")
 	// Actual flags
 	flag.BoolVar( &up_cfg.Nohdmi,  "nohdmi",  false, "HDMI disabled in MiSTer")
 	flag.BoolVar( &up_cfg.Nosnd,   "nosnd",   false, "define the NOSOUND macro")

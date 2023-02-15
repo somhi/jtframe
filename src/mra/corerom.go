@@ -79,7 +79,7 @@ func update_md5( n *XMLNode, rb []byte ) {
         return
     }
     md5sum := md5.Sum(rb)
-    n.ChangeAttr("md5",fmt.Sprintf("%x",md5sum))
+    n.AddAttr("asm_md5",fmt.Sprintf("%x",md5sum))
 }
 
 func patchrom( n *XMLNode, rb *[]byte) {
@@ -365,7 +365,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			if reg_cfg.Frac.Parts != 0 {
 				pos += make_frac(p, reg_cfg, reg_roms)
 			} else if reg_cfg.Width <= 8 || len(reg_roms) == 1 {
-				parse_straight_dump(split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, &pos)
+				parse_straight_dump(split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			}
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
@@ -923,7 +923,7 @@ func parse_singleton(reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode) int {
 	return pos
 }
 
-func parse_straight_dump(split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int) {
+func parse_straight_dump(split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
 	reg_pos := 0
 	start_pos := *pos
 	for _, r := range reg_roms {
@@ -952,7 +952,9 @@ func parse_straight_dump(split, split_minlen int, reg string, reg_roms []MameROM
 		// as only the first half, filling in a blank, and
 		// adding the second half
 		if *pos-start_pos <= split && *pos-start_pos+r.Size > split && split_minlen > (r.Size>>1) {
-			fmt.Printf("\t-split on single ROM file at %X\n", split)
+			if args.Verbose {
+				fmt.Printf("\t-split on single ROM file at %X\n", split)
+			}
 			rom_len = r.Size >> 1
 			m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
 			*pos += rom_len

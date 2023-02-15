@@ -337,7 +337,9 @@ extra_loop:
 }
 
 func dump_setnames( corefolder string, sn []string ) {
-	fname := filepath.Join(os.Getenv("CORES"), corefolder, "ver", "setnames.txt" )
+	fname := filepath.Join(os.Getenv("CORES"), corefolder, "ver")
+	os.MkdirAll(fname,0775)
+	fname = filepath.Join(fname, "setnames.txt" )
 	f, err := os.Create(fname)
 	defer f.Close()
 	if err != nil {
@@ -1037,12 +1039,22 @@ diploop:
 			// Check that the DIP name plus each option length isn't longer than 28 characters
 			// which is MiSTer's OSD length
 			name_len := len(ds.Name)
-			for _, each := range strings.Split(options, ",") {
+			chunks := strings.Split(options,",")
+			for k, each := range chunks {
 				if tl := name_len + len(each) - 26; tl > 0 {
-					fmt.Printf("\tWarning DIP option too long for MiSTer (%d extra):\n\t%s:%s\n",
-						tl, ds.Name, each)
+					re := regexp.MustCompile("(k|K)( |$)")
+					if re.FindString(chunks[k])!="" { // A common case is 50k 100k etc.
+						// Delete the k to save space
+						chunks[k]=re.ReplaceAllString(chunks[k],"$2")
+						tl = name_len + len(chunks[k])-26
+					}
+					if tl>0 {
+						fmt.Printf("\tWarning DIP option too long for MiSTer (%d extra): (%s)\n\t%s:%s\n",
+							tl, machine.Name, ds.Name, chunks[k])
+					}
 				}
 			}
+			options = strings.Join(chunks,",") // re-build the options in case there was a change
 			m.AddAttr("bits", bitstr)
 			m.AddAttr("ids", options)
 		}
