@@ -111,9 +111,8 @@ type ParseCfg struct {
 		Name    string
 	}
 	Skip struct {
+		Selectable
 		Descriptions []string
-		Machines     []string
-		Setnames     []string
 		Bootlegs     bool
 	}
 	Mustbe struct { // If any of these conditions are met, the game will be parsed

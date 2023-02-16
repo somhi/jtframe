@@ -40,9 +40,44 @@ type Args struct {
 	macros       map[string]string
 }
 
-type RegCfg struct {
-	Name, Rename,
+type Selectable struct {
 	Machine, Setname string
+	Machines, Setnames []string
+}
+
+func (this *Selectable) Match( x *MachineXML ) int {
+	if this.Setname==x.Name || (this.Machine==x.Name && x.Cloneof=="") {
+		return 3
+	}
+	for _,each := range this.Setnames {
+		if each==x.Name {
+			return 3
+		}
+	}
+	if this.Machine == x.Cloneof && x.Cloneof!="" {
+		return 2
+	}
+	for _,each := range this.Machines {
+		if each==x.Cloneof {
+			return 2
+		}
+		if each==x.Name && x.Cloneof=="" {
+			return 3
+		}
+	}
+	if this.Machine=="" && this.Setname=="" && len(this.Machines)==0 && len(this.Setnames)==0 {
+		return 1
+	}
+	return 0
+}
+
+func is_family(name string, machine *MachineXML) bool {
+	return name != "" && (name == machine.Name || name == machine.Cloneof)
+}
+
+type RegCfg struct {
+	Selectable
+	Name, Rename,
 	Start         string // Matches a macro in macros.def that should be an integer value
 	start         int    // Private translation of the Start value
 	Width, Len    int
@@ -80,7 +115,7 @@ type RegCfg struct {
 }
 
 type RawData struct {
-	Machine, Setname string
+	Selectable
 	Dev				 string // required device name to apply these data, ignored if blank
 	Offset           int
 	Data             string
@@ -101,6 +136,11 @@ type Info struct {
 	Tag, Value string
 }
 
+type Overrule_t struct {
+	Selectable
+	Rotate           int
+}
+
 type Mame2MRA struct {
 	Global struct {
 		Info      []Info
@@ -109,16 +149,14 @@ type Mame2MRA struct {
 		Zip       struct {
 			Alt string
 		}
-		Overrule []struct { // overrules values in MAME XML
-			Machine, Setname string
-			Rotate           int
-		}
+		Overrule []Overrule_t  // overrules values in MAME XML
 	}
 
 	Cheat struct {
 		Disable bool
 		Files   []struct {
-			Machine, Setname, AsmFile string
+			Selectable
+			AsmFile string
 			Skip                      bool
 		}
 	}
@@ -128,7 +166,7 @@ type Mame2MRA struct {
 	Buttons struct {
 		Core  int
 		Names []struct {
-			Machine, Setname string
+			Selectable
 			Names            string
 		}
 	}
@@ -138,11 +176,11 @@ type Mame2MRA struct {
 		base   int // Define it macros.def as JTFRAME_MIST_DIPBASE
 		Bitcnt int // Total bit count (including all switches)
 		Defaults [] struct {
-			Machine, Setname string
+			Selectable
 			Value			 string // used big-endian order, comma separated
 		}
 		Extra []struct {
-			Machine, Setname    string
+			Selectable
 			Name, Options, Bits string
 		}
 		Rename []struct {
@@ -174,23 +212,24 @@ type Mame2MRA struct {
 		// This can be used to group several files in a different order (see Golden Axe)
 		// or to make a file look bigger than it is (see Bad Dudes)
 		Splits []struct {
-			Machine, Setname string
+			Selectable
 			Region           string
 			Namehas          string // The setname of the game in MAME must contain the "namehas" string
 			Offset, Min_len  int
 		}
 		Blanks []struct {
-			Machine, Setname, Region string
-			Offset, Len              int
+			Selectable
+			Region      string
+			Offset, Len int
 		}
 		Patches []struct {
-			Machine, Setname string
+			Selectable
 			Offset           int
 			Value            string
 		}
 		Nvram struct {
+			Selectable
 			length   int       // set internally
-			Machines []string  // machines with NVRAM support, if null, all have support
 			Defaults []RawData // Initial value for NVRAM
 		}
 	}
@@ -262,7 +301,7 @@ extra_loop:
 			continue extra_loop
 		}
 		for _, each := range mra_cfg.Global.Overrule {
-			if is_family(each.Machine, machine) || each.Setname == machine.Name || (each.Setname == "" && each.Machine == "") {
+			if each.Match(machine)>0 {
 				if each.Rotate != 0 {
 					machine.Display.Rotate = each.Rotate
 				}
@@ -373,13 +412,11 @@ func skip_game(machine *MachineXML, mra_cfg Mame2MRA, args Args) bool {
 			return true
 		}
 	}
-	for _, each := range mra_cfg.Parse.Skip.Machines {
-		if is_family(each, machine) {
-			if args.Verbose {
-				fmt.Println("Skipping ", machine.Description, "for matching machine name")
-			}
-			return true
+	if m:=mra_cfg.Parse.Skip.Match(machine);m>1 {
+		if args.Verbose {
+			fmt.Printf("Skipping %s for level %d matching\n", machine.Description, m)
 		}
+		return true
 	}
 	// Parse Must-be conditions
 	device_ok := len(mra_cfg.Parse.Mustbe.Devices) == 0
@@ -687,7 +724,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 				filename = each.AsmFile
 				skip = each.Skip
 			}
-			if is_family(each.Machine, machine) {
+			if each.Match(machine)>0 {
 				filename = each.AsmFile
 				skip = each.Skip
 				family_match = true
@@ -732,7 +769,7 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 				if each.Machine == "" && each.Setname == "" && raw == nil {
 					raw = &cfg.ROM.Nvram.Defaults[k]
 				}
-				if is_family(each.Machine, machine) {
+				if each.Match(machine)>0 {
 					raw = &cfg.ROM.Nvram.Defaults[k]
 				}
 				if each.Setname == machine.Name {
@@ -775,20 +812,18 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	button_def := "button 1,button 2"
 	button_set := false
 	for _, b := range cfg.Buttons.Names {
-		// default definition is allowed
-		if (b.Machine == "" && b.Setname == "" && !button_set) || is_family(b.Machine, machine) {
+		m := b.Match(machine)
+		if (m==1 && !button_set) || m==2 {
 			button_def = b.Names
 			if args.Verbose {
 				fmt.Printf("Buttons set to %s for %s\n", b.Names, machine.Name)
 			}
 			button_set = true
 		}
-	}
-	for _, b := range cfg.Buttons.Names {
-		// Explicit setname has higher priority
-		if b.Setname == machine.Name {
+		if m==3 {
 			//fmt.Printf("Explicit assignment for %s to %s\n", b.Setname, b.Names)
 			button_def = b.Names
+			break
 		}
 	}
 	// an explicit command line argument will override the values in TOML
@@ -854,10 +889,6 @@ func make_devROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int) {
 	}
 }
 
-func is_family(name string, machine *MachineXML) bool {
-	return name != "" && (name == machine.Name || name == machine.Cloneof)
-}
-
 // if the region is marked for splitting returns the
 // offset at which it must occur. Otherwise, zero
 // only one split per region will be applied
@@ -866,8 +897,7 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 	min_len = 0
 	for _, split := range cfg.ROM.Splits {
 		if (split.Region != "" && split.Region != reg) ||
-			(split.Machine != "" && !is_family(split.Machine, machine)) ||
-			(split.Setname != "" && split.Setname != machine.Name) ||
+			split.Match(machine)>0 ||
 			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
 			continue
 		}
@@ -897,8 +927,7 @@ func add_extra_dip(n *XMLNode, create_parent bool, machine *MachineXML, cfg Mame
 			fmt.Printf("\tChecking extra DIPSW %s for %s/%s (current %s/%s)\n",
 				each.Name, each.Machine, each.Setname, machine.Cloneof, machine.Name)
 		}
-		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
-			(each.Machine == "" && each.Setname == "") {
+		if each.Match(machine)>0 {
 			if create_parent {
 				n = add_switches_parent(n, cfg)
 				create_parent = false
@@ -1084,8 +1113,7 @@ diploop:
 	}
 	// Override the defaults is set so in the TOML
 	for _,each := range cfg.Dipsw.Defaults {
-		if (is_family(each.Machine, machine) || each.Setname == machine.Name) ||
-			(each.Machine == "" && each.Setname == "") {
+		if each.Match(machine)>0 {
 			def_str = each.Value
 		}
 	}
