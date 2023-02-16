@@ -66,8 +66,8 @@ if [ -z "$GIT" ]; then
     if [ -z "$KEEP" ]; then
         rm -rf $JTROOT/release.bak
         mv $JTROOT/release $JTROOT/release.bak
-        rm -rf
-    $JTBIN; fi
+        rm -rf $JTBIN
+    fi
     mkdir -p $JTBIN
 else
     # Output to JTBIN
