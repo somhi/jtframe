@@ -56,6 +56,8 @@ Set --git to use \$JTBIN instead.
 			up_cfg.Targets["mcp"]     = true
 			up_cfg.Targets["mc2"]     = true
 			up_cfg.Targets["sockit"]  = true
+			up_cfg.Targets["de1soc"]  = true
+			up_cfg.Targets["de10standard"]  = true			
 		}
 		update.Run( &up_cfg, args)
 	},

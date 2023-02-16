@@ -58,8 +58,8 @@ set_global_assignment -name ACTIVE_SERIAL_CLOCK FREQ_100MHZ
 ##################################################################
 ## Files
 ########################
-source ${MODULES}/jtframe/target/sockit/sys/sys.tcl
-source ${MODULES}/jtframe/target/sockit/sys/sys_analog.tcl
+source ${MODULES}/jtframe/target/${TARGET}/sys/sys.tcl
+source ${MODULES}/jtframe/target/${TARGET}/sys/sys_analog.tcl
 
 set_global_assignment -name PRE_FLOW_SCRIPT_FILE "quartus_sh:${MODULES}/jtframe/target/mister/sys/build_id.tcl"
 # SDC file is copied and edited in the target folder

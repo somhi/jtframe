@@ -41,6 +41,8 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mcp        compiles the MultiCore2+ version
     -pocket     compiles the PocketFPGA version
     -sockit     compiles the Arrow SoCKit version
+    -de1soc     compiles the Terasic DE1-SoC version
+    -de10standard compiles the Terasic DE10-Standard version
     -folder     any folder present in $JTFRAME/target/folder can be used as the target
 
     General options
@@ -107,7 +109,7 @@ if [ -t 1 ]; then
 fi
 
 function is_mister_family {
-    if [[ $TARGET = mister || $TARGET = sockit ]]; then
+    if [[ $TARGET = mister || $TARGET = sockit || $TARGET = de1soc || $TARGET = de10standard ]]; then
         return 0
     else
         return 1
@@ -322,7 +324,7 @@ OUTPUTDIR=output_files
 
 # Check Quartus path
 case $TARGET in
-    mister|sockit)
+    mister|sockit|de1soc|de10standard)
         if ! (which quartus_sh|grep intelFPGA_lite -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
             if [ -d /opt/intelFPGA_lite ]; then
@@ -379,7 +381,7 @@ function copy_templates {
     # Replace core name and path to modules
     # do not leave a space in the line below sedstr!
     sedstr='s/${CORENAME}/'$corename'/g;s/${DATE}/'${datestr}'/g;s/${MODULES}/'$(escape_bars ${MODULES})'/g;s/${PRJPATH}/'$(escape_bars ${PRJPATH})'/g;'\
-'s/${OUTPUTDIR}/'${OUTPUTDIR}'/g;s/{$TARGET}/'${TARGET}'/g'
+'s/${OUTPUTDIR}/'${OUTPUTDIR}'/g;s/${TARGET}/'${TARGET}'/g'
     sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qpf > $PRJPATH/$TARGET/$corename.qpf
     sed "$sedstr" $JTFRAME/target/$TARGET/$TARGET.qsf > $PRJPATH/$TARGET/$corename.qsf
     # TCL in HDL folder is always appended

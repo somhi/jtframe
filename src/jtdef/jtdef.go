@@ -176,7 +176,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	switch cfg.Target {
 	case "mist", "sidi", "neptuno":
 		macros["SEPARATOR"] = ""
-	case "mister", "sockit":
+	case "mister", "sockit","de1soc","de10standard":
 		macros["SEPARATOR"] = "-;"
 	}
 	// Adds a macro with the target name
@@ -288,7 +288,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// sure JTFRAME_CHEAT is defined too
 	if defined( macros, "BETA" ) {
 		_, cheatok := macros["JTFRAME_CHEAT"]
-		if !cheatok && (cfg.Target == "mister" || cfg.Target == "sockit") {
+		if !cheatok && (cfg.Target == "mister" || cfg.Target == "sockit" || cfg.Target == "de1soc" || cfg.Target == "de10standard") {
 			fmt.Fprintln(os.Stderr, "Compiling a BETA for MiSTer but JTFRAME_CHEAT was not set\nAdding it now automatically.")
 			macros["JTFRAME_CHEAT"] = ""
 		}

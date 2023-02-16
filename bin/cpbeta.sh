@@ -62,6 +62,8 @@ function cp_file {
 # cp_file mc2
 # cp_file neptuno
 # cp_file sockit
+# cp_file de1soc
+# cp_file de10standard
 cp $JTROOT/README.md $DEST
 if [ -s $JTROOT/cores/$CORE/README.md ]; then
     cp $JTROOT/cores/$CORE/README.md $DEST/$CORE.md
