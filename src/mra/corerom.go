@@ -352,7 +352,13 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		}
 
 		reg_offsets[reg] = pos
-		reg_roms = apply_sort(reg_cfg, reg_roms, machine.Name)
+		if args.Verbose {
+			fmt.Printf("\tbefore sorting %s:\n\t%v\n", reg_cfg.Name, reg_roms)
+		}
+		reg_roms = apply_sort(reg_cfg, reg_roms, machine.Name,args.Verbose)
+		if args.Verbose {
+			fmt.Println("\tafter sorting:\n\t", reg_roms)
+		}
 		if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton(reg_roms, reg_cfg, p)
@@ -614,7 +620,7 @@ func cmp_count(a, b string, rmext bool) bool {
 	return low
 }
 
-func sort_byext(reg_cfg *RegCfg, roms []MameROM, setname string) {
+func sort_byext(reg_cfg *RegCfg, roms []MameROM, setname string, verbose bool) {
 	// If all the ROMs have the same extension,
 	// it will sort by name instead
 	allequal := true
@@ -641,7 +647,9 @@ func sort_byext(reg_cfg *RegCfg, roms []MameROM, setname string) {
 		}
 	}
 	if !allequal {
-		// Sort by extension
+		if verbose {
+			fmt.Printf("\tSorting by extension\n")
+		}
 		sort.Slice(roms, func(i, j int) bool {
 			var a *MameROM = &roms[i]
 			var b *MameROM = &roms[j]
@@ -771,7 +779,7 @@ func apply_sequence(reg_cfg *RegCfg, roms []MameROM) []MameROM {
 	return seqd
 }
 
-func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string) []MameROM {
+func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string, verbose bool) []MameROM {
 	if len(reg_cfg.Sequence) > 0 {
 		return apply_sequence(reg_cfg, roms)
 	}
@@ -792,7 +800,7 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string) []MameROM {
 		return roms
 	}
 	if reg_cfg.Sort_byext {
-		sort_byext(reg_cfg, roms, setname)
+		sort_byext(reg_cfg, roms, setname, verbose)
 		if reg_cfg.Sort_reverse {
 			base := make([]MameROM, len(roms))
 			copy(base, roms)
