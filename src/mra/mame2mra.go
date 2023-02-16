@@ -81,16 +81,13 @@ type RegCfg struct {
 
 type RawData struct {
 	Machine, Setname string
-	Pointer          int
+	Dev				 string // required device name to apply these data, ignored if blank
+	Offset           int
 	Data             string
 }
 
 type HeaderCfg struct {
 	Len, Fill int
-	Dev       []struct {
-		Byte, Value int
-		Dev         string
-	}
 	Data   []RawData
 	Offset struct {
 		Bits    int
