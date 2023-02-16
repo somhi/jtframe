@@ -451,29 +451,25 @@ func make_header(node *XMLNode, reg_offsets map[string]int,
 		if (len(each.Machine) != 0 && !is_family(each.Machine, machine)) || (len(each.Setname) != 0 && each.Setname != machine.Name) {
 			continue // skip it
 		}
-		pos := each.Pointer
+		if each.Dev!="" {
+			found := false
+			for _, ref := range devs {
+				if each.Dev == ref.Name {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		pos := each.Offset
 		rawbytes := rawdata2bytes(each.Data)
 		// if pos+len(rawbytes) > len(headbytes) {
 		//  log.Fatal("Header pointer larger than declared header")
 		// }
 		copy(headbytes[pos:], rawbytes)
 		pos += len(rawbytes)
-	}
-	// Device dependent values
-	for _, d := range cfg.Dev {
-		found := false
-		for _, ref := range devs {
-			if d.Dev == ref.Name {
-				found = true
-				break
-			}
-		}
-		if found {
-			if d.Byte >= len(headbytes) {
-				log.Fatal("Header device-byte falls outside the header")
-			}
-			headbytes[d.Byte] = byte(d.Value)
-		}
 	}
 	node.SetText(hexdump(headbytes, 8))
 }
@@ -1002,9 +998,10 @@ func parse_i8751(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, arg
 	f.Close()
 	binname := fmt.Sprintf("mra%X%X.bin", rand.Int(), rand.Int())
 	cmd := exec.Command("as31", "-Fbin", "-O"+binname, path)
+	cmd.Stdout = os.Stdout
 	e = cmd.Run()
 	if e != nil {
-		log.Println("jtframe mra, problem running as31:\n\t", e)
+		fmt.Printf("\tjtframe mra, as31 returned %v for %s:\n", e, path)
 		return false
 	}
 	// Read the result and add it as data

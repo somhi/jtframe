@@ -78,9 +78,8 @@ defaults=[
 [header]
 # Specify the length in macros.def: JTFRAME_HEADER=length
 fill=0xff
-dev=[ { dev="fd1089", byte=3, value=10 }, ...]
 data = [
-	{ machine="...", setname="...", pointer=3, data="12 32 43 ..." },
+	{ machine="...", setname="...", dev="...", offset=3, data="12 32 43 ..." },
 	...
 ]
 
