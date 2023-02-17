@@ -30,3 +30,6 @@ updatedb
 
 # open picoblaze assembler needed for assembling the cheat and beta code
 pip install --upgrade opbasm
+
+# as31 to compile 8051/8751 assembler code
+apt install --yes as31

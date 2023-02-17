@@ -19,15 +19,16 @@ type Customs map[string]string
 type Groups map[string]string
 
 type Config struct {
-	Max_jobs              int
+	Max_jobs            int
 	Git, Nohdmi   		  bool
 	Nosnd, Actions, Seed  bool
-	Private, Skip, Nodbg  bool
-	Group, extra 		  string
-	Beta, Stamp, Defs     string
-	cores                 []string
-	CoreList              string
-	Targets               map[string]bool
+	Private,  Nodbg  		bool
+	Skip, SkipROM				bool
+	Group, extra 		  	string
+	Beta, Stamp, Defs   string
+	cores               []string
+	CoreList            string
+	Targets             map[string]bool
 	// enabled platforms
 	groups  Groups
 	customs Customs
@@ -206,6 +207,9 @@ func dump_output(cfg Config) {
 	}
 	if cfg.Beta != "" {
 		mra_str += " --beta"
+	}
+	if cfg.SkipROM {
+		mra_str += " --skipROM"
 	}
 	mra_str += "\n"
 	sch_str += "\n"

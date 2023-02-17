@@ -112,6 +112,7 @@ type ParseCfg struct {
 	}
 	Skip struct {
 		Selectable
+		Pocket		 Selectable
 		Descriptions []string
 		Bootlegs     bool
 	}

@@ -46,20 +46,10 @@ fi
 
 cd $JTBIN/mra
 
-TEMP=`mktemp --directory`
-ROMDONE=
-
-function make_roms {
-    if [ -z "$ROMDONE" ]; then
-        find -name "*.mra" -print0 | parallel -0 mra -z $HOME/.mame/roms -O $TEMP -A
-        ROMDONE=TRUE
-    fi
-}
-
 function cp_mist {
-    cp $V $TEMP/* $DST
     cp $V $ROM/*rom $DST
     cp $V $JTBIN/${i,,}/*rbf $DST
+    find $JTBIN/mra -name "*.mra" -print0 | parallel -0 mra -z $HOME/.mame/roms -O /media/$USER/$i -A -s
     # Get the main MRA as the core's arc for JTAG programming
     for CORE in $JTBIN/mister/*; do
         MR=$CORE/releases
@@ -90,7 +80,7 @@ for i in SIDI MIST POCKET; do
             $k $ROM
         done
     else
-        cp_mist &
+        cp_mist $i &
     fi
     CNT=$((CNT+1))
 done
@@ -100,5 +90,3 @@ wait
 if [ $CNT = 0 ]; then
     echo "Nothing done"
 fi
-
-rm -rf $TEMP
