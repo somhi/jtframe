@@ -105,7 +105,7 @@ type MameXML struct {
 type ParseCfg struct {
 	All        bool // parse all games
 	Sourcefile string
-	Main       string // setname to be used as the main one to copy in mister/releases
+	Main_setnames []string // setname to be used as the main ones to copy in mister/releases
 	Rename     []struct {
 		Setname string
 		Name    string

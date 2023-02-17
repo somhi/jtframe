@@ -353,7 +353,7 @@ extra_loop:
 				}
 				// Do not merge dump_mra and the OR in the same line, or the compiler may skip
 				// calling dump_mra if main_copied is already set
-				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, d.cloneof, parent_names)
+				dumped := dump_mra(args, d.machine, mra_cfg, d.mra_xml, parent_names)
 				main_copied = dumped || main_copied
 				valid_setnames = append( valid_setnames, d.machine.Name )
 			}
@@ -478,7 +478,19 @@ func delete_old_mra(args Args, path string) {
 	}
 }
 
-func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode, cloneof bool, parent_names map[string]string) bool {
+func is_main( machine *MachineXML, mra_cfg Mame2MRA ) bool {
+	if machine.Cloneof=="" {
+		return true
+	}
+	for _,each := range mra_cfg.Parse.Main_setnames {
+		if each == machine.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode, parent_names map[string]string) bool {
 	fname := args.outdir
 	game_name := strings.ReplaceAll(mra_xml.GetNode("name").text, ":", "")
 	game_name = strings.ReplaceAll(game_name, "/", "-")
@@ -493,8 +505,8 @@ func dump_mra(args Args, machine *MachineXML, mra_cfg Mame2MRA, mra_xml *XMLNode
 		}
 	}
 	// Redirect clones to their own folder
-	main_mra := (!cloneof && mra_cfg.Parse.Main == "") || (machine.Name == mra_cfg.Parse.Main)
-	if cloneof && !main_mra {
+	main_mra := is_main(machine,mra_cfg)
+	if machine.Cloneof!="" && !main_mra {
 		pure_name := parent_names[machine.Cloneof]
 		pure_name = strings.ReplaceAll(pure_name, ":", "")
 		if k := strings.Index(pure_name, "("); k != -1 {
