@@ -68,6 +68,7 @@ func (this *Selectable) Match( x *MachineXML ) int {
 	if this.Machine=="" && this.Setname=="" && len(this.Machines)==0 && len(this.Setnames)==0 {
 		return 1
 	}
+	fmt.Println(this)
 	return 0
 }
 

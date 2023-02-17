@@ -76,7 +76,10 @@ for i in SIDI MIST POCKET; do
     if [ $i = POCKET ]; then
         cp -r $V $JTBIN/pocket/raw/* $DST
         # Copy Pocket assets
-        for k in $cp_*sh; do
+        for k in $ROM/cp_*sh; do
+            if [ ! -z "$V" ]; then
+                echo $k $ROM
+            fi
             $k $ROM
         done
     else
