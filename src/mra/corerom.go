@@ -387,9 +387,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 
 func make_patches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	for _, each := range cfg.ROM.Patches {
-		if is_family(each.Machine, machine) ||
-			each.Setname == machine.Name ||
-			(each.Machine == "" && each.Setname == "") {
+		if each.Match(machine)>0 {
 			// apply the patch
 			root.AddNode("patch", each.Value).AddAttr("offset", fmt.Sprintf("0x%X", each.Offset))
 		}
@@ -454,7 +452,7 @@ func make_header(node *XMLNode, reg_offsets map[string]int,
 	}
 	// Manual headers
 	for _, each := range cfg.Data {
-		if (len(each.Machine) != 0 && !is_family(each.Machine, machine)) || (len(each.Setname) != 0 && each.Setname != machine.Name) {
+		if each.Match(machine)==0 {
 			continue // skip it
 		}
 		if each.Dev!="" {
@@ -842,11 +840,11 @@ func find_region_cfg(machine *MachineXML, regname string, cfg Mame2MRA) *RegCfg 
 	var best *RegCfg
 	for k, each := range cfg.ROM.Regions {
 		if each.Name == regname {
-			if each.Setname == machine.Name {
+			m := each.Match(machine)
+			if m==3 {
 				best = &cfg.ROM.Regions[k]
 				break
-			}
-			if is_family(each.Machine, machine) || (each.Setname == "" && each.Machine == "" && best == nil) {
+			} else if m==2 || (m==1 && best==nil) {
 				best = &cfg.ROM.Regions[k]
 			}
 		}
@@ -876,15 +874,10 @@ func get_reverse(reg_cfg *RegCfg, name string) bool {
 func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_len int) {
 	blank_len = 0
 	offset := 0
-	for _, blank := range cfg.ROM.Blanks {
-		if blank.Region != reg && blank.Region != "" {
-			continue
-		}
-		if (blank.Machine == "" && blank.Setname == "") || // apply to all
-			is_family(blank.Machine, machine) || // apply to machine
-			(blank.Setname == machine.Name) { // apply to a setname
-			offset = blank.Offset
-			blank_len = blank.Len
+	for _, each := range cfg.ROM.Blanks {
+		if each.Match(machine)>0 {
+			offset = each.Offset
+			blank_len = each.Len
 		}
 	}
 	if offset != 0 && offset == curpos {
