@@ -909,7 +909,7 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 	min_len = 0
 	for _, split := range cfg.ROM.Splits {
 		if (split.Region != "" && split.Region != reg) ||
-			split.Match(machine)>0 ||
+			split.Match(machine)==0 ||
 			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
 			continue
 		}

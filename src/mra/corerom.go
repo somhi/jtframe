@@ -363,15 +363,15 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			// Singleton interleave case
 			pos += parse_singleton(reg_roms, reg_cfg, p)
 		} else {
-			split, split_minlen := is_split(reg, machine, cfg)
+			split_offset, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
 			if (reg_cfg.Width != 0 && reg_cfg.Width != 8) && len(reg_roms) > 1 {
-				parse_regular_interleave(split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
+				parse_regular_interleave(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			}
 			if reg_cfg.Frac.Parts != 0 {
 				pos += make_frac(p, reg_cfg, reg_roms)
 			} else if reg_cfg.Width <= 8 || len(reg_roms) == 1 {
-				parse_straight_dump(split, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
+				parse_straight_dump(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			}
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
@@ -920,7 +920,7 @@ func parse_singleton(reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode) int {
 	return pos
 }
 
-func parse_straight_dump(split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
+func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
 	reg_pos := 0
 	start_pos := *pos
 	for _, r := range reg_roms {
@@ -948,9 +948,9 @@ func parse_straight_dump(split, split_minlen int, reg string, reg_roms []MameROM
 		// Parse ROM splits by marking the dumped ROM above
 		// as only the first half, filling in a blank, and
 		// adding the second half
-		if *pos-start_pos <= split && *pos-start_pos+r.Size > split && split_minlen > (r.Size>>1) {
+		if *pos-start_pos <= split_offset && *pos-start_pos+r.Size > split_offset && split_minlen > (r.Size>>1) {
 			if args.Verbose {
-				fmt.Printf("\t-split on single ROM file at %X\n", split)
+				fmt.Printf("\t-split on single ROM file at %X\n", split_offset)
 			}
 			rom_len = r.Size >> 1
 			m.AddAttr("length", fmt.Sprintf("0x%X", rom_len))
@@ -1034,7 +1034,7 @@ func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, ar
 	return false
 }
 
-func parse_regular_interleave(split, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
+func parse_regular_interleave(split_offset, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
 	reg_pos := 0
 	start_pos := *pos
 	group_cnt := 0
@@ -1103,8 +1103,9 @@ func parse_regular_interleave(split, split_minlen int, reg string, reg_roms []Ma
 	}
 	n := p
 	deficit := 0
-	for split_phase := 0; split_phase <= split && split_phase < 2; split_phase++ {
+	for split_phase := 0; split_phase <= split_offset && split_phase < 2; split_phase++ {
 		if split_phase == 1 {
+			fill_upto(pos, *pos+split_offset-reg_pos, p)
 			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
 		}
 		chunk0 := *pos
@@ -1147,7 +1148,7 @@ func parse_regular_interleave(split, split_minlen int, reg string, reg_roms []Ma
 					m.AddAttr("map", mapstr)
 					mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
 				}
-				if split != 0 {
+				if split_offset != 0 {
 					m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
 					if split_phase == 1 {
 						m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
