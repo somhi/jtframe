@@ -426,8 +426,11 @@ if [ ! -z "$SETNAME" ]; then
     fi
     if [ -z "$SKIPROM" ]; then getset.sh $SYSNAME $SETNAME $SKIPROM || exit $?; fi
     SHORTSETNAME=`shorten_name $SETNAME`
-    DIPS=`cat $ROM/$SHORTSETNAME.dip`
-    if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
+    if [ -e $ROM/$SHORTSETNAME.dip ]; then
+        # Not all systems have DIPs
+        DIPS=`cat $ROM/$SHORTSETNAME.dip`
+        if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
+    fi
     ROMFILE=$ROM/$SHORTSETNAME.rom
     if [ ! -e $ROMFILE ]; then
         cat<<EOF
