@@ -20,27 +20,15 @@ if [ -d "$JTBIN" ]; then
 fi
 
 # derived variables
-if [ -e $JTROOT/cores ]; then
-    export CORES=$JTROOT/cores
-    # Adds all core names to the auto-completion list of bash
-    echo $CORES
-    ALLFOLDERS=
-    for i in $CORES/*; do
-        j=$(basename $i)
-        if [[ -d $i && $j != modules ]]; then
-            ALLFOLDERS="$ALLFOLDERS $j "
-        fi
-    done
-    complete -W "$ALLFOLDERS" jtcore
-    complete -W "$ALLFOLDERS" swcore
-    unset ALLFOLDERS
-else
-    export CORES=$JTROOT
-fi
+export CORES=$JTROOT/cores
+# Adds all core names to the auto-completion list of bash
+ALLCORES=$(ls $CORES| tr '\n' ' ')
+complete -W "$ALLCORES" jtcore
+complete -W "$ALLCORES" swcore
+unset ALLFOLDERS
 
 export ROM=$JTROOT/rom
 export RLS=$JTROOT/release
-export MRA=$JTROOT/release/mra
 export MRA=$JTROOT/release/mra
 DOC=$JTROOT/doc
 MAME=$JTROOT/doc/mame
