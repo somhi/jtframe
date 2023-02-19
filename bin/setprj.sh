@@ -35,6 +35,10 @@ MAME=$JTROOT/doc/mame
 export MODULES=$JTROOT/modules
 
 function swcore {
+    if [ -z "$JTROOT" ]; then
+        echo Have you forgot to define JTROOT?
+        return
+    fi
     IFS=/ read -ra string <<< $(pwd)
     j="/"
     next=0
@@ -55,6 +59,9 @@ function swcore {
         cd $j
     else
         cd $JTROOT/cores/$1
+    fi
+    if [ $# = 2 ]; then
+        cd $2
     fi
     pwd
 }
