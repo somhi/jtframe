@@ -122,6 +122,7 @@ type RawData struct {
 }
 
 type HeaderCfg struct {
+	Info    string
 	Len, Fill int
 	Data   []RawData
 	Offset struct {

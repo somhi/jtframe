@@ -47,7 +47,9 @@ wire     {{ data_range . }} {{.Name}}_din;
 wire     {{ data_range . }} {{.Name}}_dout;
 {{ if .Dual_port.Name }}
 {{ if not .Dual_port.We }}wire    {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}}{{.Dual_port.Name}}_we; // Dual port for {{.Dual_port.Name}}
-{{end}}{{end}}
+{{end}}{{ else }}
+{{- if not .We }}wire      {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}}{{.Name}}_we;{{end}}
+{{end}}
 {{- end}}
 // SDRAM buses
 {{ range .SDRAM.Banks}}
@@ -159,6 +161,8 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{if not .Din}}.{{.Name}}_din  ( {{.Name}}_din  ),{{end}}{{end}}
     .{{.Name}}_dout ( {{.Name}}_dout ),{{ if .Dual_port.Name }}
     {{ if not .Dual_port.We }}.{{.Dual_port.Name}}_we ( {{.Dual_port.Name}}_we ),  // Dual port for {{.Dual_port.Name}}{{end}}
+    {{ else }}{{ if not .We }}
+    .{{.Name}}_we   ( {{.Name}}_we   ), {{end}}
     {{- end}}
 {{- end}}
     // PROM writting

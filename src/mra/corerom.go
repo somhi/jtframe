@@ -301,6 +301,9 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	}
 	var header *XMLNode
 	if cfg.Header.Len > 0 {
+		if len(cfg.Header.Info)>0 {
+			p.AddNode(cfg.Header.Info).comment=true
+		}
 		header = p.AddNode("part")
 		header.indent_txt = true
 	}
