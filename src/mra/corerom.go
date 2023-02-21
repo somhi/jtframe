@@ -878,7 +878,7 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	blank_len = 0
 	offset := 0
 	for _, each := range cfg.ROM.Blanks {
-		if each.Match(machine)>0 {
+		if each.Match(machine)>0 && reg==each.Region {
 			offset = each.Offset
 			blank_len = each.Len
 		}
