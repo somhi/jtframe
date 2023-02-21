@@ -192,7 +192,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 	// Adds the CORENAME if missing. This macro is expected to exist in macros.def
 	_, exists := macros["CORENAME"]
 	if ! exists {
-		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s", cfg.Core)
+		fmt.Fprintf(os.Stderr, "CORENAME not specified in cfg/macros.def. Defaults to %s\n", cfg.Core)
 	}
 	// Memory templates require JTFRAME_SDRAM_BANKS and JTFRAME_MEMGEN
 	if mem_managed {

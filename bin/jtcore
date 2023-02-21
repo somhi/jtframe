@@ -53,6 +53,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
     --nodbg         Defines JTFRAME_RELEASE
+    --nosta         skips the STA check and marks as PASS compilations with timing problems
     --program | -p  Programs the FPGA via JTAG
     --quick |-q     Quick compilation. Defines NOSOUND and JTFRAME_OSD_NOLOGO
                     Disables JTFRAME_CREDITS and HQ2X.
@@ -83,6 +84,7 @@ OUTPUTDIR=output_files
 PRJ=
 PROG=FALSE
 SEED=1
+SKIPTIMING=
 SIM=FALSE
 SKIP_COMPILE=FALSE
 TARGET=mist
@@ -164,6 +166,7 @@ function parse_args {
                 GIT=FALSE
                 TARGET=mister;;
             --nodbg)      MACROS="$MACROS JTFRAME_RELEASE";;
+            --nosta)      SKIPTIMING=1;;
             --sim)        SIM=TRUE;;
             --showmacros) SHOWMACROS=1;;
             --target|-t)
@@ -295,9 +298,9 @@ else
 fi
 shift
 
-if [ -z "$CORE_FOLDER" ]; then
-    CORE_FOLDER=$(basename $JTROOT)
-    CORE_FOLDER=${CORE_FOLDER^^}
+if [ -e $CORES/$PRJ/cfg/skip ]; then
+    echo "Skipping compilation of $PRJ because of cfg/skip file"
+    exit 0
 fi
 
 if [ $GIT = TRUE ]; then
@@ -530,7 +533,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
         | grep -v "\.we_a.*has no driver or initial value"
         # Report timing
         grep --color=auto "Worst-case.*-[0-9.]*" "$LOG"
-        if [ $? = 0 ]; then
+        if [[ $? = 0 && -z "$SKIPTIMING" ]]; then
             FAIL=1
             report FAIL
             echo FAIL $PRJ

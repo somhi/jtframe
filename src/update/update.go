@@ -256,6 +256,9 @@ func dump_output(cfg Config) {
 			if dogit || cfg.Nodbg || cfg.Beta != "" || cfg.Private {
 				jtcore += " -d JTFRAME_RELEASE"
 			}
+			if !cfg.Nodbg && !cfg.Seed { // Do not check STA for non-release non-jtseed runs
+				jtcore += " --nosta"
+			}
 			for _, each := range defs {
 				each = strings.TrimSpace(each)
 				if each != "" {
