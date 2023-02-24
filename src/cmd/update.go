@@ -18,6 +18,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"strings"
 	goflag "flag"
 	"github.com/jotego/jtframe/update"
 
@@ -30,7 +33,7 @@ var up_all bool
 
 // memCmd represents the mem command
 var updateCmd = &cobra.Command{
-	Use:   "update --cores core1,core2,... <--target mist|mister...>",
+	Use:   "update [--cores] core1,core2,... <--target mist|mister...>",
 	Short: "Updates compiled files for cores or prepares GitHub action files",
 	Long: `JTUPDATE (c) Jose Tejada 2022-2023
 
@@ -43,6 +46,13 @@ The output folder by default is \$JTROOT/release.
 Set --git to use \$JTBIN instead.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args)>0 && up_cfg.CoreList!="" {
+			fmt.Fprintln(os.Stderr,"Error: you cannot specify cores using --cores and arguments at the same time")
+			os.Exit(1)
+		}
+		if len(args)>0 {
+			up_cfg.CoreList=strings.Join(args,",")
+		}
 		up_cfg.Targets = make(map[string]bool)
 		for _,each := range up_targets {
 			up_cfg.Targets[each] = true
@@ -61,7 +71,7 @@ Set --git to use \$JTBIN instead.
 		}
 		update.Run( &up_cfg, args)
 	},
-	// Args: cobra.MinimumNArgs(1),
+	Args: cobra.ArbitraryArgs,
 }
 
 func init() {

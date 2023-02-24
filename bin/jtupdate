@@ -83,7 +83,7 @@ else
         git checkout -b `basename $JTROOT`_$CORESTAMP || exit $?
     fi
 fi
-if [ -z "$KEEP" ]; then rm $ROM/cp_*.sh $ROM/*.rom; fi
+if [ -z "$KEEP" ]; then rm -f $ROM/cp_*.sh $ROM/*.rom; fi
 
 # TASKS is a temporary file with the list of tasks
 TASKS=`mktemp`
