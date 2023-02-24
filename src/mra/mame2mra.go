@@ -251,6 +251,7 @@ type ParsedMachine struct {
 	mra_xml   *XMLNode
 	cloneof   bool
 	def_dipsw string
+	coremod   int
 }
 
 func Run(args Args) {
@@ -315,8 +316,8 @@ extra_loop:
 				}
 			}
 		}
-		mra_xml, def_dipsw := make_mra(machine, mra_cfg, args)
-		pm := ParsedMachine{machine, mra_xml, cloneof, def_dipsw}
+		mra_xml, def_dipsw, coremod := make_mra(machine, mra_cfg, args)
+		pm := ParsedMachine{machine, mra_xml, cloneof, def_dipsw, coremod}
 		data_queue = append(data_queue, pm)
 	}
 	// Add explicit parents to the list
@@ -334,7 +335,7 @@ extra_loop:
 		_, good := parent_names[d.machine.Cloneof]
 		if good || len(d.machine.Cloneof) == 0 {
 			if !args.SkipPocket {
-				pocket_add(d.machine, mra_cfg, args, d.def_dipsw)
+				pocket_add(d.machine, mra_cfg, args, d.def_dipsw, d.coremod)
 			}
 			if !args.SkipMRA {
 				// Delete old MRA files
@@ -675,7 +676,7 @@ func mra_name(machine *MachineXML, cfg Mame2MRA) string {
 
 // Do not pass the macros to make_mra, but instead modifiy the configuration
 // based on the macros in parse_toml
-func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
+func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string, int) {
 	root := XMLNode{name: "misterromdescription"}
 	n := root.AddNode("about").AddAttr("author", "jotego")
 	n.AddAttr("webpage", "https://patreon.com/jotego")
@@ -799,12 +800,12 @@ func make_mra(machine *MachineXML, cfg Mame2MRA, args Args) (*XMLNode, string) {
 		}
 	}
 	// coreMOD
-	make_coreMOD(&root, machine, cfg)
+	coremod := make_coreMOD(&root, machine, cfg)
 	// DIP switches
 	def_dipsw := make_switches(&root, machine, cfg, args)
 	// Buttons
 	make_buttons(&root, machine, cfg, args)
-	return &root, def_dipsw
+	return &root, def_dipsw, coremod
 }
 
 func hexdump(data []byte, cols int) string {
@@ -872,7 +873,7 @@ func make_buttons(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	n.AddIntAttr("count", count)
 }
 
-func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
+func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) int {
 	coremod := 0
 	if machine.Display.Rotate != 0 {
 		root.AddNode("Vertical game").comment = true
@@ -884,6 +885,7 @@ func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	n := root.AddNode("rom").AddAttr("index", "1")
 	n = n.AddNode("part")
 	n.SetText(fmt.Sprintf("%02X", coremod))
+	return coremod
 }
 
 func make_devROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, pos *int) {
