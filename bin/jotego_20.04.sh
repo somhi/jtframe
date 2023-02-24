@@ -33,3 +33,18 @@ pip install --upgrade opbasm
 
 # as31 to compile 8051/8751 assembler code
 apt install --yes as31
+
+# asm48 to compile MCS-48 assembler code
+cd /tmp
+git clone https://github.com/jotego/asm48.git
+cd asm48
+make
+cp 8039dasm asm48 /usr/local/bin
+
+# macro assembler for many, many CPUs
+cd /tmp
+git clone https://github.com/jotego/asl.git
+cd asl
+make
+cp alink asl p2bin p2hex pbind plist /usr/local/bin
+cp man/* /usr/local/share/man/man1/

@@ -16,7 +16,6 @@ RUN tar -C /usr/local -xzf go1.19.6.linux-amd64.tar.gz
 RUN rm -f go1.19.6.linux-amd64.tar.gz
 RUN echo export PATH=\$PATH:/usr/local/go/bin >> $HOME/.bashrc
 
-
 # iverilog compilation
 RUN apt install -yq --install-suggests build-essential git zlib1g-dev
 RUN apt install -yq flex gperf bison
@@ -24,6 +23,7 @@ RUN apt install -yq flex gperf bison
 # Assembler tools
 RUN pip install --upgrade opbasm
 RUN apt install -yq as31
+RUN cd /tmp; git clone https://github.com/jotego/asl.git; cd asl; make -j; cp alink asl p2bin p2hex pbind plist /usr/local/bin
 
 # JT core environment
 RUN mkdir /jtbin; echo export JTBIN=/jtbin >> $HOME/.bashrc
