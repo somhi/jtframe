@@ -865,6 +865,7 @@ func get_reverse(reg_cfg *RegCfg, name string) bool {
 	for _, k := range reg_cfg.Overrules {
 		for _, j := range k.Names {
 			if j == name {
+				// fmt.Printf("Reverse overruled for %s\n",name)
 				return k.Reverse
 			}
 		}
@@ -941,7 +942,7 @@ func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []
 		// check if the next ROM should be split
 		rom_len := 0
 		var m *XMLNode
-		if reg_cfg.Reverse {
+		if get_reverse(reg_cfg, r.Name) {
 			pp := p.AddNode("interleave").AddAttr("output", "16")
 			m = add_rom(pp, r)
 			m.AddAttr("map", "12")
@@ -960,7 +961,7 @@ func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []
 			*pos += rom_len
 			fill_upto(pos, *pos+split_minlen-rom_len, p)
 			// second half
-			if reg_cfg.Reverse {
+			if get_reverse(reg_cfg, r.Name) {
 				pp := p.AddNode("interleave").AddAttr("output", "16")
 				m = add_rom(pp, r)
 				m.AddAttr("map", "12")
