@@ -126,7 +126,7 @@ always @(posedge clk) if(pxl2_cen) begin
     end
 end
 
-jtframe_dual_ram #(.dw(COLORW*3), .aw(VW+1)) u_line(
+jtframe_dual_ram #(.DW(COLORW*3), .AW(VW+1)) u_line(
     .clk0   ( clk       ),
     .clk1   ( clk       ),
     // Port 0: writes

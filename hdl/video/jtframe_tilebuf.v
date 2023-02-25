@@ -72,7 +72,7 @@ always @(posedge clk, posedge rst) begin
     end
 end
 
-jtframe_dual_ram #(.aw(HW+1),.dw(PW)) u_line(
+jtframe_dual_ram #(.AW(HW+1),.DW(PW)) u_line(
     .clk0   ( clk           ),
     .clk1   ( clk           ),
     // Port 0

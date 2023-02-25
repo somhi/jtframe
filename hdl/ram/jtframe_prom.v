@@ -22,9 +22,9 @@
     // has part of it invalid
 
 module jtframe_prom #(parameter
-    dw      = 8,
-    aw      = 10,
-    simfile = "",
+    DW      = 8,
+    AW      = 10,
+    SIMFILE = "",
     simhex  = "",
     synhex  = "",
     offset  = 0,
@@ -32,14 +32,14 @@ module jtframe_prom #(parameter
 )(
     input   clk,
     input   cen,
-    input   [dw-1:0] data,
-    input   [aw-1:0] rd_addr,
-    input   [aw-1:0] wr_addr,
+    input   [DW-1:0] data,
+    input   [AW-1:0] rd_addr,
+    input   [AW-1:0] wr_addr,
     input   we,
-    output reg [dw-1:0] q
+    output reg [DW-1:0] q
 );
 
-(* ramstyle = "no_rw_check" *) reg [dw-1:0] mem[0:(2**aw)-1];
+(* ramstyle = "no_rw_check" *) reg [DW-1:0] mem[0:(2**AW)-1];
 
 `ifdef SIMULATION
 /* verilator lint_off WIDTH */
@@ -47,40 +47,40 @@ integer f, readcnt;
 `ifndef LOADROM
 // load the file only when SPI load is not simulated
 initial begin
-    if( simfile != "" ) begin
-        f=$fopen(simfile,"rb");
+    if( SIMFILE != "" ) begin
+        f=$fopen(SIMFILE,"rb");
         if( f != 0 ) begin
             readcnt=$fseek( f, offset, 0 );
             readcnt=$fread( mem, f );
-            $display("INFO: Read %14s (%4d bytes) for %m",simfile, readcnt);
+            $display("INFO: Read %14s (%4d bytes) for %m",SIMFILE, readcnt);
             $fclose(f);
         end else begin
-            $display("WARNING: %m cannot open %s", simfile);
+            $display("WARNING: %m cannot open %s", SIMFILE);
         end
     end else if( simhex != "" ) begin
         $display("INFO: reading %14s (hex) for %m", simhex );
         $readmemh( simhex, mem );
     end else begin
-        for( readcnt=0; readcnt<(2**aw)-1; readcnt=readcnt+1 )
-            mem[readcnt] = {dw{1'b0}};
+        for( readcnt=0; readcnt<(2**AW)-1; readcnt=readcnt+1 )
+            mem[readcnt] = {DW{1'b0}};
     end
 end
 `endif
 `ifdef MEM_CHECK_TIME
     // check contents after 80ms
-    reg [dw-1:0] mem_check[0:(2**aw)-1];
+    reg [DW-1:0] mem_check[0:(2**AW)-1];
     reg check_ok=1'b1;
     initial begin
         #(`MEM_CHECK_TIME);
-        if( simfile != "" ) begin
-            f=$fopen(simfile,"rb");
+        if( SIMFILE != "" ) begin
+            f=$fopen(SIMFILE,"rb");
             if( f!= 0 ) begin
                 readcnt = $fseek( f, offset, 0 );   // return value assigned to readcnt to avoid a warning
                 readcnt = $fread( mem_check, f );
                 $fclose(f);
                 for( readcnt=readcnt-1;readcnt>=0; readcnt=readcnt-1) begin
                     if( mem_check[readcnt] != mem[readcnt] ) begin
-                        $display("ERROR: memory content check failed for file %s (%m) @ 0x%x", simfile, readcnt );
+                        $display("ERROR: memory content check failed for file %s (%m) @ 0x%x", SIMFILE, readcnt );
                         check_ok = 1'b0;
                         //`ifndef IVERILOG
                         //break;
@@ -92,7 +92,7 @@ end
                 if( check_ok ) $display("INFO: %m memory check succedded");
             end
             else begin
-                $display("ERROR: Cannot find file %s to check memory %m", simfile );
+                $display("ERROR: Cannot find file %s to check memory %m", SIMFILE );
             end
         end
     end

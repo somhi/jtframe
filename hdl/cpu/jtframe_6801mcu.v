@@ -115,7 +115,7 @@ always @(*) begin
     endcase
 end
 
-jtframe_ram #(.aw(8)) u_intram(
+jtframe_ram #(.AW(8)) u_intram(
     .clk    ( clk         ),
     .cen    ( cen         ),
     .data   ( dout        ),

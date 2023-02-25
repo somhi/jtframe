@@ -18,26 +18,26 @@
 
 // Generic 16-bit dual port RAM with clock enable
 // parameters:
-//      aw      => Address bit width, 10 for 1kB
-//      simfile => binary file to load during simulation
-//      simhexfile => hexadecimal file to load during simulation
+//      AW      => Address bit width, 10 for 1kB
+//      SIMFILE => binary file to load during simulation
+//      SIMHEXFILE => hexadecimal file to load during simulation
 
-module jtframe_ram16 #(parameter aw=10,
-    simfile_lo="", simhexfile_lo="",
-    simfile_hi="", simhexfile_hi=""
+module jtframe_ram16 #(parameter AW=10,
+    SIMFILE_LO="", SIMHEXFILE_LO="",
+    SIMFILE_HI="", SIMHEXFILE_HI=""
 )(
     input          clk,
     input   [15:0] data,
-    input   [aw:1] addr,
+    input   [AW:1] addr,
     input   [ 1:0] we,
     output  [15:0] q
 );
 
 jtframe_ram #(
-    .dw        ( 8             ),
-    .aw        ( aw            ),
-    .simfile   ( simfile_lo    ),
-    .simhexfile( simhexfile_lo )  )
+    .DW        ( 8             ),
+    .AW        ( AW            ),
+    .SIMFILE   ( SIMFILE_LO    ),
+    .SIMHEXFILE( SIMHEXFILE_LO )  )
 u_lo(
     .clk        ( clk               ),
     .cen        ( 1'b1              ),
@@ -49,10 +49,10 @@ u_lo(
 );
 
 jtframe_ram #(
-    .dw        ( 8             ),
-    .aw        ( aw            ),
-    .simfile   ( simfile_hi    ),
-    .simhexfile( simhexfile_hi )  )
+    .DW        ( 8             ),
+    .AW        ( AW            ),
+    .SIMFILE   ( SIMFILE_HI    ),
+    .SIMHEXFILE( SIMHEXFILE_HI )  )
 u_hi(
     .clk        ( clk               ),
     .cen        ( 1'b1              ),

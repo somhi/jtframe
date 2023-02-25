@@ -114,9 +114,9 @@ always @(posedge clk_rom, posedge rst) begin
 end
 
 jtframe_dual_ram #(
-    .dw     ( 18        ),
-    .aw     ( AW        ),
-    .simhexfile("cheat.hex")
+    .DW     ( 18        ),
+    .AW     ( AW        ),
+    .SIMHEXFILE("cheat.hex")
 ) u_irom(
     .clk0   ( clk_rom   ),
     .clk1   ( clk_pico  ),

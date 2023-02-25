@@ -150,7 +150,7 @@ reg  [  63:0] dump_ser;
 reg           tx_start, tx_done;
 wire          buffer_we;
 
-jtframe_dual_ram #(.dw(64),.aw(BW)) u_buffer(
+jtframe_dual_ram #(.DW(64),.AW(BW)) u_buffer(
     .clk0   ( clk        ),
     .clk1   ( clk        ),
     // Port 0: write

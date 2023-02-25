@@ -146,7 +146,7 @@ assign joyana_r4 = 0;
         input [15:0] snd;
         reg   [15:0] snd_in;
         begin
-            snd_in = {snd[15]^SIGNED_SND, snd[14:0]};
+            snd_in = {snd[15]^SIGNED_SND[0], snd[14:0]};
             snd_padded = { 1'b0, snd_in, 3'd0 };
         end
     endfunction
@@ -189,7 +189,7 @@ assign snd_pwm_right = 0;
 wire [9:0] cfg_addr;
 wire [7:0] cfg_dout;
 
-jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
+jtframe_ram #(.SYNFILE("cfgstr.hex")) u_cfgstr(
     .clk    ( SPI_SCK   ),
     .cen    ( 1'b1      ),
     .data   (           ),

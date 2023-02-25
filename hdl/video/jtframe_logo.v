@@ -60,7 +60,7 @@ wire        idpxl;
 reg  [COLORW-1:0] r_out, g_out, b_out;
 reg         inzone;
 
-jtframe_prom #(.synhex("jtframe_logo.hex"),.aw(11)) u_rom(
+jtframe_prom #(.synhex("jtframe_logo.hex"),.AW(11)) u_rom(
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( prog_data ),

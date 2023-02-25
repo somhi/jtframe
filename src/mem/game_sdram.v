@@ -329,9 +329,9 @@ assign ba{{$index}}_din  = 0;
 {{- if $bus.Dual_port.Name }}
 // Dual port BRAM for {{$bus.Name}} and {{$bus.Dual_port.Name}}
 jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
-    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
-    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
-    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+    .AW({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.SIMFILE_LO("{{$bus.Name}}_lo.bin"),
+    .SIMFILE_HI("{{$bus.Name}}_hi.bin"){{else}}.SIMFILE("{{$bus.Name}}.bin"){{end}}{{end}}
 ) u_bram_{{$bus.Name}}(
     // Port 0 - {{$bus.Name}}
     .clk0   ( clk ),
@@ -351,9 +351,9 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
 );{{else}}
 // BRAM for {{$bus.Name}}
 jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
-    .aw({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
-    {{ if eq $bus.Data_width 16 }}.simfile_lo("{{$bus.Name}}_lo.bin"),
-    .simfile_hi("{{$bus.Name}}_hi.bin"){{else}}.simfile("{{$bus.Name}}.bin"){{end}}{{end}}
+    .AW({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
+    {{ if eq $bus.Data_width 16 }}.SIMFILE_LO("{{$bus.Name}}_lo.bin"),
+    .SIMFILE_HI("{{$bus.Name}}_hi.bin"){{else}}.SIMFILE("{{$bus.Name}}.bin"){{end}}{{end}}
 ) u_bram_{{$bus.Name}}(
     .clk    ( clk  ),{{ if eq $bus.Data_width 8 }}
     .cen    ( 1'b1 ),{{end}}

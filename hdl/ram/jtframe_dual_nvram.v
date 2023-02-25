@@ -19,38 +19,38 @@
 // Dual RAM that can easily interface with
 // the memory dump interface for NVRAM implementations
 
-module jtframe_dual_nvram #(parameter dw=8, aw=10,
-    simfile="", simhexfile="", synfile="", dumpfile="dump.hex"
+module jtframe_dual_nvram #(parameter DW=8, AW=10,
+    SIMFILE="", SIMHEXFILE="", SYNFILE="", DUMPFILE="dump.hex"
 )(
     // Port 0
     input   clk0,
-    input   [dw-1:0] data0,
-    input   [aw-1:0] addr0,
+    input   [DW-1:0] data0,
+    input   [AW-1:0] addr0,
     input   we0,
-    output  [dw-1:0] q0,
+    output  [DW-1:0] q0,
     // Port 1 
     input   clk1,
-    input   [aw-1:0] addr1a, // A, read only
-    input   [aw-1:0] addr1b, // B, RW
+    input   [AW-1:0] addr1a, // A, read only
+    input   [AW-1:0] addr1b, // B, RW
     input   sel_b,   // high to select b
     input   we_b,
-    input   [dw-1:0] data1,
-    output  [dw-1:0] q1
+    input   [DW-1:0] data1,
+    output  [DW-1:0] q1
 );
 
-wire [aw-1:0] a_mux;
+wire [AW-1:0] a_mux;
 wire          w_mux;
 
 assign a_mux = sel_b ? addr1b : addr1a;
 assign w_mux = sel_b & we_b;
 
 jtframe_dual_ram #(
-    .dw        ( dw         ),
-    .aw        ( aw         ),
-    .simfile   ( simfile    ),
-    .simhexfile( simhexfile ),
-    .synfile   ( synfile    ),
-    .dumpfile  ( dumpfile   )
+    .DW        ( DW         ),
+    .AW        ( AW         ),
+    .SIMFILE   ( SIMFILE    ),
+    .SIMHEXFILE( SIMHEXFILE ),
+    .SYNFILE   ( SYNFILE    ),
+    .DUMPFILE  ( DUMPFILE   )
 ) u_dual(
     // Port 0
     .clk0   ( clk0  ),

@@ -113,8 +113,8 @@ upi41_core u_t48(
 );
 
 jtframe_prom #(
-    .aw(11),
-    .simfile(SIMFILE)
+    .AW(11),
+    .SIMFILE(SIMFILE)
 ) u_prom (
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
@@ -125,7 +125,7 @@ jtframe_prom #(
     .q      ( rom_data  )
 );
 
-jtframe_ram #(.aw(8)) u_ram(
+jtframe_ram #(.AW(8)) u_ram(
     .clk    ( clk       ),
     .cen    ( 1'b1      ), // this may create problems
     .data   ( ram_din   ),

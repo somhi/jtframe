@@ -18,63 +18,63 @@
 
 // Generic RAM with clock enable
 // parameters:
-//      dw      => Data bit width, 8 for byte-based memories
-//      aw      => Address bit width, 10 for 1kB
-//      simfile => binary file to load during simulation
-//      simhexfile => hexadecimal file to load during simulation
-//      synfile => hexadecimal file to load for synthesis
-//      cen_rd  => Use clock enable for reading too, by default it is used
+//      DW      => Data bit width, 8 for byte-based memories
+//      AW      => Address bit width, 10 for 1kB
+//      SIMFILE => binary file to load during simulation
+//      SIMHEXFILE => hexadecimal file to load during simulation
+//      SYNFILE => hexadecimal file to load for synthesis
+//      CEN_RD  => Use clock enable for reading too, by default it is used
 //                 only for writting.
 
 
-module jtframe_ram #(parameter dw=8, aw=10,
-        simfile="", simhexfile="",
-        synfile="", synbinfile="",
-        cen_rd=0)(
+module jtframe_ram #(parameter DW=8, AW=10,
+        SIMFILE="", SIMHEXFILE="",
+        SYNFILE="", SYNBINFILE="",
+        CEN_RD=0)(
     input   clk,
     input   cen /* direct_enable */,
-    input   [dw-1:0] data,
-    input   [aw-1:0] addr,
+    input   [DW-1:0] data,
+    input   [AW-1:0] addr,
     input   we,
-    output reg [dw-1:0] q
+    output reg [DW-1:0] q
 );
 
-(* ramstyle = "no_rw_check" *) reg [dw-1:0] mem[0:(2**aw)-1];
+(* ramstyle = "no_rw_check" *) reg [DW-1:0] mem[0:(2**AW)-1];
 
 `ifdef SIMULATION
 integer f, readcnt;
 initial
-if( simfile != 0 ) begin
-    f=$fopen(simfile,"rb");
+if( SIMFILE != 0 ) begin
+    f=$fopen(SIMFILE,"rb");
     if( f != 0 ) begin
         readcnt=$fread( mem, f );
-        $display("INFO: Read %14s (%4d bytes) for %m",simfile, readcnt);
+        $display("INFO: Read %14s (%4d bytes) for %m",SIMFILE, readcnt);
         $fclose(f);
     end else begin
-        $display("WARNING: %m cannot open file: %s", simfile);
+        $display("WARNING: %m cannot open file: %s", SIMFILE);
     end
     end
 else begin
-    if( simhexfile != 0 ) begin
-        $readmemh(simhexfile,mem);
-        $display("INFO: Read %14s (hex) for %m", simhexfile);
+    if( SIMHEXFILE != 0 ) begin
+        $readmemh(SIMHEXFILE,mem);
+        $display("INFO: Read %14s (hex) for %m", SIMHEXFILE);
     end else begin
-        if( synfile != 0 ) begin
-            $readmemh(synfile,mem);
-            $display("INFO: Read %14s for %m", synfile);
+        if( SYNFILE != 0 ) begin
+            $readmemh(SYNFILE,mem);
+            $display("INFO: Read %14s for %m", SYNFILE);
         end else
-            for( readcnt=0; readcnt<(2**aw)-1; readcnt=readcnt+1 )
-                mem[readcnt] = {dw{1'b0}};
+            for( readcnt=0; readcnt<(2**AW)-1; readcnt=readcnt+1 )
+                mem[readcnt] = {DW{1'b0}};
     end
 end
 `else
 // file for synthesis:
-initial if(synfile!=0 )$readmemh(synfile,mem);
-initial if(synbinfile!=0 )$readmemb(synbinfile,mem);
+initial if(SYNFILE!=0 )$readmemh(SYNFILE,mem);
+initial if(SYNBINFILE!=0 )$readmemb(SYNBINFILE,mem);
 `endif
 
 always @(posedge clk) begin
-    if( !cen_rd || cen ) q <= mem[addr];
+    if( !CEN_RD || cen ) q <= mem[addr];
     if( cen && we) mem[addr] <= data;
 end
 

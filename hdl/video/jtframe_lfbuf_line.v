@@ -111,7 +111,7 @@ always @(posedge clk, posedge rst) begin
 end
 
 // collect input data
-jtframe_dual_ram #(.dw(16),.aw(HW+1)) u_linein(
+jtframe_dual_ram #(.DW(16),.AW(HW+1)) u_linein(
     // Write to SDRAM and delete
     .clk0   ( clk           ),
     .data0  ( 16'd0        ), // might need to 16'd0 depending on the core
@@ -126,7 +126,7 @@ jtframe_dual_ram #(.dw(16),.aw(HW+1)) u_linein(
     .q1     (               )
 );
 
-jtframe_dual_ram #(.dw(16),.aw(HW)) u_lineout(
+jtframe_dual_ram #(.DW(16),.AW(HW)) u_lineout(
     // Read from SDRAM, write to line buffer
     .clk0   ( clk           ),
     .data0  ( fb_dout       ),

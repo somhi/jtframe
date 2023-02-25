@@ -51,7 +51,7 @@ end
 
 assign rd_gated = LHBL ? rd_data : {DW{1'b0}};
 
-jtframe_dual_ram #(.aw(AW+1),.dw(DW)) u_line(
+jtframe_dual_ram #(.AW(AW+1),.DW(DW)) u_line(
     .clk0   ( clk           ),
     .clk1   ( clk           ),
     // Port 0: write

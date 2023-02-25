@@ -83,7 +83,7 @@ end
 
 wire [AW-1:0] wr_af = flip ? ~wr_addr + FLIP_OFFSET[AW-1:0] : wr_addr;
 
-jtframe_dual_ram #(.aw(AW+1),.dw(DW)) u_line(
+jtframe_dual_ram #(.AW(AW+1),.DW(DW)) u_line(
     .clk0   ( clk           ),
     .clk1   ( clk           ),
     // Port 0

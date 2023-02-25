@@ -668,7 +668,7 @@ module RAM_5501( // ref: RAM_5501
     input      WEn  // pin: 20
 );
 
-parameter simfile="";
+parameter SIMFILE="";
 
 reg [3:0] mem [0:255];
 reg [3:0] QQ;
@@ -677,18 +677,18 @@ assign #300 Q = QQ;     // speed used on Popeye PCB
 initial begin : clr_mem
     integer cnt;
     integer f,c;
-    if( simfile=="" ) begin
+    if( SIMFILE=="" ) begin
         for( cnt=0; cnt<256; cnt=cnt+1 ) mem[cnt] = 4'd0;
     end
     else begin
-        f=$fopen(simfile,"rb");
+        f=$fopen(SIMFILE,"rb");
         if( f!=0 ) begin
             c=$fread( mem, f );
             $fclose(f);
-            $display("INFO: %m %s (%d bytes)", simfile, c);
+            $display("INFO: %m %s (%d bytes)", SIMFILE, c);
         end
         else begin
-            $display("ERROR: cannot load file %s of ROM %m", simfile);
+            $display("ERROR: cannot load file %s of ROM %m", SIMFILE);
             $finish;
         end
     end
@@ -760,20 +760,20 @@ module ROM_2764( // ref: ROM_2764
     input        P  // pin: 27
 );
 // P input is ignored
-parameter simfile="blank_filename";
+parameter SIMFILE="blank_filename";
 
 reg [7:0] mem[0:2**13-1];
 
 initial begin : rom_load
     integer f,c;
-    f=$fopen(simfile,"rb");
+    f=$fopen(SIMFILE,"rb");
     if( f!=0 ) begin
         c=$fread( mem, f );
         $fclose(f);
-        $display("INFO: %m %s (%d bytes)", simfile, c);
+        $display("INFO: %m %s (%d bytes)", SIMFILE, c);
     end
     else begin
-        $display("ERROR: cannot load file %s of ROM %m", simfile);
+        $display("ERROR: cannot load file %s of ROM %m", SIMFILE);
         $finish;
     end
 end

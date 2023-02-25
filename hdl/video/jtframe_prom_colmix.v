@@ -79,7 +79,7 @@ always @* begin
     endcase
 end
 
-jtframe_prom #(.aw(PROM_AW),.simfile(SIMFILE0)) u_prom0(
+jtframe_prom #(.AW(PROM_AW),.SIMFILE(SIMFILE0)) u_prom0(
     .clk    ( clk           ),
     .cen    ( 1'b1          ),
     .data   ( prog_data     ),
@@ -89,7 +89,7 @@ jtframe_prom #(.aw(PROM_AW),.simfile(SIMFILE0)) u_prom0(
     .q      ( prom0_dout    )
 );
 
-jtframe_prom #(.aw(PROM_AW),.simfile(SIMFILE1)) u_prom1(
+jtframe_prom #(.AW(PROM_AW),.SIMFILE(SIMFILE1)) u_prom1(
     .clk    ( clk           ),
     .cen    ( 1'b1          ),
     .data   ( prog_data     ),

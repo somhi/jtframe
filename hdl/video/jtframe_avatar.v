@@ -31,7 +31,7 @@ module jtframe_avatar #(parameter AW=13)(
 `ifdef JTFRAME_AVATARS
     // Alternative Objects during pause for MiSTer
     wire [15:0] avatar_data;
-    jtframe_ram #(.dw(16), .aw(AW), .synfile("avatar.hex"),.cen_rd(1)) u_avatars(
+    jtframe_ram #(.DW(16), .AW(AW), .SYNFILE("avatar.hex"),.CEN_RD(1)) u_avatars(
         .clk    ( clk            ),
         .cen    ( pause          ),  // tiny power saving when not in pause
         .data   ( 16'd0          ),

@@ -41,7 +41,7 @@ wire [1:0]    wr_m      = (ba0_addr >= START && ba0_addr<( START + (1<<LW) )) ? 
 
 assign ioctl_din = ioctl_addr[0] ? dout[15:8] : dout[7:0];
 
-jtframe_dual_ram16 #(.aw(LW)) u_ram(
+jtframe_dual_ram16 #(.AW(LW)) u_ram(
     .clk0       ( clk_rom   ),
     .clk1       ( clk_rom   ),
     // SDRAM writes

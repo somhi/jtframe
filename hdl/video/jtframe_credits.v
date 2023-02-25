@@ -91,7 +91,7 @@ wire              vram_nc;
 
 assign hscan = hn - HOFFSET;
 
-jtframe_dual_ram #(.dw(9), .aw(MSGW),.synfile("msg.bin"),.ascii_bin(1)) u_msg(
+jtframe_dual_ram #(.DW(9), .AW(MSGW),.SYNFILE("msg.bin"),.ASCII_BIN(1)) u_msg(
     .clk0   ( clk       ),
     .clk1   ( clk       ),
     // Port 0: optional write access
@@ -106,7 +106,7 @@ jtframe_dual_ram #(.dw(9), .aw(MSGW),.synfile("msg.bin"),.ascii_bin(1)) u_msg(
     .q1     ( scan_data )
 );
 
-jtframe_ram #(.aw(10),.synfile("font0.hex")) u_font(
+jtframe_ram #(.AW(10),.SYNFILE("font0.hex")) u_font(
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( 8'd0      ),
@@ -214,7 +214,7 @@ reg  [ 7:0] obj_id, obj_x, obj_y;
 
 reg         line = 1'b0;
 
-jtframe_dual_ram #(.dw(8), .aw(9)) u_linebuffer(
+jtframe_dual_ram #(.DW(8), .AW(9)) u_linebuffer(
     .clk0   ( clk       ),
     .clk1   ( clk       ),
     // Port 0: new data writes
@@ -229,7 +229,7 @@ jtframe_dual_ram #(.dw(8), .aw(9)) u_linebuffer(
     .q1     ( pal_addr  )
 );
 
-jtframe_ram #(.dw(8), .aw(12),.synfile("lut.hex")) u_lut(
+jtframe_ram #(.DW(8), .AW(12),.SYNFILE("lut.hex")) u_lut(
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( 8'd0      ),
@@ -238,7 +238,7 @@ jtframe_ram #(.dw(8), .aw(12),.synfile("lut.hex")) u_lut(
     .q      ( lut_data  )
 );
 
-jtframe_ram #(.dw(16), .aw(13),.synfile("avatar.hex")) u_obj(
+jtframe_ram #(.DW(16), .AW(13),.SYNFILE("avatar.hex")) u_obj(
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( 16'd0     ),
@@ -247,7 +247,7 @@ jtframe_ram #(.dw(16), .aw(13),.synfile("avatar.hex")) u_obj(
     .q      ( obj_data  )
 );
 
-jtframe_ram #(.dw(12), .aw(4+4),.synfile("avatar_pal.hex")) u_pal(
+jtframe_ram #(.DW(12), .AW(4+4),.SYNFILE("avatar_pal.hex")) u_pal(
     .clk    ( clk       ),
     .cen    ( 1'b1      ),
     .data   ( 12'd0     ),

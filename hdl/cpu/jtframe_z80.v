@@ -171,7 +171,7 @@ end
 
     //wire clk_ram = clk & cpu_cen;
 
-    jtframe_dual_nvram #(.aw(RAM_AW)) u_ram(
+    jtframe_dual_nvram #(.AW(RAM_AW)) u_ram(
         // regular access
         .clk0   ( clk         ), // clk_ram may be needed (?)
         .data0  ( cpu_dout    ),

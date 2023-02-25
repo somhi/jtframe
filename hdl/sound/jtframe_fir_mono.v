@@ -69,7 +69,7 @@ end
 // the first half contains the coefficients
 // the second half, contains the signal
 
-jtframe_dual_ram #(.dw(16), .aw(9), .synfile(COEFFS)) u_ram(
+jtframe_dual_ram #(.DW(16), .AW(9), .SYNFILE(COEFFS)) u_ram(
     .clk0   ( clk           ),
     .clk1   ( clk           ),
     // Port 0: write

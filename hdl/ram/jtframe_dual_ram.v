@@ -18,45 +18,45 @@
 
 // Generic dual port RAM with clock enable
 // parameters:
-//      dw      => Data bit width, 8 for byte-based memories
-//      aw      => Address bit width, 10 for 1kB
-//      simfile => binary file to load during simulation
-//      simhexfile => hexadecimal file to load during simulation
-//      synfile => hexadecimal file to load for synthesis
+//      DW      => Data bit width, 8 for byte-based memories
+//      AW      => Address bit width, 10 for 1kB
+//      SIMFILE => binary file to load during simulation
+//      SIMHEXFILE => hexadecimal file to load during simulation
+//      SYNFILE => hexadecimal file to load for synthesis
 
 /* verilator lint_off MULTIDRIVEN */
 
-module jtframe_dual_ram #(parameter dw=8, aw=10,
-    simfile="", simhexfile="",
-    synfile="",
-    ascii_bin=0,  // set to 1 to read the ASCII file as binary
-    dumpfile="dump.hex"
+module jtframe_dual_ram #(parameter DW=8, AW=10,
+    SIMFILE="", SIMHEXFILE="",
+    SYNFILE="",
+    ASCII_BIN=0,  // set to 1 to read the ASCII file as binary
+    DUMPFILE="dump.hex"
 )(
     // Port 0
     input   clk0,
-    input   [dw-1:0] data0,
-    input   [aw-1:0] addr0,
+    input   [DW-1:0] data0,
+    input   [AW-1:0] addr0,
     input   we0,
-    output  [dw-1:0] q0,
+    output  [DW-1:0] q0,
     // Port 1
     input   clk1,
-    input   [dw-1:0] data1,
-    input   [aw-1:0] addr1,
+    input   [DW-1:0] data1,
+    input   [AW-1:0] addr1,
     input   we1,
-    output  [dw-1:0] q1
+    output  [DW-1:0] q1
     `ifdef JTFRAME_DUAL_RAM_DUMP
     ,input dump
     `endif
 );
 
     jtframe_dual_ram_cen #(
-        .dw         ( dw        ),
-        .aw         ( aw        ),
-        .simfile    ( simfile   ),
-        .simhexfile ( simhexfile),
-        .synfile    ( synfile   ),
-        .ascii_bin  ( ascii_bin ),
-        .dumpfile   ( dumpfile  )
+        .DW         ( DW        ),
+        .AW         ( AW        ),
+        .SIMFILE    ( SIMFILE   ),
+        .SIMHEXFILE ( SIMHEXFILE),
+        .SYNFILE    ( SYNFILE   ),
+        .ASCII_BIN  ( ASCII_BIN ),
+        .DUMPFILE   ( DUMPFILE  )
     ) u_ram (
         .clk0   ( clk0  ),
         .cen0   ( 1'b1  ),
@@ -80,26 +80,26 @@ endmodule
 
 
 
-module jtframe_dual_ram_cen #(parameter dw=8, aw=10,
-    simfile="", simhexfile="",
-    synfile="",
-    ascii_bin=0,  // set to 1 to read the ASCII file as binary
-    dumpfile="dump" // do not add an extension to the name
+module jtframe_dual_ram_cen #(parameter DW=8, AW=10,
+    SIMFILE="", SIMHEXFILE="",
+    SYNFILE="",
+    ASCII_BIN=0,  // set to 1 to read the ASCII file as binary
+    DUMPFILE="dump" // do not add an extension to the name
 )(
     input   clk0,
     input   cen0,
     input   clk1,
     input   cen1,
     // Port 0
-    input   [dw-1:0] data0,
-    input   [aw-1:0] addr0,
+    input   [DW-1:0] data0,
+    input   [AW-1:0] addr0,
     input   we0,
-    output [dw-1:0] q0,
+    output [DW-1:0] q0,
     // Port 1
-    input   [dw-1:0] data1,
-    input   [aw-1:0] addr1,
+    input   [DW-1:0] data1,
+    input   [AW-1:0] addr1,
     input   we1,
-    output [dw-1:0] q1
+    output [DW-1:0] q1
     `ifdef JTFRAME_DUAL_RAM_DUMP
     ,input dump
     `endif
@@ -118,7 +118,7 @@ localparam POCKET=0;
 `endif
 
 generate
-    if( !SIMULATION && POCKET && aw<13 && dw<=8 ) begin
+    if( !SIMULATION && POCKET && AW<13 && DW<=8 ) begin
             jtframe_pocket_dualram u_pocket_ram(
                 .address_a( addr0   ),
                 .address_b( addr1   ),
@@ -134,8 +134,8 @@ generate
                 .q_b      ( q1      )
             );
         end else begin
-            reg [dw-1:0] qq0, qq1;
-            (* ramstyle = "no_rw_check" *) reg [dw-1:0] mem[0:(2**aw)-1];
+            reg [DW-1:0] qq0, qq1;
+            (* ramstyle = "no_rw_check" *) reg [DW-1:0] mem[0:(2**AW)-1];
 
             assign { q0, q1 } = { qq0, qq1 };
 
@@ -161,9 +161,9 @@ generate
                     always @(posedge clk1) begin
                         dumpl <= dump;
                         if( dump & ~dumpl ) begin
-                            $display("INFO: %m contents dumped to %s", dumpfile );
-                            fdump=$fopen( {dumpfile, "_", fcnt[23:0],".hex"},"w");
-                            for( dumpcnt=0; dumpcnt<2**aw; dumpcnt=dumpcnt+1 )
+                            $display("INFO: %m contents dumped to %s", DUMPFILE );
+                            fdump=$fopen( {DUMPFILE, "_", fcnt[23:0],".hex"},"w");
+                            for( dumpcnt=0; dumpcnt<2**AW; dumpcnt=dumpcnt+1 )
                                 $fdisplay(fdump,"%0X", mem[dumpcnt]);
                             $fclose(fdump);
                             // increment fcnt
@@ -180,46 +180,46 @@ generate
 
                 integer f, readcnt;
                 initial begin
-                    for( f=0; f<(2**aw)-1;f=f+1) begin
+                    for( f=0; f<(2**AW)-1;f=f+1) begin
                         mem[f] = 0;
                     end
-                    if( simfile != "" ) begin
-                        f=$fopen(simfile,"rb");
+                    if( SIMFILE != "" ) begin
+                        f=$fopen(SIMFILE,"rb");
                         if( f != 0 ) begin
                             readcnt=$fread( mem, f );
                             $display("INFO: Read %14s (%4d bytes/%2d%%) for %m",
-                                simfile, readcnt, readcnt*100/(2**aw));
-                            if( readcnt != 2**aw )
+                                SIMFILE, readcnt, readcnt*100/(2**AW));
+                            if( readcnt != 2**AW )
                                 $display("      the memory was not filled by the file data");
                             $fclose(f);
                         end else begin
-                            $display("WARNING: %m cannot open file: %s", simfile);
+                            $display("WARNING: %m cannot open file: %s", SIMFILE);
                         end
                         end
                     else begin
-                        if( simhexfile != "" ) begin
-                            $readmemh(simhexfile,mem);
-                            $display("INFO: Read %14s (hex) for %m", simhexfile);
+                        if( SIMHEXFILE != "" ) begin
+                            $readmemh(SIMHEXFILE,mem);
+                            $display("INFO: Read %14s (hex) for %m", SIMHEXFILE);
                         end else begin
-                            if( synfile!= "" ) begin
-                                if( ascii_bin==1 )
-                                    $readmemb(synfile,mem);
+                            if( SYNFILE!= "" ) begin
+                                if( ASCII_BIN==1 )
+                                    $readmemb(SYNFILE,mem);
                                 else
-                                    $readmemh(synfile,mem);
-                                $display("INFO: Read %14s (hex) for %m", synfile);
+                                    $readmemh(SYNFILE,mem);
+                                $display("INFO: Read %14s (hex) for %m", SYNFILE);
                             end else
-                                for( readcnt=0; readcnt<2**aw; readcnt=readcnt+1 )
-                                    mem[readcnt] = {dw{1'b0}};
+                                for( readcnt=0; readcnt<2**AW; readcnt=readcnt+1 )
+                                    mem[readcnt] = {DW{1'b0}};
                         end
                     end
                 end
             `else
                 // file for synthesis:
-                initial if(synfile!="" ) begin
-                    if( ascii_bin==1 )
-                        $readmemb(synfile,mem);
+                initial if(SYNFILE!="" ) begin
+                    if( ASCII_BIN==1 )
+                        $readmemb(SYNFILE,mem);
                     else
-                        $readmemh(synfile,mem);
+                        $readmemh(SYNFILE,mem);
                 end
             `endif
         end

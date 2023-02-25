@@ -98,7 +98,7 @@ jtframe_sync #(.W(2)) u_sync(
 );
 
 // You need to clock gate for reading or the MCU won't work
-jtframe_dual_ram_cen #(.aw(12),.simfile(ROMBIN)) u_prom(
+jtframe_dual_ram_cen #(.AW(12),.SIMFILE(ROMBIN)) u_prom(
     .clk0   ( clk_rom   ),
     .cen0   ( 1'b1      ),
     .clk1   ( clk       ),
@@ -115,7 +115,7 @@ jtframe_dual_ram_cen #(.aw(12),.simfile(ROMBIN)) u_prom(
     .q1     ( rom_data  )
 );
 
-jtframe_ram #(.aw(7),.cen_rd(1)) u_ramu(
+jtframe_ram #(.AW(7),.CEN_RD(1)) u_ramu(
     .clk        ( clk               ),
     .cen        ( cen_eff           ),
     .addr       ( ram_addr          ),

@@ -48,7 +48,7 @@ wire [7:0]  biramd;
 wire        biram_we = en_biram & wr;
 // HD63701_BIRAM biram( CLKx2, AD, wr, dout, en_biram, biramd );
 
-jtframe_ram #(.aw(8)) u_biram( // built-in RAM
+jtframe_ram #(.AW(8)) u_biram( // built-in RAM
     .clk    ( clk         ),
     .cen    ( cen_fall    ),
     .data   ( dout        ),

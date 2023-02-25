@@ -153,7 +153,7 @@ always @(posedge clk) if(pxl2_cen) begin
     end
 end
 
-jtframe_dual_ram #(.dw(DW),.aw(AW+1)) u_buffer(
+jtframe_dual_ram #(.DW(DW),.AW(AW+1)) u_buffer(
     .clk0   ( clk            ),
     .clk1   ( clk            ),
     // Port 0: read
