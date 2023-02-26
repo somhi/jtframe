@@ -360,6 +360,7 @@ jtframe_keyboard u_keyboard(
             .dip_flip   ( dip_flip      ),
             .LVBL       ( LVBL          ),
             .core_mod   ( core_mod      ),
+            .dial_x     ( dial_x        ),
             .ba_rdy     ( bax_rdy       ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )

@@ -25,7 +25,7 @@ st_addr[7:6] |  Read
   00         |  SDRAM stats
   01         |  Frame count (BCD)
   10         |  Sample rate (BCD)
-  11         | { core_mod[3:0], 3'd0, dip_flip }
+  11         | { core_mod[3:0], dial_x, 1'd0, dip_flip }
 
 See core_mod description [here](osd.md)
 

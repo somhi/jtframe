@@ -478,7 +478,7 @@ assign joystick2 = joyusb_2;
 wire [9:0] cfg_addr;
 wire [7:0] cfg_dout;
 
-jtframe_ram #(.synfile("cfgstr.hex")) u_cfgstr(
+jtframe_ram #(.SYNFILE("cfgstr.hex")) u_cfgstr(
     .clk    ( clk_rom   ),
     .cen    ( 1'b1      ),
     .data   (           ),

@@ -170,7 +170,7 @@ always @(posedge clk) begin
                 end
             end
         end
-        if( axis==0 ) axis <= 1;
+        if( HOTONE && axis==0 ) axis <= 1;
     end
 end
 
