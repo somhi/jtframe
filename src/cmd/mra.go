@@ -98,7 +98,8 @@ names=[
 # only specify regions that need parameters
 ddr_load=true
 regions = [
-	{ name=maincpu, machine=optional, start="MACRONAME_START", width=16, len=0x10000, reverse=true, no_offset=true },
+	{ name=maincpu, machine=optional, start="MACRONAME_START", width=16, len=0x10000,
+		reverse=true, no_offset=true, overrules=[ { names="...", reverse=false }, ... ] },
 	{ name==soundcpu, sequence=[2,1,0,0], no_offset=true } # inverts the order and repeats the first ROM
 	{ name=plds, skip=true },
 	{ name=gfx1, skip=true, remove=[ "notwanted"... ] }, # remove specific files from the dump

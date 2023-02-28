@@ -14,7 +14,7 @@ export JTFRAME=$JTROOT/modules/jtframe
 # can be in the working directory and in JTFRAME/bin
 PATH=$PATH:.:$JTFRAME/bin
 
-if [ -d "$JTBIN" ]; then
+if [ ! -d "$JTBIN" ]; then
     export JTBIN=$JTROOT/release
     mkdir -p $JTBIN
 fi
@@ -33,6 +33,15 @@ export MRA=$JTROOT/release/mra
 DOC=$JTROOT/doc
 MAME=$JTROOT/doc/mame
 export MODULES=$JTROOT/modules
+
+function cdjt {
+    cd $JTROOT
+}
+
+function cdrls {
+    cd $JTROOT/release
+}
+
 
 function swcore {
     if [ -z "$JTROOT" ]; then

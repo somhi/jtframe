@@ -873,6 +873,24 @@ func get_reverse(reg_cfg *RegCfg, name string) bool {
 	return reg_cfg.Reverse
 }
 
+func get_reverse_width(reg_cfg *RegCfg, name string, width int) bool {
+	rev_w := reg_cfg.Reverse_only == nil || len(reg_cfg.Reverse_only) == 0
+	for _,each := range reg_cfg.Reverse_only {
+		if width == each {
+			rev_w = true
+		}
+	}
+	for _, k := range reg_cfg.Overrules {
+		for _, j := range k.Names {
+			if j == name {
+				// fmt.Printf("Reverse overruled for %s\n",name)
+				return k.Reverse
+			}
+		}
+	}
+	return reg_cfg.Reverse && rev_w
+}
+
 // if the region is marked for a blank at this point returns its length
 // otherwise, zero
 func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_len int) {
@@ -1172,7 +1190,7 @@ func parse_regular_interleave(split_offset, split_minlen int, reg string, reg_ro
 			}
 			if reg_cfg.Reverse {
 				for j := k + rom_cnt - 1; j >= k; j-- {
-					if reg_roms[j].group == 0 && get_reverse(reg_cfg, reg_roms[j].Name) {
+					if reg_roms[j].group == 0 && get_reverse_width(reg_cfg, reg_roms[j].Name,16) {
 						mapstr = "12" // Should this try to contemplate other cases different from 16 bits?
 						n = p.AddNode("interleave").AddAttr("output", "16")
 					}
