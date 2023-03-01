@@ -26,7 +26,7 @@ if [ $RECOMPILE = TRUE ]; then
     if [ -e $JTFRAME/target/pocket/pocket.go ]; then
         ln -sf $JTFRAME/target/pocket/pocket.go $JTFRAME/src/mra/pocket.go
         POCKET="-tags pocket"
-        echo "compiling jtframe with Pocket support" > /dev/stderr
+        echo "Compiling jtframe with Pocket support" > /dev/stderr
     fi
     cd $JTFRAME/src > /dev/null
     go build $POCKET . || exit $?

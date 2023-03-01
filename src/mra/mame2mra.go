@@ -167,6 +167,10 @@ type Mame2MRA struct {
 
 	Buttons struct {
 		Core  int
+		Dial []struct {
+			Selectable
+			Raw, Reverse bool
+		}
 		Names []struct {
 			Selectable
 			Names            string
@@ -881,6 +885,16 @@ func make_coreMOD(root *XMLNode, machine *MachineXML, cfg Mame2MRA) int {
 		coremod |= 1
 		if machine.Display.Rotate != 90 {
 			coremod |= 4
+		}
+	}
+	for _, each := range cfg.Buttons.Dial {
+		if each.Match(machine)>0 {
+			if each.Raw {
+				coremod |= 1<<3
+			}
+			if each.Reverse {
+				coremod |= 1<<4
+			}
 		}
 	}
 	n := root.AddNode("rom").AddAttr("index", "1")

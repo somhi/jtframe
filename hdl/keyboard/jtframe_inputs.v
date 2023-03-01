@@ -24,6 +24,8 @@ module jtframe_inputs(
 
     input             dip_flip,
     input             autofire0,
+    input             dial_raw_en,
+    input             dial_reverse,
 
     output reg        soft_rst,
     output reg        game_pause,
@@ -291,6 +293,8 @@ jtframe_dial u_dial(
     .spinner_1  ( spinner_1     ),
     .spinner_2  ( spinner_2     ),
     .sensty     ( sensty        ),
+    .raw        ( dial_raw_en   ),
+    .reverse    ( dial_reverse  ),
     .dial_x     ( dial_x        ),
     .dial_y     ( dial_y        )
 );

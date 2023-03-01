@@ -232,7 +232,7 @@ wire   [3:0] key_start, key_coin, key_gfx,
              sensty;
 wire         key_service, key_tilt;
 wire         lock;
-wire         autofire0;
+wire         autofire0, dial_raw_en, dial_reverse;
 
 wire [COLORW-1:0] pre2x_r, pre2x_g, pre2x_b,
                   dbg_r, dbg_g, dbg_b;
@@ -246,6 +246,8 @@ wire [SDRAMW-1:0] bax_addr;
 
 assign autofire0 = `ifdef JTFRAME_AUTOFIRE0 status[18] `else 0 `endif;
 assign sensty    = status[33:32]; // MiST should drive these pins
+assign dial_raw_en  = core_mod[3];
+assign dial_reverse = core_mod[4];
 
 assign base_rgb  = { dbg_r, dbg_g, dbg_b };
 assign base_LHBL = pre2x_LHBL;
@@ -405,6 +407,8 @@ jtframe_inputs #(
     .downloading    ( downloading     ),
     .dip_flip       ( dip_flip        ),
     .autofire0      ( autofire0       ),
+    .dial_raw_en    ( dial_raw_en     ),
+    .dial_reverse   ( dial_reverse    ),
     .sensty         ( sensty          ),
 
     .soft_rst       ( soft_rst        ),

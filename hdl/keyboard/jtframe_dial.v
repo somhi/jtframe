@@ -26,6 +26,8 @@ module jtframe_dial(
     input     [9:0] joystick1, joystick2,
     input     [8:0] spinner_1, spinner_2,
     input     [1:0] sensty,
+    input           raw,
+    input           reverse,
     output    [1:0] dial_x,    dial_y
 );
 
@@ -86,18 +88,18 @@ end
 jt4701_dialemu u_dial1p(
     .rst        ( rst           ),
     .clk        ( clk           ),
-    .pulse      ( up_1p         ),
-    .inc        ( inc_1p        ),
-    .dec        ( dec_1p        ),
+    .pulse      ( raw ?  toggle1 : up_1p       ),
+    .inc        ( (raw ?  spinner_1[7] : inc_1p)^reverse ),
+    .dec        ( (raw ? ~spinner_1[7] : dec_1p)^reverse ),
     .dial       ( dial_x        )
 );
 
 jt4701_dialemu u_dial2p(
     .rst        ( rst           ),
     .clk        ( clk           ),
-    .pulse      ( up_2p         ),
-    .inc        ( inc_2p        ),
-    .dec        ( dec_2p        ),
+    .pulse      ( raw ?  toggle2 : up_2p       ),
+    .inc        ( (raw ?  spinner_2[7] : inc_2p)^reverse ),
+    .dec        ( (raw ? ~spinner_2[7] : dec_2p)^reverse ),
     .dial       ( dial_y        )
 );
 

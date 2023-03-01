@@ -93,6 +93,9 @@ offset = { bits=8, reverse=true, regions=["maincpu","gfx1"...]}
 names=[
 	{ setname="...", machine="...", names="shot,jump" }
 ]
+dial = [
+	{ machine="...", raw=true, reverse=true }, # Send dial raw signals (much slower pulses)
+]
 
 [ROM]
 # only specify regions that need parameters

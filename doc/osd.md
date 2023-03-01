@@ -172,5 +172,7 @@ Bit  |    Meaning            | Default value
  0   |  1 = vertical screen  |     1
  1   |  1 = 4 way joystick   |     0
  2   |  1 = CCW rotation     | Set by jtframe mra
+ 3   |  1 = unfiltered dial  | Dial signals are sent raw to the core
+ 4   |  1 = dial reverse     | Reverse dial direction
 
  The vertical screen bit is only read if JTFRAME was compiled with the **JTFRAME_VERTICAL** macro. This macro enables support for vertical games in the RBF. Then the same RBF can switch between horizontal and vertical games by using the MOD byte.
