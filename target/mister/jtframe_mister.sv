@@ -325,7 +325,7 @@ always @(posedge clk_sys) begin
             2:  target_info <= joyana_r1[7:0];
             3:  target_info <= joyana_r1[15:8];
             4:  target_info <= { spinner_4[8:7], spinner_3[8:7], spinner_2[8:7], spinner_1[8:7] };
-            5:  target_info <= 0;
+            5:  target_info <= spinner_1[7:0];
             6:  target_info <= game_paddle_1;
             7:  target_info <= game_paddle_2;
             8:  target_info <= joystick1[7:0];

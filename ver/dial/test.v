@@ -1,3 +1,5 @@
+`define  JTFRAME_DIALEMU_LEFT 0
+
 module test;
 
 reg        clk, rst;
@@ -8,7 +10,7 @@ initial begin
     $dumpfile("test.lxt");
     $dumpvars;
     $dumpon;
-    #1000_000 $finish;
+    #25_000 $finish;
 end
 
 initial begin
@@ -22,35 +24,35 @@ initial begin
     #500;
     rst = 0;
     #100;
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
     spinner[0] = 1;
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
-    #400 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
+    #800 spinner[1] = ~spinner[1];
 end
 
 jtframe_dial uut(
@@ -58,9 +60,10 @@ jtframe_dial uut(
     .clk        ( clk       ),
     .LHBL       ( 1'b0      ),
     // emulation based on joysticks
-    .joystick1  ( 7'h7f     ),
-    .joystick2  ( 7'h7f     ),
+    .joystick1  ( ~10'h0    ),
+    .joystick2  ( ~10'h0    ),
     .spinner_1  ( { spinner, 7'd0 } ),
+    .sensty     ( 2'd0      ),
     .spinner_2  ( 9'd0      ),
     .dial_x     ( dial_x    ),
     .dial_y     ( dial_y    )

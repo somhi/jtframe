@@ -185,7 +185,6 @@ module jt4701_dialemu(
     output reg [1:0] dial
 );
 
-reg s;
 reg last_pulse;
 
 always @(posedge clk) last_pulse <= pulse;
@@ -193,18 +192,21 @@ always @(posedge clk) last_pulse <= pulse;
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         dial <= 2'b0;
-        s    <= 0;
     end else if( pulse && !last_pulse && (inc||dec)) begin
-        s <= ~s;
         if( inc ) begin
-            if( !s ) dial[0] <= ~dial[0];
-            if(  s ) dial[1] <=  dial[0];
+            case( dial )
+                2'b00: dial <= 2'b01;
+                2'b01: dial <= 2'b11;
+                2'b11: dial <= 2'b10;
+                2'b10: dial <= 2'b00;
+            endcase
         end else if( dec ) begin
-            if( !s ) dial[1] <= ~dial[1];
-            if(  s ) dial[0] <=  dial[1];
-        end else begin
-            dial[0] <= 0;
-            dial[1] <= 0;
+            case( dial )
+                2'b00: dial <= 2'b10;
+                2'b01: dial <= 2'b00;
+                2'b11: dial <= 2'b01;
+                2'b10: dial <= 2'b11;
+            endcase
         end
     end
 end
