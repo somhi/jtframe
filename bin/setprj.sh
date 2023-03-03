@@ -147,5 +147,9 @@ JTFRAME_POSTCOMMIT=$(git rev-parse --git-path hooks)/post-commit
 cat > $JTFRAME_POSTCOMMIT <<EOF
 #!/bin/bash
 jtframe > /dev/null
+if [ $(git branch --no-color --show-current) = master ]; then
+    # automatically push changes to master branch
+    git push
+fi
 EOF
 chmod +x $JTFRAME_POSTCOMMIT
