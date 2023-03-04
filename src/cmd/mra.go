@@ -19,7 +19,6 @@ package cmd
 
 import (
 	"os"
-	"strings"
 	"github.com/jotego/jtframe/mra"
 
 	"github.com/spf13/cobra"
@@ -30,7 +29,7 @@ var reduce bool
 
 // mraCmd represents the mra command
 var mraCmd = &cobra.Command{
-	Use:   "mra <core-name,core-name...> or mra --reduce <path-to-mame.xml>",
+	Use:   "mra <core-name core-name...> or mra --reduce <path-to-mame.xml>",
 	Short: "Parses the core's TOML file to generate MRA files",
 	Long: `Parses the core's mame2mra.toml file to generate MRA files.
 
@@ -123,13 +122,13 @@ nvram = {
 			mra.Reduce(args[0])
 		} else { // regular operation, core names are separated by commas
 			mra_args.Xml_path=os.Getenv("JTROOT")+"/rom/mame.xml"
-			for _, each := range strings.Split(args[0],",") {
+			for _, each := range args {
 				mra_args.Def_cfg.Core = each
 				mra.Run(mra_args)
 			}
 		}
 	},
-	Args: cobra.ExactArgs(1),
+	Args: cobra.MinimumNArgs(1),
 }
 
 func init() {
