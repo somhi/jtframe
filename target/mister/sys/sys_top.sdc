@@ -34,6 +34,12 @@ set_false_path -from {cfg[*]}
 set_false_path -from {VSET[*]}
 set_false_path -to {wcalc[*] hcalc[*]}
 set_false_path -to {hdmi_width[*] hdmi_height[*]}
+set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|dout*}]
+# Video calc signals
+set_false_path -from [get_keepers {scanlines:VGA_scanlines|hs_out}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_hs}]
+set_false_path -from [get_keepers {hdmi_out_vs}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_vs}]
+set_false_path -from [get_keepers {scanlines:VGA_scanlines|de_out}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_de}]
+
 
 set_multicycle_path -to {*_osd|osd_vcnt*} -setup 2
 set_multicycle_path -to {*_osd|osd_vcnt*} -hold 1
@@ -106,3 +112,5 @@ set_false_path -to [get_keepers {*altera_std_synchronizer:*|din_s1}]
 # set false path between Game clock <--> HDMI clock
 set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
 set_false_path  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -from [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
+
+set_false_path  -to  [get_keepers {*jtframe_sync*}]
