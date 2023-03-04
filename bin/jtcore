@@ -50,6 +50,7 @@ JTCORE compilation tool. (c) Jose Tejada 2019-2023, @topapate
     --corestamp     Sets the date string attached to the RBF file name. Defaults to today
     --credits       Defines NOSOUND, MISTER_DEBUG_NOHDMI and NOMAIN. Sets MiSTer as target.
     --force | -f    Forces --git even if it is not clean.
+    --git           Output to $JTBIN. Defines JTFRAME_RELEASE
     -mrq            Compiles MiSTer with no HDMI nor logo but with sound
     --mrpasswd      Sets the SSH pasword to use on MiSTer
     --nodbg         Defines JTFRAME_RELEASE
@@ -136,7 +137,7 @@ function parse_args {
                 fi
                 ;;
             --force|-f) FORCE=TRUE;;
-            --git|-g) GIT=TRUE;;
+            --git|-g) GIT=TRUE; MACROS="$MACROS JTFRAME_RELEASE";;
             --prog|-p) PROG=TRUE;;
             --prog-only | -w)
                 PROG=TRUE

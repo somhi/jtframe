@@ -251,12 +251,12 @@ func dump_output(cfg Config) {
 			// --git skipped if asked so, but also for all targets but mister in betas
 			dogit := cfg.Git && !(cfg.Beta != "" && target != "mister")
 			if dogit {
-				jtcore += " --git"
+				jtcore += " --git" // jtcore will define JTFRAME_RELEASE automatically
 			}
-			if dogit || cfg.Nodbg || cfg.Beta != "" || cfg.Private {
-				jtcore += " -d JTFRAME_RELEASE"
+			if cfg.Nodbg || cfg.Beta != "" || cfg.Private {
+				jtcore += " --nodbg"
 			}
-			if !cfg.Nodbg && !cfg.Seed { // Do not check STA for non-release non-jtseed runs
+			if !cfg.Nodbg && !cfg.Seed && !dogit { // Do not check STA for non-release non-jtseed runs
 				jtcore += " --nosta"
 			}
 			for _, each := range defs {
