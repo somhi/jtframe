@@ -138,6 +138,11 @@ function cleansim {
     rm -rf obj_dir sdram.old cfg history
 }
 
+# compare two binary files
+function hexdiff {
+    sdiff --suppress-common-lines <(xxd $1) <(xxd $2)
+}
+
 # check that git hooks are present
 cp $JTFRAME/bin/post-merge $(git rev-parse --git-path hooks)/post-merge
 

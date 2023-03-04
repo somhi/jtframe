@@ -181,8 +181,10 @@ lookup:
 	if rdcnt != int64(f.UncompressedSize64) {
 		fmt.Println("\tzipped data partially read")
 	}
-	if lenght == 0 {
+	if lenght > int64(f.UncompressedSize64) {
 		lenght = int64(f.UncompressedSize64)
+	} else if lenght == 0 {
+		lenght = int64(f.UncompressedSize64)-offset
 	} else {
 		lenght += offset
 	}
@@ -232,23 +234,30 @@ func interleave2rom( allzips []*zip.ReadCloser, n *XMLNode, verbose bool ) (data
     }
     // map each output byte to the input file that has it
     sel := make([]int,width)
+    if verbose {
+        for k,each := range fingers {
+        	fmt.Println("finger ", k, " mapstr = ",each.mapstr)
+        }
+	}
     fingersel_loop:
     for j:=0; j<int(width);j++ {
         for k:=0; k<len(fingers); k++ {
+        	// fmt.Printf("fingers[%d].mapstr[%d]=%c\n",k,j,fingers[k].mapstr[j])
             if fingers[k].mapstr[j]!='0' {
                 sel[j]=k
                 continue fingersel_loop
             }
         }
     }
-    // fmt.Println("Mapping as ",sel)
+    if verbose {
+    	fmt.Println("Mapping as ",sel)
+    }
     data = make([]byte,0,len(fingers[0].data))
     jmax := int(width)-1
     interleave_loop:
     for {
         for j:=jmax; j>=0; j-- {
             offs := int(fingers[sel[j]].mapstr[j]-'1')&0xff
-            // fmt.Printf("%X ", fingers[sel[j]].data[k+offs])
             data=append(data,fingers[sel[j]].data[fingers[sel[j]].pos+offs])
         }
         for j,_ := range fingers {
