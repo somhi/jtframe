@@ -17,7 +17,6 @@
     Date: 30-10-2022 */
 
 // Frame buffer built on top of two line buffers
-// the frame is stored in two PSRAM chips
 
 // This module is not fully tested yet
 module jtframe_lfbuf_ddr #(parameter

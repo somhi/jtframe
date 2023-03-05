@@ -32,6 +32,9 @@ You can show your appreciation through
 * [IP reference](doc/ip.md)
 * [Style guidelnes](doc/style.md)
 
+## Target Specific
+* [Pocket](target/pocket/README.md)
+
 ## Advanced Topics
 * [Debug features](doc/debug.md)
 * [Cheat subsystem](doc/cheat.md)
