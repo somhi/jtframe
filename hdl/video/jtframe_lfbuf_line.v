@@ -114,7 +114,7 @@ end
 jtframe_dual_ram #(.DW(16),.AW(HW+1)) u_linein(
     // Write to SDRAM and delete
     .clk0   ( clk           ),
-    .data0  ( 16'd0        ), // might need to 16'd0 depending on the core
+    .data0  ( 16'd0         ), // might need to 16'd0 depending on the core
     .addr0  ( { line^fb_clr, fb_addr } ),
     .we0    ( fb_clr        ),
     .q0     ( fb_din        ),
