@@ -565,12 +565,12 @@ func mra_disclaimer(machine *MachineXML, year string) string {
 	var disc strings.Builder
 	disc.WriteString("<!--          FPGA arcade hardware by Jotego\n")
 	disc.WriteString(`
-			  This core is available for hardware compatible with MiST and MiSTer
-			  Other FPGA systems may be supported by the time you read this.
-			  This work is not mantained by the MiSTer project. Please contact the
-			  core author for issues and updates.
+              This core is available for hardware compatible with MiST and MiSTer
+              Other FPGA systems may be supported by the time you read this.
+              This work is not mantained by the MiSTer project. Please contact the
+              core author for issues and updates.
 
-			  (c) Jose Tejada, `)
+              (c) Jose Tejada, `)
 	if year == "" {
 		disc.WriteString(fmt.Sprintf("%d", time.Now().Year()))
 	} else {
@@ -578,16 +578,16 @@ func mra_disclaimer(machine *MachineXML, year string) string {
 	}
 	disc.WriteString(
 		`. Please support this research
-			  Patreon: https://patreon.com/jotego
+              Patreon: https://patreon.com/jotego
 
-			  The author does not endorse or participate in illegal distribution
-			  of copyrighted material. This work can be used with compatible
-			  software. This software can be homebrew projects or legally
-			  obtained memory dumps of compatible games.
+              The author does not endorse or participate in illegal distribution
+              of copyrighted material. This work can be used with compatible
+              software. This software can be homebrew projects or legally
+              obtained memory dumps of compatible games.
 
-			  This file license is GNU GPLv2.
-			  You can read the whole license file in
-			  https://opensource.org/licenses/gpl-2.0.php
+              This file license is GNU GPLv2.
+              You can read the whole license file in
+              https://opensource.org/licenses/gpl-2.0.php
 
 -->
 
