@@ -23,6 +23,7 @@ package main
 import (
     "fmt"
     "os"
+    "log"
     "github.com/jotego/jtframe/cmd"
 )
 
@@ -34,6 +35,7 @@ func RequireEnv( v string ) {
 }
 
 func main() {
+    log.SetOutput(os.Stderr)
     for _, each := range []string{"JTROOT","CORES","JTBIN","JTFRAME"} {
         RequireEnv(each)
     }

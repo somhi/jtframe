@@ -126,9 +126,11 @@ func Check_macros(def map[string]string) bool {
 	if def["JTFRAME_MIST_DIPBASE"] == "" {
 		dipbase = 16
 	}
-	_, autofire0 := def["JTFRAME_AUTOFIRE0"]
+	_, autofire0  := def["JTFRAME_AUTOFIRE0"]
 	_, osd_snd_en := def["JTFRAME_OSD_SND_EN"]
-	_, osd_test := def["JTFRAME_OSD_TEST"]
+	_, osd_test   := def["JTFRAME_OSD_TEST"]
+	_, lf_buffer  := def["JTFRAME_LF_BUFFER"]
+	_, mr_ddrload := def["JTFRAME_MR_DDRLOAD"]
 	if autofire0 && dipbase < 17 {
 		log.Fatal("MiST DIP base is smaller than the required value by JTFRAME_AUTOFIRE0")
 		return false
@@ -139,6 +141,10 @@ func Check_macros(def map[string]string) bool {
 	}
 	if osd_test && dipbase < 11 {
 		log.Fatal("MiST DIP base is smaller than the required value by JTFRAME_OSD_TEST")
+		return false
+	}
+	if lf_buffer && mr_ddrload {
+		log.Fatal(os.Stderr,"jtframe: cannot define both JTFRAME_LF_BUFFER and JTFRAME_MR_DDRLOAD")
 		return false
 	}
 	return true
