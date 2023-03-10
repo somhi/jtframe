@@ -836,14 +836,10 @@ wire rot_clk;
 
 
 
-// `ifdef JTFRAME_LF_BUFFER
+`ifdef JTFRAME_LF_BUFFER
     // line-frame buffer. This won't work with fast DDR load or vertical games
-    reg rst_buf=0;
-
-    always @(posedge clk_rom) rst_buf <= game_rst /*| ~st_addr[7]*/;
-
     jtframe_lfbuf_ddr u_lf_buf(
-        .rst        ( rst_buf       ),
+        .rst        ( game_rst      ),
         .clk        ( clk_rom       ),
         .pxl_cen    ( pxl1_cen      ),
 
@@ -875,33 +871,33 @@ wire rot_clk;
         .st_addr    ( st_addr       ),
         .st_dout    ( st_lpbuf      )
     );
-// `else
-//     jtframe_mr_ddrmux u_ddrmux(
-//         .rst            ( rst             ),
-//         .clk            ( clk_rom         ),
-//         .downloading    ( downloading     ),
-//         // Fast DDR load
-//         .ddrld_burstcnt ( ddrld_burstcnt  ),
-//         .ddrld_addr     ( ddrld_addr      ),
-//         .ddrld_rd       ( ddrld_rd        ),
-//         .ddrld_busy     ( ddrld_busy      ),
-//         // Rotation signals
-//         .rot_clk        ( rot_clk         ),
-//         .rot_burstcnt   ( rot_burstcnt    ),
-//         .rot_addr       ( rot_addr        ),
-//         .rot_rd         ( rot_rd          ),
-//         .rot_we         ( rot_we          ),
-//         .rot_be         ( rot_be          ),
-//         .rot_busy       ( rot_busy        ),
-//         // DDR Signals
-//         .ddr_clk        ( DDRAM_CLK       ),
-//         .ddr_busy       ( DDRAM_BUSY      ),
-//         .ddr_burstcnt   ( DDRAM_BURSTCNT  ),
-//         .ddr_addr       ( DDRAM_ADDR      ),
-//         .ddr_rd         ( DDRAM_RD        ),
-//         .ddr_we         ( DDRAM_WE        ),
-//         .ddr_be         ( DDRAM_BE        )
-//     );
-// `endif
+`else
+    jtframe_mr_ddrmux u_ddrmux(
+        .rst            ( rst             ),
+        .clk            ( clk_rom         ),
+        .downloading    ( downloading     ),
+        // Fast DDR load
+        .ddrld_burstcnt ( ddrld_burstcnt  ),
+        .ddrld_addr     ( ddrld_addr      ),
+        .ddrld_rd       ( ddrld_rd        ),
+        .ddrld_busy     ( ddrld_busy      ),
+        // Rotation signals
+        .rot_clk        ( rot_clk         ),
+        .rot_burstcnt   ( rot_burstcnt    ),
+        .rot_addr       ( rot_addr        ),
+        .rot_rd         ( rot_rd          ),
+        .rot_we         ( rot_we          ),
+        .rot_be         ( rot_be          ),
+        .rot_busy       ( rot_busy        ),
+        // DDR Signals
+        .ddr_clk        ( DDRAM_CLK       ),
+        .ddr_busy       ( DDRAM_BUSY      ),
+        .ddr_burstcnt   ( DDRAM_BURSTCNT  ),
+        .ddr_addr       ( DDRAM_ADDR      ),
+        .ddr_rd         ( DDRAM_RD        ),
+        .ddr_we         ( DDRAM_WE        ),
+        .ddr_be         ( DDRAM_BE        )
+    );
+`endif
 
 endmodule
