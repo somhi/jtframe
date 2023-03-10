@@ -126,19 +126,15 @@ jtframe_dual_ram #(.DW(16),.AW(HW+1)) u_linein(
     .q1     (               )
 );
 
-jtframe_dual_ram #(.DW(16),.AW(HW)) u_lineout(
+jtframe_rpwp_ram #(.DW(16),.AW(HW)) u_lineout(
+    .clk    ( clk           ),
     // Read from SDRAM, write to line buffer
-    .clk0   ( clk           ),
-    .data0  ( fb_dout       ),
-    .addr0  ( rd_addr       ),
-    .we0    ( scr_we        ),
-    .q0     (               ),
+    .din    ( fb_dout       ),
+    .wr_addr( rd_addr       ),
+    .we     ( scr_we        ),
     // Read from line buffer to screen
-    .clk1   ( clk           ),
-    .data1  ( 16'd0         ),
-    .addr1  ( hdump         ),
-    .we1    ( 1'b0          ),
-    .q1     ( scr_pxl       )
+    .rd_addr( hdump         ),
+    .dout   ( scr_pxl       )
 );
 
 endmodule

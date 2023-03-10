@@ -61,10 +61,12 @@ module jtframe_lfbuf_ddr_ctrl #(parameter
 );
 
 reg    [ 3:0] st;
+reg    [ 1:0] cntup; // use a larger count to capture data using Signal Tap
 wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 reg  [HW-1:0] hblen, hlim, hcnt;
-reg           lhbl_l, do_wr, do_rd,
-              ln_done_l, ever_rdy, readyl, busyl;
+reg           lhbl_l, do_wr, do_rd, startup, readyl,
+              ln_done_l, vsl, brstin, busyl;
+reg           ddram_wait;
 wire          fb_over;
 wire          rding, wring;
 
@@ -89,7 +91,7 @@ always @(posedge clk) begin
     readyl <= ddram_dout_ready;
     busyl  <= ddram_busy;
     case( st_addr[2:0] )
-        0: st_dout <= { ever_rdy, 3'd0,
+        0: st_dout <= { brstin, 3'd0,
                         st };
         1: st_dout <= { 3'd0, ddram_busy, 3'd0,ddram_dout_ready };
         2: st_dout <= { 3'd0, ddram_we, 3'd0, ddram_rd };
@@ -106,9 +108,13 @@ always @( posedge clk, posedge rst ) begin
         hlim   <= 0;
         hcnt   <= 0;
         lhbl_l <= 0;
+        cntup  <= 0;
+        startup<= 0;
     end else if(pxl_cen) begin
-        lhbl_l    <= lhbl;
-        hcnt <= hcnt+1'd1;
+        lhbl_l  <= lhbl;
+        vsl     <= vs;
+        hcnt    <= hcnt+1'd1;
+        startup <= &cntup;
         if( ~lhbl & lhbl_l ) begin // enters blanking
             hcnt   <= 0;
             hlim   <= hcnt - hblen; // H limit below which we allow do_wr events
@@ -116,6 +122,7 @@ always @( posedge clk, posedge rst ) begin
         if( lhbl & ~lhbl_l ) begin // leaves blanking
             hblen <= hcnt;
         end
+        if( vs & ~vsl & ~&cntup ) cntup <= cntup+1'd1;
     end
 end
 
@@ -142,9 +149,11 @@ always @( posedge clk, posedge rst ) begin
         scr_we     <= 0;
         line       <= 0;
         do_rd      <= 0;
-        ever_rdy   <= 0;
-    end else begin
+        brstin     <= 0;
+        ddram_wait <= 0;
+    end else if(startup) begin
         fb_done <= 0;
+        ddram_wait <= ddram_wait>>1;
         if (lhbl_l & ~lhbl & ~rding) do_rd <= 1;
         if( fb_clr ) begin
             // the line is cleared outside the state machine so a
@@ -154,38 +163,43 @@ always @( posedge clk, posedge rst ) begin
                 fb_clr  <= 0;
             end
         end
-        if( !ddram_busy ) begin
+        if( !ddram_busy && !ddram_wait) begin
             ddram_rd <= 0;
-            ddram_we <= 0;
-            if(st_addr[7]) case( st )
+            case( st )
                 IDLE: begin
                     ddram_addr <= 0;
-                    ddram_addr[31-:7] <= 7'b0010010;
-                    ddram_addr[3+:1+HW+VW] <= { lhbl ^ frame, vram, {HW{1'b0}} };
+                    // ddram_addr[3+:1+HW+VW] <= { lhbl ^ frame, vram, {HW{1'b0}} };
+                    scr_we    <= 0;
                     if( do_rd ) begin
                         // it doesn't matter if vrender changes after the LHBL edge
-                        ddram_rd <= 1;
-                        rd_addr  <= 0;
-                        do_rd    <= 0;
-                        st       <= READIN;
-                    end else if( do_wr && !fb_clr &&
-                        hcnt<hlim && lhbl ) begin // do not start too late so it doesn't run over H blanking
-                        ddram_we <= 1;
-                        scr_we   <= 1;
-                        fb_addr  <= 0;
-                        st       <= WRITEOUT;
+                        ddram_rd   <= 1;
+                        ddram_wait <= ~0;
+                        rd_addr    <= 0;
+                        do_rd      <= 0;
+                        scr_we     <= 1;
+                        brstin     <= 0;
+                        st         <= READIN;
+                    end
+                    else if( do_wr && !fb_clr && hcnt<hlim && lhbl ) begin
+                        // do not start too late so it doesn't run over H blanking
+                        ddram_we   <= 1;
+                        ddram_wait <= ~0;
+                        fb_addr    <= 0;
+                        st         <= WRITEOUT;
                     end
                 end
         ////////////// Write line from internal BRAM to PSRAM
                 WRITE_WAIT: begin
                     st       <= WRITEOUT;
                     ddram_we <= 1;
+                    ddram_wait <= ~0;
                     ddram_addr[3+:HW] <= fb_addr;
                 end
                 WRITEOUT: begin
                     fb_addr  <= fb_addr + 1'd1;
                     if( &fb_addr[6:0] ) begin
                         st  <= fb_over /* full line read */ ? IDLE : WRITE_WAIT;
+                        ddram_we <= 0;
                         if( fb_over ) begin
                             fb_clr  <= 1;
                             line    <= ~line;
@@ -196,19 +210,24 @@ always @( posedge clk, posedge rst ) begin
         ////////////// Read line from PSRAM to internal BRAM
                 READ_WAIT: begin
                     ddram_addr[3+:HW] <= rd_addr;
-                    ddram_rd <= 1;
-                    st       <= READIN;
-                    scr_we   <= 1;
+                    ddram_rd   <= 1;
+                    ddram_wait <= ~0;
+                    scr_we     <= 1;
+                    st         <= READIN;
                 end
                 READIN: begin
                     if( ddram_dout_ready ) begin
-                        ever_rdy <= 1;
+                        brstin <= 1;
                         rd_addr <= rd_addr + 1'd1;
-                        if( &rd_addr[6:0] ) begin // 128 pixels chunk to keep csn low for less than 4us
-                            scr_we <= 0;
-                            st     <= &rd_addr /* full line read */ ? IDLE : READ_WAIT;
-                        end
                     end
+                    // if( ddram_dout_ready ) begin
+                    //     brstin <= 1;
+                    //     if (~&rd_addr & brstin) rd_addr <= rd_addr + 1'd1;
+                    // end else if( brstin ) begin
+                    //     scr_we <= 0;
+                    //     brstin <= 0;
+                    //     st     <= &rd_addr ? IDLE : READ_WAIT;
+                    // end
                 end
                 default: st <= IDLE;
             endcase

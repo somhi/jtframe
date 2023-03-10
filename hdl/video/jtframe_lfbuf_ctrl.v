@@ -100,7 +100,7 @@ wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 reg    [15:0] adq_reg;
 reg  [HW-1:0] hblen, hlim, hcnt, wr_addr;
 reg           lhbl_l, do_wr, wait1,
-              csn, ln_done_l, vsl, rdy;
+              csn, ln_done_l, vsl, startup;
 wire          fb_over;
 wire          rding, wring;
 
@@ -123,12 +123,12 @@ always @( posedge clk, posedge rst ) begin
         lhbl_l <= 0;
         vsl    <= 0;
         cntup  <= 0;
-        rdy    <= 0;
+        startup<= 0;
     end else if(pxl_cen) begin
-        lhbl_l    <= lhbl;
-        vsl       <= vs;
-        hcnt <= hcnt+1'd1;
-        rdy  <= &cntup;
+        lhbl_l  <= lhbl;
+        vsl     <= vs;
+        hcnt    <= hcnt+1'd1;
+        startup <= &cntup;
         if( ~lhbl & lhbl_l ) begin // enters blanking
             hcnt   <= 0;
             hlim   <= hcnt - hblen; // H limit below which we allow do_wr events
@@ -201,7 +201,7 @@ always @( posedge clk, posedge rst ) begin
                 fb_clr  <= 0;
             end
         end
-        if( !rdy ) begin
+        if( !startup ) begin
             csn <= 1;
         end else case( st )
             INIT: begin
