@@ -150,19 +150,15 @@ reg  [  63:0] dump_ser;
 reg           tx_start, tx_done;
 wire          buffer_we;
 
-jtframe_dual_ram #(.DW(64),.AW(BW)) u_buffer(
-    .clk0   ( clk        ),
-    .clk1   ( clk        ),
+jtframe_rpwp_ram #(.DW(64),.AW(BW)) u_buffer(
+    .clk    ( clk        ),
     // Port 0: write
-    .data0  ( ddram_dout ),
-    .addr0  ( ddram_cnt  ),
-    .we0    ( buffer_we  ),
-    .q0     (            ),
+    .din    ( ddram_dout ),
+    .wr_addr( ddram_cnt  ),
+    .we     ( buffer_we  ),
     // Port 1: read
-    .data1  (            ),
-    .addr1  ( dump_cnt[BW+2:3]  ),
-    .we1    ( 1'b0       ),
-    .q1     ( dump_data  )
+    .rd_addr( dump_cnt[BW+2:3]  ),
+    .dout   ( dump_data  )
 );
 
 reg        ddr_dwn, last_dwn, last_dwnbusy, wr_latch;
@@ -227,14 +223,14 @@ reg ddram_wait;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
-        ddram_cnt  <= {BW{1'b0}};
-        ddram_page <= {PW{1'b0}};
+        ddram_cnt  <= 0;
+        ddram_page <= 0;
         ddram_wait <= 0;
         tx_start   <= 0;
     end else if(!ddram_busy ) begin
         if( ddr_dwn  ) begin
             if( !ddram_wait ) begin
-                ddram_cnt  <= {BW{1'b0}};
+                ddram_cnt  <= 0;
                 tx_start   <= 0;
                 if( tx_done && !tx_start ) begin
                     ddram_rd   <= 1;

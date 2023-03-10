@@ -51,19 +51,15 @@ end
 
 assign rd_gated = LHBL ? rd_data : {DW{1'b0}};
 
-jtframe_dual_ram #(.AW(AW+1),.DW(DW)) u_line(
-    .clk0   ( clk           ),
-    .clk1   ( clk           ),
-    // Port 0: write
-    .data0  ( wr_data       ),
-    .addr0  ( {line,wr_addr}),
-    .we0    ( we            ),
-    .q0     (               ),
-    // Port 1: read
-    .data1  (               ),
-    .addr1  ({~line,rd_addr}),
-    .we1    ( 1'b0          ),
-    .q1     ( rd_data       )
+jtframe_rpwp_ram #(.AW(AW+1),.DW(DW)) u_line(
+    .clk    ( clk           ),
+
+    .din    ( wr_data       ),
+    .wr_addr( {line,wr_addr}),
+    .we     ( we            ),
+
+    .rd_addr({~line,rd_addr}),
+    .dout   ( rd_data       )
 );
 
 endmodule

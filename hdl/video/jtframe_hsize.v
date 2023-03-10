@@ -126,19 +126,15 @@ always @(posedge clk) if(pxl2_cen) begin
     end
 end
 
-jtframe_dual_ram #(.DW(COLORW*3), .AW(VW+1)) u_line(
-    .clk0   ( clk       ),
-    .clk1   ( clk       ),
+jtframe_rpwp_ram #(.DW(COLORW*3), .AW(VW+1)) u_line(
+    .clk    ( clk       ),
     // Port 0: writes
-    .data0  ( rgb_in    ),
-    .addr0  ({line, wrcnt}),
-    .we0    ( pxl_cen   ),
-    .q0     (           ),
+    .din    ( rgb_in    ),
+    .wr_addr({line, wrcnt}),
+    .we     ( pxl_cen   ),
     // Port 1
-    .data1  (           ),
-    .addr1  ({line,rdcnt}),
-    .we1    ( 1'b0      ),
-    .q1     ( rgb_out   )
+    .rd_addr({line,rdcnt}),
+    .dout   ( rgb_out   )
 );
 
 endmodule

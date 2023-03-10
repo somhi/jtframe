@@ -37,6 +37,7 @@ jtframe:
   - from: ram
     get:
       - jtframe_dual_ram.v
+      - jtframe_rpwp_ram.v
       - jtframe_prom.v
       - jtframe_ram.v
   # Cheat system (enabled with JTFRAME_CHEAT)
