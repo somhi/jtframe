@@ -34,6 +34,7 @@ You can show your appreciation through
 
 ## Target Specific
 * [Pocket](target/pocket/README.md)
+* [MiSTer](target/mister/README.md)
 
 ## Advanced Topics
 * [Debug features](doc/debug.md)
