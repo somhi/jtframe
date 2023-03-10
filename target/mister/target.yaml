@@ -4,6 +4,7 @@ here:
   - jtframe_mister.sv
   - jtframe_mister_dwnld.v
   - jtframe_mr_ddrmux.v
+  - jtframe_mr_ddrtest.v
   - jtframe_joymux.v
   - ../../hdl/sdram/jtframe_shadow.v
   - ../../hdl/video/jtframe_hsize.v
