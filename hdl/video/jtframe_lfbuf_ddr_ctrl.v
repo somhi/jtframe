@@ -63,15 +63,14 @@ module jtframe_lfbuf_ddr_ctrl #(parameter
 localparam AW=HW+VW+1;
 localparam [1:0] IDLE=0, READ=1, WRITE=2;
 
-reg           lhbl_l, ln_done_l, do_wr;
+reg           vsl, lhbl_l, ln_done_l, do_wr;
 reg  [   1:0] st;
 reg  [AW-1:0] act_addr;
 wire [HW-1:0] nx_rd_addr;
+reg  [HW-1:0] hblen, hlim, hcnt;
 wire          fb_over;
-wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 
 assign fb_over    = &fb_addr;
-assign vram       = lhbl ? ln_v : vrender;
 assign ddram_clk  = clk;
 assign ddram_burstcnt = 8'h80;
 assign ddram_addr = { 4'd3, {29-4-AW{1'd0}}, act_addr };
@@ -81,10 +80,36 @@ assign nx_rd_addr = rd_addr + 1'd1;
 assign fb_dout    = ddram_dout[15:0];
 
 always @(posedge clk) begin
-    case( st_addr[7] )
+    case( st_addr[7:5] )
         0: st_dout <= { 2'd0, ddram_we, ddram_rd, 2'd0, st };
         1: st_dout <= { 3'd0, frame, 1'd0, ddram_dout_ready, ddram_busy, line };
+        2: st_dout <= fb_din[7:0];
+        3: st_dout <= fb_din[15:8];
+        4: st_dout <= ddram_din[7:0];
+        5: st_dout <= ddram_din[15:8];
+        default: st_dout <= 0;
     endcase
+end
+
+always @( posedge clk, posedge rst ) begin
+    if( rst ) begin
+        hblen  <= 0;
+        hlim   <= 0;
+        hcnt   <= 0;
+        lhbl_l <= 0;
+        vsl    <= 0;
+    end else if(pxl_cen) begin
+        lhbl_l  <= lhbl;
+        vsl     <= vs;
+        hcnt    <= hcnt+1'd1;
+        if( ~lhbl & lhbl_l ) begin // enters blanking
+            hcnt   <= 0;
+            hlim   <= hcnt - hblen; // H limit below which we allow do_wr events
+        end
+        if( lhbl & ~lhbl_l ) begin // leaves blanking
+            hblen <= hcnt;
+        end
+    end
 end
 
 always @( posedge clk, posedge rst ) begin
@@ -98,13 +123,11 @@ always @( posedge clk, posedge rst ) begin
         rd_addr  <= 0;
         line     <= 0;
         scr_we   <= 0;
-        lhbl_l   <= 0;
         ln_done_l<= 0;
         do_wr    <= 0;
         st       <= IDLE;
     end else begin
         fb_done <= 0;
-        lhbl_l    <= lhbl;
         ln_done_l <= ln_done;
         if (ln_done && !ln_done_l ) do_wr <= 1;
         if( fb_clr ) begin
@@ -120,13 +143,16 @@ always @( posedge clk, posedge rst ) begin
                 ddram_we <= 0;
                 ddram_rd <= 0;
                 scr_we   <= 0;
-                act_addr <= { lhbl ^ frame, vram, {HW{1'd0}}  };
-                if( lhbl && !lhbl_l ) begin
+                if( lhbl_l & ~lhbl ) begin
+                    act_addr <= {  ~frame, ln_v, {HW{1'd0}}  };
                     ddram_rd <= 1;
                     rd_addr  <= 0;
                     scr_we   <= 1;
                     st       <= READ;
-                end else if( do_wr && !fb_clr ) begin // do not start too late so it doesn't run over H blanking
+                end else if( do_wr && !fb_clr &&
+                    hcnt<hlim && lhbl ) begin // do not start too late so it doesn't run over H blanking
+                    fb_addr  <= 0;
+                    act_addr <= { frame, vrender, {HW{1'd0}}  };
                     ddram_we <= 1;
                     do_wr    <= 0;
                     st       <= WRITE;
@@ -150,6 +176,7 @@ always @( posedge clk, posedge rst ) begin
                     ddram_we <= 0;
                     line     <= ~line;
                     fb_done  <= 1;
+                    fb_clr   <= 1;
                     st       <= IDLE;
                 end
             end
