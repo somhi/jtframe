@@ -83,7 +83,7 @@ assign fb_dout    = ddram_dout[15:0];
 always @(posedge clk) begin
     case( st_addr[7] )
         0: st_dout <= { 2'd0, ddram_we, ddram_rd, 2'd0, st };
-        1: st_dout <= { 3'd0, frame, 2'd0, ddram_busy, line };
+        1: st_dout <= { 3'd0, frame, 1'd0, ddram_dout_ready, ddram_busy, line };
     endcase
 end
 
@@ -136,14 +136,11 @@ always @( posedge clk, posedge rst ) begin
                 ddram_rd <= 0;
                 if( ddram_dout_ready ) begin
                     rd_addr <= nx_rd_addr;
-                    // if( &rd_addr ) begin
-                    //     st <= IDLE;
-                    // end else if( rd_addr[7:0]==ddram_burstcnt-8'd1 ) begin
-                    //     act_addr[HW-1:0] <= nx_rd_addr;
-                    //     ddram_rd <= 1;
-                    // end
-                    if( rd_addr[7:0]==ddram_burstcnt-8'd1 ) begin
+                    if( &rd_addr ) begin
                         st <= IDLE;
+                    end else if( &rd_addr[6:0] ) begin
+                        act_addr[HW-1:0] <= nx_rd_addr;
+                        ddram_rd <= 1;
                     end
                 end
             end
