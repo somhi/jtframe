@@ -29,7 +29,7 @@ module jtframe_mr_ddrtest(
     output            ddram_clk,
     input             ddram_busy,
     output reg [ 7:0] ddram_burstcnt,
-    output     [28:0] ddram_addr,
+    output     [31:3] ddram_addr,
     input      [63:0] ddram_dout,
     input             ddram_dout_ready,
     output reg        ddram_rd,
