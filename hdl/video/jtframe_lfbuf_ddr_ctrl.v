@@ -149,8 +149,7 @@ always @( posedge clk, posedge rst ) begin
             end
             WRITE: if(!ddram_busy) begin
                 fb_addr <= fb_addr +1'd1;
-                // if( fb_over ) begin
-                if( fb_addr[7:0]==ddram_burstcnt-8'd1 ) begin
+                if( fb_over ) begin
                     ddram_we <= 0;
                     line     <= ~line;
                     fb_done  <= 1;
