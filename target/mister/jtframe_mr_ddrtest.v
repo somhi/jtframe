@@ -16,6 +16,10 @@
     Version: 1.0
     Date: 7-3-2019 */
 
+// This module can be used to experiment with the DDRAM
+// in Signal Tap. It reads and writes and the data can
+// be seen come through
+
 module jtframe_mr_ddrtest(
     input             clk,
     input             rst,
@@ -29,37 +33,48 @@ module jtframe_mr_ddrtest(
     input      [63:0] ddram_dout,
     input             ddram_dout_ready,
     output reg        ddram_rd,
-    output     [63:0] ddram_din,
+    output reg [63:0] ddram_din,
     output reg [ 7:0] ddram_be,
-    output            ddram_we,
+    output reg        ddram_we,
     output reg [ 7:0] st_dout
 );
 
-reg vsl, busy;
+reg vsl, busy, wrcycle, ddram_busyl;
 reg [7:0] din_cnt, cnt;
 
 assign ddram_clk = clk;
-assign ddram_we = 0;
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
         vsl      <= 0;
-        busy     <= 1;
+        busy     <= 0;
         ddram_be <= 0;
         ddram_rd <= 0;
+        ddram_we <= 0;
         din_cnt  <= 0;
         cnt      <= 0;
         st_dout  <= 0;
         ddram_burstcnt <= 0;
+        ddram_din <= 0;
+        ddram_busyl <= 0;
     end else begin
-        vsl <= vs; 
-        st_dout <= debug_bus[7] ? din_cnt : { 3'd0, ddram_dout_ready, 3'd0, ddram_busy };
-        if( vs && !vsl && !busy) begin
+        vsl <= vs;
+        ddram_busyl <= ddram_busy;
+        case( debug_bus[7:6] )
+            0: st_dout <= wrcycle ? ddram_din[ 7:0] : ddram_dout[ 7:0];
+            1: st_dout <= wrcycle ? ddram_din[15:8] : ddram_dout[15:8];
+            2: st_dout <= { 3'd0, ddram_dout_ready, 3'd0, ddram_busyl };
+            3: st_dout <= din_cnt;
+        endcase
+        if( vs && !vsl && !busy ) begin
             cnt      <= 0;
             din_cnt  <= cnt;
             busy     <= 1;
-            ddram_rd <= 1;
-            ddram_addr[20:18] <= debug_bus[7:5];
+            wrcycle  <= ~wrcycle;
+            ddram_rd <=  wrcycle;
+            ddram_we <= ~wrcycle;
+            ddram_din <= 0;
+            ddram_addr[20:18] <= 0; //debug_bus[7:5];
             ddram_burstcnt    <= 8'h1 << debug_bus[2:0];
             case(debug_bus[4:3])
                 0: ddram_be <= 8'b0000_0001;
@@ -68,13 +83,23 @@ always @(posedge clk, posedge rst) begin
                 3: ddram_be <= 8'b1111_1111;
             endcase
         end
-        if( vs && !vsl && busy) begin
-            busy <= 0;
-            ddram_rd <= 0;
-        end
         if( busy && !ddram_busy ) begin
             ddram_rd <= 0;
-            if( ddram_dout_ready ) cnt <= cnt +1'd1;
+            if( !wrcycle && ddram_dout_ready ) begin
+                cnt <= cnt +1'd1;
+                if( cnt==ddram_burstcnt-8'd1 ) begin
+                    ddram_rd <= 0;
+                    busy <= 0;
+                end
+            end
+            if( wrcycle && ddram_we ) begin
+                cnt <= cnt +1'd1;
+                ddram_din <= ddram_din + 1'd1;
+                if( cnt==ddram_burstcnt-8'd1 ) begin
+                    ddram_we <= 0;
+                    busy <= 0;
+                end
+            end
         end
     end
 end
