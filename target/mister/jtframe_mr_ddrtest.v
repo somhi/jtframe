@@ -24,12 +24,12 @@ module jtframe_mr_ddrtest(
     input             clk,
     input             rst,
     input      [ 7:0] debug_bus,
-    input             vs,
+    input             hs,
 
     output            ddram_clk,
     input             ddram_busy,
     output reg [ 7:0] ddram_burstcnt,
-    output reg [28:0] ddram_addr,
+    output     [28:0] ddram_addr,
     input      [63:0] ddram_dout,
     input             ddram_dout_ready,
     output reg        ddram_rd,
@@ -39,14 +39,15 @@ module jtframe_mr_ddrtest(
     output reg [ 7:0] st_dout
 );
 
-reg vsl, busy, wrcycle, ddram_busyl;
-reg [7:0] din_cnt, cnt;
+reg hsl, busy, wrcycle, ddram_busyl;
+reg [7:0] din_cnt, cnt, line;
 
 assign ddram_clk = clk;
+assign ddram_addr = { 4'd3, line, 17'd0 };
 
 always @(posedge clk, posedge rst) begin
     if( rst ) begin
-        vsl      <= 0;
+        hsl      <= 0;
         busy     <= 0;
         ddram_be <= 0;
         ddram_rd <= 0;
@@ -54,11 +55,12 @@ always @(posedge clk, posedge rst) begin
         din_cnt  <= 0;
         cnt      <= 0;
         st_dout  <= 0;
+        line     <= 0;
+        ddram_din      <= 0;
+        ddram_busyl    <= 0;
         ddram_burstcnt <= 0;
-        ddram_din <= 0;
-        ddram_busyl <= 0;
     end else begin
-        vsl <= vs;
+        hsl <= hs;
         ddram_busyl <= ddram_busy;
         case( debug_bus[7:6] )
             0: st_dout <= wrcycle ? ddram_din[ 7:0] : ddram_dout[ 7:0];
@@ -66,15 +68,17 @@ always @(posedge clk, posedge rst) begin
             2: st_dout <= { 3'd0, ddram_dout_ready, 3'd0, ddram_busyl };
             3: st_dout <= din_cnt;
         endcase
-        if( vs && !vsl && !busy ) begin
-            cnt      <= 0;
-            din_cnt  <= cnt;
-            busy     <= 1;
-            wrcycle  <= ~wrcycle;
-            ddram_rd <=  wrcycle;
-            ddram_we <= ~wrcycle;
-            ddram_din <= 0;
-            ddram_addr[20:18] <= 0; //debug_bus[7:5];
+        if( hs && !hsl && !busy ) begin
+            cnt             <= 0;
+            din_cnt         <= cnt;
+            line            <= line+1'd1;
+            busy            <= 1;
+            wrcycle         <= ~wrcycle;
+            ddram_rd        <=  wrcycle;
+            ddram_we        <= ~wrcycle;
+            ddram_din         <= 0;
+            ddram_din[15:8]   <= line;
+            // 0, 7
             ddram_burstcnt    <= 8'h1 << debug_bus[2:0];
             case(debug_bus[4:3])
                 0: ddram_be <= 8'b0000_0001;
@@ -94,7 +98,7 @@ always @(posedge clk, posedge rst) begin
             end
             if( wrcycle && ddram_we ) begin
                 cnt <= cnt +1'd1;
-                ddram_din <= ddram_din + 1'd1;
+                ddram_din[7:0] <= ddram_din[7:0] + 1'd1;
                 if( cnt==ddram_burstcnt-8'd1 ) begin
                     ddram_we <= 0;
                     busy <= 0;
