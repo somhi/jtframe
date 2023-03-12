@@ -33,100 +33,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Args struct {
-	Core     string
-	Target   string
-	Verbose  bool
-	Make_inc bool
-	// The memory selection (SDRAM, DDR, BRAM...) will be here
-}
-
-type Bus interface {
-	Get_dw() int
-	Get_aw() int
-}
-
-type SDRAMBus struct {
-	Name       string `yaml:"name"`
-	Offset     string `yaml:"offset"`
-	Addr       string `yaml:"addr"`
-	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
-	Data_width int    `yaml:"data_width"`
-	Rw         bool   `yaml:"rw"`
-	Dsn		   string `yaml:"dsn"`	// optional name for dsn signal
-	Din		   string `yaml:"din"`  // optional name for din signal
-	Cs         string `yaml:"cs"`
-}
-
-type BRAMBus struct {
-	Name       string `yaml:"name"`
-	Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
-	Data_width int    `yaml:"data_width"`
-	Rw         bool   `yaml:"rw"`
-	We         string `yaml:"we"`
-	Addr       string `yaml:"addr"`
-	Din		   string `yaml:"din"`  // optional name for din signal
-	Sim_file   bool   `yaml:"sim_file"`
-	Dual_port  struct {
-		Name string `yaml:"name"`
-		Din	 string `yaml:"din"`  // optional name for din signal
-		Rw   bool   `yaml:"rw"`
-		We   string `yaml:"we"`
-	} `yaml:"dual_port"`
-}
-
-type SDRAMBank struct {
-	Buses []SDRAMBus `yaml:"buses"`
-	// Precalculated values
-	MemType string
-}
-
-type DownloadCfg struct {
-	Pre_addr  bool `yaml:"pre_addr"`  // Pass some signals to the game so it can remap the download address
-	Post_addr bool `yaml:"post_addr"` // Pass some signals to the game so it can remap the download address
-	Post_data bool `yaml:"post_data"` // Pass some signals to the game so it can remap the download data
-	Noswab    bool `yaml:"noswab"`    // SWAB parameter of jtframe_download
-}
-
-type SDRAMCfg struct {
-	Banks []SDRAMBank `yaml:"banks"`
-}
-
-type Include struct {
-	Game string `yaml:"game"` // if not null, it will load from that game folder
-	File string `yaml:"file"` // if null, mem.yaml will be used
-}
-
-type Param struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"` // if null, the value will be a macro of the same name
-	// use "..." if the value starts by ` because of a macro calling
-}
-
-type Port struct {
-	Name string `yaml:"name"`
-	MSB  int `yaml:"msb"`
-	LSB  int `yaml:"lsb"`
-	Input bool `yaml:"input"`
-}
-
-type MemConfig struct {
-	Include  []Include   `yaml:"include"`
-	Download DownloadCfg `yaml:"download"`
-	SDRAM    SDRAMCfg    `yaml:"sdram"`
-	BRAM     []BRAMBus   `yaml:"bram"`
-	Params   []Param     `yaml:"params"`
-	Ports    []Port      `yaml:"ports"`
-	Game     string      `yaml:"game"` // optional: Overrides using Core as the jt<core>_game module
-	// There will be other memory models supported here
-	// Like DDR, BRAM, etc.
-	// This part does not go in the YAML file
-	// But is acquired from the .def or the Args
-	Core   string
-	Macros map[string]string
-	// Precalculated values
-	Colormsb int
-	Unused   [4]bool // true for unused banks
+func (this Args) get_path(fname string, prefix bool ) string {
+	if prefix {
+		fname = "jt"  + this.Core + fname
+	}
+	if this.Local {
+		return fname
+	}
+	out_path := filepath.Join(os.Getenv("CORES"), this.Core, this.Target )
+	os.MkdirAll(out_path, 0777) // derivative cores may not have a permanent hdl folder
+	return filepath.Join(out_path, fname)
 }
 
 // Template helper functions
@@ -210,15 +126,13 @@ func parse_file(core, filename string, cfg *MemConfig, args Args) bool {
 	return true
 }
 
-func make_sdram(args Args, cfg *MemConfig) {
+func make_sdram( finder path_finder, cfg *MemConfig) {
 	tpath := filepath.Join(os.Getenv("JTFRAME"), "src", "mem", "game_sdram.v")
 	t := template.Must(template.New("game_sdram.v").Funcs(funcMap).ParseFiles(tpath))
 	var buffer bytes.Buffer
 	t.Execute(&buffer, cfg)
-	outpath := "jt" + args.Core + "_game_sdram.v"
-	hdl_path := filepath.Join(os.Getenv("CORES"), args.Core, "hdl")
-	os.MkdirAll(hdl_path, 0777) // derivative cores may not have a permanent hdl folder
-	outpath = filepath.Join(hdl_path, outpath)
+	// Dump the file
+	outpath := finder.get_path("_game_sdram.v", true)
 	ioutil.WriteFile(outpath, buffer.Bytes(), 0644)
 }
 
@@ -271,7 +185,8 @@ func add_game_ports(args Args, cfg *MemConfig) {
 		}
 	}
 	if make_inc || args.Make_inc {
-		outpath = filepath.Join(os.Getenv("CORES"), args.Core, "hdl/mem_ports.inc")
+		//outpath = filepath.Join(os.Getenv("CORES"), args.Core, "hdl/mem_ports.inc")
+		outpath = args.get_path("mem_ports.inc",false)
 		ioutil.WriteFile(outpath, buffer.Bytes(), 0644)
 	}
 	if !found && !make_inc {

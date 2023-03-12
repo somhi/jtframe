@@ -113,4 +113,5 @@ func init() {
 	flag.BoolVarP(&mem_args.Verbose, "verbose","v", false, "verbose")
 	flag.StringVarP(&mem_args.Target, "target", "t", "mist", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVarP(&mem_args.Make_inc, "inc","i", false, "always creates mem_ports.inc")
+    flag.BoolVarP(&mem_args.Local, "local","l", false, "dumps to local folder. Otherwise uses target folder")
 }
