@@ -16,9 +16,20 @@ type path_finder interface {
 type Bus interface {
     Get_dw() int
     Get_aw() int
+    Get_dname() string
+    Is_wr() bool
+    Is_nbits(n int) bool
+}
+
+type Selectable struct {
+    Target      string
+    Targets   []string
+    NoTarget    string
+    NoTargets []string
 }
 
 type SDRAMBus struct {
+    Selectable
     Name       string `yaml:"name"`
     Offset     string `yaml:"offset"`
     Addr       string `yaml:"addr"`
@@ -31,6 +42,7 @@ type SDRAMBus struct {
 }
 
 type BRAMBus struct {
+    Selectable
     Name       string `yaml:"name"`
     Addr_width int    `yaml:"addr_width"` // Width for counting all *bytes*
     Data_width int    `yaml:"data_width"`
@@ -45,6 +57,9 @@ type BRAMBus struct {
         Rw   bool   `yaml:"rw"`
         We   string `yaml:"we"`
     } `yaml:"dual_port"`
+    ROM struct { // Use the BRAM as ROM
+        Offset string `yaml:"offset"`
+    } `yaml:"rom"`
 }
 
 type SDRAMBank struct {

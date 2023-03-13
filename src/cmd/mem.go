@@ -90,6 +90,13 @@ bram:
         [din:]
         rw: true
         [cs:]
+    # BRAM used as ROM. Note that data gets downloaded
+    # to both BRAM and SRAM, but only the BRAM will be read
+    - name: vram
+      addr_width: 12
+      data_width: 8
+      rom:
+        offset: parameter_name
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		mem_args.Core = args[0]

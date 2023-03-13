@@ -41,15 +41,16 @@ wire ioctl_ram = 0;
 {{range .Ports}}wire {{if .MSB}}[{{.MSB}}:{{.LSB}}]{{end}} {{.Name}};
 {{end}}
 // BRAM buses
-{{- range .BRAM }}
+{{- range $cnt, $bus:=.BRAM }}
 wire     {{ addr_range . }} {{.Name}}_addr;
 wire     {{ data_range . }} {{.Name}}_din;
-wire     {{ data_range . }} {{.Name}}_dout;
+wire     {{ data_range . }} {{ data_name . }};
 {{ if .Dual_port.Name }}
 {{ if not .Dual_port.We }}wire    {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}}{{.Dual_port.Name}}_we; // Dual port for {{.Dual_port.Name}}
 {{end}}{{ else }}
+{{- if not $bus.ROM.Offset }}
 {{- if not .We }}wire      {{ if eq .Data_width 16 }}[ 1:0]{{else}}      {{end}}{{.Name}}_we;{{end}}
-{{end}}
+{{end}}{{end}}
 {{- end}}
 // SDRAM buses
 {{ range .SDRAM.Banks}}
@@ -156,13 +157,13 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     {{end}}
     {{- end}}
     // Memory interface - BRAM
-{{- range .BRAM }}
+{{ range $cnt, $bus:=.BRAM -}}
     {{if not .Addr}}.{{.Name}}_addr ( {{.Name}}_addr ),{{end}}{{ if .Rw }}
     {{if not .Din}}.{{.Name}}_din  ( {{.Name}}_din  ),{{end}}{{end}}
-    .{{.Name}}_dout ( {{.Name}}_dout ),{{ if .Dual_port.Name }}
+    .{{ data_name . }}    ( {{ data_name . }} ),{{ if .Dual_port.Name }}
     {{ if not .Dual_port.We }}.{{.Dual_port.Name}}_we ( {{.Dual_port.Name}}_we ),  // Dual port for {{.Dual_port.Name}}{{end}}
-    {{ else }}{{ if not .We }}
-    .{{.Name}}_we   ( {{.Name}}_we   ), {{end}}
+    {{ else }}{{ if not $bus.ROM.Offset }}{{ if not .We }}
+    .{{.Name}}_we   ( {{.Name}}_we   ), {{end}}{{end}}
     {{- end}}
 {{- end}}
     // PROM writting
@@ -348,7 +349,23 @@ jtframe_dual_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .we1    ( {{if $bus.Dual_port.We}}{{$bus.Dual_port.We}}{{else}}{{$bus.Dual_port.Name}}_we{{end}}  ), {{ else }}
     .we1    ( 2'd0 ),{{end}}
     .q1     ( {{$bus.Name}}2{{$bus.Dual_port.Name}}_data )
-);{{else}}
+);{{else}}{{if $bus.ROM.Offset }}
+/* verilator tracing_on */
+
+jtframe_bram_rom #(.AW({{$bus.Addr_width}}{{if is_nbits $bus 16 }}-1{{end}}),.DW({{$bus.Data_width}}),.OFFSET({{$bus.ROM.Offset}})) u_brom_{{$bus.Name}}(
+    .clk    ( clk       ),
+    // Read port
+    .addr   ( {{if $bus.Addr}}{{$bus.Addr}}{{else}}{{$bus.Name}}_addr{{end}} ),
+    .data   ( {{ data_name $bus }} ),
+    // Write port
+    .prog_addr( {prog_ba,prog_addr} ),
+    .prog_mask( prog_mask ),
+    .prog_data( prog_data[7:0] ),
+    .prog_we  ( prog_we   )
+);
+/* verilator tracing_off */
+
+{{else}}
 // BRAM for {{$bus.Name}}
 jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .AW({{$bus.Addr_width}}{{if eq $bus.Data_width 16}}-1{{end}}){{ if $bus.Sim_file }},
@@ -362,5 +379,5 @@ jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .we     ( {{if $bus.We  }}{{$bus.We  }}{{else}}{{$bus.Name}}_we  {{end}} ),
     .q      ( {{$bus.Name}}_dout )
 );{{ end }}
-{{ end }}
+{{ end }}{{end}}
 endmodule

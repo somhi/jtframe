@@ -30,10 +30,10 @@
 module jtframe_dwnld(
     input                clk,
     input                downloading,
-    input      [24:0]    ioctl_addr,
+    input      [24:0]    ioctl_addr, // max 32 MB
     input      [ 7:0]    ioctl_dout,
     input                ioctl_wr,
-    output reg [21:0]    prog_addr,
+    output reg [22:1]    prog_addr,
     output     [15:0]    prog_data,
     output reg [ 1:0]    prog_mask, // active low
     output reg           prog_we,

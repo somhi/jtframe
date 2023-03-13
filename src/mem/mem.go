@@ -50,6 +50,18 @@ func (bus SDRAMBus) Get_aw() int { return bus.Addr_width }
 func (bus BRAMBus)  Get_aw() int { return bus.Addr_width }
 func (bus SDRAMBus) Get_dw() int { return bus.Data_width }
 func (bus BRAMBus)  Get_dw() int { return bus.Data_width }
+func (bus SDRAMBus) Get_dname() string { return bus.Name+"_data" }
+func (bus BRAMBus)  Get_dname() string {
+	if bus.ROM.Offset!="" {
+		return bus.Name+"_data"
+	} else {
+		return bus.Name+"_dout"
+	}
+}
+func (bus SDRAMBus) Is_wr() bool { return bus.Rw }
+func (bus BRAMBus)  Is_wr() bool { return bus.Rw || bus.Dual_port.Rw }
+func (bus SDRAMBus) Is_nbits(n int) bool { return bus.Data_width==n }
+func (bus BRAMBus)  Is_nbits(n int) bool { return bus.Data_width==n }
 
 func addr_range(bus Bus) string {
 	return fmt.Sprintf("[%2d:%d]", bus.Get_aw()-1, bus.Get_dw()>>4)
@@ -67,10 +79,17 @@ func slot_addr_width(bus SDRAMBus) string {
 	}
 }
 
+func data_name(bus Bus) string { return bus.Get_dname() }
+func writeable(bus Bus) bool { return bus.Is_wr() }
+func is_nbits(bus Bus, n int) bool { return bus.Is_nbits(n) }
+
 var funcMap = template.FuncMap{
 	"addr_range":      addr_range,
 	"data_range":      data_range,
 	"slot_addr_width": slot_addr_width,
+	"data_name":       data_name,
+	"writeable":       writeable,
+	"is_nbits":        is_nbits,
 }
 
 func parse_file(core, filename string, cfg *MemConfig, args Args) bool {
@@ -204,6 +223,9 @@ func Run(args Args) {
 	// Check that the arguments make sense
 	if len(cfg.SDRAM.Banks) > 4 || len(cfg.SDRAM.Banks) == 0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.", len(cfg.SDRAM.Banks))
+	}
+	if len(cfg.SDRAM.Banks)>1 {
+
 	}
 	// Check that the required files are available
 	for k, each := range cfg.SDRAM.Banks {
