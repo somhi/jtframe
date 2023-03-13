@@ -29,6 +29,7 @@ import (
 	"text/template"
 
 	"github.com/jotego/jtframe/jtfiles"
+	"github.com/jotego/jtframe/jtdef"
 
 	"gopkg.in/yaml.v2"
 )
@@ -213,6 +214,38 @@ func add_game_ports(args Args, cfg *MemConfig) {
 	}
 }
 
+func get_macros( core, target string ) (map[string]string) {
+	var def_cfg jtdef.Config
+	def_cfg.Target = target
+	def_cfg.Core = core
+	// def_cfg.Add = jtcfgstr.Append_args(def_cfg.Add, strings.Split(args.AddMacro, ","))
+	return jtdef.Make_macros(def_cfg)
+}
+
+func check_banks( args Args, cfg MemConfig ) {
+	macros := get_macros( args.Core, args.Target )
+	// Check that the arguments make sense
+	if len(cfg.SDRAM.Banks) > 4 || len(cfg.SDRAM.Banks) == 0 {
+		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.", len(cfg.SDRAM.Banks))
+	}
+	bad := false
+	if len(cfg.SDRAM.Banks)>1 && macros["JTFRAME_BA1_START"]=="" {
+		fmt.Println("Missing JTFRAME_BA1_START")
+		bad = true
+	}
+	if len(cfg.SDRAM.Banks)>2 && macros["JTFRAME_BA2_START"]=="" {
+		fmt.Println("Missing JTFRAME_BA2_START")
+		bad = true
+	}
+	if len(cfg.SDRAM.Banks)>3 && macros["JTFRAME_BA3_START"]=="" {
+		fmt.Println("Missing JTFRAME_BA3_START")
+		bad = true
+	}
+	if bad {
+		os.Exit(1)
+	}
+}
+
 func Run(args Args) {
 	var cfg MemConfig
 	if !parse_file(args.Core, "mem", &cfg, args) {
@@ -220,13 +253,7 @@ func Run(args Args) {
 		// normally ok
 		return
 	}
-	// Check that the arguments make sense
-	if len(cfg.SDRAM.Banks) > 4 || len(cfg.SDRAM.Banks) == 0 {
-		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.", len(cfg.SDRAM.Banks))
-	}
-	if len(cfg.SDRAM.Banks)>1 {
-
-	}
+	check_banks( args, cfg )
 	// Check that the required files are available
 	for k, each := range cfg.SDRAM.Banks {
 		total_slots := len(each.Buses)
