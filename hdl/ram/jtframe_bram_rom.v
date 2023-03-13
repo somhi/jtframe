@@ -44,7 +44,8 @@ module jtframe_bram_rom #(parameter
     input             prog_we
 );
 /* verilator lint_off WIDTH */
-localparam [PW-1:0] ADDR1=OFFSET[PW-1:0] + (25'h1<<( AW-1 )); /* verilator lint_on WIDTH */ /* verilator lint_off UNSIGNED */
+// NB: The range comparison will fail if trying to use the last byte in the 64MB space
+localparam [PW-1:0] ADDR1=OFFSET[PW-1:0] + (25'h1<<( AW-(DW==8?1:0) )); /* verilator lint_on WIDTH */ /* verilator lint_off UNSIGNED */
 wire in_range = prog_addr>=OFFSET[PW-1:0] && prog_addr<ADDR1; /* verilator lint_on UNSIGNED */
 wire [PW-1:0] prog_aeff = prog_addr-OFFSET[PW-1:0];
 
