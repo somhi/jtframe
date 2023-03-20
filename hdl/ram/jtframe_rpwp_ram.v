@@ -35,7 +35,7 @@ module jtframe_rpwp_ram #(parameter DW=8, AW=10)(
     input      we
 );
 
-(* ramstyle = "no_rw_check, m9k" *) reg [DW-1:0] mem[0:(2**AW+1)-1];
+(* ramstyle = "no_rw_check, m9k" *) reg [DW-1:0] mem[0:(2**AW)-1];
 
 always @(posedge clk) begin
     if( we ) mem[wr_addr] <= din;

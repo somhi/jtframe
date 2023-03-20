@@ -460,6 +460,35 @@ func dump_files( filenames[]string, format string ) {
 	}
 }
 
+// Trying out the "accept interfaces" Go principle:
+type CoreInfo interface {
+	GetName() string
+	GetTarget() string
+}
+
+func (this Args) GetName() string {
+	return this.Corename
+}
+
+func (this Args) GetTarget() string {
+	return this.Target
+}
+
+func append_mem( info CoreInfo, macros map[string]string, fn []string ) []string {
+	mempath := filepath.Join( os.Getenv("CORES"), info.GetName(), "cfg", "mem.yaml" )
+	f, err := os.Open( mempath )
+	f.Close()
+	if err!=nil {
+		return fn	// mem.yaml didn't exist. Nothing done
+	}
+	fname := macros["GAMETOP"]+".v"
+	if info.GetTarget()!="" {
+		fname = filepath.Join( os.Getenv("CORES"), info.GetName(),info.GetTarget(),fname)
+	}
+	return append(fn,fname)
+
+}
+
 func Run(args Args) {
 	CWD, _ = os.Getwd()
 
@@ -480,5 +509,6 @@ func Run(args Args) {
 		}
 	}
 	filenames := collect_files( files, args.Rel )
+	filenames = append_mem( args, macros, filenames )
 	dump_files( filenames, args.Format )
 }

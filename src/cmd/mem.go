@@ -90,6 +90,13 @@ bram:
         [din:]
         rw: true
         [cs:]
+    # BRAM used as ROM. Note that data gets downloaded
+    # to both BRAM and SRAM, but only the BRAM will be read
+    - name: vram
+      addr_width: 12
+      data_width: 8
+      rom:
+        offset: parameter_name
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		mem_args.Core = args[0]
@@ -113,4 +120,5 @@ func init() {
 	flag.BoolVarP(&mem_args.Verbose, "verbose","v", false, "verbose")
 	flag.StringVarP(&mem_args.Target, "target", "t", "mist", "Target platform: mist, mister, pocket, etc.")
 	flag.BoolVarP(&mem_args.Make_inc, "inc","i", false, "always creates mem_ports.inc")
+    flag.BoolVarP(&mem_args.Local, "local","l", false, "dumps to local folder. Otherwise uses target folder")
 }
