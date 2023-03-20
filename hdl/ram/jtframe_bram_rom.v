@@ -34,7 +34,7 @@ module jtframe_bram_rom #(parameter
 
     // Read Port
     input      [AW-1:0] addr,
-    output reg [DW-1:0] data,
+    output     [DW-1:0] data,
 
     // Write Port - connect to the output of jtframe_dwnld
     // same signals that go to the SDRAM programming input

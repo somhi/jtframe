@@ -501,7 +501,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     echo -e "\nset_global_assignment -name seed $SEED" >> $corename.qsf
     if [ $SIM = FALSE ]; then
         # Create the QIP file
-        jtframe mem $PRJ || exit $?
+        jtframe mem $PRJ --target=$TARGET || exit $?
         jtframe files syn $PRJ --target=$TARGET
         # Compilation
         quartus_sh --flow compile $corename > "$LOG"
