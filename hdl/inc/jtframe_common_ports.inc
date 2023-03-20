@@ -86,8 +86,8 @@
     output   [ 8:0] ln_addr,
     output   [15:0] ln_data,
     output          ln_done,
+    output          ln_we,
     input           ln_hs,
     input    [15:0] ln_pxl,
     input    [ 7:0] ln_v,
-    output          ln_we,
 `endif
