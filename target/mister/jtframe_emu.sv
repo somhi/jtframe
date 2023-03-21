@@ -414,17 +414,17 @@ assign prog_data = {2{prog_data8}};
 `endif
 
 // Line-Frame buffer
-wire [ 8:0] game_hdump, ln_addr;
+wire [ 8:0] game_hdump,   ln_addr;
 wire [ 7:0] game_vrender, ln_v;
 wire        ln_done, ln_hs, ln_we;
 wire [15:0] ln_pxl, ln_data;
 
 jtframe_mister #(
-    .SDRAMW        ( SDRAMW         ),
-    .BUTTONS       ( `JTFRAME_BUTTONS   ),
-    .COLORW        ( COLORW         ),
-    .VIDEO_WIDTH   ( `JTFRAME_WIDTH   ),
-    .VIDEO_HEIGHT  ( `JTFRAME_HEIGHT  )
+    .SDRAMW         ( SDRAMW         ),
+    .BUTTONS        (`JTFRAME_BUTTONS),
+    .COLORW         ( COLORW         ),
+    .VIDEO_WIDTH    (`JTFRAME_WIDTH  ),
+    .VIDEO_HEIGHT   (`JTFRAME_HEIGHT )
 )
 u_frame(
     .clk_sys        ( clk_sys        ),

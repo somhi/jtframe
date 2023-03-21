@@ -73,10 +73,10 @@ module jtframe_mister #(parameter
     input        [ 8:0] ln_addr,
     input        [15:0] ln_data,
     input               ln_done,
+    input               ln_we,
     output              ln_hs,
     output       [15:0] ln_pxl,
     output       [ 7:0] ln_v,
-    input               ln_we,
 
     // Signals to rotate the screen
 `ifdef JTFRAME_VERTICAL

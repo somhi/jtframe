@@ -64,6 +64,7 @@ module jtframe_lfbuf_line #(parameter
 reg           vsl, lvbl_l, done;
 reg  [VW-1:0] vstart=0, vend=0;
 wire [  15:0] scr_pxl;
+reg  [   1:0] vrdy;
 
 assign ln_pxl   = scr_pxl[DW-1:0];
 
@@ -77,11 +78,22 @@ end
 `endif
 
 // Capture the vstart/vend values
-always @(posedge clk) begin
-    lvbl_l <= lvbl;
-    vsl    <= vs;
-    if( !lvbl &&  lvbl_l ) vend   <= vrender;
-    if(  lvbl && !lvbl_l ) vstart <= vrender;
+always @(posedge clk, posedge rst) begin
+    if( rst ) begin
+        vrdy   <= 0;
+        lvbl_l <= 0;
+    end else begin
+        lvbl_l <= lvbl;
+        vsl    <= vs;
+        if( !lvbl &&  lvbl_l ) begin
+            vrdy[0] <= 1;
+            vend    <= vrender;
+        end
+        if(  lvbl && !lvbl_l ) begin
+            vrdy[1] <= 1;
+            vstart  <= vrender;
+        end
+    end
 end
 
 // count lines so objects get drawn in the line buffer
@@ -92,9 +104,9 @@ always @(posedge clk, posedge rst) begin
         ln_hs <= 0;
         ln_v  <= 0;
         done  <= 0;
-    end else begin
+    end else if(&vrdy) begin
         ln_hs <= 0;
-        if( vs && !vsl ) begin
+        if( vs && !vsl ) begin // object parsing starts during VB
             frame <= ~frame;
             ln_v  <= vstart;
             ln_hs <= 1;

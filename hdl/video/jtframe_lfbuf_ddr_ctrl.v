@@ -80,13 +80,17 @@ assign nx_rd_addr = rd_addr + 1'd1;
 assign fb_dout    = ddram_dout[15:0];
 
 always @(posedge clk) begin
-    case( st_addr[7:5] )
+    case( st_addr[3:0] )
         0: st_dout <= { 2'd0, ddram_we, ddram_rd, 2'd0, st };
-        1: st_dout <= { 3'd0, frame, 1'd0, ddram_dout_ready, ddram_busy, line };
+        1: st_dout <= { 3'd0, frame, fb_done, ddram_dout_ready, ddram_busy, line };
         2: st_dout <= fb_din[7:0];
         3: st_dout <= fb_din[15:8];
         4: st_dout <= ddram_din[7:0];
         5: st_dout <= ddram_din[15:8];
+        6: st_dout <= ddram_dout[7:0];
+        7: st_dout <= ddram_dout[15:8];
+        8: st_dout <= ln_v[7:0];
+        9: st_dout <= vrender[7:0];
         default: st_dout <= 0;
     endcase
 end
@@ -144,7 +148,7 @@ always @( posedge clk, posedge rst ) begin
                 ddram_rd <= 0;
                 scr_we   <= 0;
                 if( lhbl_l & ~lhbl ) begin
-                    act_addr <= {  ~frame, ln_v, {HW{1'd0}}  };
+                    act_addr <= { ~frame, vrender, {HW{1'd0}}  };
                     ddram_rd <= 1;
                     rd_addr  <= 0;
                     scr_we   <= 1;
@@ -152,7 +156,7 @@ always @( posedge clk, posedge rst ) begin
                 end else if( do_wr && !fb_clr &&
                     hcnt<hlim && lhbl ) begin // do not start too late so it doesn't run over H blanking
                     fb_addr  <= 0;
-                    act_addr <= { frame, vrender, {HW{1'd0}}  };
+                    act_addr <= {  frame, ln_v, {HW{1'd0}}  };
                     ddram_we <= 1;
                     do_wr    <= 0;
                     st       <= WRITE;
@@ -171,6 +175,9 @@ always @( posedge clk, posedge rst ) begin
                 end
             end
             WRITE: if(!ddram_busy) begin
+                if( &fb_addr[6:0] ) begin
+                    act_addr[HW-1:7] <= act_addr[HW-1:7]+1'd1;
+                end
                 fb_addr <= fb_addr +1'd1;
                 if( fb_over ) begin
                     ddram_we <= 0;

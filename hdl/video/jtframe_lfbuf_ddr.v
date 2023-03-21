@@ -39,10 +39,10 @@ module jtframe_lfbuf_ddr #(parameter
     input      [HW-1:0] ln_addr,
     input      [DW-1:0] ln_data,
     input               ln_done,
+    input               ln_we,
     output              ln_hs,
     output     [DW-1:0] ln_pxl,
     output     [VW-1:0] ln_v,
-    input               ln_we,
 
     // DDR3 RAM
     output              ddram_clk,
