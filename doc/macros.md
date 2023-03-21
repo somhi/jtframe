@@ -52,6 +52,8 @@ JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are:  right, left,  d
 JTFRAME_JOY_UDLR         |         | Joystick lower 4 bits are:  up,    down,  left,  right (default)
 JTFRAME_JOY_UDRL         |         | Joystick lower 4 bits are:  up,    down,  right, left
 JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
+JTFRAME_LF_BUFFER        |         | Enables the line-based frame buffer for objects
+JTFRAME_LFBUF_CLR        |         | Sets the line clear value for the frame buffer. 0 by default.
 JTFRAME_LOGO_NOHEX       | Pocket  | Do not display the chip ID on the logo screen
 JTFRAME_MFREQ            |         | Automatically set to the master clock in kHz. Depends on JTFRAME_PLL
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches

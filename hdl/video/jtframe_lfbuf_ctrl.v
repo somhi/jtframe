@@ -95,7 +95,7 @@ localparam [21:0] BUS_CFG = {
 };
 
 reg    [ 3:0] st;
-reg    [ 3:0] cntup; // use a larger count to capture data using Signal Tap
+reg    [ 4:0] cntup; // use a larger count to capture data using Signal Tap
 wire   [ 7:0] vram; // current row (v) being processed through the external RAM
 reg    [15:0] adq_reg;
 reg  [HW-1:0] hblen, hlim, hcnt, wr_addr;

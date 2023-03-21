@@ -110,11 +110,13 @@ always @(posedge clk, posedge rst) begin
     end
 end
 
+localparam [15:0] LFBUF_CLR = `ifndef JTFRAME_LFBUF_CLR 0 `else `JTFRAME_LFBUF_CLR `endif ;
+
 // collect input data
 jtframe_dual_ram #(.DW(16),.AW(HW+1)) u_linein(
     // Write to SDRAM and delete
     .clk0   ( clk           ),
-    .data0  ( 16'd0         ), // might need to 16'd0 depending on the core
+    .data0  ( LFBUF_CLR     ),
     .addr0  ( { line^fb_clr, fb_addr } ),
     .we0    ( fb_clr        ),
     .q0     ( fb_din        ),
