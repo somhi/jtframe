@@ -30,7 +30,7 @@
 module jtframe_dwnld(
     input                clk,
     input                downloading,
-    input      [24:0]    ioctl_addr, // max 32 MB
+    input      [25:0]    ioctl_addr, // max 64 MB
     input      [ 7:0]    ioctl_dout,
     input                ioctl_wr,
     output reg [22:1]    prog_addr,
@@ -48,19 +48,19 @@ module jtframe_dwnld(
 );
 
 parameter        SIMFILE   = "rom.bin";
-parameter [24:0] PROM_START= ~25'd0;
-parameter [24:0] BA1_START = ~25'd0,
-                 BA2_START = ~25'd0,
-                 BA3_START = ~25'd0,
+parameter [25:0] PROM_START= ~26'd0;
+parameter [25:0] BA1_START = ~26'd0,
+                 BA2_START = ~26'd0,
+                 BA3_START = ~26'd0,
                  HEADER    = 0,
                  SWAB      = 0; // swap every pair of input bytes (SDRAM only)
 
-localparam       BA_EN     = (BA1_START!=~25'd0 || BA2_START!=~25'd0 || BA3_START!=~25'd0);
-localparam       PROM_EN   = PROM_START!=~25'd0;
+localparam       BA_EN     = (BA1_START!=~26'd0 || BA2_START!=~26'd0 || BA3_START!=~26'd0);
+localparam       PROM_EN   = PROM_START!=~26'd0;
 
 reg  [ 7:0] data_out;
 wire        is_prom;
-reg  [24:0] part_addr;
+reg  [25:0] part_addr;
 
 assign is_prom   = PROM_EN && part_addr>=PROM_START;
 assign prog_data = {2{data_out}};
@@ -86,8 +86,8 @@ end
 /////////////////////////////////////////////////
 // Normal operation
 reg  [ 1:0] bank;
-reg  [24:0] offset;
-reg  [24:0] eff_addr;
+reg  [25:0] offset;
+reg  [25:0] eff_addr;
 
 always @(*) begin
     bank = !BA_EN ? 2'd0 : (
@@ -95,7 +95,7 @@ always @(*) begin
             part_addr >= BA2_START ? 2'd2 : (
             part_addr >= BA1_START ? 2'd1 : 2'd0 )));
     case( bank )
-        2'd0: offset = 25'd0;
+        2'd0: offset = 0;
         2'd1: offset = BA1_START;
         2'd2: offset = BA2_START;
         2'd3: offset = BA3_START;
