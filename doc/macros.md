@@ -85,6 +85,7 @@ JTFRAME_PLL              |         | PLL module name to be used. PLL names must 
 JTFRAME_PXLCLK           |         | 6 or 8. Defines de pixel clock. See [clocks](clocks.md)
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD
+JTFRAME_SKIP             |         | If defined, jtcore will not compile the core and just return a PASS
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending
 JTFRAME_SDRAM96          |         | SDRAM is clocked at 96MHz and the clk input of game is 96MHz
 JTFRAME_SDRAM_BANKS      |         | Game module ports will support interleaved bank access

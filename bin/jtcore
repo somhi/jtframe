@@ -440,6 +440,12 @@ function report {
 # lower case version
 corename=${CORENAME,,}
 
+if (eval parse_macros bash | grep JTFRAME_SKIP > /dev/null); then
+    echo "Compilation skipped for $TARGET because of JTFRAME_SKIP"
+    echo "PASS"
+    exit 0
+fi
+
 START_TIME=$(date +%s)
 echo =============== JTCORE =======================
 echo -e "${wBG}$CORENAME $TARGET compilation ${blue}starts${NC}${wBG} at ${red}$(date +%T)${NC}${wBG} with seed ${red}$SEED${NC}${wBG} on $(hostname)${NC}"

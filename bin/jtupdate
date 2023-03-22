@@ -37,6 +37,7 @@ function parse_args {
                 ;;
             --dry)
                 DRYRUN=--dry-run
+                KEEP=keep
                 ;;
             --keep)
                 KEEP=keep
