@@ -108,13 +108,23 @@ reg [31:0] vid_htime = 0;
 reg [31:0] vid_vtime = 0;
 reg [31:0] vid_pix = 0;
 
+// 2-FF synchronizers
+reg [ 1:0] de_100, vs_100, hs_100;
+// reg        vid_htime_lsb, vid_vtime_lsb;
+
+always @(posedge clk_100) begin
+    de_100 <= { de_100[0], de };
+    vs_100 <= { vs_100[0], vs };
+    hs_100 <= { hs_100[0], hs };
+end
+
 always @(posedge clk_100) begin
     integer vtime, htime, hcnt;
     reg old_vs, old_hs, old_vs2, old_hs2, old_de, old_de2;
     reg calch = 0;
 
-    old_vs <= vs;
-    old_hs <= hs;
+    old_vs <= vs_100[1];
+    old_hs <= hs_100[1];
 
     old_vs2 <= old_vs;
     old_hs2 <= old_hs;
@@ -136,7 +146,7 @@ always @(posedge clk_100) begin
         htime <= 0;
     end
 
-    old_de   <= de;
+    old_de   <= de_100[1];
     old_de2  <= old_de;
 
     if(calch & old_de) hcnt <= hcnt + 1;
