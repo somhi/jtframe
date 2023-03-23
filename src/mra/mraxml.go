@@ -48,6 +48,13 @@ func (n *XMLNode) AddNode(names ...string) *XMLNode {
 	return &child
 }
 
+// Inserts a copy of a node
+func (n *XMLNode) InsertNode( child XMLNode ) *XMLNode {
+	n.children = append(n.children, &child)
+	child.depth = n.depth + 1
+	return &child
+}
+
 func (n *XMLNode) AddAttr(name, value string) *XMLNode {
 	n.attr = append(n.attr, XMLAttr{name, value})
 	return n

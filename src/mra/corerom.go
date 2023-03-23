@@ -968,9 +968,9 @@ func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []
 		rom_pos := *pos
 		// check if the next ROM should be split
 		rom_len := 0
-		var m *XMLNode
+		var m, pp *XMLNode
 		if get_reverse(reg_cfg, r.Name) {
-			pp := p.AddNode("interleave").AddAttr("output", "16")
+			pp = p.AddNode("interleave").AddAttr("output", "16")
 			m = add_rom(pp, r)
 			m.AddAttr("map", "12")
 		} else {
@@ -999,8 +999,16 @@ func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []
 			m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
 			*pos += rom_len
 		} else {
-			if reg_cfg.Rom_len != 0 {
+			if reg_cfg.Rom_len != 0 && r.Size>reg_cfg.Rom_len {
 				m.AddAttr("length", fmt.Sprintf("0x%X", reg_cfg.Rom_len))
+			}
+			if reg_cfg.Rom_len == r.Size*2 {
+				if pp != nil {
+					p.InsertNode(*pp)
+				} else {
+					p.InsertNode(*m)
+				}
+				*pos += r.Size
 			}
 			*pos += r.Size
 		}
