@@ -999,7 +999,7 @@ func parse_straight_dump(split_offset, split_minlen int, reg string, reg_roms []
 			m.AddAttr("offset", fmt.Sprintf("0x%X", rom_len))
 			*pos += rom_len
 		} else {
-			if reg_cfg.Rom_len != 0 && r.Size>reg_cfg.Rom_len {
+			if reg_cfg.Rom_len != 0 { // length attribute is sometimes needed because the dump size might be wrong
 				m.AddAttr("length", fmt.Sprintf("0x%X", reg_cfg.Rom_len))
 			}
 			if reg_cfg.Rom_len == r.Size*2 {
