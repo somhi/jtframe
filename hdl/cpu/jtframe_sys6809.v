@@ -299,55 +299,28 @@ module jtframe_sys6809_dma #( parameter
     // cycle accurate core
     wire [111:0] RegData;
 
-    generate
-        if( KONAMI!=2 ) begin
-            mc6809i u_cpu(
-                .D       ( din_dec ),
-                .DOut    ( cpu_dout),
-                .ADDR    ( A       ),
-                .RnW     ( RnW     ),
-                .clk     ( clk     ),
-                .cen_E   ( cen_E   ),
-                .cen_Q   ( cen_Q   ),
-                .BS      ( BS      ),
-                .BA      ( BA      ),
-                .nIRQ    ( irqn_eff),
-                .nFIRQ   (firqn_eff),
-                .nNMI    (nmin_eff ),
-                .AVMA    ( AVMA    ),
-                .BUSY    (         ),
-                .LIC     (         ),
-                .nDMABREQ( 1'b1    ),
-                .nHALT   ( 1'b1    ),
-                .nRESET  ( rstn    ),
-                .OP      ( OP      ),
-                .RegData ( RegData )
-            );
-        end else begin
-            jtkcpu u_cpu(
-                .D       ( din_dec ),
-                .DOut    ( cpu_dout),
-                .ADDR    ( A       ),
-                .RnW     ( RnW     ),
-                .clk     ( clk     ),
-                .cen_E   ( cen_E   ),
-                .cen_Q   ( cen_Q   ),
-                .BS      ( BS      ),
-                .BA      ( BA      ),
-                .nIRQ    ( nIRQ    ),
-                .nFIRQ   ( nFIRQ   ),
-                .nNMI    ( nNMI    ),
-                .AVMA    ( AVMA    ),
-                .BUSY    (         ),
-                .LIC     (         ),
-                .nDMABREQ( 1'b1    ),
-                .nHALT   ( 1'b1    ),
-                .nRESET  ( rstn    ),
-                .OP      ( OP      ),
-                .RegData ( RegData )
-            );
-        end
-    endgenerate
+    mc6809i u_cpu(
+        .D       ( din_dec ),
+        .DOut    ( cpu_dout),
+        .ADDR    ( A       ),
+        .RnW     ( RnW     ),
+        .clk     ( clk     ),
+        .cen_E   ( cen_E   ),
+        .cen_Q   ( cen_Q   ),
+        .BS      ( BS      ),
+        .BA      ( BA      ),
+        .nIRQ    ( irqn_eff),
+        .nFIRQ   (firqn_eff),
+        .nNMI    (nmin_eff ),
+        .AVMA    ( AVMA    ),
+        .BUSY    (         ),
+        .LIC     (         ),
+        .nDMABREQ( 1'b1    ),
+        .nHALT   ( 1'b1    ),
+        .nRESET  ( rstn    ),
+        .OP      ( OP      ),
+        .RegData ( RegData )
+    );
 
     `ifdef SIMULATION
     wire [ 7:0] reg_a  = RegData[7:0];
