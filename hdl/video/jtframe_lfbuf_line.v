@@ -32,6 +32,7 @@ module jtframe_lfbuf_line #(parameter
 )(
     input               rst,
     input               clk,
+    input               pxl_cen,
     // video status
     input      [VW-1:0] vrender,
     input      [HW-1:0] hdump,
@@ -44,7 +45,7 @@ module jtframe_lfbuf_line #(parameter
     input      [HW-1:0] ln_addr,
     input      [DW-1:0] ln_data,
     input               ln_we,
-    output     [DW-1:0] ln_pxl,
+    output reg [DW-1:0] ln_pxl,
 
     // data written to external memory
     output reg          frame,
@@ -66,7 +67,7 @@ reg  [VW-1:0] vstart=0, vend=0;
 wire [  15:0] scr_pxl;
 reg  [   1:0] vrdy;
 
-assign ln_pxl   = scr_pxl[DW-1:0];
+always @(posedge clk) if(pxl_cen) ln_pxl <= scr_pxl[DW-1:0];
 
 `ifdef SIMULATION
 initial begin

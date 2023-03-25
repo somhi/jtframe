@@ -102,6 +102,7 @@ jtframe_lfbuf_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
 jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(
     .rst        ( rst       ),
     .clk        ( clk       ),
+    .pxl_cen    ( pxl_cen   ),
     // video status
     .vrender    ( vrender   ),
     .hdump      ( hdump     ),
