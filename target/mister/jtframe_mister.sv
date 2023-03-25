@@ -839,7 +839,7 @@ wire rot_clk;
 `ifdef JTFRAME_LF_BUFFER
     // line-frame buffer. This won't work with fast DDR load or vertical games
     jtframe_lfbuf_ddr u_lf_buf(
-        .rst        ( game_rst      ),
+        .rst        ( rst           ),
         .clk        ( clk_rom       ),
         .pxl_cen    ( pxl1_cen      ),
 
