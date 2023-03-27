@@ -81,14 +81,14 @@ public:
 class SDRAM {
     UUT& dut;
     char *banks[4];
-    int rd_st[4];
-    int ba_addr[4];
+    int rd_st[4], ba_blen[4], ba_addr[4];
     //int last_rd[5];
     char header[32];
     int burst_len, burst_mask;
     int read_offset( int region );
     int read_bank( char *bank, int addr );
     void write_bank16( char *bank,  int addr, int val, int dm /* act. low */ );
+    void change_burst();
 public:
     SDRAM(UUT& _dut);
     ~SDRAM();
@@ -372,20 +372,50 @@ void SDRAM::dump() {
     delete[] aux;
 }
 
+void SDRAM::change_burst() {
+    int mode = dut.SDRAM_A;
+    burst_len = 1 << (mode&3);
+    // for(int k=0; k<4; k++ ) ba_blen[k]=burst_len+1;
+    burst_mask = ~(burst_len-1);
+    fprintf(stderr, "SDRAM burst mode changed to %d mask 0x%X -> ",  burst_len, burst_mask );
+    if( burst_len>4 ) {
+        throw "\nERROR: (test.cpp)  support for bursts larger than 4 is not implemented in test.cpp\n";
+    }
+    // Update bank burst lengths
+#ifdef _JTFRAME_BA0_LEN
+    ba_blen[0] = (_JTFRAME_BA0_LEN>>4)+1;
+#else
+    ba_blen[0] = 3; // default burst is 2, then +1 for read logic
+#endif
+#ifdef _JTFRAME_BA1_LEN
+    ba_blen[1] = (_JTFRAME_BA1_LEN>>4)+1;
+#else
+    ba_blen[1] = 3; // default burst is 2, then +1 for read logic
+#endif
+#ifdef _JTFRAME_BA2_LEN
+    ba_blen[2] = (_JTFRAME_BA2_LEN>>4)+1;
+#else
+    ba_blen[2] = 3; // default burst is 2, then +1 for read logic
+#endif
+#ifdef _JTFRAME_BA3_LEN
+    ba_blen[3] = (_JTFRAME_BA3_LEN>>4)+1;
+#else
+    ba_blen[3] = 3; // default burst is 2, then +1 for read logic
+#endif
+    fprintf(stderr,"burst per bank = {");
+    for(int k=0, first=1; k<4; k++, first=0 ) fprintf(stderr,"%s %d", first ? "" : ",", ba_blen[k]-1);
+    fprintf(stderr," }\n");
+}
+
 void SDRAM::update() {
     static auto last_clk = dut.SDRAM_CLK;
+    static int maxwarn=25;
     bool neg_edge = !dut.SDRAM_CLK && last_clk;
     int cur_ba = dut.SDRAM_BA;
     cur_ba &= 3;
     if( !dut.SDRAM_nCS && neg_edge ) {
         if( !dut.SDRAM_nRAS && !dut.SDRAM_nCAS && !dut.SDRAM_nWE ) { // Mode register
-            int mode = dut.SDRAM_A;
-            burst_len = 1 << (mode&3);
-            burst_mask = ~(burst_len-1);
-            fprintf(stderr, "SDRAM burst mode changed to %d mask 0x%X\n",  burst_len, burst_mask );
-            if( burst_len>4 ) {
-                throw "\nERROR: (test.cpp)  support for bursts larger than 4 is not implemented in test.cpp\n";
-            }
+            change_burst();
         }
         if( !dut.SDRAM_nRAS && dut.SDRAM_nCAS && dut.SDRAM_nWE ) { // Row address - Activate command
             ba_addr[ cur_ba ] = dut.SDRAM_A << 9; // 32MB module
@@ -395,7 +425,7 @@ void SDRAM::update() {
             ba_addr[ cur_ba ] &= ~0x1ff;
             ba_addr[ cur_ba ] |= (dut.SDRAM_A & 0x1ff);
             if( dut.SDRAM_nWE ) { // enque read
-                rd_st[ cur_ba ] = burst_len+1;
+                rd_st[ cur_ba ] = ba_blen[cur_ba];
             } else {
                 int dqm = dut.SDRAM_DQM;
                 // cout << "Write bank " << cur_ba <<
@@ -404,7 +434,7 @@ void SDRAM::update() {
                 write_bank16( banks[cur_ba], ba_addr[cur_ba], dut.SDRAM_DIN, dqm );
             }
         }
-        bool dqbusy=false;
+        int ba_busy=-1;
         for( int k=0; k<4; k++ ) {
             // switch( k ) {
             //  case 0: dut.SDRAM_BA_ADDR0 = ba_addr[0]; break;
@@ -414,8 +444,10 @@ void SDRAM::update() {
             // }
             if( rd_st[k]>0 && rd_st[k]<=burst_len ) { // Tested with 32 and 64-bit reads (JTFRAME_BAx_LEN=64)
                 // May fail when using 96MHz for SDRAM. Needs investigation
-                if( dqbusy ) {
-                    fputs("WARNING: (test.cpp) SDRAM reads clashed\n",stderr);
+                if( ba_busy>=0 && maxwarn>0 ) {
+                    maxwarn--;
+                    fputs("WARNING: (test.cpp) SDRAM reads clashed. This may happen if only some banks are used for longer bursts.\n",stderr);
+                    // fprintf(stderr,"\tba_blen[%d]=%d\n\tba_blen[%d]=%d\n", ba_busy, ba_blen[ba_busy], k, ba_blen[k]);
                 }
                 // if( rd_st[k]==burst_len ) printf("Read start\n");
                 auto data_read = read_bank( banks[k], ba_addr[k] );
@@ -430,7 +462,7 @@ void SDRAM::update() {
                     ba_addr[k] &= ~0x1ff;
                     ba_addr[k] |= col;
                 }
-                dqbusy = true;
+                ba_busy = k;
             }
             if(rd_st[k]>0) rd_st[k]--;
         }

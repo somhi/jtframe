@@ -17,16 +17,16 @@ module jt{{.Core}}_game_sdram(
 
 /* verilator lint_off WIDTH */
 `ifdef JTFRAME_BA1_START
-    localparam [24:0] BA1_START=`JTFRAME_BA1_START;
+    localparam [25:0] BA1_START=`JTFRAME_BA1_START;
 `endif
 `ifdef JTFRAME_BA2_START
-    localparam [24:0] BA2_START=`JTFRAME_BA2_START;
+    localparam [25:0] BA2_START=`JTFRAME_BA2_START;
 `endif
 `ifdef JTFRAME_BA3_START
-    localparam [24:0] BA3_START=`JTFRAME_BA3_START;
+    localparam [25:0] BA3_START=`JTFRAME_BA3_START;
 `endif
 `ifdef JTFRAME_PROM_START
-    localparam [24:0] PROM_START=`JTFRAME_PROM_START;
+    localparam [25:0] PROM_START=`JTFRAME_PROM_START;
 `endif
 /* verilator lint_on WIDTH */
 
@@ -66,7 +66,7 @@ wire [ 1:0] {{.Name}}_dsn;
 {{- end}}
 wire        prom_we, header;
 wire [21:0] raw_addr, post_addr;
-wire [24:0] pre_addr, dwnld_addr;
+wire [25:0] pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
 wire        pass_io;

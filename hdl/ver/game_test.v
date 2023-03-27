@@ -599,7 +599,7 @@ u_game(
     .enable_fm   ( enable_fm      ),
     .enable_psg  ( enable_psg     ),
     // PROM programming
-    .ioctl_addr  ( ioctl_addr[SDRAMW+2:0] ),
+    .ioctl_addr  ( ioctl_addr     ),
     .ioctl_dout  ( ioctl_dout     ),
     .ioctl_wr    ( ioctl_wr       ),
 `ifdef JTFRAME_IOCTL_RD

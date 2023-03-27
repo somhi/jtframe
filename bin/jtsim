@@ -115,6 +115,7 @@ Please support the development: https://patreon.com/jotego
     -pause     Enable pause DIP setting. Same as -d DIP_PAUSE
     -pocket    Select PocketFPGA as target platform
     -questasim Use QuestaSim as the simulator
+    -s|-scene  Ignored
     -safe      Disable verilator optimizations that may halt the elaboration stage
     -setname   Creates the .rom file for the given MAME setname by looking in the MRA folder
     -shaup     Update the .sha file with the shasum for each frame.jpg
@@ -339,6 +340,7 @@ case "$1" in
     -setname)
         shift
         SETNAME=$1;;
+    -s|-scene) shift;; # -scene is parsed by the sim.sh scripts
     -shaup) SHAUP=1;;
     -time)
         shift
