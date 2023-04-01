@@ -18,6 +18,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) .
 #set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/osd.v ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/osd.sv ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/vga_out.sv ]
+set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/yc_out.sv ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../mister/sys/i2c.v ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/alsa.sv ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../mister/sys/i2s.v ]
@@ -32,4 +33,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) .
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/sysmem.sv ]
 set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) ../../mister/sys/sd_card.sv ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../mister/sys/hps_io.v ]
+set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../mister/sys/video_calc.v ]
 set_global_assignment -name VERILOG_FILE       [file join $::quartus(qip_path) ../../mister/sys/mister_clksync.v ]

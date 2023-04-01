@@ -24,6 +24,12 @@
     `define MC2_PINS
 `endif
 
+`ifndef MC2
+    `ifndef MCP
+        `define NEPTUNO_PINS
+    `endif
+`endif
+
 //`default_nettype none
 
 module neptuno_top(
@@ -65,7 +71,7 @@ module neptuno_top(
     
     // Joystick
 `ifndef MC2
-    // joy pins for neputo and Multicore 2 plus
+    // joy pins for neptUNO and Multicore 2 plus
     ,output         JOY_CLK,
     output          JOY_LOAD,
     input           JOY_DATA
@@ -92,6 +98,16 @@ module neptuno_top(
     inout wire  [7:0]SRAM_DATA,
     output wire SRAM_WE,
     output wire SRAM_OE 
+`endif
+
+`ifdef NEPTUNO_PINS
+    // SRAM
+    ,output wire [20:0] SRAM_A,
+    inout  wire [15:0] SRAM_Q,
+    output wire SRAM_WE,
+    output wire SRAM_OE,
+    output wire SRAM_UB,
+    output wire SRAM_LB
 `endif
 
     //STM32
@@ -123,14 +139,22 @@ module neptuno_top(
     assign SD_CS   = 1'bZ;
     assign SD_SCLK = 1'bZ;
     assign SD_MOSI = 1'bZ;
-    
-    assign STM_RESET = 1'bZ;
 `endif  
+
+    assign STM_RESET = 1'bZ;
 
 `ifdef MCP
    //disable external interfaces for this core
     assign GPIO = 32'Hzzzz; 
 `endif  
+
+`ifdef NEPTUNO_PINS
+    //no SRAM for this core
+	assign SRAM_OE = 1'b1;
+	assign SRAM_WE = 1'b1;
+	assign SRAM_UB = 1'b1;
+	assign SRAM_LB = 1'b0;
+`endif
 
 `ifdef JTFRAME_SDRAM_LARGE
     localparam SDRAMW=23; // 64 MB
