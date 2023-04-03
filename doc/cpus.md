@@ -16,6 +16,7 @@ Processor   | Logic Cells  |  BRAM |  Remarks
 M68000      |  5171        |    6  |  fx68k
 i8751       |  4019        |    5  |  jtframe_8751mcu
 M6809       |  2992        |    0  |  mc6809i
+Konami CPU  |  2521        |    2  |  JTKCPU
 Z80         |  2476        |    2  |  jtframe_sysz80 (T80s)
 6502        |   832        |    0  |  T65 (VHDL)
 6502        |   937        |    0  |  chip_6502 (Andrew Holme)

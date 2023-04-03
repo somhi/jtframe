@@ -221,7 +221,8 @@ func parse_yaml(filename string, files *JTFiles) {
 	err_yaml := yaml.Unmarshal(buf, &aux)
 	if err_yaml != nil {
 		//fmt.Println(err_yaml)
-		log.Fatalf("jtframe files: cannot parse file\n\t%s\n\t%v", filename, err_yaml)
+		fmt.Printf("jtframe files: ERROR cannot parse file\n\t%s\n\t%v\n", filename, err_yaml)
+		os.Exit(1)
 	}
 	other := make([]string, 0)
 	// Parse
@@ -233,9 +234,17 @@ func parse_yaml(filename string, files *JTFiles) {
 		files.Modules.JT = make([]JTModule, 0)
 	}
 	for _, each := range aux.Modules.JT {
+		var fname string
+		var f *os.File
+		var err error
+		for _, path := range []string{"hdl","cfg"} {
+			fname = filepath.Join(os.Getenv("MODULES"), each.Name, path, each.Name+".yaml")
+			f, err = os.Open(fname)
+			if err == nil {
+				break
+			}
+		}
 		// Parse the YAML file if it exists
-		fname := filepath.Join(os.Getenv("MODULES"), each.Name, "hdl", each.Name+".yaml")
-		f, err := os.Open(fname)
 		if err == nil {
 			f.Close()
 			parse_yaml(fname, files)

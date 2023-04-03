@@ -625,7 +625,8 @@ iverilog)
     $SHOWCMD iverilog -g2005-sv $SIMARGS \
         $SIMULATOR_EXTRA \
         -s $TOP -o $SIMEXE \
-        -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc -I$CORES/$SYSNAME/$TARGET\
+        -DIVERILOG $EXTRA -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc \
+        -I$CORES/$SYSNAME/$TARGET -I$MODULES/jtkcpu/hdl \
         -DDUMP_VIDEO_FNAME=\"video.pipe\" $FILES \
     || exit 1
     $SHOWCMD $SIMEXE -lxt
@@ -637,7 +638,8 @@ modelsim|questasim)
     fi
     $SHOWCMD vlog -svfilesuffix=sv -svinputport=net -suppress vlog-7061 \
         +initwireX $SIMULATOR_EXTRA \
-        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc +incdir+$CORES/$SYSNAME/$TARGET \
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
+        +incdir+$CORES/$SYSNAME/$TARGET +incdir+$MODULES/jtkcpu/hdl \
         $SIMARGS $SIMULATOR_EXTRA\
         $EXTRA +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $FILES || exit $?
@@ -656,7 +658,8 @@ synapticad)
     $SHOWCMD simx +access+r +define+SYNAPTICAD +timescale+1ns/1ps\
         -f filtered.f $FILES \
         +scd_top+$TOP \
-        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc +incdir+$CORES/$SYSNAME/$TARGET \
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
+        +incdir+$CORES/$SYSNAME/$TARGET +incdir+$MODULES/jtkcpu/hdl \
         $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
         $EXTRA -l /dev/null || exit $?;;
@@ -667,7 +670,8 @@ ncverilog)
         -sysv -f jtsim_vhdl.f \
         -disable_sem2009 $FILES \
         +nctop+$TOP \
-        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc +incdir+$CORES/$SYSNAME/$TARGET\
+        +incdir+$CORES/$SYSNAME/hdl +incdir+$JTFRAME/hdl/inc \
+        +incdir+$CORES/$SYSNAME/$TARGET +incdir+$MODULES/jtkcpu/hdl \
         -ncvhdl_args,-V93 \
         $SIMARGS $SIMULATOR_EXTRA\
         +define+DUMP_VIDEO_FNAME=\"video.pipe\" \
@@ -691,7 +695,8 @@ verilator)
     # Ignore FX68k in Verilator sims with this:
     # but if you use JTFPGA/FX68K branch fix 6, you should be able to simulate it
     if [ ! -z "$VERILATOR_ROOT" ]; then VERILATOR_PATH=${VERILATOR_ROOT}/bin/; fi
-    $SHOWCMD ${VERILATOR_PATH}verilator -I$CORES/$SYSNAME/hdl -I$JTFRAME/hdl/inc -I$CORES/$SYSNAME/$TARGET\
+    $SHOWCMD ${VERILATOR_PATH}verilator -I$CORES/$SYSNAME/hdl \
+        -I$JTFRAME/hdl/inc -I$CORES/$SYSNAME/$TARGET -I$MODULES/jtkcpu/hdl \
         --timescale 1ps/1ps \
         game_test.v $JTFRAME/hdl/video/jtframe_lfbuf*.v $JTFRAME/hdl/ver/psram128.v $SIMARGS \
         -Wno-TIMESCALEMOD --timescale-override 1ns/1ps -Wno-fatal \
