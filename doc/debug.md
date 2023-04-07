@@ -23,7 +23,7 @@ By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_
 st_addr[7:6] |  Read
 -------------|--------------------
   00         |  SDRAM stats
-  01         |  Frame count (BCD)
+  01         |  Frame count (BCD) set st_addr[0] for upper byte
   10         |  Sample rate (BCD)
   11         | { core_mod[3:0], dial_x, 1'd0, dip_flip }
 

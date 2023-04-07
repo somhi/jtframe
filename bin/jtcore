@@ -164,6 +164,7 @@ function parse_args {
                 MISTERPASSWD=$1;;
             -mrq)
                 MACROS="$MACROS JTFRAME_OSD_NOLOGO JTFRAME_NOHQ2X MISTER_DEBUG_NOHDMI MISTER_DISABLE_YC"
+                UNMACROS="$UNMACROS JTFRAME_CREDITS"
                 GIT=FALSE
                 TARGET=mister;;
             --nodbg)      MACROS="$MACROS JTFRAME_RELEASE";;
