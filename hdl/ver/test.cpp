@@ -674,14 +674,14 @@ void JTSim::clock(int n) {
 #endif
         // frame counter & inputs
         if( game.VS && !last_VS ) {
+            fprintf(stderr,"%X", frame_cnt&0xf); // do not flush the streams. It can mess up
             frame_cnt++;
             if( frame_cnt == _DUMP_START && !dump_ok ) {
                 dump_ok = 1;
                 fprintf(stderr,"\nDump starts (frame %d)\n", frame_cnt);
             }
-            fputc('.', stderr); // do not flush the streams. It can mess up
             // the display and fdisplay output of the verilog files
-            if( !(frame_cnt & 0x3f) ) fputc('\n',stderr);
+            if( (frame_cnt & 0x3f)==0 ) fprintf(stderr," - %4d\n", frame_cnt);
             sim_inputs.next();
 #ifdef _JTFRAME_SIM_DEBUG
             game.debug_bus++;
@@ -865,7 +865,6 @@ int main(int argc, char *argv[]) {
     try {
         UUT game;
         JTSim sim(game, argc, argv);
-
         while( !sim.done() ) {
             sim.clock(1'000); // if the clock is 48MHz, this will dump at 48kHz
             sim.update_wav(); // Other clock rates will not have exact wav dumps
