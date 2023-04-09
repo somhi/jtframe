@@ -88,31 +88,36 @@ module neptuno_top(
     ,input [3:0]     BUTTON_n,
     
     // SD Card
-    output wire SD_CS,
-    output wire SD_SCLK,
-    output wire SD_MOSI,
-    input wire  SD_MISO,   
+    output          SD_CS,
+    output          SD_SCLK,
+    output          SD_MOSI,
+    input           SD_MISO,   
     
     // SRAM
-    output wire [20:0]SRAM_ADDR,
-    inout wire  [7:0]SRAM_DATA,
-    output wire SRAM_WE,
-    output wire SRAM_OE 
+    output  [20:0]  SRAM_ADDR,
+    inout   [7:0]   SRAM_DATA,
+    output          SRAM_WE,
+    output          SRAM_OE 
 `endif
 
 `ifdef NEPTUNO_PINS
     // SRAM
-    ,output wire [20:0] SRAM_A,
-    inout  wire [15:0] SRAM_Q,
-    output wire SRAM_WE,
-    output wire SRAM_OE,
-    output wire SRAM_UB,
-    output wire SRAM_LB
+    ,output [20:0]  SRAM_A,
+    inout   [15:0]  SRAM_Q,
+    output          SRAM_WE,
+    output          SRAM_OE,
+    output          SRAM_UB,
+    output          SRAM_LB,
+
+    //I2S audio
+    output          I2S_BCLK,
+    output          I2S_LRCLK,
+    output          I2S_DATA
 `endif
 
     //STM32
-    ,output wire  STM_RESET,
-    output wire   SPI_nWAIT
+    ,output   		STM_RESET,
+    output    		SPI_nWAIT
         
 `ifdef MCP
     //Multicore 2 plus exclusive pins
@@ -149,11 +154,19 @@ module neptuno_top(
 `endif  
 
 `ifdef NEPTUNO_PINS
-    //no SRAM for this core
-	assign SRAM_OE = 1'b1;
-	assign SRAM_WE = 1'b1;
-	assign SRAM_UB = 1'b1;
-	assign SRAM_LB = 1'b0;
+    `ifdef JTFRAME_LF_BUFFER
+        assign SRAM_OE = 1'b0;
+        assign SRAM_UB = 1'b0;
+        assign SRAM_LB = 1'b0;
+    `else
+        //no SRAM for this core
+        assign SRAM_A = 21'd0;
+        assign SRAM_Q = 16'bZ;
+        assign SRAM_WE = 1'b1;
+        assign SRAM_OE = 1'b1;
+        assign SRAM_UB = 1'b0;
+        assign SRAM_LB = 1'b0;
+    `endif
 `endif
 
 `ifdef JTFRAME_SDRAM_LARGE
@@ -490,5 +503,68 @@ assign dipsw = `ifdef JTFRAME_SIM_DIPS
     status[31+DIPBASE:DIPBASE]; `endif
 
 `include "jtframe_game_instance.v"
+
+
+`ifdef JTFRAME_LF_BUFFER
+
+    // line-frame buffer
+    wire        [ 7:0] game_vrender;
+    wire        [ 8:0] game_hdump;
+    wire        [ 8:0] ln_addr;
+    wire        [15:0] ln_data;
+    wire               ln_done;
+    wire               ln_we;
+    wire               ln_hs;
+    wire        [15:0] ln_pxl;
+    wire        [ 7:0] ln_v;
+
+    wire [ 7:0] st_lpbuf;
+
+    // this places the pxl1_cen in the pixel centre
+    reg pxl1_cen;
+    always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
+
+    // line-frame buffer.
+    jtframe_lfbuf_sram u_lf_buf(
+        .rst        ( rst           ),
+        .clk        ( clk_rom       ),
+        .pxl_cen    ( pxl1_cen      ),
+
+        .vs         ( vs            ),
+        .lvbl       ( LVBL          ),
+        .lhbl       ( LHBL          ),
+        .vrender    ( game_vrender  ),
+        .hdump      ( game_hdump    ),
+
+        // interface with the game core
+        .ln_addr    ( ln_addr       ),
+        .ln_data    ( ln_data       ),
+        .ln_done    ( ln_done       ),
+        .ln_hs      ( ln_hs         ),
+        .ln_pxl     ( ln_pxl        ),
+        .ln_v       ( ln_v          ),
+        .ln_we      ( ln_we         ),
+
+        .sram_addr ( SRAM_A         ),
+        .sram_data ( SRAM_Q         ),
+        .sram_we   ( SRAM_WE        ),	//negative logic
+
+        .st_addr    ( st_addr       ),
+        .st_dout    ( st_lpbuf      )
+    );
+`endif
+
+
+`ifdef NEPTUNO_PINS
+    audio_top u_audio_i2s(
+        .clk_50MHz (CLK50           ),
+        .dac_SCLK  (I2S_BCLK        ),
+        .dac_SDIN  (I2S_DATA        ),
+        .dac_LRCK  (I2S_LRCLK       ),
+        .L_data    (snd_left        ),
+        .R_data    (snd_right       )
+    );
+`endif
+
 
 endmodule

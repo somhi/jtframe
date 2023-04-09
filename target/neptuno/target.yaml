@@ -6,6 +6,8 @@ here:
   - jtframe_neptuno_joy.v
   - jtframe_neptuno_io.v
   - mc2_hid.vhd
+  # I2S audio
+  - audio_top.vhd
   # 50 to 27MHz conversion
   - pll_neptuno.qip
   # Framework
@@ -17,3 +19,8 @@ jtframe:
   - from: keyboard
     get:
       - ps2_intf.vhd
+  - from: video
+    get:
+      - jtframe_lfbuf_sram.v
+      - jtframe_lfbuf_sram_ctrl.v
+      - jtframe_lfbuf_line.v

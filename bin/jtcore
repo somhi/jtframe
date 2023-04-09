@@ -592,7 +592,7 @@ if [ $SEED != 1 ]; then
     SEED_SUFFIX=_$SEED
 fi
 
-if is_mister_family; then
+if [[ is_mister_family || $TARGET = neptuno ]]; then
     RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/$corename.rbf
 else
     RBF=$PRJPATH/${TARGET}/$corename.rbf
