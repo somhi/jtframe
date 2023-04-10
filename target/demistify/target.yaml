@@ -3,3 +3,9 @@ here:
   - jtframe_mist_top.sv
   - jtframe_mist_clocks.v
   - pll2/pll2.qip
+  
+target:
+  - from: neptuno
+    get:
+      # 50 to 27MHz conversion
+      - pll_neptuno.qip
