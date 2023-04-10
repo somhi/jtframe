@@ -302,6 +302,7 @@ class JTSim {
 public:
     int finish_time, finish_frame, totalh, totalw, activeh, activew;
     bool done() {
+        if( game.contextp()->gotFinish() ) return true;
         return (finish_frame>0 ? frame_cnt > finish_frame :
                 simtime/1000'000'000 >= finish_time ) && (!game.downloading && !game.dwnld_busy);
     };
@@ -643,6 +644,7 @@ void JTSim::clock(int n) {
         game.clk96 = game.clk;
 #endif
         game.eval();
+        if( game.contextp()->gotFinish() ) return;
         sdram.update();
         dwn.update();
         if( !cur_dwn && last_dwnd ) {
@@ -665,6 +667,7 @@ void JTSim::clock(int n) {
         game.clk96 = game.clk;
 #endif
         game.eval();
+        if( game.contextp()->gotFinish() ) return;
         sdram.update();
         simtime += semi_period;
         ticks++;

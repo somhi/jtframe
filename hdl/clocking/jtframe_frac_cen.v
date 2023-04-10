@@ -55,6 +55,12 @@ reg  [W-1:0] edgecnt_b = 0;
 wire [W-1:0] next_edgecnt_b = edgecnt_b + 1'd1;
 wire [W-1:0] toggle_b = next_edgecnt_b & ~edgecnt_b;
 
+`ifdef SIMULATION
+initial begin
+    if( n>(m>>1) ) $display("WARNING: %m will generate cen signals high for 2 cycles in a row");
+end
+`endif
+
 always @(posedge clk) begin
     cen  <= 0;
     cenb <= 0;
