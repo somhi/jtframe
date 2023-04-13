@@ -327,9 +327,9 @@ fi
 
 OUTPUTDIR=output_files
 
-# Check Quartus path
+# Check Quartus path       #somhi# added neptuno & sidi to Quartus 17 path
 case $TARGET in
-    mister|sockit|de1soc|de10standard)
+    mister|sockit|de1soc|de10standard|neptuno|sidi|demistify)
         if ! (which quartus_sh|grep intelFPGA_lite -q); then
             PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:.
             if [ -d /opt/intelFPGA_lite ]; then
@@ -444,7 +444,7 @@ corename=${CORENAME,,}
 if (eval parse_macros bash | grep JTFRAME_SKIP > /dev/null); then
     echo "Compilation skipped for $TARGET because of JTFRAME_SKIP"
     echo "PASS"
-    exit 0
+#   exit 0				#somhi# comment out to avoid JTFRAME_SKIP
 fi
 
 START_TIME=$(date +%s)
@@ -459,7 +459,7 @@ if [ $SKIP_COMPILE = FALSE ]; then
     if ! which quartus_sh>/dev/null; then
         echo -e "${rBG}ERROR:${NC}${wBG} cannot find quartus_sh in the path. Please add the correct path${NC}"
         echo -e "      ${wBG} to the PATH environment variable${NC}"
-        exit 1
+#       exit 1			#somhi# to generate project for mist
     fi
     mkdir -p $PRJPATH/$TARGET
     cd $PRJPATH/$TARGET || exit 1

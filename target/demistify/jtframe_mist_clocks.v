@@ -56,24 +56,37 @@ wire pll0_lock, pll1_lock, pll2_lock, pll_base, clk27;
 
 assign pll_locked = pll0_lock & pll1_lock & pll2_lock;
 
-`ifdef NEPTUNO
-    pll_neptuno u_pllneptuno(
-        .inclk0 ( clk_ext   ),
-        .c0     ( clk27     ),
-        .locked ( pll0_lock )
-    );
-`elsif DEMISTIFY_ATLAS_CYC	// converts 12 to 27MHz
+// to be added 8 MHz for Turbo Chameleon 64 V1 
+// the C10LP-RefKit has a 25Mhz and 12Mhz clock
+
+`ifdef DEMISTIFY_ATLAS_CYC	// converts 12 to 27MHz
     pll2 u_pllatlas( 		
         .inclk0  ( clk_ext   ),
         .c0	 ( clk27     ),
         .locked  ( pll0_lock )
     );
-`else				// converts 50 to 27MHz
+`elsif DEMISTIFY			// converts 50 to 27MHz
     pll_neptuno u_pllneptuno(
         .inclk0 ( clk_ext   ),
         .c0     ( clk27     ),
         .locked ( pll0_lock )
     );
+`elsif NEPTUNO
+    pll_neptuno u_pllneptuno(
+        .inclk0 ( clk_ext   ),
+        .c0     ( clk27     ),
+        .locked ( pll0_lock )
+    );
+`elsif POCKET
+    pll_pocket u_pllpocket( // converts 74.25 to 27MHz
+        .rst     ( 1'b0      ),
+        .refclk  ( clk_ext   ),
+        .outclk_0( clk27     ),
+        .locked  ( pll0_lock )
+    );
+`else
+    assign clk27 = clk_ext;
+    assign pll0_lock = 1;
 `endif
 
 `JTFRAME_PLL u_basepll(

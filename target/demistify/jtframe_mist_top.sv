@@ -52,8 +52,14 @@ module mist_top(
     // sound
     output          AUDIO_L,
     output          AUDIO_R,
+    `ifdef DEMISTIFY
     output  [15:0]  DAC_L,   
-    output  [15:0]  DAC_R,       
+    output  [15:0]  DAC_R,   
+    // Joystick
+    input [5:0]     JOY1,
+    input [5:0]     JOY2,
+    output          JOY_SELECT,
+    `endif   
     // user LED
     output          LED
     `ifdef SIMULATION
@@ -63,10 +69,14 @@ module mist_top(
     output          sim_hb,
     output          sim_dwnld_busy
     `endif
+
+    ,output         osd_en
 );
 
-assign DAC_L = snd_left;
-assign DAC_R = snd_right;
+`ifdef DEMISTIFY
+	assign DAC_L = snd_left;
+	assign DAC_R = snd_right;
+`endif   
 
 `ifdef JTFRAME_SDRAM_LARGE
     localparam SDRAMW=23; // 64 MB
@@ -334,9 +344,11 @@ u_frame(
     .BUTTON_n       ( 4'hf           ),
     .ps2_clk        (                ),
     .ps2_dout       (                ),
-    .joy1_bus       (                ),
-    .joy2_bus       (                ),
-    .JOY_SELECT     (                ),
+	`ifdef DEMISTIFY
+    .joy1_bus       ( JOY1           ),
+    .joy2_bus       ( JOY2           ),
+    .JOY_SELECT     ( JOY_SELECT     ),
+	`endif   
     // DIP and OSD settings
     .enable_fm      ( enable_fm      ),
     .enable_psg     ( enable_psg     ),
@@ -350,7 +362,9 @@ u_frame(
     // Debug
     .gfx_en         ( gfx_en         ),
     .debug_bus      ( debug_bus      ),
-    .debug_view     ( debug_view     )
+    .debug_view     ( debug_view     ),
+
+    .osd_en         (osd_en          )
 );
 
 wire        game_tx, game_rx;
@@ -363,9 +377,60 @@ assign UART_TX = game_tx,
 
 assign dipsw = `ifdef JTFRAME_SIM_DIPS
     `JTFRAME_SIM_DIPS `else
-    status[31+DIPBASE:DIPBASE] `endif;
+    status[31+DIPBASE:DIPBASE]; `endif
 
 
 `include "jtframe_game_instance.v"
+
+
+// `ifdef JTFRAME_LF_BUFFER
+
+//     // line-frame buffer
+//     wire        [ 7:0] game_vrender;
+//     wire        [ 8:0] game_hdump;
+//     wire        [ 8:0] ln_addr;
+//     wire        [15:0] ln_data;
+//     wire               ln_done;
+//     wire               ln_we;
+//     wire               ln_hs;
+//     wire        [15:0] ln_pxl;
+//     wire        [ 7:0] ln_v;
+
+//     wire [ 7:0] st_lpbuf;
+
+//     // this places the pxl1_cen in the pixel centre
+//     reg pxl1_cen;
+//     always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
+
+//     // line-frame buffer.
+//     jtframe_lfbuf_sram u_lf_buf(
+//         .rst        ( rst           ),
+//         .clk        ( clk_rom       ),
+//         .pxl_cen    ( pxl1_cen      ),
+
+//         .vs         ( vs            ),
+//         .lvbl       ( LVBL          ),
+//         .lhbl       ( LHBL          ),
+//         .vrender    ( game_vrender  ),
+//         .hdump      ( game_hdump    ),
+
+//         // interface with the game core
+//         .ln_addr    ( ln_addr       ),
+//         .ln_data    ( ln_data       ),
+//         .ln_done    ( ln_done       ),
+//         .ln_hs      ( ln_hs         ),
+//         .ln_pxl     ( ln_pxl        ),
+//         .ln_v       ( ln_v          ),
+//         .ln_we      ( ln_we         ),
+
+//         .sram_addr ( SRAM_A         ),
+//         .sram_data ( SRAM_Q         ),
+//         .sram_we   ( SRAM_WE        ),	//negative logic
+
+//         .st_addr    ( st_addr       ),
+//         .st_dout    ( st_lpbuf      )
+//     );
+// `endif
+
 
 endmodule

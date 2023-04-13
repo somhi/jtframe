@@ -2,7 +2,14 @@ here:
   - common.yaml
   - jtframe_mist_top.sv
   - jtframe_mist_clocks.v
+  - jtframe_mist.sv
+  - jtframe_mist_base.v  
+  # 12 to 27MHz conversion
   - pll2/pll2.qip
+  # joystick direct support
+  - jtframe_neptuno_io.v
+  - jtframe_neptuno_joy.v
+  - mc2_hid.vhd
   
 target:
   - from: neptuno
