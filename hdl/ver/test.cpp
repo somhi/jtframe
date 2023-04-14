@@ -591,8 +591,8 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
 #endif
     game.dipsw=_JTFRAME_SIM_DIPS;
     reset(0);
-    game.sdram_rst = 0;
-    clock(48);
+    game.sdram_rst = 0; // the initial non-reset time should be short or JTKCPU
+    clock(24);          // will signal a bus error
     game.sdram_rst = 1;
     reset(1);
     clock(48);
