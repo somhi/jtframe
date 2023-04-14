@@ -7,9 +7,8 @@ here:
   # 12 to 27MHz conversion
   - pll2/pll2.qip
   # joystick direct support
-  - jtframe_neptuno_io.v
-  - jtframe_neptuno_joy.v
-  - mc2_hid.vhd
+  - jtframe_demistify_joy.v
+  - mc2_hid_joy.vhd
   
 target:
   - from: neptuno

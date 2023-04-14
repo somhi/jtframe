@@ -232,7 +232,9 @@ jtframe_ram #(.SYNFILE("cfgstr.hex")) u_cfgstr(
         .status         ( status    ),
         .ypbpr          ( ypbpr     ),
         .no_csync       ( no_csync  ),
+        //`ifndef DEMISTIFY
         .scandoubler_disable ( scan2x_enb ),
+        //`endif
         // keyboard
         .ps2_kbd_clk    ( ps2_kbd_clk  ),
         .ps2_kbd_data   ( ps2_kbd_data ),
@@ -301,26 +303,10 @@ jtframe_ram #(.SYNFILE("cfgstr.hex")) u_cfgstr(
     );
 
 	`ifdef DEMISTIFY
-		jtframe_neptuno_io u_neptuno_io(
+        jtframe_demistify_joy u_demistify_joy(
 		    .sdram_init     ( sdram_init    ),
 		    .clk_sys        ( clk_sys       ),
-		    // .clk_rom        ( clk_rom       ),
-
 		    .hs             ( hs            ),
-
-		    // .SPI_SCK        ( SPI_SCK       ),
-		    // .SPI_SS2        ( SPI_SS2       ),
-		    // .SPI_DI         ( SPI_DI        ),
-
-		    // // Config string
-		    // .cfg_dout       ( cfg_dout      ),
-
-		    // .BUTTON_n       ( BUTTON_n      ),
-		
-		    // // keyboard
-		    // .ps2_kbd_clk    ( ps2_kbd_clk   ),
-		    // .ps2_kbd_data   ( ps2_kbd_data  ),
-
 
 		    // DB9 Joysticks
 		    .joy1_bus       ( joy1_bus      ),
@@ -329,7 +315,8 @@ jtframe_ram #(.SYNFILE("cfgstr.hex")) u_cfgstr(
 		    
 		    .joystick1      (joystick1[11:0]),
 		    .joystick2      (joystick2[11:0]),
-            
+
+            //.scan2x_enb   (scan2x_enb     ),            
             .osd_en         (osd_en         )
 		);
 
