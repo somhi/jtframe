@@ -1,3 +1,6 @@
 [submodule "target/pocket"]
 	path = target/pocket
 	url = git@github.com:jotego/pocket.git
+[submodule "target/deca/DeMiSTify"]
+	path = target/deca/DeMiSTify
+	url = https://github.com/robinsonb5/DeMiSTify.git
