@@ -1,0 +1,13 @@
+here:
+  - ../deca/common.yaml
+  - jtframe_atlas_cyc_top.vhd
+  # 12 to 50MHz conversion (CYC1000)
+  - pll2/pll2.qip
+  # 12 to 27MHz conversion (CYC1000)
+  - pll_27/pll_27.qip  
+  # DeMiSTify specific board modules     
+  - ../deca/DeMiSTify/Board/atlas_cyc/constraints.sdc
+  - ../deca/DeMiSTify/Board/atlas_cyc/audio/audio_i2s.vhd
+  - ../deca/DeMiSTify/Board/atlas_cyc/USB2PS2/USB_PS2_PUBLIC.v
+  - ../deca/DeMiSTify/Board/atlas_cyc/hdmi1/hdmi1.qip
+

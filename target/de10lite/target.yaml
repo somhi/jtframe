@@ -1,30 +1,11 @@
 here:
   - ../deca/common.yaml
   - jtframe_de10lite_top.vhd
-  # modified MiST modules
-  - ../deca/jtframe_mist_top.sv
-  - ../deca/jtframe_mist_clocks.v
-  - ../deca/jtframe_mist.sv
-  - ../deca/jtframe_mist_base.v  
-  # joystick direct support
-  - ../deca/jtframe_demistify_joy.v
-  - ../deca/mc2_hid_joy.vhd
-  # DeMiSTify
-  - ../deca/demistify_config_pkg.vhd
-  - ../deca/DeMiSTify/controller/controller.qip
+  # DeMiSTify specific board modules
   - ../deca/DeMiSTify/Board/deca/constraints.sdc      
   - ../deca/DeMiSTify/Board/deca/audio/AUDIO_SPI_CTL_RD.v
   - ../deca/DeMiSTify/Board/deca/audio/SPI_RAM.v
   - ../deca/DeMiSTify/Board/deca/audio/audio_i2s.vhd
   - ../deca/DeMiSTify/Board/deca/hdmi/I2C_Controller.v
   - ../deca/DeMiSTify/Board/deca/hdmi/I2C_HDMI_Config.v
-  # DeMiSTify firmware
-  - ../deca/firmware/controller_rom1_byte.vhd
-  - ../deca/firmware/controller_rom2_byte.vhd
-        
-target:
-  - from: neptuno
-    get:
-      # 50 to 27MHz conversion
-      - pll_neptuno.qip
       

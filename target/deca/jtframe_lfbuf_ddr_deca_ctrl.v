@@ -59,7 +59,7 @@ module jtframe_lfbuf_ddr_deca_ctrl #(parameter
     input       [7:0]   st_addr,
     output reg  [7:0]   st_dout
 );
-
+/*
 localparam AW=HW+VW+1;
 localparam [1:0] IDLE=0, READ=1, WRITE=2;
 
@@ -191,5 +191,5 @@ always @( posedge clk, posedge rst ) begin
         endcase
     end
 end
-
+ */
 endmodule

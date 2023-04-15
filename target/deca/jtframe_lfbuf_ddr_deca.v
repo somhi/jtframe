@@ -59,7 +59,7 @@ module jtframe_lfbuf_ddr_deca #(parameter
     input       [7:0]   st_addr,
     output      [7:0]   st_dout
 );
-
+/*
 wire          frame, fb_clr, fb_done, line, scr_we;
 wire [HW-1:0] fb_addr, rd_addr;
 wire [  15:0] fb_din, fb_dout;
@@ -135,5 +135,5 @@ jtframe_lfbuf_line #(.DW(DW),.HW(HW),.VW(VW)) u_line(
     .line       ( line      ),
     .scr_we     ( scr_we    )
 );
-
+*/
 endmodule

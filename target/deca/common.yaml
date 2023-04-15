@@ -1,4 +1,18 @@
-# Common files to MiST, SiDi and NeptUNO
+# Common files to DeMiSTify targets: DECA, DE10lite, ...
+here:
+  # modified MiST modules
+  - jtframe_mist_top.sv
+  - jtframe_mist_clocks.v
+  - jtframe_mist.sv
+  - jtframe_mist_base.v  
+  # joystick direct support
+  - jtframe_demistify_joy.v
+  - mc2_hid_joy.vhd
+  # DeMiSTify
+  - demistify_config_pkg.vhd
+  - DeMiSTify/controller/controller.qip
+  - firmware/controller_rom1_byte.vhd
+  - firmware/controller_rom2_byte.vhd
 jtframe:
   - from: sound
     unless: POCKET
@@ -31,6 +45,7 @@ target:
       - mist_io.sdc
       - osd.sv
       - rgb2ypbpr.v
-      
-      
-
+  - from: neptuno
+    get:
+      # 50 to 27MHz conversion
+      - pll_neptuno.qip
