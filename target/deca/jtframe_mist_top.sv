@@ -402,40 +402,43 @@ assign dipsw = `ifdef JTFRAME_SIM_DIPS
     reg pxl1_cen;
     always @(posedge clk_sys) pxl1_cen <= pxl2_cen & ~pxl_cen;
 
-    // // line-frame buffer.
-    // jtframe_lfbuf_ddr u_lf_buf(
-    //     .rst        ( rst           ),
-    //     .clk        ( clk_rom       ),
-    //     .pxl_cen    ( pxl1_cen      ),
+    // line-frame buffer.
+    jtframe_lfbuf_ddr_deca u_lf_buf(
+        .rst        ( rst           ),
+        .clk        ( clk_rom       ),
+        .pxl_cen    ( pxl1_cen      ),
 
-    //     .vs         ( vs            ),
-    //     .lvbl       ( LVBL          ),
-    //     .lhbl       ( LHBL          ),
-    //     .vrender    ( game_vrender  ),
-    //     .hdump      ( game_hdump    ),
+        .vs         ( vs            ),
+        .lvbl       ( LVBL          ),
+        .lhbl       ( LHBL          ),
+        .vrender    ( game_vrender  ),
+        .hdump      ( game_hdump    ),
 
-    //     // interface with the game core
-    //     .ln_addr    ( ln_addr       ),
-    //     .ln_data    ( ln_data       ),
-    //     .ln_done    ( ln_done       ),
-    //     .ln_hs      ( ln_hs         ),
-    //     .ln_pxl     ( ln_pxl        ),
-    //     .ln_v       ( ln_v          ),
-    //     .ln_we      ( ln_we         ),
+        // interface with the game core
+        .ln_addr    ( ln_addr       ),
+        .ln_data    ( ln_data       ),
+        .ln_done    ( ln_done       ),
+        .ln_hs      ( ln_hs         ),
+        .ln_pxl     ( ln_pxl        ),
+        .ln_v       ( ln_v          ),
+        .ln_we      ( ln_we         ),
 
-    //     .ddram_clk  ( DDRAM_CLK     ),
-    //     .ddram_busy ( DDRAM_BUSY    ),
-    //     .ddram_addr ( DDRAM_ADDR    ),
-    //     .ddram_dout ( DDRAM_DOUT    ),
-    //     .ddram_rd   ( DDRAM_RD      ),
-    //     .ddram_din  ( DDRAM_DIN     ),
-    //     .ddram_be   ( DDRAM_BE      ),
-    //     .ddram_we   ( DDRAM_WE      ),
-    //     .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
-    //     .ddram_dout_ready( DDRAM_DOUT_READY  ),
-    //     .st_addr    ( st_addr       ),
-    //     .st_dout    ( st_lpbuf      )
-    // );
+/*      //DDR3 DECA pinout                  TO BE MODIFIED
+        .ddram_clk  ( DDRAM_CLK     ),
+        .ddram_busy ( DDRAM_BUSY    ),
+        .ddram_addr ( DDRAM_ADDR    ),
+        .ddram_dout ( DDRAM_DOUT    ),
+        .ddram_rd   ( DDRAM_RD      ),
+        .ddram_din  ( DDRAM_DIN     ),
+        .ddram_be   ( DDRAM_BE      ),
+        .ddram_we   ( DDRAM_WE      ),
+        .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
+        .ddram_dout_ready( DDRAM_DOUT_READY  ),
+ */
+        .st_addr    ( st_addr       ),
+        .st_dout    ( st_lpbuf      )
+    );
+
 `endif
 
 
