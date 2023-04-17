@@ -16,17 +16,18 @@ initial #(16600*1000*4) $finish;
 always @(posedge clk) pxl_cen <= ~pxl_cen;
 
 jtframe_vtimer #(
-    .HCNT_START ( 9'h020    ),  // Data for K052109
+    .HCNT_START ( 9'h020    ),
     .HCNT_END   ( 9'h19F    ),
     .HB_START   ( 9'h19F    ),
     .HB_END     ( 9'h05F    ),  // 10.6 us
-    .HS_START   ( 9'h033    ),
-    .HS_END     ( 9'h04D    ),  //  4.33 us
+    .HS_START   ( 9'h039    ),
+    .HS_END     ( 9'h059    ),  //  5.33 us
 
     .V_START    ( 9'h0F8    ),
     .VB_START   ( 9'h1F0    ),
     .VB_END     ( 9'h110    ),  //  2.56 ms
-    .VS_START   ( 9'h0FA    ),
+    .VS_START   ( 9'h1FF    ),
+    .VS_END     ( 9'h0FF    ),
     .VCNT_END   ( 9'h1FF    )   // 16.896 ms (59.18Hz)
 ) u_vtimer(
     .clk        ( clk       ),
