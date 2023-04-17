@@ -25,7 +25,7 @@ module jtframe_pxlcen(
 
     localparam PXLCLK = `JTFRAME_PXLCLK,
                CLK    = `ifdef JTFRAME_SDRAM96 96 `else 48 `endif,
-               M      = (PXLCLK==8 ? 3 : 4) << (CLK==96 ? 1:0);
+               M      = (PXLCLK==12 ? 2 : PXLCLK==8 ? 3 : 4) << (CLK==96 ? 1:0);
 
     initial begin
         if( PXLCLK!=8 && PXLCLK!=6 ) begin
