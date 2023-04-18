@@ -3,7 +3,7 @@
     input   [ 7:0]  prog_data,
     input           prog_we,
     input   [ 1:0]  prog_ba,
-    input   [24:0]  ioctl_addr,
+    input   [25:0]  ioctl_addr,
 `ifdef JTFRAME_PROM_START
     input           prom_we,
 `endif
