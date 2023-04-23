@@ -20,6 +20,9 @@ type MameROM struct {
 	// filled by mame2mra.go
 	group int // interleave group to which the ROM belongs
 	wlen  int // word length in bytes
+	clen  int // byte count to dump
+	used  int // consumed bytes
+	mapstr string
 }
 
 type MameDevice struct {
