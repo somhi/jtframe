@@ -93,7 +93,6 @@ type RegCfg struct {
 	// The upper and lower halves of the same file are merged together
 	Ext_sort   []string // sorts by matching the file extension
 	Name_sort  []string // sorts by name
-	Regex_sort []string // sorts by name apply regular expression
 	Sequence   []int    // File sequence, where the first file is identified with a 0, the next with 1 and so on
 	// ROM files can be repeated or omitted in the sequence
 	Frac struct {
@@ -1249,7 +1248,7 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 		}
 		if  this.Sort_even ||
 			this.Singleton || len(this.Ext_sort) > 0 ||
-			len(this.Name_sort) > 0 || len(this.Regex_sort) > 0 || len(this.Sequence) > 0 {
+			len(this.Name_sort) > 0 || len(this.Sequence) > 0 {
 			this.No_offset = true
 		}
 	}

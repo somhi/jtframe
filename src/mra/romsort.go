@@ -20,10 +20,6 @@ func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string, verbose bool) [
 		sort_name_list(reg_cfg, roms)
 		return roms
 	}
-	if len(reg_cfg.Regex_sort) > 0 {
-		sort_regex_list(reg_cfg, roms)
-		return roms
-	}
 	if reg_cfg.Sort_even {
 		sort_even_odd(reg_cfg, roms, true)
 		return roms
@@ -71,23 +67,6 @@ func sort_name_list(reg_cfg *RegCfg, roms []MameROM) {
 	for _, each := range reg_cfg.Name_sort {
 		for i, _ := range base {
 			if base[i].Name == each {
-				roms[k] = base[i]
-				k++
-				break
-			}
-		}
-	}
-}
-
-func sort_regex_list(reg_cfg *RegCfg, roms []MameROM) {
-	// fmt.Println("Applying name sorting ", reg_cfg.Name_sort)
-	base := make([]MameROM, len(roms))
-	copy(base, roms)
-	k := 0
-	for _, each := range reg_cfg.Regex_sort {
-		re := regexp.MustCompile(each)
-		for i, _ := range base {
-			if re.MatchString(base[i].Name) {
 				roms[k] = base[i]
 				k++
 				break
