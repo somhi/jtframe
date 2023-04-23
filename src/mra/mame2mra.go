@@ -220,7 +220,6 @@ type Mame2MRA struct {
 		Splits []struct {
 			Selectable
 			Region           string
-			Namehas          string // The setname of the game in MAME must contain the "namehas" string
 			Offset, Min_len  int
 		}
 		Blanks []struct {
@@ -927,8 +926,7 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 	min_len = 0
 	for _, split := range cfg.ROM.Splits {
 		if (split.Region != "" && split.Region != reg) ||
-			split.Match(machine)==0 ||
-			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
+			split.Match(machine)==0  {
 			continue
 		}
 		offset = split.Offset

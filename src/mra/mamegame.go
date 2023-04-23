@@ -22,6 +22,9 @@ type MameROM struct {
 	wlen  int // word length in bytes
 	clen  int // byte count to dump
 	used  int // consumed bytes
+	split_offset int
+	show_len bool
+	add_offset int
 	mapstr string
 }
 

@@ -121,7 +121,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			split_offset, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
 			if (reg_cfg.Width != 0 && reg_cfg.Width != 8) && len(reg_roms) > 1 {
-				parse_regular_interleave(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
+				parse_regular_interleave(split_offset, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			}
 			if reg_cfg.Frac.Parts != 0 {
 				pos += make_frac(p, reg_cfg, reg_roms)
@@ -825,7 +825,38 @@ func reg_used( reg_roms []MameROM ) bool {
 	return true
 }
 
-func parse_regular_interleave(split_offset, split_minlen int, reg string,
+func parse_regular_interleave(split_offset int, reg string,
+		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
+		machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
+	if args.Verbose {
+		fmt.Printf("Regular interleave for %s (%s)\n", reg_cfg.Name, machine.Name)
+	}
+	if split_offset!=0 {
+		if args.Verbose {
+			fmt.Printf("\tsplit at %X\n", split_offset)
+		}
+		// Split the ROMs in two
+		base := reg_roms
+		reg_roms = make([]MameROM,0,len(base)*2)
+		for _, each := range base {
+			each.Size /= 2
+			each.show_len = true
+			reg_roms = append(reg_roms, each)
+		}
+		// second half
+		for _, each := range base {
+			each.Size /= 2
+			each.Offset += split_offset
+			each.show_len = true
+			each.add_offset = each.Size
+			each.split_offset = split_offset
+			reg_roms = append(reg_roms, each)
+		}
+	}
+	make_interleave_groups( reg, reg_roms, reg_cfg, p, machine, cfg, args, pos )
+}
+
+func make_interleave_groups( reg string,
 		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
 		machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
 	if args.Verbose {
@@ -895,7 +926,8 @@ func parse_regular_interleave(split_offset, split_minlen int, reg string,
 				// Check that widths make sense
 				for j:=0; j<len(sel); j++ {
 					if reg_roms[sel[j]].wlen==0 || (reg_roms[sel[j]].wlen != 1 && (reg_roms[sel[j]].wlen % 2) != 0) {
-						fmt.Printf("Bad number of ROMs for interleave in %s\n", reg_cfg.Name )
+						fmt.Printf("Bad number of ROMs for interleave in %s, region %s (%s)\n",
+							machine.Name, reg_cfg.Name, machine.Description )
 						for k:=0; k<len(sel); k++ {
 							fmt.Printf("%12s (%s) - %d\n", reg_roms[sel[k]].Name,
 								reg_roms[sel[k]].Region,
@@ -964,7 +996,7 @@ func parse_regular_interleave(split_offset, split_minlen int, reg string,
 				}
 				new_group = rev
 			}
-			interleave_group( split_offset, split_minlen, reg,
+			interleave_group( reg,
 				new_group, reg_cfg, p ,
  				machine, cfg, args, pos, start_pos )
 			// Update used bytes
@@ -986,118 +1018,102 @@ func parse_regular_interleave(split_offset, split_minlen int, reg string,
 			reg_roms[j].group = 1
 			reg_roms[j].wlen = 1
 		}
-		interleave_group( split_offset, split_minlen, reg,
+		interleave_group( reg,
 					reg_roms, reg_cfg, p ,
 					machine, cfg, args, pos, start_pos )
 	}
 	if args.Verbose { fmt.Println("*******************") }
 }
 
-func interleave_group(split_offset, split_minlen int, reg string,
+func interleave_group( reg string,
 		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
 		machine *MachineXML, cfg Mame2MRA, args Args, pos *int, start_pos int) {
 	reg_pos := 0
 	n := p
 	deficit := 0
-	for split_phase := 0; split_phase <= split_offset && split_phase < 2; split_phase++ {
-		if split_phase == 1 {
-			fill_upto(pos, *pos+split_offset-reg_pos, p)
-			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
+
+	for k := 0; k < len(reg_roms); {
+		r := reg_roms[k]
+		mapstr := ""
+		rom_cnt := len(reg_roms)
+		if r.group != 0 {
+			// make interleave node at the expected position
+			if deficit > 0 {
+				fill_upto(pos, *pos+deficit, p)
+			}
+			reg_pos = *pos - start_pos
+			offset := r.Offset
+			if reg_cfg.No_offset {
+				offset = r.split_offset
+			}
+			// p.AddNode(fmt.Sprintf("Fill offset at reg_pos=%X",reg_pos) ).comment=true
+			fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
+			deficit = 0
+			n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+			if args.Verbose {
+				fmt.Printf("Made %d-bit interleave for %s\n", reg_cfg.Width, reg_cfg.Name)
+			}
+			// Prepare the map
+			for j := r.wlen; j > 0; j-- {
+				mapstr = mapstr + strconv.Itoa(j)
+			}
+			for j := r.wlen; j < (reg_cfg.Width >> 3); j++ {
+				mapstr = "0" + mapstr
+			}
+			if reg_cfg.No_offset {
+				rom_cnt = (reg_cfg.Width >> 3) / r.wlen
+			}
 		}
-		chunk0 := *pos
-		for k := 0; k < len(reg_roms); {
-			r := reg_roms[k]
-			mapstr := ""
-			rom_cnt := len(reg_roms)
-			if r.group != 0 {
-				// make interleave node at the expected position
-				if deficit > 0 {
-					fill_upto(pos, *pos+deficit, p)
-				}
-				reg_pos = *pos - start_pos
-				offset := r.Offset
-				if reg_cfg.No_offset {
-					offset = 0
-				}
-				// p.AddNode(fmt.Sprintf("Fill offset at reg_pos=%X",reg_pos) ).comment=true
-				fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
-				deficit = 0
-				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-				if args.Verbose {
-					fmt.Printf("Made %d-bit interleave for %s\n", reg_cfg.Width, reg_cfg.Name)
-				}
-				// Prepare the map
-				for j := r.wlen; j > 0; j-- {
-					mapstr = mapstr + strconv.Itoa(j)
-				}
-				for j := r.wlen; j < (reg_cfg.Width >> 3); j++ {
-					mapstr = "0" + mapstr
-				}
-				if reg_cfg.No_offset {
-					rom_cnt = (reg_cfg.Width >> 3) / r.wlen
+		process_rom := func(j int) {
+			r = reg_roms[j]
+			if args.Verbose {
+				fmt.Printf("\tparsing %s (%d-byte words - mapstr=%s)\n", r.Name, r.wlen, mapstr)
+			}
+			m := add_rom(n, r)
+			if r.mapstr=="" && mapstr != "" {
+				m.AddAttr("map", mapstr)
+				mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
+			} else if r.mapstr!="" {
+				m.AddAttr("map", r.mapstr)
+			}
+			chunk_size := r.Size
+			if r.clen>0 {
+				chunk_size=r.clen
+			}
+			*pos += chunk_size
+			if chunk_size<r.Size || r.show_len {
+				m.AddAttr("length", fmt.Sprintf("0x%X", chunk_size))
+				if offset := r.used+r.add_offset; offset>0 {
+					m.AddAttr("offset", fmt.Sprintf("0x%X", offset ))
 				}
 			}
-			process_rom := func(j int) {
-				r = reg_roms[j]
-				if args.Verbose {
-					fmt.Printf("Parsing %s (%d-byte words - mapstr=%s)\n", r.Name, r.wlen, mapstr)
-				}
-				m := add_rom(n, r)
-				if r.mapstr=="" && mapstr != "" {
-					m.AddAttr("map", mapstr)
-					mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
-				} else if r.mapstr!="" {
-					m.AddAttr("map", r.mapstr)
-				}
-				if split_offset != 0 {
-					m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-					if split_phase == 1 {
-						m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
-					}
-					*pos += r.Size / 2
-				} else {
-					chunk_size := r.Size
-					if r.clen>0 {
-						chunk_size=r.clen
-					}
-					*pos += chunk_size
-					if chunk_size<r.Size {
-						m.AddAttr("length", fmt.Sprintf("0x%X", chunk_size))
-						m.AddAttr("offset", fmt.Sprintf("0x%X", r.used))
-					}
-					if reg_cfg.Rom_len > chunk_size {
-						deficit += reg_cfg.Rom_len - chunk_size
-					}
-				}
-				reg_pos = *pos - start_pos
-				if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
-					fill_upto(pos, *pos+blank_len, p)
-					p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
-				}
+			if reg_cfg.Rom_len > chunk_size {
+				deficit += reg_cfg.Rom_len - chunk_size
 			}
-			if reg_cfg.Reverse {
-				if args.Verbose {
-					fmt.Printf("Got %d ROMs\nrom_cnt=%d, k=%d\n",len(reg_roms), rom_cnt, k)
-				}
-				for j := k + rom_cnt - 1; j >= k; j-- {
-					if reg_roms[j].group == 0 && get_reverse_width(reg_cfg, reg_roms[j].Name, 16) {
-						mapstr = "12" // Should this try to contemplate other cases different from 16 bits?
-						n = p.AddNode("interleave").AddAttr("output", "16")
-					}
-					process_rom(j)
-				}
-			} else {
-				for j := k; j < k+rom_cnt; j++ {
-					process_rom(j)
-				}
+			reg_pos = *pos - start_pos
+			if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+				fill_upto(pos, *pos+blank_len, p)
+				p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
 			}
-			n = p
-			k += rom_cnt
 		}
-		if *pos-chunk0 < split_minlen {
-			// p.AddNode( fmt.Sprintf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0) ).comment=true
-			fill_upto(pos, split_minlen+chunk0, p)
+		if reg_cfg.Reverse {
+			if args.Verbose {
+				fmt.Printf("Got %d ROMs, with rom_cnt=%d, k=%d\n",len(reg_roms), rom_cnt, k)
+			}
+			for j := k + rom_cnt - 1; j >= k; j-- {
+				if reg_roms[j].group == 0 && get_reverse_width(reg_cfg, reg_roms[j].Name, 16) {
+					mapstr = "12" // Should this try to contemplate other cases different from 16 bits?
+					n = p.AddNode("interleave").AddAttr("output", "16")
+				}
+				process_rom(j)
+			}
+		} else {
+			for j := k; j < k+rom_cnt; j++ {
+				process_rom(j)
+			}
 		}
+		n = p
+		k += rom_cnt
 	}
 }
 
