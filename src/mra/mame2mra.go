@@ -88,11 +88,7 @@ type RegCfg struct {
 	// keeping the original offset usually has no effect as the offset is just the file size
 	// when reverse=true or a sort/sequence changes the file order, the offset may introduce
 	// warning messages or fillers, so no_offset=true is needed
-	Sort_byext   bool
-	Sort         bool // Sort by number sections
-	Sort_alpha   bool // Sort by full alpha comparison
 	Sort_even    bool // sort ROMs by pushing all even ones first, and then the odd ones
-	Sort_reverse bool // inverts the sorting
 	Singleton    bool // Each file can only merge with itself to make interleave sections
 	// The upper and lower halves of the same file are merged together
 	Ext_sort   []string // sorts by matching the file extension
@@ -1251,8 +1247,8 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 			}
 			this.start = int(aux)
 		}
-		if this.Sort_byext || this.Sort || this.Sort_alpha || this.Sort_even ||
-			this.Sort_reverse || this.Singleton || len(this.Ext_sort) > 0 ||
+		if  this.Sort_even ||
+			this.Singleton || len(this.Ext_sort) > 0 ||
 			len(this.Name_sort) > 0 || len(this.Regex_sort) > 0 || len(this.Sequence) > 0 {
 			this.No_offset = true
 		}
