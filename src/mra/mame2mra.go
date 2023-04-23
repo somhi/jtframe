@@ -1105,7 +1105,7 @@ diploop:
 			}
 			options = strings.Join(chunks,",") // re-build the options in case there was a change
 			m.AddAttr("bits", bitstr)
-			m.AddAttr("ids", options)
+			m.AddAttr("ids", strings.TrimSpace(options))
 		}
 		// apply the default value
 		if bitmax+1-bitmin < 0 {
