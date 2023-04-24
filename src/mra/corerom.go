@@ -595,18 +595,60 @@ func parse_i8751(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, arg
 	return true
 }
 
+func parse_asl(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args) bool {
+	path := filepath.Join(args.firmware_dir, machine.Name+".s")
+	f, e := os.Open(path)
+	if e != nil {
+		path = filepath.Join(args.firmware_dir, machine.Cloneof+".s")
+		f, e = os.Open(path)
+		if e != nil {
+			log.Println("jtframe mra: cannot find custom firmware for ", machine.Name)
+			return false
+		}
+	}
+	f.Close()
+	binname := strings.TrimSuffix(path,".s")+".bin"
+	// Assemble
+	cmd := exec.Command("asl", "-cpu", reg_cfg.Custom.Dev, path)
+	//cmd.Stdout = os.Stdout
+	e = cmd.Run()
+	if e != nil {
+		fmt.Printf("\tjtframe mra: asl returned %v for %s:\n", e, path)
+		return false
+	}
+	// Convert to binary
+	cmd = exec.Command("p2bin", strings.TrimSuffix(path,".s")+".p")
+	//cmd.Stdout = os.Stdout
+	e = cmd.Run()
+	if e != nil {
+		fmt.Printf("\tjtframe mra: p2bin returned %v for %s:\n", e, path)
+		return false
+	}
+	// Read the result and add it as data
+	bin, e := ioutil.ReadFile(binname)
+	if e != nil {
+		log.Println("jtframe mra, problem reading asl/p2bin output:\n\t", e)
+		return false
+	}
+	*pos += len(bin)
+	p.AddNode("Using custom firmware (no known dump)").comment = true
+	node := p.AddNode("part")
+	node.indent_txt = true
+	node.SetText(hexdump(bin, 16))
+	return true
+}
+
 func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args) bool {
 	if reg_cfg.Custom.Dev == "" {
 		return false
 	}
 	switch reg_cfg.Custom.Dev {
-	case "i8751":
-		{
-			return parse_i8751(reg_cfg, p, machine, pos, args)
-		}
-	default:
-		log.Fatal("jtframe mra: unsupported custom.dev=", reg_cfg.Custom.Dev)
+	case "i8751": return parse_i8751(reg_cfg, p, machine, pos, args)
+	default: return parse_asl( reg_cfg, p, machine, pos, args)
 	}
+	// default:
+	// 	log.Fatal("jtframe mra: unsupported custom.dev=", reg_cfg.Custom.Dev)
+	// }
 	return false
 }
 
