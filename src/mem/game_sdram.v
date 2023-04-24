@@ -118,6 +118,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
         `endif
     `endif
 `endif
+`ifdef JTFRAME_DIAL
+    .dial_x         ( dial_x        ),
+    .dial_y         ( dial_y        ),
+`endif
     // DIP switches
     .status         ( status        ),
     .dipsw          ( dipsw         ),
@@ -193,7 +197,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .ioctl_ram    ( ioctl_ram      ),
     .ioctl_din    ( ioctl_din      ),
 `endif
-    // Debug  
+    // Debug
     .debug_bus    ( debug_bus      ),
     .debug_view   ( debug_view     ),
 `ifdef JTFRAME_STATUS
