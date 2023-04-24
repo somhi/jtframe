@@ -112,7 +112,9 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		if args.Verbose {
 			fmt.Println("\tafter sorting:\n\t", reg_roms)
 		}
-		if reg_cfg.Singleton {
+		if len(reg_cfg.Parts)!=0 {
+			pos += parse_parts( reg_cfg, p )
+		} else if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton(reg_roms, reg_cfg, p)
 		} else {
@@ -431,6 +433,25 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	} else {
 		return 0
 	}
+}
+
+func parse_parts(reg_cfg *RegCfg, p *XMLNode) int {
+	dumped := 0
+	n := p
+	if reg_cfg.Width>8 {
+		n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+	}
+	for _,each := range reg_cfg.Parts {
+		m := n.AddNode("part").AddAttr("name",each.Name)
+		m.AddAttr("crc",each.Crc)
+		m.AddAttr("map",each.Map)
+		m.AddAttr("length", fmt.Sprintf("0x%X",each.Length))
+		if( each.Offset != 0 ) {
+			m.AddAttr("offset",fmt.Sprintf("0x%X",each.Offset))
+		}
+		dumped += each.Length
+	}
+	return dumped
 }
 
 func parse_singleton(reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode) int {

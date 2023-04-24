@@ -107,6 +107,10 @@ type RegCfg struct {
 		// Machine, Setname string // Optional filters
 		Dev string // Device name for assembler
 	}
+	Parts []struct {
+		Name, Crc, Map	string
+		Length, Offset int
+	}
 	Files []MameROM // This replaces the information in mame.xml completely if present
 }
 
