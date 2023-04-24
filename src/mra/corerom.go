@@ -127,7 +127,8 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 			} else if reg_cfg.Width <= 8 || len(reg_roms) == 1 {
 				parse_straight_dump(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			} else {
-				fmt.Printf("Don't know how to parse region %s in %s\n", reg_cfg.Name, machine.Name )
+				fmt.Printf("Error: don't know how to parse region %s (%d roms) in %s\n",
+					reg_cfg.Name, len(reg_roms), machine.Name )
 				os.Exit(1)
 			}
 		}
