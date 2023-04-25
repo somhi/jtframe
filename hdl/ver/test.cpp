@@ -141,7 +141,7 @@ public:
             dut.coin_input   = 0xc | (v&3);
             dut.joystick1    = 0x3c0 | ((v>>4)&0x3f);
             if( coin_l != (dut.coin_input&3) && coin_l!=3 ) {
-                cout << "\ncoin inserted (line " << line << ")\n";
+                cout << "\ncoin inserted (sim_inputs.hex line " << line << ")\n";
             }
             if( fin.eof() ) {
                 done = true;
@@ -227,7 +227,6 @@ public:
                     } else {
                         dut.downloading = 0;
                         done = true;
-                        fputs("ROM file transfered\n",stderr);
                     }
                     break;
             }
@@ -365,7 +364,7 @@ void SDRAM::dump() {
         if( !fout.good() ) {
             fprintf(stderr, "ERROR: (test.cpp) saving to %s\n", fname );
         }
-        fprintf(stderr,"%s dumped\n", fname );
+        fprintf(stderr,"\t%s dumped\n", fname );
 #ifndef _JTFRAME_SDRAM_BANKS
         break;
 #endif
@@ -650,8 +649,16 @@ void JTSim::clock(int n) {
         dwn.update();
         if( !cur_dwn && last_dwnd ) {
             // Download finished
+            fprintf(stderr,"\nROM file transfered (frame %d)\n",frame_cnt);
             if( finish_time>0 ) finish_time += simtime/1000'000'000;
-            if( finish_frame>0 ) finish_frame += frame_cnt;
+            if( finish_frame>0 && _DUMP_START==0 ) {
+                finish_frame += frame_cnt; // the finish frame value is
+                // counted from the time the download finishes, unless
+                // _DUMP_START was set by calling jtsim -w frame#
+                // in that case the total frame count will include the download
+                // frames to avoid situations where the finish_frame could
+                // be lower than the -w frame#, which would be confusing
+            }
             if ( dwn.FullDownload() ) sdram.dump();
             reset(0);
         }
