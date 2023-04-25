@@ -249,6 +249,10 @@ function add_macro {
     ALLMACROS=${ALLMACROS}$1
 }
 
+function has_macro {
+    expr match "$ALLMACROS" ".*${1}.*" > /dev/null
+}
+
 function set_mist_as_target {
     TOP=mist_test
     TARGET=mist
@@ -429,9 +433,11 @@ if [ ! -z "$SETNAME" ]; then
     if [ -z "$SKIPROM" ]; then getset.sh $SYSNAME $SETNAME $SKIPROM || exit $?; fi
     SHORTSETNAME=`shorten_name $SETNAME`
     if [ -e $ROM/$SHORTSETNAME.dip ]; then
-        # Not all systems have DIPs
-        DIPS=`cat $ROM/$SHORTSETNAME.dip`
-        if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
+        if ! has_macro JTFRAME_SIM_DIPS; then
+            # Not all systems have DIPs
+            DIPS=`cat $ROM/$SHORTSETNAME.dip`
+            if [ ! -z "$DIPS" ]; then add_macro JTFRAME_SIM_DIPS=0x$DIPS; fi
+        fi
     fi
     ROMFILE=$ROM/$SHORTSETNAME.rom
     if [ ! -e $ROMFILE ]; then

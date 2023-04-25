@@ -590,6 +590,7 @@ JTSim::JTSim( UUT& g, int argc, char *argv[]) :
     game.gfx_en=0xf;    // enable all layers
 #endif
     game.dipsw=_JTFRAME_SIM_DIPS;
+    fprintf(stderr,"DIP sw set to %X\n",game.dipsw);
     reset(0);
     game.sdram_rst = 0; // the initial non-reset time should be short or JTKCPU
     clock(24);          // will signal a bus error

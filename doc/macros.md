@@ -162,7 +162,7 @@ DUMP_VIDEO_FNAME         |         | Internal. Do not assign.
 JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_SAVESDRAM        |         | Saves SDRAM contents at the end of each frame (slow)
 JTFRAME_SDRAM_STATS      |         | Produce SDRAM usage data during simulation
-JTFRAME_SIM_DIPS         |         | Define DIP switch values during simulation
+JTFRAME_SIM_DIPS         |         | DIP switch values for simulation. Use 0x... for verilator sims
 JTFRAME_SIM_ROMRQ_NOCHECK|         | Disable protocol checking of romrq
 JTFRAME_SIM_SCAN2X       |         | Enables scan doubler simulation
 JTFRAME_SIM_GFXEN        |         | Sets the gfx_en value (4 bits). See [debug.md](debug.md)
