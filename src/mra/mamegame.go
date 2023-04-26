@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"strconv"
 )
 
@@ -241,4 +242,6 @@ func tidyup(machine *MachineXML) {
 	for k, _ := range machine.Dipswitch {
 		sort.Sort(machine.Dipswitch[k].Dipvalue)
 	}
+	// Remove / from game descriptions
+	machine.Description=strings.ReplaceAll(machine.Description,"/","-")
 }
