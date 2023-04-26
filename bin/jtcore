@@ -579,6 +579,8 @@ function announce {
 # Determine file extension
 case $TARGET in
     neptuno) EXT=np1;;
+    deca)  EXT=svf;;
+    de10lite)  EXT=svf;;
     mc2) EXT=mc2;;
     mcp) EXT=mcp;;
     pocket) EXT=rbf_r;;
@@ -596,8 +598,20 @@ fi
 if is_mister_family || test $TARGET = neptuno; then
     echo $TARGET
     RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/$corename.rbf
+elif test $TARGET = deca || test $TARGET = de10lite; then
+    RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/$corename.svf
 else
     RBF=$PRJPATH/${TARGET}/$corename.rbf
+fi
+
+if test $TARGET = deca || test $TARGET = de10lite; then
+    # clear DSM Tool that removes lines in .svf files to preserve the security key stored in Intel® MAX® 10 devices.
+    echo "Clear DSM Tool (max10_svf_cleaner)"
+    max10_svf_cleaner $RBF
+    RBF=$PRJPATH/${TARGET}/$OUTPUTDIR/${corename}_nodsm.svf
+	# remove Quartus db folders
+    rm -r $PRJPATH/$TARGET/db
+    rm -r $PRJPATH/$TARGET/incremental_db
 fi
 
 if [ ! -e $RBF ]; then
@@ -632,6 +646,8 @@ if [[ ( "$GIT" = FALSE || (( is_mister_family || "$BETA" != TRUE ) && "$FAIL" = 
         if [ $TARGET = pocket ]; then
             BINFOLDER=$BINFOLDER/raw/Cores/jotego.$corename
         fi
+		# Do not PR upstream with {}_$CORESTAMP     #echo "DEBUG: $BINRBF"
+        #BINRBF=$BINFOLDER/${corename}_$CORESTAMP.$EXT
         BINRBF=$BINFOLDER/$corename.$EXT
     fi
     mkdir -p $(dirname $BINRBF)
