@@ -62,6 +62,14 @@ using namespace std;
     #define _JTFRAME_SIM_DIPS 0xffffffff
 #endif
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 class WaveWritter {
     std::ofstream fsnd, fhex;
     std::string name;
@@ -685,7 +693,7 @@ void JTSim::clock(int n) {
 #endif
         // frame counter & inputs
         if( game.VS && !last_VS ) {
-            fprintf(stderr,"%X", frame_cnt&0xf); // do not flush the streams. It can mess up
+            fprintf(stderr,ANSI_COLOR_RED "%X" ANSI_COLOR_RESET, frame_cnt&0xf); // do not flush the streams. It can mess up
             frame_cnt++;
             if( frame_cnt == _DUMP_START && !dump_ok ) {
                 dump_ok = 1;
