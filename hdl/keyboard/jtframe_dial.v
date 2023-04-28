@@ -34,7 +34,7 @@ module jtframe_dial(
 localparam B0 = `JTFRAME_DIALEMU_LEFT,
            B1 = B0+1;
 
-reg  [2:0] dial_pulse;
+reg  [3:0] dial_pulse;
 reg  [7:0] cnt1, cnt2;
 reg        LHBL_l, sel;
 reg        inc_1p, inc_2p,
@@ -49,11 +49,11 @@ assign toggle1 = last1 != spinner_1[8],
 assign line    = LHBL & ~LHBL_l;
 
 always @* begin
-    case( sensty )
-        1: up_joy = dial_pulse[2:0] < 7;
-        0: up_joy = dial_pulse[2:0] < 5;
-        3: up_joy = dial_pulse[2:0] < 3;
-        2: up_joy = dial_pulse[2:0] < 1;
+    case( sensty ) // how often is the joystick check?
+        1: up_joy = dial_pulse < 15; // 15 out of 16 lines
+        0: up_joy = dial_pulse < 8;
+        3: up_joy = dial_pulse < 4;
+        2: up_joy = dial_pulse < 1; // once every 16 lines
     endcase
     up_joy = up_joy & line;
     inc_1p   = sel ? !joystick1[B0] :  cnt1[7];
@@ -66,7 +66,7 @@ end
 always @(posedge clk) begin
     LHBL_l <= LHBL;
     cen    <= ~cen;
-    if( line ) dial_pulse <= dial_pulse+3'd1;
+    if( line ) dial_pulse <= dial_pulse+4'd1;
     up_1p <= up_joy;
     up_2p <= up_joy;
     sel   <= up_joy;
