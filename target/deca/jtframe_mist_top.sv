@@ -52,6 +52,7 @@ module mist_top(
     // sound
     output          AUDIO_L,
     output          AUDIO_R,
+    
     `ifdef DEMISTIFY
     output  [15:0]  DAC_L,   
     output  [15:0]  DAC_R,   
@@ -59,7 +60,13 @@ module mist_top(
     input [5:0]     JOY1,
     input [5:0]     JOY2,
     output          JOY_SELECT,
+
+    output   [COLORW-1:0]  RED_x, GREEN_x, BLUE_x,
+    output          HS_x, VS_x,
+    output          VGA_BLANK,
+    output          VGA_CLK,
     `endif   
+
     // user LED
     output          LED
     `ifdef SIMULATION
@@ -136,6 +143,17 @@ wire data_rdy, sdram_ack;
 
 // PLL's
 wire pll_locked, clk_pico;
+
+
+`ifdef DEMISTIFY
+assign RED_x     = red;
+assign GREEN_x   = green;
+assign BLUE_x    = blue;
+assign HS_x      = hs;
+assign VS_x      = vs;
+assign VGA_BLANK = LHBL | LVBL;
+assign VGA_CLK   = pxl2_cen;    //clk24; clk48;
+`endif   
 
 
 `ifndef JTFRAME_STEREO
