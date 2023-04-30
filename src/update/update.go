@@ -233,7 +233,7 @@ func dump_output(cfg Config) {
 	appendif(cfg.Private, "JTFRAME_OSDCOLOR=(6'h20)")
 	appendif(cfg.Nohdmi, "MISTER_DEBUG_NOHDMI")
 	appendif(cfg.Nosnd, "NOSOUND")
-	appendif(cfg.Beta != "", "BETA", "JTFRAME_CHEAT_SCRAMBLE", "JTFRAME_UNLOCKKEY="+cfg.Beta)
+	appendif(cfg.Beta != "", "BETA", "JTFRAME_UNLOCKKEY="+cfg.Beta)
 	for target, valid := range cfg.Targets {
 		if !valid {
 			continue

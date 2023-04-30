@@ -775,13 +775,13 @@ jtframe_sdram64 #(
         `ifdef JTFRAME_CREDITS_NOROTATE
             .rotate ( 2'd0          ),
         `else
-            .rotate ( { rotate[1], core_mod[0] }  ),
+            .rotate ( lock ? 2'd0 : { rotate[1], core_mod[0] }  ),
         `endif
         .toggle     ( toggle        ),
         .fast_scroll( fast_scroll   ),
 
         `ifdef JTFRAME_CHEAT
-            // Cheat CPU can controll the video
+            // Cheat CPU can control the video
             .vram_din   ( vram_dout  ),
             .vram_dout  ( vram_din   ),
             .vram_addr  ( vram_addr  ),
