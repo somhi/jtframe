@@ -20,12 +20,15 @@ It is recommended to remove the *debug_bus* once the core is stable. When the co
 
 By pressing SHIFT+CTRL, the core will switch from displaying the regular *debug_view* to *sys_info*. This 8-bit signals carries information from modules inside JTFRAME, aside from core-specific information. This is available as long as **JTFRAME_RELEASE** was not used for compilation. The *debug_bus* selects which information to display. Note that *sys_info* is shown in a **reddish color**, while *debug_view* is shown in white.
 
-st_addr[7:6] |  Read
+st_addr[7:4] |  Read
 -------------|--------------------
-  00         |  SDRAM stats
-  01         |  Frame count (BCD) set st_addr[0] for upper byte
-  10         |  Sample rate (BCD)
-  11         | { core_mod[3:0], dial_x, 1'd0, dip_flip }
+  00_??      |  SDRAM stats
+  01_??      |  Frame count (BCD) set st_addr[0] for upper byte
+  10_??      |  Sample rate (BCD)
+  11_00      | { core_mod[3:0], dial_x, game_led, dip_flip }
+  11_01      | mouse_dx[8:1]
+  11_10      | mouse_dy[8:1]
+  11_11      | mouse_f
 
 See core_mod description [here](osd.md)
 

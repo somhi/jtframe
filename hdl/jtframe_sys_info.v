@@ -24,10 +24,16 @@ module jtframe_sys_info(
     input               sample,
     input               dip_pause,
     input               dip_flip,
+    input               game_led,
     input               LVBL,
     input         [6:0] core_mod,
     input         [1:0] dial_x,
     input         [3:0] ba_rdy,
+    // mouse
+    input         [8:0] mouse_dx,
+    input         [8:0] mouse_dy,
+    input         [7:0] mouse_f,
+    // status select
     input         [7:0] st_addr,
     output reg    [7:0] st_dout
 );
@@ -64,7 +70,14 @@ always @(posedge clk, posedge rst) begin
             0: st_dout <= stats;
             1: st_dout <= st_addr[0] ? frame_cnt[15:8] : frame_cnt[7:0];
             2: st_dout <= srate;
-            3: st_dout <= { core_mod[3:0], dial_x, 1'd0, dip_flip };
+            3: begin
+                case( st_addr[5:4] )
+                    0: st_dout <= { core_mod[3:0], dial_x, game_led, dip_flip };
+                    1: st_dout <= mouse_dx[8:1];
+                    2: st_dout <= mouse_dy[8:1];
+                    3: st_dout <= mouse_f;
+                endcase
+            end
             default: st_dout <= 0;
         endcase
     end

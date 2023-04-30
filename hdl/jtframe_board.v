@@ -360,10 +360,15 @@ jtframe_keyboard u_keyboard(
             .sample     ( snd_sample    ),
             .dip_pause  ( dip_pause     ),
             .dip_flip   ( dip_flip      ),
+            .game_led   ( game_led[0]   ),
             .LVBL       ( LVBL          ),
             .core_mod   ( core_mod      ),
             .dial_x     ( dial_x        ),
             .ba_rdy     ( bax_rdy       ),
+            // mouse
+            .mouse_f    ( bd_mouse_f    ),
+            .mouse_dx   ( bd_mouse_dx   ),
+            .mouse_dy   ( bd_mouse_dy   ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )
         );
