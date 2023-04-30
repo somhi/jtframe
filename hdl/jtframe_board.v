@@ -747,15 +747,15 @@ jtframe_sdram64 #(
 `ifdef JTFRAME_CREDITS
     wire invert_inputs = GAME_INPUTS_ACTIVE_LOW[0];
     wire toggle = |(game_start ^ {4{invert_inputs}});
-    reg  fast_scroll;
-    wire show_credits, hide_credits;
+    reg  fast_scroll, show_credits;
+    wire hide_credits;
 
 
     assign hide_credits = `ifdef JTFRAME_CREDITS_HIDEVERT core_mod[0] `else 0 `endif ;
-    assign show_credits = ~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif ;
 
     always @(posedge clk_sys) begin
-        fast_scroll <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
+        fast_scroll  <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
+        show_credits <= lock | (~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif);
     end
 
     // To do: HS and VS should actually be delayed inside jtframe_credits too
