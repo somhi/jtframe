@@ -61,8 +61,11 @@ module mist_top(
     input [5:0]     JOY2,
     output          JOY_SELECT,
 
-    output   [COLORW-1:0]  RED_x, GREEN_x, BLUE_x,
-    output          HS_x, VS_x,
+    output   [`JTFRAME_COLORW-1:0]  RED_x,
+    output   [`JTFRAME_COLORW-1:0]  GREEN_x,
+    output   [`JTFRAME_COLORW-1:0]  BLUE_x,
+    output          HS_x,
+	output			VS_x,
     output          VGA_BLANK,
     output          VGA_CLK,
     `endif   
@@ -152,7 +155,7 @@ assign BLUE_x    = blue;
 assign HS_x      = hs;
 assign VS_x      = vs;
 assign VGA_BLANK = LHBL | LVBL;
-assign VGA_CLK   = pxl2_cen;    //clk24; clk48;
+assign VGA_CLK   = clk_sys;    //pxl2_cen (12MHz); clk24; clk48;
 `endif   
 
 
@@ -443,19 +446,64 @@ assign dipsw = `ifdef JTFRAME_SIM_DIPS
 
 /*      //DDR3 DECA pinout                  TO BE MODIFIED
         .ddram_clk  ( DDRAM_CLK     ),
-        .ddram_busy ( DDRAM_BUSY    ),
+        .ddram_busy ( DDRAM_BUSY    ),  //_i
         .ddram_addr ( DDRAM_ADDR    ),
-        .ddram_dout ( DDRAM_DOUT    ),
-        .ddram_rd   ( DDRAM_RD      ),
+        .ddram_dout ( DDRAM_DOUT    ),  //_i
+        .ddram_rd   ( DDRAM_RD      ),  
         .ddram_din  ( DDRAM_DIN     ),
         .ddram_be   ( DDRAM_BE      ),
         .ddram_we   ( DDRAM_WE      ),
         .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
-        .ddram_dout_ready( DDRAM_DOUT_READY  ),
+        .ddram_dout_ready( DDRAM_DOUT_READY  ),     //_i
  */
         .st_addr    ( st_addr       ),
         .st_dout    ( st_lpbuf      )
     );
+
+    /*
+    ddr3     ddr3_dut (
+      .pll_ref_clk (clk_rom ),
+      .global_reset_n (~rst ),
+      .soft_reset_n (~rst ),
+      .afi_clk (afi_clk ),
+      .afi_half_clk (afi_half_clk ),
+      .afi_reset_n (afi_reset_n ),
+      .afi_reset_export_n (afi_reset_export_n ),
+      .mem_a (mem_a ),
+      .mem_ba (mem_ba ),
+      .mem_ck (mem_ck ),
+      .mem_ck_n (mem_ck_n ),
+      .mem_cke (mem_cke ),
+      .mem_cs_n (mem_cs_n ),
+      .mem_dm (mem_dm ),
+      .mem_ras_n (mem_ras_n ),
+      .mem_cas_n (mem_cas_n ),
+      .mem_we_n (mem_we_n ),
+      .mem_reset_n (mem_reset_n ),
+      .mem_dq (mem_dq ),
+      .mem_dqs (mem_dqs ),
+      .mem_dqs_n (mem_dqs_n ),
+      .mem_odt (mem_odt ),
+      .avl_ready (avl_ready ),
+      .avl_burstbegin (avl_burstbegin ),
+      .avl_addr (avl_addr ),
+      .avl_rdata_valid (avl_rdata_valid ),
+      .avl_rdata (avl_rdata ),
+      .avl_wdata (avl_wdata ),
+      .avl_be (avl_be ),
+      .avl_read_req (avl_read_req ),
+      .avl_write_req (avl_write_req ),
+      .avl_size (avl_size ),
+      .local_init_done (local_init_done ),
+      .local_cal_success (local_cal_success ),
+      .local_cal_fail (local_cal_fail ),
+      .pll_mem_clk (pll_mem_clk ),
+      .pll_write_clk (pll_write_clk ),
+      .pll_locked (pll_locked ),
+      .pll_capture0_clk (pll_capture0_clk ),
+      .pll_capture1_clk  ( pll_capture1_clk)
+    );
+*/
 
 `endif
 
