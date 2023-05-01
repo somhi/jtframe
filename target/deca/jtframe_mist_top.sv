@@ -66,7 +66,7 @@ module mist_top(
     output   [`JTFRAME_COLORW-1:0]  BLUE_x,
     output          HS_x,
 	output			VS_x,
-    output          VGA_BLANK,
+    output          VGA_DE,
     output          VGA_CLK,
     `endif   
 
@@ -154,7 +154,7 @@ assign GREEN_x   = green;
 assign BLUE_x    = blue;
 assign HS_x      = hs;
 assign VS_x      = vs;
-assign VGA_BLANK = LHBL | LVBL;
+assign VGA_DE    = LHBL & LVBL;
 assign VGA_CLK   = clk_sys;    //pxl2_cen (12MHz); clk24; clk48;
 `endif   
 
