@@ -17,4 +17,13 @@ for i in $*; do
         jtframe mra $i
     fi
     cp -v $SRC $DST
+    # Copy MiST and SiDi if they exist
+    for AUX in mist sidi; do
+        if [ -d $JTBIN/$AUX/jt$i.rbf ]; then
+            mkdir -p $JTCORES/release/$AUX
+            cp -v $JTBIN/$AUX/jt$i.rbf $JTCORES/release/$AUX
+        else
+            echo "$AUX version of $i not found"
+        fi
+    done
 done
