@@ -61,9 +61,9 @@ module mist_top(
     input [5:0]     JOY2,
     output          JOY_SELECT,
 
-    output   [`JTFRAME_COLORW-1:0]  RED_x,
-    output   [`JTFRAME_COLORW-1:0]  GREEN_x,
-    output   [`JTFRAME_COLORW-1:0]  BLUE_x,
+    output   [5:0]  RED_x,
+    output   [5:0]  GREEN_x,
+    output   [5:0]  BLUE_x,
     output          HS_x,
 	output			VS_x,
     output          VGA_DE,
@@ -148,14 +148,68 @@ wire data_rdy, sdram_ack;
 wire pll_locked, clk_pico;
 
 
-`ifdef DEMISTIFY
-assign RED_x     = red;
-assign GREEN_x   = green;
-assign BLUE_x    = blue;
-assign HS_x      = hs;
-assign VS_x      = vs;
+`ifdef DEMISTIFY        // HDMI video output with OSD
+// include the on screen display
+wire [5:0] osd_r_o;
+wire [5:0] osd_g_o;
+wire [5:0] osd_b_o;
+wire       HSync_osd, VSync_osd;
+
+function [5:0] extend_color;
+    input [COLORW-1:0] a;
+    case( COLORW )
+        3: extend_color = { a, a[2:0] };
+        4: extend_color = { a, a[3:2] };
+        5: extend_color = { a, a[4] };
+        6: extend_color = a;
+        7: extend_color = a[6:1];
+        8: extend_color = a[7:2];
+    endcase
+endfunction
+
+wire [5:0] game_r6 = extend_color( red );
+wire [5:0] game_g6 = extend_color( green );
+wire [5:0] game_b6 = extend_color( blue );
+
+osd #(0,0,6'b01_11_01) osd (
+   .clk_sys    ( clk_sys      ),
+
+    // spi for OSD
+   .SPI_DI     ( SPI_DI       ),
+   .SPI_SCK    ( SPI_SCK      ),
+   .SPI_SS3    ( SPI_SS3      ),
+
+   .rotate     ( 2'b00        ),    //osd_rotate
+
+   .R_in       ( game_r6      ),
+   .G_in       ( game_g6      ),
+   .B_in       ( game_b6      ),
+   .HSync      ( hs           ),
+   .VSync      ( vs           ),
+
+   .R_out      ( osd_r_o      ),
+   .G_out      ( osd_g_o      ),
+   .B_out      ( osd_b_o      ),
+   .HSync_out  ( HSync_osd    ),
+   .VSync_out  ( VSync_osd    )
+);
+
+assign RED_x     = osd_r_o;
+assign GREEN_x   = osd_g_o;
+assign BLUE_x    = osd_b_o;
+assign HS_x      = HSync_osd;
+assign VS_x      = VSync_osd;
 assign VGA_DE    = LHBL & LVBL;
-assign VGA_CLK   = clk_sys;    //pxl2_cen (12MHz); clk24; clk48;
+assign VGA_CLK   = pxl2_cen;    //clk6 (6MHz 320x224@60); pxl2_cen (12MHz 640x224@60); clk_sys (48MHz 2560x224@60);
+
+// //// without OSD
+// assign RED_x     = red;
+// assign GREEN_x   = green;
+// assign BLUE_x    = blue;
+// assign HS_x      = hs;
+// assign VS_x      = vs;
+// assign VGA_DE    = LHBL & LVBL;
+// assign VGA_CLK   = pxl2_cen;  //clk6 (6MHz 320x224@60); pxl2_cen (12MHz 640x224@60); clk_sys (48MHz 2560x224@60);
 `endif   
 
 
