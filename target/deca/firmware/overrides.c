@@ -37,14 +37,43 @@ void sendarcadekeys()
 	prev=menu_buttons;
 }
 
+char romname[12];
 extern unsigned char romtype;
 int LoadROM(const char *fn);
+
 char *autoboot()
 {
-	romtype=CONFIGSTRING_INDEX_ARC;
-	LoadROM(ROM_FILENAME)
-	return(0);
+    char *result=0;
+    DIRENTRY *de;
+    romtype=CONFIGSTRING_INDEX_ARC;
+    //LoadROM(ROM_FILENAME)
+
+/* Fetch first 8 characters of core name */    
+configstring_getcorename(romname,8);
+/* Clear file extension */
+strcpy(&romname[8],"   ");
+
+//if(de=GetDirEntry(romname))
+//    ChangeDirectory(de);
+
+if(de=GetDirEntry("JOTEGO     "))
+    ChangeDirectory(de);
+
+/* Set file extension to .VHD */
+//strcpy(&romname[8],"VHD");
+//diskimg_mount(romname,0);
+
+/* Set file extension to .ARC */
+strcpy(&romname[8],"ARC");
+if(!LoadROM(romname))
+    result="ARC loading failed";
+
+/* return to the root directory */
+ChangeDirectoryByCluster(0);
+
+    return(result);
 }
+
 
 void mainloop()
 {

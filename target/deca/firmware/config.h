@@ -34,6 +34,10 @@ here, the number of units defaults to 4. */
    range would be between 4 and 16 */
 #undef CONFIG_FILEBOOKMARKS 6
 
+/* If the core has initialised the keyboard to use scan set 1 the OSD will
+   need to use set 1 as well. */
+#undef CONFIG_KEYBOARD_SET1
+
 /* Keyboard-based Joystick emulation */
 #undef CONFIG_JOYKEYS
 
@@ -50,7 +54,7 @@ here, the number of units defaults to 4. */
 #undef ROM_REQUIRED
 
 /* ROM name will default to "BOOT    ROM" if not defined here... */ 
-#define ROM_FILENAME "JTOUTRUNARC"
+#undef ROM_FILENAME "CORE    ROM"
 
 /* Do we support settings files */
 
@@ -68,14 +72,13 @@ here, the number of units defaults to 4. */
 
 /* Is this an arcade core with .ARC file support? */
 #define CONFIG_ARCFILE
+/* If the core doesn't have its own ROM loading menu item, use this to add a selector for .ARC files. */
+#undef CONFIG_ARCFILE_SELECTOR
+
 
 /* If this is defined, DeMiSTify will look for a file called "15KHZ.CFG", and if found,
 disable the scandoubler. */
 #define CONFIG_AUTOSCANDOUBLER
-
-
-#undef CONFIG_ARCFILE_SELECTOR 
-
 
 #endif
 
