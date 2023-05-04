@@ -33,6 +33,33 @@ The script **jtcore** handles this process transparently.
 
 By default unless **JTFRAME_MR_FASTIO** is already defined, **JTFRAME_CLK96** will define it to 1. This enables fast ROM download in MiSTer using 16-bit mode in _hps_io_.
 
+## Clock Enable Signals
+
+Most core modules will need to operate at a frequency different from the master clock, **clk**. This is achieved by using clock enable signals (*cen*), which are high exactly for one pulse cycle. There are several modules in [hdl/clocking](../hdl/clocking) that help creating these *cen* signals but the preferred method is to define them in the cfg/mem.yaml file.
+
+*cen* signals can be defined in terms of a multiplier and a divider, which is handy when the original system follows that method, or with an absolute frequency in hertz. Each definition is tied to a specific JTFRAME clock (clk6, clk24, clk48 or clk96) and for absolute value calculations, the **JTFRAME_PLL** macro is taken into account. Thus the desired frequency will be obtained regardless of which clock and which PLL you choose for the design.
+
+Example from **jtroadf** core:
+
+```
+clocks:
+  clk24:
+    - mul: 1
+      div: 4
+      outputs:
+        - cpu4
+        - ti1
+        - ti2
+    - freq: 3579545
+      outputs:
+        - snd
+        - psg
+```
+
+For each output listed, the result frequency is divided by 2. Thus cpu4_cen will operate at clk24/4, ti1_cen will be clk24/8 and ti2_cen clk24/16. Similarly, psg_cen will be half the frequency of snd_cen. All signals listed in _outputs_ will have the suffix *_cen* added and they will become input ports to the _game_ module.
+
+You can specify several clock domains, clk24, clk48, etc. If you move _cen_ signals from one domain to another, make sure the right clock is used in the _game_ module too for each respective _cen_.
+
 # Internal JTFRAME clocks
 
 The clocks passed to the target subsystem (jtframe_mist, jtframe_mister or jtframe_neptuno) are three:

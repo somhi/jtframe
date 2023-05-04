@@ -123,7 +123,7 @@ type MemConfig struct {
     // But is acquired from the .def or the Args
     Core     string
     Macros   map[string]string
-    Clocks   map[string]ClockCfg `yaml:"clocks"`
+    Clocks   map[string][]ClockCfg `yaml:"clocks"`
     // Precalculated values
     Colormsb int
     Unused   [4]bool // true for unused banks

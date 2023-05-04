@@ -1,6 +1,6 @@
-{{- range .Clocks }}
-    // using {{ .ClkName }}
-    input {{ .OutStr }}, // {{ .Comment }} Hz
+{{- range $k, $v := .Clocks }}
+    {{- range $v }}
+    input {{ .OutStr }}, // {{ .Comment }} Hz {{ end }}
 {{end}}
     // Memory ports
     input   [21:0]  prog_addr,
