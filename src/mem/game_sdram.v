@@ -70,6 +70,10 @@ wire [25:0] pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
 wire        pass_io;
+{{ if .Clocks }}// Clock enable signals{{ end }}
+{{- range .Clocks }}
+    {{- range .Outputs }}
+wire {{ . }}_cen; {{ end }}{{ end }}
 
 assign pass_io = header | ioctl_ram;
 
@@ -84,6 +88,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst48      ( rst48     ),
     .clk48      ( clk48     ),
 `endif
+{{- range .Clocks }}
+    {{- range .Outputs }}
+    .{{ . }}_cen    ( {{ . }}_cen    ), {{ end}}
+{{ end }}
     .pxl2_cen       ( pxl2_cen      ),
     .pxl_cen        ( pxl_cen       ),
     .red            ( red           ),
@@ -384,4 +392,17 @@ jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .q      ( {{$bus.Name}}_dout )
 );{{ end }}
 {{ end }}{{end}}
+
+{{ if .Clocks }}
+// Clock enable generation
+{{- range .Clocks }}
+// {{ .Comment }} Hz from {{ .ClkName }}
+jtframe_frac_cen #(.W({{.W}}),.WC({{.WC}})) u_cen_{{.ClkName}}(
+    .clk    ( {{.ClkName}} ),
+    .n      ( {{.WC}}'d{{.Mul    }} ),
+    .m      ( {{.WC}}'d{{.Div    }} ),
+    .cen    ( { {{ .OutStr }} } ),
+    .cenb   (              )
+); {{ end }}
+{{ end }}
 endmodule

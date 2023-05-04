@@ -222,8 +222,7 @@ func get_macros( core, target string ) (map[string]string) {
 	return jtdef.Make_macros(def_cfg)
 }
 
-func check_banks( args Args, cfg MemConfig ) {
-	macros := get_macros( args.Core, args.Target )
+func check_banks( macros map[string]string, cfg MemConfig ) {
 	// Check that the arguments make sense
 	if len(cfg.SDRAM.Banks) > 4 || len(cfg.SDRAM.Banks) == 0 {
 		log.Fatalf("jtframe mem: the number of banks must be between 1 and 4 but %d were found.", len(cfg.SDRAM.Banks))
@@ -253,7 +252,8 @@ func Run(args Args) {
 		// normally ok
 		return
 	}
-	check_banks( args, cfg )
+	macros := get_macros( args.Core, args.Target )
+	check_banks( macros, cfg )
 	// Check that the required files are available
 	for k, each := range cfg.SDRAM.Banks {
 		total_slots := len(each.Buses)
@@ -297,6 +297,8 @@ func Run(args Args) {
 			cfg.Unused[k] = true
 		}
 	}
+	// Fill the clock configuration
+	make_clocks( macros, &cfg )
 	// Execute the template
 	cfg.Core = args.Core
 	make_sdram(args, &cfg)

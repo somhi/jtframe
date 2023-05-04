@@ -1,4 +1,8 @@
-    // From this line down, do not modify ports manually:
+{{- range .Clocks }}
+    // using {{ .ClkName }}
+    input {{ .OutStr }}, // {{ .Comment }} Hz
+{{end}}
+    // Memory ports
     input   [21:0]  prog_addr,
     input   [ 7:0]  prog_data,
     input           prog_we,
