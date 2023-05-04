@@ -59,6 +59,7 @@ assign pll_locked = pll0_lock & pll1_lock & pll2_lock;
 // TODO to be added pll 8 MHz for Turbo Chameleon 64 V1 
 // C10LP-RefKit has a 25Mhz and 12Mhz clock
 
+/*
 `ifdef DEMISTIFY_ATLAS_CYC	// converts 12 to 27MHz
     pll_27 u_pllatlas( 		
         .inclk0  ( clk_ext   ),
@@ -84,10 +85,10 @@ assign pll_locked = pll0_lock & pll1_lock & pll2_lock;
         .outclk_0( clk27     ),
         .locked  ( pll0_lock )
     );
-`else
+`else   */
     assign clk27 = clk_ext;
     assign pll0_lock = 1;
-`endif
+// `endif
 
 `JTFRAME_PLL u_basepll(
     .inclk0 ( clk27     ),

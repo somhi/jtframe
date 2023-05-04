@@ -68,6 +68,21 @@ module mist_top(
 	output			VS_x,
     output          VGA_DE,
     output          VGA_CLK,
+
+    output          ddram_clk,
+    input           ddram_busy,
+    output  [7:0]   ddram_burstcnt,
+    output [31:3]   ddram_addr,
+    input  [63:0]   ddram_dout,
+    input           ddram_dout_ready,
+    output          ddram_rd,
+    output [63:0]   ddram_din,
+    output  [7:0]   ddram_be,
+    output          ddram_we,
+    output          ddram_burstbegin,
+
+    output          clk_rom,
+    output          rst,
     `endif   
 
     // user LED
@@ -94,7 +109,7 @@ module mist_top(
     localparam SDRAMW=22; // 32 MB
 `endif
 
-wire        rst, rst_n, clk_sys, clk_rom, clk6, clk24, clk48, clk96;
+wire        rst_n, clk_sys, clk6, clk24, clk48, clk96;
 wire [63:0] status;
 wire [31:0] joystick1, joystick2;
 wire [24:0] ioctl_addr;
@@ -498,66 +513,23 @@ assign dipsw = `ifdef JTFRAME_SIM_DIPS
         .ln_v       ( ln_v          ),
         .ln_we      ( ln_we         ),
 
-/*      //DDR3 DECA pinout                  TO BE MODIFIED
-        .ddram_clk  ( DDRAM_CLK     ),
-        .ddram_busy ( DDRAM_BUSY    ),  //_i
-        .ddram_addr ( DDRAM_ADDR    ),
-        .ddram_dout ( DDRAM_DOUT    ),  //_i
-        .ddram_rd   ( DDRAM_RD      ),  
-        .ddram_din  ( DDRAM_DIN     ),
-        .ddram_be   ( DDRAM_BE      ),
-        .ddram_we   ( DDRAM_WE      ),
-        .ddram_burstcnt  ( DDRAM_BURSTCNT    ),
-        .ddram_dout_ready( DDRAM_DOUT_READY  ),     //_i
- */
+        //DDR3 DECA pinout
+        .ddram_clk  ( ddram_clk     ),
+        .ddram_busy ( ddram_busy    ),  //_i
+        .ddram_addr ( ddram_addr    ),
+        .ddram_dout ( ddram_dout    ),  //_i
+        .ddram_rd   ( ddram_rd      ),  
+        .ddram_din  ( ddram_din     ),
+        .ddram_be   ( ddram_be      ),
+        .ddram_we   ( ddram_we      ),
+        .ddram_burstcnt  ( ddram_burstcnt    ),
+        .ddram_dout_ready( ddram_dout_ready  ),     //_i
+        .ddram_burstbegin( ddram_burstbegin  ),
+
         .st_addr    ( st_addr       ),
         .st_dout    ( st_lpbuf      )
     );
 
-    /*
-    ddr3     ddr3_dut (
-      .pll_ref_clk (clk_rom ),
-      .global_reset_n (~rst ),
-      .soft_reset_n (~rst ),
-      .afi_clk (afi_clk ),
-      .afi_half_clk (afi_half_clk ),
-      .afi_reset_n (afi_reset_n ),
-      .afi_reset_export_n (afi_reset_export_n ),
-      .mem_a (mem_a ),
-      .mem_ba (mem_ba ),
-      .mem_ck (mem_ck ),
-      .mem_ck_n (mem_ck_n ),
-      .mem_cke (mem_cke ),
-      .mem_cs_n (mem_cs_n ),
-      .mem_dm (mem_dm ),
-      .mem_ras_n (mem_ras_n ),
-      .mem_cas_n (mem_cas_n ),
-      .mem_we_n (mem_we_n ),
-      .mem_reset_n (mem_reset_n ),
-      .mem_dq (mem_dq ),
-      .mem_dqs (mem_dqs ),
-      .mem_dqs_n (mem_dqs_n ),
-      .mem_odt (mem_odt ),
-      .avl_ready (avl_ready ),
-      .avl_burstbegin (avl_burstbegin ),
-      .avl_addr (avl_addr ),
-      .avl_rdata_valid (avl_rdata_valid ),
-      .avl_rdata (avl_rdata ),
-      .avl_wdata (avl_wdata ),
-      .avl_be (avl_be ),
-      .avl_read_req (avl_read_req ),
-      .avl_write_req (avl_write_req ),
-      .avl_size (avl_size ),
-      .local_init_done (local_init_done ),
-      .local_cal_success (local_cal_success ),
-      .local_cal_fail (local_cal_fail ),
-      .pll_mem_clk (pll_mem_clk ),
-      .pll_write_clk (pll_write_clk ),
-      .pll_locked (pll_locked ),
-      .pll_capture0_clk (pll_capture0_clk ),
-      .pll_capture1_clk  ( pll_capture1_clk)
-    );
-*/
 
 `endif
 

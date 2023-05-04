@@ -44,7 +44,7 @@ module jtframe_lfbuf_ddr_deca #(parameter
     output     [DW-1:0] ln_pxl,
     output     [VW-1:0] ln_v,
 
-    //DDR3 DECA pinout              TO BE MODIFIED
+    //DDR3
     output              ddram_clk,
     input               ddram_busy,
     output      [7:0]   ddram_burstcnt,
@@ -55,6 +55,7 @@ module jtframe_lfbuf_ddr_deca #(parameter
     output     [63:0]   ddram_din,
     output      [7:0]   ddram_be,
     output              ddram_we,
+    output              ddram_burstbegin,
  
     // Status
     input       [7:0]   st_addr,
@@ -89,7 +90,7 @@ jtframe_lfbuf_ddr_deca_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     .line       ( line      ),
     .scr_we     ( scr_we    ),
 
-    //DDR3 DECA pinout              TO BE MODIFIED
+    //DDR3
     .ddram_clk  ( ddram_clk     ),
     .ddram_busy ( ddram_busy    ),
     .ddram_addr ( ddram_addr    ),
@@ -100,6 +101,7 @@ jtframe_lfbuf_ddr_deca_ctrl #(.HW(HW),.VW(VW)) u_ctrl (
     .ddram_we   ( ddram_we      ),
     .ddram_burstcnt  ( ddram_burstcnt    ),
     .ddram_dout_ready( ddram_dout_ready  ),
+    .ddram_burstbegin( ddram_burstbegin  ),
  
     .st_addr    ( st_addr       ),
     .st_dout    ( st_dout       )

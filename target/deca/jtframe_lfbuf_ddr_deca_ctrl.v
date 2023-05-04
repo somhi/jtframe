@@ -44,7 +44,7 @@ module jtframe_lfbuf_ddr_deca_ctrl #(parameter
     output reg          line,
     output reg          scr_we,
 
-    //DDR3 DECA pinout              TO BE MODIFIED
+    //DDR3
     output              ddram_clk,
     input               ddram_busy,
     output      [7:0]   ddram_burstcnt,
@@ -55,6 +55,7 @@ module jtframe_lfbuf_ddr_deca_ctrl #(parameter
     output     [63:0]   ddram_din,
     output      [7:0]   ddram_be,
     output reg          ddram_we,
+    output /*reg*/      ddram_burstbegin,
 
     // Status
     input       [7:0]   st_addr,
@@ -73,10 +74,11 @@ wire          fb_over;
 
 assign fb_over    = &fb_addr;
 assign ddram_clk  = clk;
-assign ddram_burstcnt = 8'h80;
+assign ddram_burstcnt = 8'h40;
 assign ddram_addr = { 4'd3, {29-4-AW{1'd0}}, act_addr };
 assign ddram_din  = { 48'd0, fb_din };
 assign ddram_be   = 3;
+assign ddram_burstbegin = ddram_rd & ddram_we;
 assign nx_rd_addr = rd_addr + 1'd1;
 assign fb_dout    = ddram_dout[15:0];
 
@@ -131,6 +133,7 @@ always @( posedge clk, posedge rst ) begin
         ln_done_l<= 0;
         do_wr    <= 0;
         st       <= IDLE;
+        //ddram_burstbegin <= 0;
     end else begin
         fb_done <= 0;
         ln_done_l <= ln_done;
@@ -148,12 +151,14 @@ always @( posedge clk, posedge rst ) begin
                 ddram_we <= 0;
                 ddram_rd <= 0;
                 scr_we   <= 0;
+                //ddram_burstbegin <= 0;
                 if( lhbl_l & ~lhbl ) begin
                     act_addr <= { ~frame, vrender, {HW{1'd0}}  };
                     ddram_rd <= 1;
                     rd_addr  <= 0;
                     scr_we   <= 1;
                     st       <= READ;
+                    //ddram_burstbegin <= 1;
                 end else if( do_wr && !fb_clr &&
                     hcnt<hlim && lhbl ) begin // do not start too late so it doesn't run over H blanking
                     fb_addr  <= 0;
@@ -161,23 +166,27 @@ always @( posedge clk, posedge rst ) begin
                     ddram_we <= 1;
                     do_wr    <= 0;
                     st       <= WRITE;
+                    //ddram_burstbegin <= 1;
                 end
             end
             READ: if(!ddram_busy) begin
                 ddram_rd <= 0;
+                //ddram_burstbegin <= 0;
                 if( ddram_dout_ready ) begin
                     rd_addr <= nx_rd_addr;
                     if( &rd_addr ) begin
                         st <= IDLE;
-                    end else if( &rd_addr[6:0] ) begin
+                    end else if( &rd_addr[5:0] ) begin
                         act_addr[HW-1:0] <= nx_rd_addr;
                         ddram_rd <= 1;
+                        //ddram_burstbegin <= 1;
                     end
                 end
             end
             WRITE: if(!ddram_busy) begin
-                if( &fb_addr[6:0] ) begin
-                    act_addr[HW-1:7] <= act_addr[HW-1:7]+1'd1;
+                //ddram_burstbegin <= 0;
+                if( &fb_addr[5:0] ) begin
+                    act_addr[HW-1:6] <= act_addr[HW-1:6]+1'd1;
                 end
                 fb_addr <= fb_addr +1'd1;
                 if( fb_over ) begin
