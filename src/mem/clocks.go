@@ -62,15 +62,18 @@ func make_clocks( macros map[string]string, cfg *MemConfig ) {
 			}
 			v.OutStr = ""
 			first := true
-			for _, s := range v.Outputs {
+			for j, s := range v.Outputs {
 				if !first {
 					v.OutStr = ", " + v.OutStr
 				}
-				if ! strings.HasSuffix(s,"_cen") { s += "_cen" }
+				if strings.Index(s,"cen")==-1 {
+					v.Outputs[j] += "_cen"
+					s = v.Outputs[j]
+				}
 				v.OutStr = s + v.OutStr
 				first = false
 			}
-			v.W = max( 2, int( math.Ceil(math.Log2( float64(len(v.Outputs)))))+1 )
+			v.W = max( 2, len(v.Outputs) )
 			// Either the mul/div pair or the frequency may be specified
 			if v.Div==0 || v.Mul==0 {
 				if v.Freq==0 {

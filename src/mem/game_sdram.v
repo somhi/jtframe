@@ -74,7 +74,7 @@ wire        pass_io;
 {{- range $k, $v := .Clocks }}
     {{- range $v }}
     {{- range .Outputs }}
-wire {{ . }}_cen; {{ end }}{{ end }}{{ end }}
+wire {{ . }}; {{ end }}{{ end }}{{ end }}
 
 assign pass_io = header | ioctl_ram;
 
@@ -91,7 +91,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
 `endif
 {{- range $k,$v := .Clocks }} {{- range $v}}
     {{- range .Outputs }}
-    .{{ . }}_cen    ( {{ . }}_cen    ), {{end}}{{end}}
+    .{{ . }}    ( {{ . }}    ), {{end}}{{end}}
 {{ end }}
     .pxl2_cen       ( pxl2_cen      ),
     .pxl_cen        ( pxl_cen       ),
