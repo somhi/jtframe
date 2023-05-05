@@ -82,7 +82,7 @@ func make_clocks( macros map[string]string, cfg *MemConfig ) {
 				v.Mul, v.Div = find_div( float64(fmhz)*ratio, v.Freq )
 			}
 			v.WC = int( math.Ceil(math.Log2( float64(max( v.Div, v.Mul )) )))+1
-			v.Comment = fmt.Sprintf("%d",int(int(float64(fmhz)*ratio)*v.Mul/v.Div))
+			v.Comment = fmt.Sprintf("%d = %d*%d/%d",int(int(float64(fmhz)*ratio)*v.Mul/v.Div),int(float64(fmhz)*ratio),v.Mul,v.Div)
 			list[k] = v
 		}
 	}
