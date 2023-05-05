@@ -11,17 +11,16 @@ import (
 func find_div( fin, fout float64) (int, int) {
 	best_n, best_d := 0.0, 0.0
 	best := float64(fin)
+	ratio := fout/fin
 
-    for n:=1.0; n<1024*4; n++ {
-        for d:=1.0; d<1024*1024; d++ {
-        	f := fin*n/d
-            err := math.Abs(fout-f);
-            if( err < best ) {
-                best_n = n;
-                best_d = d;
-                best = err;
-            }
-            if err/f < 0.01 { break }
+   	for d:=1.0; d<1024*64; d++ {
+   		n := math.Round(ratio*d)
+    	f := fin*n/d
+        err := math.Abs(fout-f);
+        if( err < best ) {
+            best_n = n;
+            best_d = d;
+            best = err;
         }
     }
     return int(best_n), int(best_d)
