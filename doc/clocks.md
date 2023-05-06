@@ -76,6 +76,12 @@ All cores must define two clock enable signals based on clk_rom:
 
 As clock enable signals, these should not be high for more than one clock cycle. Some modules may expect an idle cycle after the active one.
 
-Most core define these two signals as output ports. But it is possible to have them as input ports and leave JTFRAME to handle them by defining **JTFRAME_PXLCLK** to be either 6 or 8. JTFRAME will generate them correctly provided regardless of whether the SDRAM is set to 48 or 96MHz.
+Most cores define these two signals as output ports. But it is possible to have them as input ports and leave JTFRAME to handle them by defining **JTFRAME_PXLCLK** to be either 6, 8 or 12. JTFRAME will generate them correctly provided regardless of whether the SDRAM is set to 48 or 96MHz.
 
-**JTFRAME_PXLCLK** will divide clk_rom by 6 or 8 (for a 48MHz reference). If **JTFRAME_PLL** is used, note that those two are the only valid values. Because of the PLL, the actual frequency will be off 6MHz, which is the intention of using **JTFRAME_PLL** in the first place.
+**JTFRAME_PXLCLK** will divide clk_rom by 4, 6 or 8 (for a 48MHz reference). If **JTFRAME_PLL** is used, note that those two are the only valid values. Because of the PLL, the actual frequency will be off 6MHz, which is the intention of using **JTFRAME_PLL** in the first place.
+
+JTFRAME_PXLCLK  | pxl2_cen  | pxl_cen
+----------------|-----------|---------
+     12         |   24      |   12
+      8         |   16      |    8
+      6         |   12      |    6

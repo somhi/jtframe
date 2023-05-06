@@ -34,12 +34,6 @@ set_false_path -from {cfg[*]}
 set_false_path -from {VSET[*]}
 set_false_path -to {wcalc[*] hcalc[*]}
 set_false_path -to {hdmi_width[*] hdmi_height[*]}
-set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|dout*}]
-# Video calc signals
-set_false_path -from [get_keepers {scanlines:VGA_scanlines|hs_out}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_hs}]
-set_false_path -from [get_keepers {hdmi_out_vs}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_vs}]
-set_false_path -from [get_keepers {scanlines:VGA_scanlines|de_out}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|old_de}]
-
 
 set_multicycle_path -to {*_osd|osd_vcnt*} -setup 2
 set_multicycle_path -to {*_osd|osd_vcnt*} -hold 1
@@ -112,46 +106,3 @@ set_false_path -to [get_keepers {*altera_std_synchronizer:*|din_s1}]
 # set false path between Game clock <--> HDMI clock
 set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
 set_false_path  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -from [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
-
-set_false_path  -to  [get_keepers {*jtframe_sync*}]
-
-# video_calc
-set_false_path -from [get_keepers {scanlines:VGA_scanlines|de_out}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|de_100[0]}]
-set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|hs_100[0]}]
-set_false_path -to [get_keepers {emu:emu|jtframe_mister:u_frame|hps_io:u_hps_io|video_calc:video_calc|vs_100[0]}]
-
-# DDR
-set_false_path -from [get_keepers *fpga_interfaces\|f2sdram*] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_lfbuf_ddr:u_lf_buf|jtframe_lfbuf_ddr_ctrl:u_ctrl|*}]
-set_false_path -from [get_keepers *fpga_interfaces\|f2sdram*] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_mister_dwnld:u_dwnld|*}]
-
-# Ignore problems coming from the 100MHz clock
-set_false_path  -from  [get_clocks {sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-
-# Ignore problems coming from the audio PLL clock
-set_false_path  -from  [get_clocks {pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-
-# Ascal:
-set_false_path -from [get_keepers {reset_req}] -to [get_keepers {ascal:ascal|i_reset_na}]
-
-# Related to DDR:
-set_false_path -from [get_keepers {*fpga_interfaces|f2sdram*}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_lfbuf_ddr:u_lf_buf|jtframe_lfbuf_ddr_ctrl:u_ctrl|*}]
-set_false_path -from [get_keepers {*fpga_interfaces|f2sdram*}] -to [get_keepers {emu:emu|jtframe_mister:u_frame|jtframe_mister_dwnld:u_dwnld|*}]
-set_false_path -from [get_keepers {*f2sdram~FF*}] -to [get_keepers {ddr_svc|*}]
-set_false_path -from [get_keepers {LFB_BASE[*]}] -to [get_keepers {pal_addr[*]}]
-set_false_path -from [get_keepers {FB_FMT[*]}] -to [get_keepers {pal_req}]
-set_false_path -to [get_keepers {*f2sdram~FF*865}]
-set_false_path -from [get_keepers {sysmem_lite:sysmem|sysmem_HPS_fpga_interfaces:fpga_interfaces|f2sdram~FF_3775}] -to [get_keepers {sysmem_lite:sysmem|f2sdram_safe_terminator:f2sdram_safe_terminator_ram2|read_terminating}]
-
-# SEGA PLL
-set_false_path  -from  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {FPGA_CLK1_50}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]
-set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
-set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk}]
-set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {FPGA_CLK1_50}]
-set_false_path  -from  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]  -to  [get_clocks {sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk}]
-set_false_path  -from  [get_clocks {FPGA_CLK2_50}]  -to  [get_clocks {emu|pll|jtframe_pll6293_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}]

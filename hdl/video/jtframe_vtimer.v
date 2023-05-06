@@ -163,6 +163,10 @@ real fclk = `SIMULATION_VTIMER_FCLK;
 real fclk = 6e6;
 `endif
 
+initial begin
+    $display("Using %f clock for the results table",fclk);
+end
+
 always @(posedge clk) if(pxl_cen) begin
     LHBL_last <= LHBL;
     HS_last   <= HS;
