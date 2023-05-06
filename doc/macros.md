@@ -30,13 +30,15 @@ JTFRAME_ARY              | MiSTer  | Defines aspect ratio
 JTFRAME_AUTOFIRE0        | MiSTer  | Button 0 will autofire when pressed ([OSD](osd.md) option)
 JTFRAME_AVATARS          |         | Enables avatars on credits screen
 JTFRAME_BUTTONS          |         | Sets the number of action buttons used (2 by default)
+JTFRAME_CHEAT            |         | Enables the [cheat engine](cheat.md)
+JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
 JTFRAME_CLK24            |         | Adds an additional clock input
 JTFRAME_CLK48            |         | Adds an additional clock input
 JTFRAME_CLK6             |         | Adds an additional clock input
 JTFRAME_CLK96            |         | Adds an additional clock input
-JTFRAME_CHEAT            |         | Enables the [cheat engine](cheat.md)
-JTFRAME_CHEAT_SCRAMBLE   |         | Enables cheat firmware encryption
 JTFRAME_COLORW           |         | Sets the number of bits per color component (default=4)
+JTFRAME_DIAL             |         | Adds dial_x and dial_y inputs to game module
+JTFRAME_DIAL_SENSTY      | Pocket  | Sets sensitivity value for Pocket only as there is no OSD control available
 JTFRAME_DIALEMU_LEFT     |         | Defaults to 5. Button to use to rotate left. That button+1  for right
 JTFRAME_DONTSIM_SCAN2X   |         | Internal. Do not define externally
 JTFRAME_FLIP_RESET       |         | Varying the flip DIP setting causes a reset
@@ -51,29 +53,30 @@ JTFRAME_JOY_LRUD         |         | Joystick lower 4 bits are:  left,  right, u
 JTFRAME_JOY_RLDU         |         | Joystick lower 4 bits are:  right, left,  down,  up
 JTFRAME_JOY_UDLR         |         | Joystick lower 4 bits are:  up,    down,  left,  right (default)
 JTFRAME_JOY_UDRL         |         | Joystick lower 4 bits are:  up,    down,  right, left
-JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
 JTFRAME_LF_BUFFER        |         | Enables the line-based frame buffer for objects
 JTFRAME_LFBUF_CLR        |         | Sets the line clear value for the frame buffer. 0 by default.
+JTFRAME_LITE_KEYBOARD    |         | Disables automatic MAME keys mapping
 JTFRAME_LOGO_NOHEX       | Pocket  | Do not display the chip ID on the logo screen
+JTFRAME_MCLK             |         | Automatic macro holding the master clock frequency in kHz
 JTFRAME_MFREQ            |         | Automatically set to the master clock in kHz. Depends on JTFRAME_PLL
 JTFRAME_MIST_DIPBASE     | MiST    | Starting base in status word for MiST dip switches
 JTFRAME_MIST_DIRECT      | MiST    | On by default. Define as 0 to disable. Fast ROM load
 JTFRAME_MOUSE            |         | Enables mouse input. See [inputs.md](inputs.md)
-JTFRAME_MOUSE_NOEMU      |         | Disables mouse emulation via joystick
 JTFRAME_MOUSE_EMUSENS    |         | Positive 9-bit value for the emulated mouse sensitivity. Default value is 9'h10. MSB should be zero
 JTFRAME_MOUSE_NO2COMPL   |         | Mouse input is provided as sign+magnitude instead of default 2's complement
-JTFRAME_MR_FASTIO        | MiSTer  | 16-bit ROM load in MiSTer. Set by default if CLK96 is set
-JTFRAME_MR_DDRLOAD       | MiSTer  | ROM download process uses the DDR as proxy
+JTFRAME_MOUSE_NOEMU      |         | Disables mouse emulation via joystick
 JTFRAME_MR_DDR           | MiSTer  | Defined internally. Do not define manually.
+JTFRAME_MR_DDRLOAD       | MiSTer  | ROM download process uses the DDR as proxy
+JTFRAME_MR_FASTIO        | MiSTer  | 16-bit ROM load in MiSTer. Set by default if CLK96 is set
+JTFRAME_NO_DB15          | MiSTer  | Disables DB15 controller modules
+JTFRAME_NO_DB15_OSD      | MiSTer  | Disables OSD control via DB15 controller
 JTFRAME_NO_MRA_DIP       |         | DIPs are not in an MRA file. Do not call it out from the config string.
 JTFRAME_NOHOLDBUS        |         | Reduces bus noise (non-interleaved SDRAM controller)
 JTFRAME_NOHQ2X           | MiSTer  | Disables HQ2X filter in MiSTer
-JTFRAME_NO_DB15          | MiSTer  | Disables DB15 controller modules
-JTFRAME_NO_DB15_OSD      | MiSTer  | Disables OSD control via DB15 controller
 JTFRAME_OSD_FLIP         |         | flip option on OSD
+JTFRAME_OSD_LOAD         | MiSTer  | load option shown on OSD (off by default on MiSTer)
 JTFRAME_OSD_NOCREDITS    |         | No credits option on OSD
 JTFRAME_OSD_NOLOAD       | MiST    | No load option on OSD (on by default on MiST)
-JTFRAME_OSD_LOAD         | MiSTer  | load option shown on OSD (off by default on MiSTer)
 JTFRAME_OSD_NOLOGO       |         | Disables the JT logo as OSD background
 JTFRAME_OSD_SND_EN       |         | OSD option to enable/disable FX and FM channels
 JTFRAME_OSD_TEST         |         | Test option on OSD
@@ -85,13 +88,13 @@ JTFRAME_PLL              |         | PLL module name to be used. PLL names must 
 JTFRAME_PXLCLK           |         | 6 or 8. Defines de pixel clock. See [clocks](clocks.md)
 JTFRAME_RELEASE          |         | Disables debug control via keyboard
 JTFRAME_ROTATE           |         | Enables more rotate options in the OSD
-JTFRAME_SKIP             |         | If defined, jtcore will not compile the core and just return a PASS
 JTFRAME_SCAN2X_NOBLEND   | MiST    | Disables pixel blending
 JTFRAME_SDRAM96          |         | SDRAM is clocked at 96MHz and the clk input of game is 96MHz
 JTFRAME_SDRAM_BANKS      |         | Game module ports will support interleaved bank access
 JTFRAME_SHADOW           | MiSTer  | Start address for SDRAM shadowing and dump as NVRAM
 JTFRAME_SHADOW_LEN       | MiSTer  | Length in bits of the shadowing. See [sdram.md](sdram.md)
 JTFRAME_SIGNED_SND       |         | Set to 0 if the game only uses unsigned sound sources
+JTFRAME_SKIP             |         | If defined, jtcore will not compile the core and just return a PASS
 JTFRAME_STATUS           |         | Game module will receive an 8-bit address and can output 8-bit data in response
 JTFRAME_STEREO           |         | Enables stereo sound (snd_left/right outputs from game module instead of single snd)
 JTFRAME_SUPPORT_4WAY     |         | Enables support for 4-way joysticks if the MRA sets it
@@ -161,7 +164,7 @@ DUMP_VIDEO_FNAME         |         | Internal. Do not assign.
 JTFRAME_DUAL_RAM_DUMP    |         | Enables dumping of RAM contents in simulation
 JTFRAME_SAVESDRAM        |         | Saves SDRAM contents at the end of each frame (slow)
 JTFRAME_SDRAM_STATS      |         | Produce SDRAM usage data during simulation
-JTFRAME_SIM_DIPS         |         | Define DIP switch values during simulation
+JTFRAME_SIM_DIPS         |         | DIP switch values for simulation. Use 0x... for verilator sims
 JTFRAME_SIM_ROMRQ_NOCHECK|         | Disable protocol checking of romrq
 JTFRAME_SIM_SCAN2X       |         | Enables scan doubler simulation
 JTFRAME_SIM_GFXEN        |         | Sets the gfx_en value (4 bits). See [debug.md](debug.md)

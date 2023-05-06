@@ -48,11 +48,11 @@ module jtframe_dwnld(
 );
 
 parameter        SIMFILE   = "rom.bin";
-parameter [25:0] PROM_START= ~26'd0;
+parameter [25:0] PROM_START= `ifdef JTFRAME_PROM_START `JTFRAME_PROM_START `else ~26'd0 `endif;
 parameter [25:0] BA1_START = ~26'd0,
                  BA2_START = ~26'd0,
                  BA3_START = ~26'd0,
-                 HEADER    = 0,
+                 HEADER    = `ifdef JTFRAME_HEADER `JTFRAME_HEADER `else 0 `endif,
                  SWAB      = 0; // swap every pair of input bytes (SDRAM only)
 
 localparam       BA_EN     = (BA1_START!=~26'd0 || BA2_START!=~26'd0 || BA3_START!=~26'd0);

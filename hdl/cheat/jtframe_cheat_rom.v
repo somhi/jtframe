@@ -30,13 +30,17 @@ module jtframe_cheat_rom #(parameter AW=10)(
 );
 
 // 8 to 18 bit conversion
-reg  [15:0] prog_fifo;
-reg         last_en, prog_post;
-reg  [17:0] prog_word;
-reg         word_we;
-reg  [ 3:0] word_cnt;
-reg  [AW-1:0] prom_addr;
+reg   [15:0] prog_fifo;
+reg          last_en, prog_post;
+reg   [17:0] prog_word;
+reg          word_we;
+reg   [ 3:0] word_cnt;
+reg [AW-1:0] prom_addr;
+wire  [17:0] iraw;
+reg          irom_ok=0; // reset only at FPGA programming
 
+// If the ROM has not been loaded, it outputs 0
+assign idata = irom_ok ? iraw : 18'd0;
 
 `ifdef JTFRAME_CHEAT_SCRAMBLE
     reg  [7:0] new_data;
@@ -64,6 +68,7 @@ reg  [AW-1:0] prom_addr;
 
 always @(posedge clk_rom) begin
     last_en <= prog_en;
+    if(word_we) irom_ok <= 1;
     if( prog_en & ~last_en ) begin
         word_cnt  <= 0;
         prog_post <= 0;
@@ -99,24 +104,10 @@ always @(posedge clk_rom) begin
     end
 end
 
-wire [17:0] iraw;
-reg irom_ok;
-
-// If the ROM has not been loaded, it outputs 0
-assign idata = irom_ok ? iraw : 18'd0;
-
-always @(posedge clk_rom, posedge rst) begin
-    if( rst ) begin
-        irom_ok <= 0;
-    end else begin
-        if(word_we) irom_ok <= 1;
-    end
-end
-
 jtframe_dual_ram #(
     .DW     ( 18        ),
-    .AW     ( AW        ),
-    .SIMHEXFILE("cheat.hex")
+    .AW     ( AW        )
+    //.SIMHEXFILE("cheat.hex")
 ) u_irom(
     .clk0   ( clk_rom   ),
     .clk1   ( clk_pico  ),

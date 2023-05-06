@@ -54,7 +54,7 @@ module jtframe_inputs(
     // Mouse & Paddle
     input signed [8:0] bd_mouse_dx, bd_mouse_dy,
     input        [7:0] bd_mouse_f,
-    input              bd_mouse_st,
+    input              bd_mouse_st,     // a pulse signals a mouse update
     input              bd_mouse_idx,
 
     input       [ 7:0] board_paddle_1, board_paddle_2,
@@ -288,13 +288,20 @@ jtframe_dial u_dial(
     .rst        ( rst           ),
     .clk        ( clk           ),
     .LHBL       ( LHBL          ),
-    .joystick1  ( game_joy1     ),
-    .joystick2  ( game_joy2     ),
+
+    // with spinner
     .spinner_1  ( spinner_1     ),
     .spinner_2  ( spinner_2     ),
     .sensty     ( sensty        ),
     .raw        ( dial_raw_en   ),
     .reverse    ( dial_reverse  ),
+
+    // with joystick or mouse
+    .joystick1  ( game_joy1     ),
+    .joystick2  ( game_joy2     ),
+    .mouse_st   ( bd_mouse_st    ),
+    .mouse_dx   ( bd_mouse_dx   ),
+
     .dial_x     ( dial_x        ),
     .dial_y     ( dial_y        )
 );

@@ -1,275 +1,16 @@
 package mra
 
 import (
-	"archive/zip"
-	"bytes"
-	"crypto/md5"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 )
-
-func mra2rom(root *XMLNode, verbose bool) {
-	save_rom(root,verbose)
-	save_coremod(root,verbose)
-}
-
-func save_coremod(root *XMLNode, verbose bool) {
-	setname := root.GetNode("setname")
-	xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "1" })
-	if xml_rom == nil || setname == nil {
-		fmt.Printf("Warning: malformed MRA file")
-		return
-	}
-	rombytes := make([]byte,0)
-	parts2rom(nil, xml_rom, &rombytes, verbose)
-	rom_file( setname, ".mod", rombytes )
-}
-
-func save_rom(root *XMLNode, verbose bool) {
-	setname := root.GetNode("setname")
-	xml_rom := root.FindMatch(func(n *XMLNode) bool { return n.name == "rom" && n.GetAttr("index") == "0" })
-	if xml_rom == nil || setname == nil {
-		fmt.Printf("Warning: malformed MRA file")
-		return
-	}
-	rombytes := make([]byte,0)
-	var zf []*zip.ReadCloser
-	for _, each := range strings.Split(xml_rom.GetAttr("zip"), "|") {
-		aux := get_zipfile(each)
-		if aux != nil {
-			zf = append(zf, aux)
-		}
-	}
-	if verbose {
-		fmt.Println("**** Creating .rom file for", setname.text )
-	}
-	parts2rom(zf, xml_rom, &rombytes, verbose)
-	if rombytes==nil {
-		fmt.Printf("\tNo .rom created for %s\n",setname.text)
-		return
-	}
-	update_md5( xml_rom, rombytes )
-	patchrom( xml_rom, &rombytes )
-	rom_file( setname, ".rom", rombytes )
-}
-
-func rom_file( setname *XMLNode, ext string, rombytes []byte) {
-	fout_name := filepath.Join(os.Getenv("JTROOT"), "rom", shorten_name(setname.text)+ext) // setname.text should be shortened to match mra.exe's output
-	fout, err := os.Create(fout_name)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fout.Write(rombytes)
-	fout.Close()
-}
-
-func update_md5( n *XMLNode, rb []byte ) {
-	if rb==nil {
-		return
-	}
-	md5sum := md5.Sum(rb)
-	n.AddAttr("asm_md5",fmt.Sprintf("%x",md5sum))
-}
-
-func patchrom( n *XMLNode, rb *[]byte) {
-	for _,each := range n.children {
-		if each.name!="patch" {
-			continue
-		}
-		data := text2data(each)
-		k, err := strconv.ParseInt( each.GetAttr("offset"), 0, 32 )
-		if err != nil {
-			fmt.Println(err)
-		}
-		for _,each := range data {
-			(*rb)[k] = each
-			k++
-		}
-	}
-}
-
-func parts2rom(zf []*zip.ReadCloser, n *XMLNode, rb *[]byte, verbose bool) {
-	for _, each := range n.children {
-		switch each.name {
-		case "part":
-			fname := each.GetAttr("name")
-			if fname == "" {
-				// Convert internal text to bytes
-				rep,_ := strconv.ParseInt(each.GetAttr("repeat"),0,32)
-				if rep==0 {
-					rep = 1
-				}
-				data := text2data(each)
-				// fmt.Printf("Adding rep x len(data) = $%x x $%x\n",rep,len(data))
-				for ;rep>0;rep-- {
-					*rb = append( *rb, data... )
-				}
-			} else {
-				*rb = append(*rb, readrom(zf, each, verbose)...)
-			}
-		case "interleave":
-			if verbose {
-				fmt.Printf("\tinterleave found\n")
-			}
-			data := interleave2rom(zf, each,verbose)
-			if data==nil {
-				*rb = nil
-				fmt.Printf("\t.rom processing stopped\n")
-				return      // abort
-			}
-			*rb = append(*rb, data... )
-		}
-	}
-}
-
-func text2data( n *XMLNode) (data []byte){
-	data = make([]byte,0)
-	re := regexp.MustCompile("[ \n\t]")
-	for _, token := range re.Split(n.text, -1) {
-		if token == "" {
-			continue
-		}
-		token = strings.TrimSpace(strings.ToLower(token))
-		v, err := strconv.ParseInt( token, 16, 16)
-		if err != nil {
-			fmt.Println(err)
-		}
-		data = append(data, byte(v&0xff))
-	}
-	return data
-}
-
-func readrom(allzips []*zip.ReadCloser, n *XMLNode, verbose bool) (rdin []byte) {
-	crc, err := strconv.ParseUint( strings.ToLower(n.GetAttr("crc")),16,32)
-	if err != nil {
-		fmt.Println(err)
-	}
-	crc = crc & 0xffffffff
-	var f *zip.File
-lookup:
-	for _, each := range allzips {
-		for _, file := range each.File {
-			if file.CRC32 == uint32(crc) {
-				f = file
-				break lookup
-			}
-		}
-	}
-	if f == nil {
-		fmt.Printf("Warning: cannot find file %s (%s) in zip\n",n.GetAttr("name"),n.GetAttr("crc"))
-		return nil
-	}
-	offset, _ := strconv.ParseInt(n.GetAttr("offset"), 0, 32)
-	lenght, _ := strconv.ParseInt(n.GetAttr("length"), 0, 32)
-	zpart, _ := f.Open()
-	var buf bytes.Buffer
-	rdcnt, err := io.CopyN(&buf, zpart, int64(f.UncompressedSize64)) // CopyN is needed because using zpart.Read does not return all the data at once
-	if err != nil {
-		fmt.Println(err)
-	}
-	if rdcnt != int64(f.UncompressedSize64) {
-		fmt.Println("\tzipped data partially read")
-	}
-	if lenght > int64(f.UncompressedSize64) {
-		lenght = int64(f.UncompressedSize64)
-	} else if lenght == 0 {
-		lenght = int64(f.UncompressedSize64)-offset
-	} else {
-		lenght += offset
-	}
-	alldata := buf.Bytes()
-	rdin = alldata[offset:lenght]
-	if verbose {
-		fmt.Printf("\tread %x bytes from %s (%x) read from %x up to %x\n",len(rdin),n.GetAttr("name"),crc,offset,lenght)
-	}
-	defer zpart.Close()
-	return rdin
-}
-
-func interleave2rom( allzips []*zip.ReadCloser, n *XMLNode, verbose bool ) (data []byte) {
-	width,_ := strconv.ParseInt(n.GetAttr("output"),0,32)
-	width = width>>3
-	type finger struct{
-		data []byte
-		mapstr string
-		step, pos int
-	}
-	fingers := make([]finger,0)
-	for _, each := range n.children {
-		if each.name!="part" {
-			continue
-		}
-		var f finger
-		f.data = readrom( allzips, each, verbose )
-		f.mapstr = each.GetAttr("map")
-		if len(f.data)==0 {
-			fmt.Printf("Skipping ROM generation. Missing files for interleave\n")
-			return nil
-		}
-		for _,k := range f.mapstr {
-			kint := int(k-'0')
-			if kint > f.step {
-				f.step = kint
-			}
-		}
-		if verbose {
-			fmt.Printf("\tfinger %s len = %X\n",f.mapstr,len(f.data))
-		}
-		fingers = append(fingers,f)
-	}
-	if len(fingers)==0 {
-		fmt.Printf("Unexpected empty interleave")
-		return nil
-	}
-	// map each output byte to the input file that has it
-	sel := make([]int,width)
-	if verbose {
-		for k,each := range fingers {
-			fmt.Println("finger ", k, " mapstr = ",each.mapstr)
-		}
-	}
-	fingersel_loop:
-	for j:=0; j<int(width);j++ {
-		for k:=0; k<len(fingers); k++ {
-			// fmt.Printf("fingers[%d].mapstr[%d]=%c\n",k,j,fingers[k].mapstr[j])
-			if fingers[k].mapstr[j]!='0' {
-				sel[j]=k
-				continue fingersel_loop
-			}
-		}
-	}
-	if verbose {
-		fmt.Println("Mapping as ",sel)
-	}
-	data = make([]byte,0,len(fingers[0].data))
-	jmax := int(width)-1
-	interleave_loop:
-	for {
-		for j:=jmax; j>=0; j-- {
-			offs := int(fingers[sel[j]].mapstr[j]-'1')&0xff
-			data=append(data,fingers[sel[j]].data[fingers[sel[j]].pos+offs])
-		}
-		for j,_ := range fingers {
-			fingers[j].pos += fingers[j].step
-			if fingers[j].pos >= len(fingers[j].data) {
-				break interleave_loop
-			}
-		}
-	}
-	// fmt.Printf("Interleaved length %X\n",len(data))
-	return data
-}
 
 func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	if len(machine.Rom) == 0 {
@@ -310,8 +51,8 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 	}
 	var header *XMLNode
 	if cfg.Header.Len > 0 {
-		if len(cfg.Header.Info)>0 {
-			p.AddNode(cfg.Header.Info).comment=true
+		if len(cfg.Header.Info) > 0 {
+			p.AddNode(cfg.Header.Info).comment = true
 		}
 		header = p.AddNode("part")
 		header.indent_txt = true
@@ -367,23 +108,28 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 		if args.Verbose {
 			fmt.Printf("\tbefore sorting %s:\n\t%v\n", reg_cfg.Name, reg_roms)
 		}
-		reg_roms = apply_sort(reg_cfg, reg_roms, machine.Name,args.Verbose)
+		reg_roms = apply_sort(reg_cfg, reg_roms, machine.Name, args.Verbose)
 		if args.Verbose {
 			fmt.Println("\tafter sorting:\n\t", reg_roms)
 		}
-		if reg_cfg.Singleton {
+		if len(reg_cfg.Parts)!=0 {
+			pos += parse_parts( reg_cfg, p )
+		} else if reg_cfg.Singleton {
 			// Singleton interleave case
 			pos += parse_singleton(reg_roms, reg_cfg, p)
 		} else {
 			split_offset, split_minlen := is_split(reg, machine, cfg)
 			// Regular interleave case
-			if (reg_cfg.Width != 0 && reg_cfg.Width != 8) && len(reg_roms) > 1 {
-				parse_regular_interleave(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
-			}
 			if reg_cfg.Frac.Parts != 0 {
 				pos += make_frac(p, reg_cfg, reg_roms)
+			} else if (reg_cfg.Width != 0 && reg_cfg.Width != 8) && len(reg_roms) > 1 {
+				parse_regular_interleave(split_offset, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
 			} else if reg_cfg.Width <= 8 || len(reg_roms) == 1 {
 				parse_straight_dump(split_offset, split_minlen, reg, reg_roms, reg_cfg, p, machine, cfg, args, &pos)
+			} else {
+				fmt.Printf("Error: don't know how to parse region %s (%d roms) in %s\n",
+					reg_cfg.Name, len(reg_roms), machine.Name )
+				os.Exit(1)
 			}
 		}
 		fill_upto(&pos, start_pos+reg_cfg.Len, p)
@@ -399,7 +145,7 @@ func make_ROM(root *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args) {
 
 func make_patches(root *XMLNode, machine *MachineXML, cfg Mame2MRA) {
 	for _, each := range cfg.ROM.Patches {
-		if each.Match(machine)>0 {
+		if each.Match(machine) > 0 {
 			// apply the patch
 			root.AddNode("patch", each.Value).AddAttr("offset", fmt.Sprintf("0x%X", each.Offset))
 		}
@@ -464,10 +210,10 @@ func make_header(node *XMLNode, reg_offsets map[string]int,
 	}
 	// Manual headers
 	for _, each := range cfg.Data {
-		if each.Match(machine)==0 {
+		if each.Match(machine) == 0 {
 			continue // skip it
 		}
-		if each.Dev!="" {
+		if each.Dev != "" {
 			found := false
 			for _, ref := range devs {
 				if each.Dev == ref.Name {
@@ -599,234 +345,6 @@ roms_loop:
 	return
 }
 
-func cmp_count(a, b string, rmext bool) bool {
-	if rmext { // removes the file extension
-		// this helps comparing file names like abc123.bin
-		k := strings.LastIndex(a, ".")
-		if k != -1 {
-			a = a[0:k]
-		}
-		k = strings.LastIndex(b, ".")
-		if k != -1 {
-			b = b[0:k]
-		}
-	}
-	re := regexp.MustCompile("[0-9]+")
-	asub := re.FindAllString(a, -1)
-	bsub := re.FindAllString(b, -1)
-	kmax := len(asub)
-	if len(bsub) < kmax {
-		kmax = len(bsub)
-	}
-	low := true
-	for k := 0; k < kmax; k++ {
-		aint, _ := strconv.Atoi(asub[k])
-		bint, _ := strconv.Atoi(bsub[k])
-		if aint > bint {
-			low = false
-			break
-		}
-	}
-	return low
-}
-
-func sort_byext(reg_cfg *RegCfg, roms []MameROM, setname string, verbose bool) {
-	// If all the ROMs have the same extension,
-	// it will sort by name instead
-	allequal := true
-	ext := ""
-	for k, r := range roms {
-		da := strings.LastIndex(r.Name, ".")
-		if da == -1 {
-			if ext != "" {
-				allequal = false
-				break
-			} else {
-				continue
-			}
-		} else {
-			if k == 0 {
-				ext = r.Name[da:]
-				continue
-			} else {
-				if ext != r.Name[da:] {
-					allequal = false
-					break
-				}
-			}
-		}
-	}
-	if !allequal {
-		if verbose {
-			fmt.Printf("\tSorting by extension\n")
-		}
-		sort.Slice(roms, func(i, j int) bool {
-			var a *MameROM = &roms[i]
-			var b *MameROM = &roms[j]
-			da := strings.LastIndex(a.Name, ".")
-			db := strings.LastIndex(b.Name, ".")
-			if da == -1 {
-				return true
-			}
-			if db == -1 {
-				return false
-			}
-			if reg_cfg.Sort_alpha {
-				return strings.Compare(a.Name[da:], b.Name[db:]) < 0
-			} else {
-				return cmp_count(a.Name[da:], b.Name[db:], false)
-			}
-		})
-	} else {
-		// All extensions were equal, so sort by name
-		fmt.Printf("\tsorting %s by name as all extensions were equal (%s)\n", reg_cfg.Name, setname)
-		sort.Slice(roms, func(i, j int) bool {
-			var a *MameROM = &roms[i]
-			var b *MameROM = &roms[j]
-			if reg_cfg.Sort_alpha {
-				return strings.Compare(a.Name, b.Name) < 0
-			} else {
-				return cmp_count(a.Name, b.Name, true)
-			}
-		})
-	}
-}
-
-func sort_even_odd(reg_cfg *RegCfg, roms []MameROM, even_first bool) {
-	if !even_first {
-		log.Fatal("even_first==false not implemented")
-	}
-	if reg_cfg.Sort_reverse {
-		log.Fatal("even_first==false not implemented")
-	}
-	base := make([]MameROM, len(roms))
-	copy(base, roms)
-	// Copy the even ones
-	for i := 0; i < len(roms); i += 2 {
-		roms[i>>1] = base[i]
-	}
-	half := len(roms) >> 1
-	// Copy the odd ones
-	for i := 1; i < len(roms); i += 2 {
-		roms[(i>>1)+half] = base[i]
-	}
-}
-
-func sort_ext_list(reg_cfg *RegCfg, roms []MameROM) {
-	base := make([]MameROM, len(roms))
-	copy(base, roms)
-	k := 0
-	for _, ext := range reg_cfg.Ext_sort {
-		for i, _ := range base {
-			if strings.HasSuffix(base[i].Name, ext) {
-				roms[k] = base[i]
-				k++
-				break
-			}
-		}
-	}
-}
-
-func sort_name_list(reg_cfg *RegCfg, roms []MameROM) {
-	// fmt.Println("Applying name sorting ", reg_cfg.Name_sort)
-	base := make([]MameROM, len(roms))
-	copy(base, roms)
-	k := 0
-	for _, each := range reg_cfg.Name_sort {
-		for i, _ := range base {
-			if base[i].Name == each {
-				roms[k] = base[i]
-				k++
-				break
-			}
-		}
-	}
-}
-
-func sort_regex_list(reg_cfg *RegCfg, roms []MameROM) {
-	// fmt.Println("Applying name sorting ", reg_cfg.Name_sort)
-	base := make([]MameROM, len(roms))
-	copy(base, roms)
-	k := 0
-	for _, each := range reg_cfg.Regex_sort {
-		re := regexp.MustCompile(each)
-		for i, _ := range base {
-			if re.MatchString(base[i].Name) {
-				roms[k] = base[i]
-				k++
-				break
-			}
-		}
-	}
-}
-
-func sort_fullname(reg_cfg *RegCfg, roms []MameROM) {
-	sort.Slice(roms, func(i, j int) bool {
-		var a *MameROM = &roms[i]
-		var b *MameROM = &roms[j]
-		if reg_cfg.Sort_alpha {
-			return strings.Compare(a.Name, b.Name) < 0
-		} else {
-			return cmp_count(a.Name, b.Name, true)
-		}
-	})
-}
-
-func apply_sequence(reg_cfg *RegCfg, roms []MameROM) []MameROM {
-	kmax := len(roms)
-	seqd := make([]MameROM, len(reg_cfg.Sequence))
-	if len(roms) == 0 {
-		fmt.Printf("Warning: attempting to sort empty region %s\n", reg_cfg.Name)
-		return roms
-	}
-	copy(seqd, roms)
-	for i, k := range reg_cfg.Sequence {
-		if k >= kmax {
-			k = 0 // Not necessarily an error, as some ROM sets may have more files than others
-		}
-		seqd[i] = roms[k]
-	}
-	return seqd
-}
-
-func apply_sort(reg_cfg *RegCfg, roms []MameROM, setname string, verbose bool) []MameROM {
-	if len(reg_cfg.Sequence) > 0 {
-		return apply_sequence(reg_cfg, roms)
-	}
-	if len(reg_cfg.Ext_sort) > 0 {
-		sort_ext_list(reg_cfg, roms)
-		return roms
-	}
-	if len(reg_cfg.Name_sort) > 0 {
-		sort_name_list(reg_cfg, roms)
-		return roms
-	}
-	if len(reg_cfg.Regex_sort) > 0 {
-		sort_regex_list(reg_cfg, roms)
-		return roms
-	}
-	if reg_cfg.Sort_even {
-		sort_even_odd(reg_cfg, roms, true)
-		return roms
-	}
-	if reg_cfg.Sort_byext {
-		sort_byext(reg_cfg, roms, setname, verbose)
-		if reg_cfg.Sort_reverse {
-			base := make([]MameROM, len(roms))
-			copy(base, roms)
-			for i := 0; i < len(roms); i++ {
-				roms[i] = base[len(roms)-1-i]
-			}
-		}
-		return roms
-	}
-	if reg_cfg.Sort_alpha || reg_cfg.Sort {
-		sort_fullname(reg_cfg, roms)
-		return roms
-	}
-	return roms
-}
-
 func add_rom(parent *XMLNode, rom MameROM) *XMLNode {
 	n := parent.AddNode("part").AddAttr("name", rom.Name)
 	if len(rom.Crc) > 0 {
@@ -853,10 +371,10 @@ func find_region_cfg(machine *MachineXML, regname string, cfg Mame2MRA) *RegCfg 
 	for k, each := range cfg.ROM.Regions {
 		if each.Name == regname {
 			m := each.Match(machine)
-			if m==3 {
+			if m == 3 {
 				best = &cfg.ROM.Regions[k]
 				break
-			} else if m==2 || (m==1 && best==nil) {
+			} else if m == 2 || (m == 1 && best == nil) {
 				best = &cfg.ROM.Regions[k]
 			}
 		}
@@ -884,7 +402,7 @@ func get_reverse(reg_cfg *RegCfg, name string) bool {
 
 func get_reverse_width(reg_cfg *RegCfg, name string, width int) bool {
 	rev_w := reg_cfg.Reverse_only == nil || len(reg_cfg.Reverse_only) == 0
-	for _,each := range reg_cfg.Reverse_only {
+	for _, each := range reg_cfg.Reverse_only {
 		if width == each {
 			rev_w = true
 		}
@@ -906,7 +424,7 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	blank_len = 0
 	offset := 0
 	for _, each := range cfg.ROM.Blanks {
-		if each.Match(machine)>0 && reg==each.Region {
+		if each.Match(machine) > 0 && reg == each.Region {
 			offset = each.Offset
 			blank_len = each.Len
 		}
@@ -916,6 +434,25 @@ func is_blank(curpos int, reg string, machine *MachineXML, cfg Mame2MRA) (blank_
 	} else {
 		return 0
 	}
+}
+
+func parse_parts(reg_cfg *RegCfg, p *XMLNode) int {
+	dumped := 0
+	n := p
+	if reg_cfg.Width>8 {
+		n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+	}
+	for _,each := range reg_cfg.Parts {
+		m := n.AddNode("part").AddAttr("name",each.Name)
+		m.AddAttr("crc",each.Crc)
+		m.AddAttr("map",each.Map)
+		m.AddAttr("length", fmt.Sprintf("0x%X",each.Length))
+		if( each.Offset != 0 ) {
+			m.AddAttr("offset",fmt.Sprintf("0x%X",each.Offset))
+		}
+		dumped += each.Length
+	}
+	return dumped
 }
 
 func parse_singleton(reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode) int {
@@ -1058,75 +595,254 @@ func parse_i8751(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, arg
 	return true
 }
 
+func parse_asl(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args) bool {
+	path := filepath.Join(args.firmware_dir, machine.Name+".s")
+	f, e := os.Open(path)
+	if e != nil {
+		path = filepath.Join(args.firmware_dir, machine.Cloneof+".s")
+		f, e = os.Open(path)
+		if e != nil {
+			log.Println("jtframe mra: cannot find custom firmware for ", machine.Name)
+			return false
+		}
+	}
+	f.Close()
+	binname := strings.TrimSuffix(path,".s")+".bin"
+	// Assemble
+	cmd := exec.Command("asl", "-cpu", reg_cfg.Custom.Dev, path)
+	//cmd.Stdout = os.Stdout
+	e = cmd.Run()
+	if e != nil {
+		fmt.Printf("\tjtframe mra: asl returned %v for %s:\n", e, path)
+		return false
+	}
+	// Convert to binary
+	cmd = exec.Command("p2bin", strings.TrimSuffix(path,".s")+".p")
+	//cmd.Stdout = os.Stdout
+	e = cmd.Run()
+	if e != nil {
+		fmt.Printf("\tjtframe mra: p2bin returned %v for %s:\n", e, path)
+		return false
+	}
+	// Read the result and add it as data
+	bin, e := ioutil.ReadFile(binname)
+	if e != nil {
+		log.Println("jtframe mra, problem reading asl/p2bin output:\n\t", e)
+		return false
+	}
+	*pos += len(bin)
+	p.AddNode("Using custom firmware (no known dump)").comment = true
+	node := p.AddNode("part")
+	node.indent_txt = true
+	node.SetText(hexdump(bin, 16))
+	return true
+}
+
 func parse_custom(reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, pos *int, args Args) bool {
 	if reg_cfg.Custom.Dev == "" {
 		return false
 	}
 	switch reg_cfg.Custom.Dev {
-	case "i8751":
-		{
-			return parse_i8751(reg_cfg, p, machine, pos, args)
-		}
-	default:
-		log.Fatal("jtframe mra: unsupported custom.dev=", reg_cfg.Custom.Dev)
+	case "i8751": return parse_i8751(reg_cfg, p, machine, pos, args)
+	default: return parse_asl( reg_cfg, p, machine, pos, args)
 	}
+	// default:
+	// 	log.Fatal("jtframe mra: unsupported custom.dev=", reg_cfg.Custom.Dev)
+	// }
 	return false
 }
 
-func parse_regular_interleave(split_offset, split_minlen int, reg string, reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode, machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
-	reg_pos := 0
-	start_pos := *pos
-	group_cnt := 0
+func reg_used( reg_roms []MameROM ) bool {
+	for _, each := range reg_roms {
+		if each.used < each.Size {
+			return false
+		}
+	}
+	return true
+}
+
+func parse_regular_interleave(split_offset int, reg string,
+		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
+		machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
+	if args.Verbose {
+		fmt.Printf("Regular interleave for %s (%s)\n", reg_cfg.Name, machine.Name)
+	}
+	if split_offset!=0 {
+		if args.Verbose {
+			fmt.Printf("\tsplit at %X\n", split_offset)
+		}
+		// Split the ROMs in two
+		base := reg_roms
+		reg_roms = make([]MameROM,0,len(base)*2)
+		for _, each := range base {
+			each.Size /= 2
+			each.show_len = true
+			reg_roms = append(reg_roms, each)
+		}
+		// second half
+		for _, each := range base {
+			each.Size /= 2
+			each.Offset += split_offset
+			each.show_len = true
+			each.add_offset = each.Size
+			each.split_offset = split_offset
+			reg_roms = append(reg_roms, each)
+		}
+	}
+	make_interleave_groups( reg, reg_roms, reg_cfg, p, machine, cfg, args, pos )
+}
+
+func make_interleave_groups( reg string,
+		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
+		machine *MachineXML, cfg Mame2MRA, args Args, pos *int) {
 	if args.Verbose {
 		fmt.Printf("\tRegular interleave for %s (%s)\n", reg_cfg.Name, machine.Name)
 	}
+	if len(reg_roms)==0 {
+		return
+	}
+	start_pos := *pos
 	if !reg_cfg.No_offset {
 		// Try to determine from the offset the word-length of each ROM
 		// as well as the isolated ones
 		// fmt.Println("Parsing ", reg_cfg.Name)
-		for k := 0; k < len(reg_roms); {
-			// Try to make a group
-			kmin := k
-			kmax := kmin
-			wlen := 8
-			for j := kmin; j < len(reg_roms); j++ {
-				if (reg_roms[kmin].Offset &^ 0xf) != (reg_roms[j].Offset &^ 0xf) {
-					break
-				}
-				if reg_roms[j].Offset&1 != 0 {
-					wlen = 1
-				}
-				if wlen > 1 && (reg_roms[j].Offset&2) != 0 {
-					wlen = 2
-				}
-				if wlen > 2 && (reg_roms[j].Offset&4) != 0 {
-					wlen = 4
-				}
-				kmax = j
-			}
-			if kmin != kmax {
+		rom_offset := reg_roms[0].Offset &^ 0xf
+		old_pos := *pos
+		main_loop:
+		for {
+			sel := make([]int,0,16)
+			for k := 0; k < len(reg_roms); k++ {
 				if args.Verbose {
-					fmt.Printf("\tGroup found (%d-%d)\n", kmin, kmax)
+					fmt.Printf("%12s (%s) - %05X <? %X - %X/%X",reg_roms[k].Name,
+					reg_roms[k].Region,
+					reg_roms[k].Offset, rom_offset,
+					reg_roms[k].used, reg_roms[k].Size )
 				}
-				group_cnt++
-				if (kmax-kmin+1)*wlen != (reg_cfg.Width >> 3) {
-					fmt.Printf("jtframe mra: the number of ROMs for the %d-bit region (%s) is not even (%s).\nUsing ROMs:\n",
-						reg_cfg.Width, reg_cfg.Name, machine.Name)
-					for j := kmin; j <= kmax; j++ {
-						fmt.Printf("\t%s\n", reg_roms[j].Name)
+				if (reg_roms[k].Offset &^ 0xf) <= rom_offset &&
+				    reg_roms[k].used < reg_roms[k].Size {
+					sel = append( sel, k )
+					if args.Verbose { fmt.Printf("   * ") }
+				}
+				if args.Verbose { fmt.Println("") }
+			}
+			if len(sel)==0 {
+				if reg_used(reg_roms) { break }
+				// move the offset to the first unused ROM
+				for _,each := range reg_roms {
+					if each.used==0 {
+						rom_offset = each.Offset
+						if args.Verbose { fmt.Printf("Moved offset to %X\n", rom_offset)}
+						continue main_loop
 					}
-					os.Exit(1)
+				}
+				fmt.Printf("Don't know how to parse all ROMs")
+				break
+			}
+			// Sort by offset LSB, because if a ROM comes from a previous
+			// group, it will appear as the first one unless we sort it
+			for i:=0; i<len(sel); i++ {
+				for j:=i+1; j<len(sel);j++ {
+					if (reg_roms[sel[j]].Offset&0xf) < (reg_roms[sel[i]].Offset&0xf) {
+						aux := sel[j]
+						sel[j] = sel[i]
+						sel[i] = aux
+					}
 				}
 			}
-			for j := kmin; j <= kmax && kmin != kmax; j++ {
-				reg_roms[j].group = group_cnt
-				reg_roms[j].wlen = wlen
+			group_size := reg_roms[sel[0]].Size
+			//wlen_min := 1
+			reg_roms[sel[0]].wlen=1  // for len(sel)==1
+			if( len(sel) > 1 ) {
+				// Mark the width in bytes of each ROM
+				last := sel[len(sel)-1]
+				reg_roms[last].wlen = (reg_cfg.Width/8)-(reg_roms[last].Offset&0xf)
+				for j:=len(sel)-2; j>=0; j-- {
+					reg_roms[sel[j]].wlen = (reg_roms[sel[j+1]].Offset-reg_roms[sel[j]].Offset) & 0xf
+				}
+				// Check that widths make sense
+				for j:=0; j<len(sel); j++ {
+					if reg_roms[sel[j]].wlen==0 || (reg_roms[sel[j]].wlen != 1 && (reg_roms[sel[j]].wlen % 2) != 0) {
+						fmt.Printf("Bad number of ROMs for interleave in %s, region %s (%s)\n",
+							machine.Name, reg_cfg.Name, machine.Description )
+						for k:=0; k<len(sel); k++ {
+							fmt.Printf("%12s (%s) - %d\n", reg_roms[sel[k]].Name,
+								reg_roms[sel[k]].Region,
+								reg_roms[sel[k]].wlen)
+						}
+						os.Exit(1)
+					}
+				}
+				// Create the mapstr
+				aux := 0
+				for k:=0; k<len(sel); k++ {
+					r := &reg_roms[sel[k]]
+					r.mapstr=""
+					for j := r.wlen; j > 0; j-- {
+						r.mapstr = r.mapstr + strconv.Itoa(j)
+					}
+					for j:=0; j<aux; j++ {
+						r.mapstr+="0"
+					}
+					for j := len(r.mapstr); j < (reg_cfg.Width >> 3); j++ {
+						r.mapstr = "0" + r.mapstr
+					}
+					aux += r.wlen
+				}
+				// Find the size of the smallest ROM
+				group_size = 0
+				//wlen_min   = reg_roms[sel[0]].wlen
+				reg_roms[sel[0]].group=1
+				for j:=0; j<len(sel); j++ {
+					jsize := (reg_roms[sel[j]].Size-reg_roms[sel[j]].used) /reg_roms[sel[j]].wlen
+					if j==0 || group_size >  jsize {
+						group_size = jsize
+						// fmt.Printf("group_size=%X (%s)\n",jsize,reg_roms[sel[j]].Name)
+						//wlen_min   = reg_roms[sel[j]].wlen
+					}
+					reg_roms[sel[j]].group = 1
+				}
+			}
+			// Create new array for this group
+			new_group := make([]MameROM, 0, len(sel))
+			if args.Verbose {
+				fmt.Printf("New group. group_size=%X at pos=%X\n",group_size,*pos)
+			}
+			for j:=0;j<len(sel);j++ {
 				if args.Verbose {
-					fmt.Println("\t\t", reg_roms[j].Name)
+					fmt.Printf("\t%12s (%s) - %d - %s\n", reg_roms[sel[j]].Name,
+						reg_roms[sel[j]].Region,
+						reg_roms[sel[j]].wlen, reg_roms[sel[j]].mapstr)
 				}
+				reg_roms[sel[j]].clen=group_size*reg_roms[sel[j]].wlen
+				new_group = append(new_group,reg_roms[sel[j]])
 			}
-			group_cnt += kmax - kmin + 1
-			k = kmax + 1
+			if( reg_cfg.Reverse ) {
+				rev_str := func (s string) string {
+				    runes := []rune(s)
+				    for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+				        runes[i], runes[j] = runes[j], runes[i]
+				    }
+				    return string(runes)
+				}
+				rev := make([]MameROM,0,len(new_group))
+				//for j:=len(new_group)-1; j>=0; j-- {
+				for j:=0; j<len(new_group); j++ {
+					new_group[j].mapstr = rev_str(new_group[j].mapstr)
+					rev = append(rev, new_group[j] )
+				}
+				new_group = rev
+			}
+			interleave_group( reg,
+				new_group, reg_cfg, p ,
+ 				machine, cfg, args, pos, start_pos )
+			// Update used bytes
+			for j:=0;j<len(sel);j++ {
+				reg_roms[sel[j]].used += group_size*reg_roms[sel[j]].wlen
+			}
+			rom_offset = *pos-old_pos
+			if args.Verbose {
+				fmt.Printf("-------------------> %X (pos=%0X)\n",rom_offset,*pos)
+			}
 		}
 	} else {
 		// If no_offset is set, then assume all are grouped together and the word length is 1 byte
@@ -1138,93 +854,102 @@ func parse_regular_interleave(split_offset, split_minlen int, reg string, reg_ro
 			reg_roms[j].group = 1
 			reg_roms[j].wlen = 1
 		}
-		group_cnt = len(reg_roms)
+		interleave_group( reg,
+					reg_roms, reg_cfg, p ,
+					machine, cfg, args, pos, start_pos )
 	}
+	if args.Verbose { fmt.Println("*******************") }
+}
+
+func interleave_group( reg string,
+		reg_roms []MameROM, reg_cfg *RegCfg, p *XMLNode,
+		machine *MachineXML, cfg Mame2MRA, args Args, pos *int, start_pos int) {
+	reg_pos := 0
 	n := p
 	deficit := 0
-	for split_phase := 0; split_phase <= split_offset && split_phase < 2; split_phase++ {
-		if split_phase == 1 {
-			fill_upto(pos, *pos+split_offset-reg_pos, p)
-			p.AddNode(fmt.Sprintf("ROM split at %X (%X)", *pos, *pos-start_pos)).comment = true
-		}
-		chunk0 := *pos
-		for k := 0; k < len(reg_roms); {
-			r := reg_roms[k]
-			mapstr := ""
-			rom_cnt := 1
-			if r.group != 0 {
-				// make interleave node at the expected position
-				if deficit > 0 {
-					fill_upto(pos, *pos+deficit, p)
-				}
-				reg_pos = *pos - start_pos
-				offset := r.Offset
-				if reg_cfg.No_offset {
-					offset = 0
-				}
-				fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
-				deficit = 0
-				n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
-				if args.Verbose {
-					fmt.Printf("Made %d-bit interleave for %s\n", reg_cfg.Width, reg_cfg.Name)
-				}
-				// Prepare the map
-				for j := r.wlen; j > 0; j-- {
-					mapstr = mapstr + strconv.Itoa(j)
-				}
-				for j := r.wlen; j < (reg_cfg.Width >> 3); j++ {
-					mapstr = "0" + mapstr
-				}
+
+	for k := 0; k < len(reg_roms); {
+		r := reg_roms[k]
+		mapstr := ""
+		rom_cnt := len(reg_roms)
+		if r.group != 0 {
+			// make interleave node at the expected position
+			if deficit > 0 {
+				fill_upto(pos, *pos+deficit, p)
+			}
+			reg_pos = *pos - start_pos
+			offset := r.Offset
+			if reg_cfg.No_offset {
+				offset = r.split_offset
+			}
+			// p.AddNode(fmt.Sprintf("Fill offset at reg_pos=%X",reg_pos) ).comment=true
+			fill_upto(pos, ((offset&-2)-reg_pos)+*pos, p)
+			deficit = 0
+			n = p.AddNode("interleave").AddAttr("output", fmt.Sprintf("%d", reg_cfg.Width))
+			if args.Verbose {
+				fmt.Printf("Made %d-bit interleave for %s\n", reg_cfg.Width, reg_cfg.Name)
+			}
+			// Prepare the map
+			for j := r.wlen; j > 0; j-- {
+				mapstr = mapstr + strconv.Itoa(j)
+			}
+			for j := r.wlen; j < (reg_cfg.Width >> 3); j++ {
+				mapstr = "0" + mapstr
+			}
+			if reg_cfg.No_offset {
 				rom_cnt = (reg_cfg.Width >> 3) / r.wlen
 			}
-			process_rom := func(j int) {
-				r = reg_roms[j]
-				if args.Verbose {
-					fmt.Printf("Parsing %s (%d-byte words - mapstr=%s)\n", r.Name, r.wlen, mapstr)
-				}
-				m := add_rom(n, r)
-				if mapstr != "" {
-					m.AddAttr("map", mapstr)
-					mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
-				}
-				if split_offset != 0 {
-					m.AddAttr("length", fmt.Sprintf("0x%X", r.Size/2))
-					if split_phase == 1 {
-						m.AddAttr("offset", fmt.Sprintf("0x%X", r.Size/2))
-					}
-					*pos += r.Size / 2
-				} else {
-					*pos += r.Size
-					if reg_cfg.Rom_len > r.Size {
-						deficit += reg_cfg.Rom_len - r.Size
-					}
-				}
-				reg_pos = *pos - start_pos
-				if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
-					fill_upto(pos, *pos+blank_len, p)
-					p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
+		}
+		process_rom := func(j int) {
+			r = reg_roms[j]
+			if args.Verbose {
+				fmt.Printf("\tparsing %s (%d-byte words - mapstr=%s)\n", r.Name, r.wlen, mapstr)
+			}
+			m := add_rom(n, r)
+			if r.mapstr=="" && mapstr != "" {
+				m.AddAttr("map", mapstr)
+				mapstr = mapstr[r.wlen:] + mapstr[0:r.wlen] // rotate the active byte
+			} else if r.mapstr!="" {
+				m.AddAttr("map", r.mapstr)
+			}
+			chunk_size := r.Size
+			if r.clen>0 {
+				chunk_size=r.clen
+			}
+			*pos += chunk_size
+			if chunk_size<r.Size || r.show_len {
+				m.AddAttr("length", fmt.Sprintf("0x%X", chunk_size))
+				if offset := r.used+r.add_offset; offset>0 {
+					m.AddAttr("offset", fmt.Sprintf("0x%X", offset ))
 				}
 			}
-			if reg_cfg.Reverse {
-				for j := k + rom_cnt - 1; j >= k; j-- {
-					if reg_roms[j].group == 0 && get_reverse_width(reg_cfg, reg_roms[j].Name,16) {
-						mapstr = "12" // Should this try to contemplate other cases different from 16 bits?
-						n = p.AddNode("interleave").AddAttr("output", "16")
-					}
-					process_rom(j)
-				}
-			} else {
-				for j := k; j < k+rom_cnt; j++ {
-					process_rom(j)
-				}
+			if reg_cfg.Rom_len > chunk_size {
+				deficit += reg_cfg.Rom_len - chunk_size
 			}
-			n = p
-			k += rom_cnt
+			reg_pos = *pos - start_pos
+			if blank_len := is_blank(reg_pos, reg, machine, cfg); blank_len > 0 {
+				fill_upto(pos, *pos+blank_len, p)
+				p.AddNode(fmt.Sprintf("Blank ends at 0x%X", *pos)).comment = true
+			}
 		}
-		if *pos-chunk0 < split_minlen {
-			// fmt.Printf("\tsplit minlen = %x (dumped = %X) \n", split_minlen, *pos-chunk0)
-			fill_upto(pos, split_minlen+chunk0, p)
+		if reg_cfg.Reverse {
+			if args.Verbose {
+				fmt.Printf("Got %d ROMs, with rom_cnt=%d, k=%d\n",len(reg_roms), rom_cnt, k)
+			}
+			for j := k + rom_cnt - 1; j >= k; j-- {
+				if reg_roms[j].group == 0 && get_reverse_width(reg_cfg, reg_roms[j].Name, 16) {
+					mapstr = "12" // Should this try to contemplate other cases different from 16 bits?
+					n = p.AddNode("interleave").AddAttr("output", "16")
+				}
+				process_rom(j)
+			}
+		} else {
+			for j := k; j < k+rom_cnt; j++ {
+				process_rom(j)
+			}
 		}
+		n = p
+		k += rom_cnt
 	}
 }
 

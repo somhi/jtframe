@@ -102,7 +102,7 @@ if [ $(cat $TASKS|wc -l) = 0 ]; then
     exit 1
 fi
 
-if [ -z "$DRYRUN" ]; then
+if [[ -z "$DRYRUN" && -z "$KEEP" ]]; then
     rm -f $JTROOT/log/builds.log
 fi
 

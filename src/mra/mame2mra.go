@@ -88,16 +88,11 @@ type RegCfg struct {
 	// keeping the original offset usually has no effect as the offset is just the file size
 	// when reverse=true or a sort/sequence changes the file order, the offset may introduce
 	// warning messages or fillers, so no_offset=true is needed
-	Sort_byext   bool
-	Sort         bool // Sort by number sections
-	Sort_alpha   bool // Sort by full alpha comparison
 	Sort_even    bool // sort ROMs by pushing all even ones first, and then the odd ones
-	Sort_reverse bool // inverts the sorting
 	Singleton    bool // Each file can only merge with itself to make interleave sections
 	// The upper and lower halves of the same file are merged together
 	Ext_sort   []string // sorts by matching the file extension
 	Name_sort  []string // sorts by name
-	Regex_sort []string // sorts by name apply regular expression
 	Sequence   []int    // File sequence, where the first file is identified with a 0, the next with 1 and so on
 	// ROM files can be repeated or omitted in the sequence
 	Frac struct {
@@ -111,6 +106,10 @@ type RegCfg struct {
 		// the assembly source code must be in cores/corename/firmware/machine.s or setname.s
 		// Machine, Setname string // Optional filters
 		Dev string // Device name for assembler
+	}
+	Parts []struct {
+		Name, Crc, Map	string
+		Length, Offset int
 	}
 	Files []MameROM // This replaces the information in mame.xml completely if present
 }
@@ -220,7 +219,6 @@ type Mame2MRA struct {
 		Splits []struct {
 			Selectable
 			Region           string
-			Namehas          string // The setname of the game in MAME must contain the "namehas" string
 			Offset, Min_len  int
 		}
 		Blanks []struct {
@@ -927,8 +925,7 @@ func is_split(reg string, machine *MachineXML, cfg Mame2MRA) (offset, min_len in
 	min_len = 0
 	for _, split := range cfg.ROM.Splits {
 		if (split.Region != "" && split.Region != reg) ||
-			split.Match(machine)==0 ||
-			(split.Namehas != "" && !strings.Contains(machine.Name, split.Namehas)) {
+			split.Match(machine)==0  {
 			continue
 		}
 		offset = split.Offset
@@ -1112,7 +1109,7 @@ diploop:
 			}
 			options = strings.Join(chunks,",") // re-build the options in case there was a change
 			m.AddAttr("bits", bitstr)
-			m.AddAttr("ids", options)
+			m.AddAttr("ids", strings.TrimSpace(options))
 		}
 		// apply the default value
 		if bitmax+1-bitmin < 0 {
@@ -1253,9 +1250,9 @@ Set JTFRAME_HEADER=length in macros.def instead`)
 			}
 			this.start = int(aux)
 		}
-		if this.Sort_byext || this.Sort || this.Sort_alpha || this.Sort_even ||
-			this.Sort_reverse || this.Singleton || len(this.Ext_sort) > 0 ||
-			len(this.Name_sort) > 0 || len(this.Regex_sort) > 0 || len(this.Sequence) > 0 {
+		if  this.Sort_even ||
+			this.Singleton || len(this.Ext_sort) > 0 ||
+			len(this.Name_sort) > 0 || len(this.Sequence) > 0 {
 			this.No_offset = true
 		}
 	}

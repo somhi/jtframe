@@ -116,6 +116,14 @@ nvram = {
 		{ machine="...", setname="...", data="00 22 33..." },...
 	]
 }
+# split ROM regions in two halves. Each ROM file is split in two
+# and each half is merged independently
+splits=[
+	{ machine="...", offset=0x10000 },
+	# if the region is not interleaved, an additional min_len
+	# attribute can be set. See kchamp for an example
+	{ machine="...", offset=0x10000, min_len=0x2000 },
+]
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if reduce {

@@ -70,6 +70,11 @@ wire [25:0] pre_addr, dwnld_addr;
 wire [ 7:0] post_data;
 wire [15:0] raw_data;
 wire        pass_io;
+{{ if .Clocks }}// Clock enable signals{{ end }}
+{{- range $k, $v := .Clocks }}
+    {{- range $v }}
+    {{- range .Outputs }}
+wire {{ . }}; {{ end }}{{ end }}{{ end }}
 
 assign pass_io = header | ioctl_ram;
 
@@ -84,6 +89,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .rst48      ( rst48     ),
     .clk48      ( clk48     ),
 `endif
+{{- range $k,$v := .Clocks }} {{- range $v}}
+    {{- range .Outputs }}
+    .{{ . }}    ( {{ . }}    ), {{end}}{{end}}
+{{ end }}
     .pxl2_cen       ( pxl2_cen      ),
     .pxl_cen        ( pxl_cen       ),
     .red            ( red           ),
@@ -117,6 +126,10 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
             .joyana_r4( joyana_r4        ),
         `endif
     `endif
+`endif
+`ifdef JTFRAME_DIAL
+    .dial_x         ( dial_x        ),
+    .dial_y         ( dial_y        ),
 `endif
     // DIP switches
     .status         ( status        ),
@@ -193,7 +206,7 @@ jt{{if .Game}}{{.Game}}{{else}}{{.Core}}{{end}}_game u_game(
     .ioctl_ram    ( ioctl_ram      ),
     .ioctl_din    ( ioctl_din      ),
 `endif
-    // Debug  
+    // Debug
     .debug_bus    ( debug_bus      ),
     .debug_view   ( debug_view     ),
 `ifdef JTFRAME_STATUS
@@ -380,4 +393,17 @@ jtframe_ram{{ if eq $bus.Data_width 16 }}16{{end}} #(
     .q      ( {{$bus.Name}}_dout )
 );{{ end }}
 {{ end }}{{end}}
+
+{{ if .Clocks }}
+// Clock enable generation
+{{- range $k, $v := .Clocks }} {{- range $cnt, $val := $v}}
+// {{ .Comment }} Hz from {{ .ClkName }}
+jtframe_frac_cen #(.W({{.W}}),.WC({{.WC}})) u_cen{{$cnt}}_{{.ClkName}}(
+    .clk    ( {{.ClkName}} ),
+    .n      ( {{.WC}}'d{{.Mul    }} ),
+    .m      ( {{.WC}}'d{{.Div    }} ),
+    .cen    ( { {{ .OutStr }} } ),
+    .cenb   (              )
+);
+{{ end }}{{ end }}{{ end }}
 endmodule

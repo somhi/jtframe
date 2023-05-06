@@ -360,10 +360,15 @@ jtframe_keyboard u_keyboard(
             .sample     ( snd_sample    ),
             .dip_pause  ( dip_pause     ),
             .dip_flip   ( dip_flip      ),
+            .game_led   ( game_led[0]   ),
             .LVBL       ( LVBL          ),
             .core_mod   ( core_mod      ),
             .dial_x     ( dial_x        ),
             .ba_rdy     ( bax_rdy       ),
+            // mouse
+            .mouse_f    ( bd_mouse_f    ),
+            .mouse_dx   ( bd_mouse_dx   ),
+            .mouse_dy   ( bd_mouse_dy   ),
             .st_addr    ( debug_bus     ),
             .st_dout    ( sys_info      )
         );
@@ -742,15 +747,15 @@ jtframe_sdram64 #(
 `ifdef JTFRAME_CREDITS
     wire invert_inputs = GAME_INPUTS_ACTIVE_LOW[0];
     wire toggle = |(game_start ^ {4{invert_inputs}});
-    reg  fast_scroll;
-    wire show_credits, hide_credits;
+    reg  fast_scroll, show_credits;
+    wire hide_credits;
 
 
     assign hide_credits = `ifdef JTFRAME_CREDITS_HIDEVERT core_mod[0] `else 0 `endif ;
-    assign show_credits = ~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif ;
 
     always @(posedge clk_sys) begin
-        fast_scroll <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
+        fast_scroll  <= |({game_joystick1[3:0], game_joystick2[3:0]} ^ {8{invert_inputs}});
+        show_credits <= lock | (~dip_pause & ~hide_credits `ifdef MISTER & ~status[12] `endif);
     end
 
     // To do: HS and VS should actually be delayed inside jtframe_credits too
@@ -770,13 +775,13 @@ jtframe_sdram64 #(
         `ifdef JTFRAME_CREDITS_NOROTATE
             .rotate ( 2'd0          ),
         `else
-            .rotate ( { rotate[1], core_mod[0] }  ),
+            .rotate ( lock ? 2'd0 : { rotate[1], core_mod[0] }  ),
         `endif
         .toggle     ( toggle        ),
         .fast_scroll( fast_scroll   ),
 
         `ifdef JTFRAME_CHEAT
-            // Cheat CPU can controll the video
+            // Cheat CPU can control the video
             .vram_din   ( vram_dout  ),
             .vram_dout  ( vram_din   ),
             .vram_addr  ( vram_addr  ),

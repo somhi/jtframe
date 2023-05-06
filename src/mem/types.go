@@ -97,6 +97,18 @@ type Port struct {
     Input bool `yaml:"input"`
 }
 
+type ClockCfg struct {
+    Div     int      `yaml:"div"`       // only div or freq may be used
+    Mul     int      `yaml:"mul"`       // defaults to 1 if missing
+    Freq    float64  `yaml:"freq"`
+    Outputs []string `yaml:"outputs"`
+    // values for jtframe_frac_cen instantiation
+    ClkName string
+    WC, W   int
+    OutStr  string
+    Comment string
+}
+
 type MemConfig struct {
     Include  []Include   `yaml:"include"`
     Download DownloadCfg `yaml:"download"`
@@ -109,8 +121,9 @@ type MemConfig struct {
     // Like DDR, BRAM, etc.
     // This part does not go in the YAML file
     // But is acquired from the .def or the Args
-    Core   string
-    Macros map[string]string
+    Core     string
+    Macros   map[string]string
+    Clocks   map[string][]ClockCfg `yaml:"clocks"`
     // Precalculated values
     Colormsb int
     Unused   [4]bool // true for unused banks

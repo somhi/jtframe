@@ -141,6 +141,10 @@ Support is enabled with the **JTFRAME_DIAL** macro. This will add the *dial_x* a
 
 Keeping the game module compatible with dial signals make it easier to hook directly to a bare spinner in the future. The **jt4701** does not clamp the values, so it cannot be connected to a paddle signal because after some turns, the paddle will get stuck at its limits. **jt4701** requires the dial signals. **jtframe_board** translates joystick and and spinner signals to dial pulses.
 
+The dial is automatically emulated with the 1P joystick using buttons 1 and 2 as left and right. If other buttons are preferred, such as left/right directions, then **JTFRAME_DIALEMU_LEFT** must be set to the bit in the *joystick* signal to be used as left. The next one will be right.
+
+The mouse is automatically detected and used as dial emulator.
+
 The only spinner tested so far is the one from Ultimate MiSTer (not affiliated to JOTEGO). For this, MiSTer always seems to send a delta of just 1 or 2. **jtdial** ignores MiSTer's delta and set its own one based on the OSD settings.
 
 # UART

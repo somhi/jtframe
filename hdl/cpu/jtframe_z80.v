@@ -146,28 +146,6 @@ end
 `endif
 
     wire ram_we = ram_cs & ~wr_n;
-    wire int_n_pin;
-
-    generate
-        if( CLR_INT==1 ) begin
-            // This is the most common logic used to handle interrupts
-            reg int_ff, intn_l;
-            always @(posedge clk, negedge rst_n) begin
-                if( !rst_n ) begin
-                    int_ff <= 0;
-                    intn_l <= 0;
-                end else begin
-                    intn_l <= int_n;
-                    if( !m1_n && !iorq_n )
-                        int_ff <= 0;
-                    else if( !int_n && intn_l ) int_ff <= 1;
-                end
-            end
-            assign int_n_pin = ~int_ff;
-        end else begin
-            assign int_n_pin = int_n;
-        end
-    endgenerate
 
     //wire clk_ram = clk & cpu_cen;
 
@@ -188,12 +166,12 @@ end
         .q1     ( prog_din    )
     );
 
-    jtframe_z80_romwait #(.RECOVERY(RECOVERY)) u_z80wait(
+    jtframe_z80_romwait #(.RECOVERY(RECOVERY),.CLR_INT(CLR_INT)) u_z80wait(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
         .cpu_cen    ( cpu_cen   ),
-        .int_n      ( int_n_pin ),
+        .int_n      ( int_n     ),
         .nmi_n      ( nmi_n     ),
         .busrq_n    ( busrq_n   ),
         .m1_n       ( m1_n      ),
@@ -236,9 +214,11 @@ module jtframe_z80_romwait (
     input         rom_cs,
     input         rom_ok
 );
-    parameter RECOVERY=1;
+    parameter RECOVERY=1,
+              CLR_INT  = 0;  // if 0, int_n is the Z80 port
+                // if 1, int_n is latched and cleared with m1 and iorq signals
 
-    jtframe_z80_devwait #(.RECOVERY(RECOVERY)) u_cpu(
+    jtframe_z80_devwait #(.RECOVERY(RECOVERY),.CLR_INT(CLR_INT)) u_cpu(
         .rst_n      ( rst_n     ),
         .clk        ( clk       ),
         .cen        ( cen       ),
@@ -291,80 +271,83 @@ module jtframe_z80_devwait (
     input         dev_busy
 );
 
-parameter M1_WAIT=0,  // wait states after M1 goes down
-          RECOVERY=1; // enable clock cycle recovery
-wire wait_n;
+    parameter M1_WAIT = 0, // wait states after M1 goes down
+              RECOVERY= 1, // enable clock cycle recovery
+              CLR_INT = 0; // if 0, int_n is the Z80 port
+                // if 1, int_n is latched and cleared with m1 and iorq signals
 
-`ifdef SIMULATION
-integer rstd=0;
+    wire wait_n;
 
-// It waits for a second reset signal, so
-// the download is over
-always @(negedge rst_n) rstd <= rstd + 1;
+    `ifdef SIMULATION
+    integer rstd=0;
 
-always @(posedge clk) begin
-    if( A === 16'hXXXX && rst_n && rstd>1 ) begin
-        $display("\nError: Z80 address bus is XXXX (%m)\n");
-        $finish;
-    end
-end
-`endif
+    // It waits for a second reset signal, so
+    // the download is over
+    always @(negedge rst_n) rstd <= rstd + 1;
 
-generate
-    if( M1_WAIT>0 ) begin
-        reg [M1_WAIT-1:0] wsh;
-        reg m1n_l;
-        always @(posedge clk, negedge rst_n ) begin
-            if( !rst_n ) begin
-                wsh <= 0;
-            end else if(cen) begin
-                m1n_l <= m1_n;
-                if( !m1_n && m1n_l ) wsh <= {M1_WAIT{1'b1}};
-                else wsh <= wsh>>1;
-            end
+    always @(posedge clk) begin
+        if( A === 16'hXXXX && rst_n && rstd>1 ) begin
+            $display("\nError: Z80 address bus is XXXX (%m)\n");
+            $finish;
         end
-        assign wait_n = ~wsh[0];
-    end else begin
-        assign wait_n = 1;
     end
-endgenerate
+    `endif
 
-jtframe_z80wait #(1,RECOVERY) u_wait(
-    .rst_n      ( rst_n     ),
-    .clk        ( clk       ),
-    .cen_in     ( cen       ),
-    .cen_out    ( cpu_cen   ),
-    .gate       (           ),
-    .iorq_n     ( iorq_n    ),
-    .mreq_n     ( mreq_n    ),
-    .busak_n    ( busak_n   ),
-    // manage access to shared memory
-    .dev_busy   ( dev_busy  ),
-    // manage access to ROM data from SDRAM
-    .rom_cs     ( rom_cs    ),
-    .rom_ok     ( rom_ok    )
-);
+    generate
+        if( M1_WAIT>0 ) begin
+            reg [M1_WAIT-1:0] wsh;
+            reg m1n_l;
+            always @(posedge clk, negedge rst_n ) begin
+                if( !rst_n ) begin
+                    wsh <= 0;
+                end else if(cen) begin
+                    m1n_l <= m1_n;
+                    if( !m1_n && m1n_l ) wsh <= {M1_WAIT{1'b1}};
+                    else wsh <= wsh>>1;
+                end
+            end
+            assign wait_n = ~wsh[0];
+        end else begin
+            assign wait_n = 1;
+        end
+    endgenerate
 
-jtframe_z80 u_cpu(
-    .rst_n    ( rst_n     ),
-    .clk      ( clk       ),
-    .cen      ( cpu_cen   ),
-    .wait_n   ( wait_n    ),
-    .int_n    ( int_n     ),
-    .nmi_n    ( nmi_n     ),
-    .busrq_n  ( busrq_n   ),
-    .m1_n     ( m1_n      ),
-    .mreq_n   ( mreq_n    ),
-    .iorq_n   ( iorq_n    ),
-    .rd_n     ( rd_n      ),
-    .wr_n     ( wr_n      ),
-    .rfsh_n   ( rfsh_n    ),
-    .halt_n   ( halt_n    ),
-    .busak_n  ( busak_n   ),
-    .A        ( A         ),
-    .din      ( din       ),
-    .dout     ( dout      )
-);
+    jtframe_z80wait #(1,RECOVERY) u_wait(
+        .rst_n      ( rst_n     ),
+        .clk        ( clk       ),
+        .cen_in     ( cen       ),
+        .cen_out    ( cpu_cen   ),
+        .gate       (           ),
+        .iorq_n     ( iorq_n    ),
+        .mreq_n     ( mreq_n    ),
+        .busak_n    ( busak_n   ),
+        // manage access to shared memory
+        .dev_busy   ( dev_busy  ),
+        // manage access to ROM data from SDRAM
+        .rom_cs     ( rom_cs    ),
+        .rom_ok     ( rom_ok    )
+    );
+
+    jtframe_z80 #(.CLR_INT(CLR_INT)) u_cpu(
+        .rst_n    ( rst_n     ),
+        .clk      ( clk       ),
+        .cen      ( cpu_cen   ),
+        .wait_n   ( wait_n    ),
+        .int_n    ( int_n     ),
+        .nmi_n    ( nmi_n     ),
+        .busrq_n  ( busrq_n   ),
+        .m1_n     ( m1_n      ),
+        .mreq_n   ( mreq_n    ),
+        .iorq_n   ( iorq_n    ),
+        .rd_n     ( rd_n      ),
+        .wr_n     ( wr_n      ),
+        .rfsh_n   ( rfsh_n    ),
+        .halt_n   ( halt_n    ),
+        .busak_n  ( busak_n   ),
+        .A        ( A         ),
+        .din      ( din       ),
+        .dout     ( dout      )
+    );
 
 endmodule
 
@@ -390,71 +373,96 @@ module jtframe_z80 (
     input  [7:0]  din,
     output [7:0]  dout
 );
+    parameter CLR_INT  = 0;  // if 0, int_n is the Z80 port
+                // if 1, int_n is latched and cleared with m1 and iorq signals
 
-// By default use tv80s for simulation only.
-// This can be overridden by defining VHDLZ80 or TV80S explicitly
-`ifndef VHDLZ80
-`ifndef TV80S
-`ifndef MODELSIM
+    wire int_n_pin;
 
-`ifdef SIMULATION
-      `define TV80S
-      initial $display("WARNING: Using Verilog version of T80 for simulation.");
-`else
-      `define VHDLZ80
-`endif
+    generate
+        if( CLR_INT==1 ) begin
+            // This is the most common logic used to handle interrupts
+            reg int_ff, intn_l;
+            always @(posedge clk, negedge rst_n) begin
+                if( !rst_n ) begin
+                    int_ff <= 0;
+                    intn_l <= 0;
+                end else begin
+                    intn_l <= int_n;
+                    if( !m1_n && !iorq_n )
+                        int_ff <= 0;
+                    else if( !int_n && intn_l ) int_ff <= 1;
+                end
+            end
+            assign int_n_pin = ~int_ff;
+        end else begin
+            assign int_n_pin = int_n;
+        end
+    endgenerate
 
-`endif
-`endif
-`endif
+    // By default use tv80s for simulation only.
+    // This can be overridden by defining VHDLZ80 or TV80S explicitly
+    `ifndef VHDLZ80
+    `ifndef TV80S
+    `ifndef MODELSIM
 
-`ifdef VHDLZ80
-T80s u_cpu(
-    .RESET_n    ( rst_n       ),
-    .CLK        ( clk         ),
-    .CEN        ( cen         ),
-    .WAIT_n     ( wait_n      ),
-    .INT_n      ( int_n       ),
-    .NMI_n      ( nmi_n       ),
-    .RD_n       ( rd_n        ),
-    .WR_n       ( wr_n        ),
-    .A          ( A           ),
-    .DI         ( din         ),
-    .DO         ( dout        ),
-    .IORQ_n     ( iorq_n      ),
-    .M1_n       ( m1_n        ),
-    .MREQ_n     ( mreq_n      ),
-    .BUSRQ_n    ( busrq_n     ),
-    .BUSAK_n    ( busak_n     ),
-    .RFSH_n     ( rfsh_n      ),
-    .out0       ( 1'b0        ),
-    .HALT_n     ( halt_n      )
-);
-`endif
+    `ifdef SIMULATION
+          `define TV80S
+          initial $display("WARNING: Using Verilog version of T80 for simulation.");
+    `else
+          `define VHDLZ80
+    `endif
 
-`ifdef TV80S
-// This CPU is used for simulation
-tv80s #(.Mode(0)) u_cpu (
-    .reset_n( rst_n      ),
-    .clk    ( clk        ),
-    .cen    ( cen        ),
-    .wait_n ( wait_n     ),
-    .int_n  ( int_n      ),
-    .nmi_n  ( nmi_n      ),
-    .rd_n   ( rd_n       ),
-    .wr_n   ( wr_n       ),
-    .A      ( A          ),
-    .di     ( din        ),
-    .dout   ( dout       ),
-    .iorq_n ( iorq_n     ),
-    .m1_n   ( m1_n       ),
-    .mreq_n ( mreq_n     ),
-    .busrq_n( busrq_n    ),
-    .busak_n( busak_n    ),
-    .rfsh_n ( rfsh_n     ),
-    .halt_n ( halt_n     )
-);
-`endif
-/* verilator tracing_on */
+    `endif
+    `endif
+    `endif
+
+    `ifdef VHDLZ80
+    T80s u_cpu(
+        .RESET_n    ( rst_n       ),
+        .CLK        ( clk         ),
+        .CEN        ( cen         ),
+        .WAIT_n     ( wait_n      ),
+        .INT_n      ( int_n_pin   ),
+        .NMI_n      ( nmi_n       ),
+        .RD_n       ( rd_n        ),
+        .WR_n       ( wr_n        ),
+        .A          ( A           ),
+        .DI         ( din         ),
+        .DO         ( dout        ),
+        .IORQ_n     ( iorq_n      ),
+        .M1_n       ( m1_n        ),
+        .MREQ_n     ( mreq_n      ),
+        .BUSRQ_n    ( busrq_n     ),
+        .BUSAK_n    ( busak_n     ),
+        .RFSH_n     ( rfsh_n      ),
+        .out0       ( 1'b0        ),
+        .HALT_n     ( halt_n      )
+    );
+    `endif
+
+    `ifdef TV80S
+    // This CPU is used for simulation
+    tv80s #(.Mode(0)) u_cpu (
+        .reset_n( rst_n      ),
+        .clk    ( clk        ),
+        .cen    ( cen        ),
+        .wait_n ( wait_n     ),
+        .int_n  ( int_n_pin  ),
+        .nmi_n  ( nmi_n      ),
+        .rd_n   ( rd_n       ),
+        .wr_n   ( wr_n       ),
+        .A      ( A          ),
+        .di     ( din        ),
+        .dout   ( dout       ),
+        .iorq_n ( iorq_n     ),
+        .m1_n   ( m1_n       ),
+        .mreq_n ( mreq_n     ),
+        .busrq_n( busrq_n    ),
+        .busak_n( busak_n    ),
+        .rfsh_n ( rfsh_n     ),
+        .halt_n ( halt_n     )
+    );
+    `endif
+    /* verilator tracing_on */
 
 endmodule // jtframe_z80

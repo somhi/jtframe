@@ -34,6 +34,9 @@
 `ifdef JTFRAME_PADDLE
     input   [ 7:0]  paddle_0, paddle_1, `ifdef JTFRAME_4PLAYERS paddle_2, paddle_3, `endif
 `endif
+`ifdef JTFRAME_DIAL
+    input   [ 1:0]  dial_x, dial_y,
+`endif
 `ifdef JTFRAME_MOUSE
     input   [15:0]  mouse_1p, mouse_2p,
 `endif

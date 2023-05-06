@@ -284,7 +284,7 @@ func Make_macros(cfg Config) (macros map[string]string) {
 			log.Fatal("JTFRAME: macro JTFRAME_PLL=", pll, " is not well formed. It should contain the pixel clock in kHz")
 		}
 		freq, _ := strconv.Atoi(freq_str)
-		freq *= 8
+		mclk = freq*8
 	}
 	if defined(macros,"JTFRAME_SDRAM96") || defined(macros,"JTFRAME_CLK96") {
 		mclk *= 2

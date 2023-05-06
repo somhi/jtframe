@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"strconv"
 )
 
@@ -20,6 +21,12 @@ type MameROM struct {
 	// filled by mame2mra.go
 	group int // interleave group to which the ROM belongs
 	wlen  int // word length in bytes
+	clen  int // byte count to dump
+	used  int // consumed bytes
+	split_offset int
+	show_len bool
+	add_offset int
+	mapstr string
 }
 
 type MameDevice struct {
@@ -235,4 +242,6 @@ func tidyup(machine *MachineXML) {
 	for k, _ := range machine.Dipswitch {
 		sort.Sort(machine.Dipswitch[k].Dipvalue)
 	}
+	// Remove / from game descriptions
+	machine.Description=strings.ReplaceAll(machine.Description,"/","-")
 }
