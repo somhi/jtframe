@@ -5,6 +5,7 @@ here:
   - jtframe_mist_clocks.v
   - jtframe_mist.sv
   - jtframe_mist_base.v  
+  - mist_io.sdc
   - pll6000/jtframe_pll6000.qip
   - pll6144/jtframe_pll6144.qip
   - pll6293/jtframe_pll6293.qip
@@ -42,7 +43,6 @@ target:
   - from: mist
     unless: POCKET
     get:
-      - mist_io.sdc
       - osd.sv
       - rgb2ypbpr.v
   - from: neptuno
