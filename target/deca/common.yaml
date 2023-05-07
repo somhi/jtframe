@@ -6,6 +6,8 @@ here:
   - jtframe_mist.sv
   - jtframe_mist_base.v  
   - mist_io.sdc
+  # PLLs
+  - pllgame96/jtframe_pllgame96.qip
   - pll6000/jtframe_pll6000.qip
   - pll6144/jtframe_pll6144.qip
   - pll6293/jtframe_pll6293.qip
@@ -39,13 +41,8 @@ target:
       - data_io.v
       # PLLs
       - pllgame/jtframe_pllgame.qip
-      - pllgame96/jtframe_pllgame96.qip
   - from: mist
     unless: POCKET
     get:
       - osd.sv
       - rgb2ypbpr.v
-  - from: neptuno
-    get:
-      # 50 to 27MHz conversion
-      - pll_neptuno.qip
