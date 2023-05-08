@@ -67,6 +67,7 @@ if(de=GetDirEntry("JOTEGO     "))
 strcpy(&romname[8],"ARC");
 if(!LoadROM(romname))
     result="ARC loading failed";
+    result="ARC not found. Load ARC";
 
 /* return to the root directory */
 ChangeDirectoryByCluster(0);
