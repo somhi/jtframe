@@ -57,7 +57,7 @@ module jtframe_sdram64_bank #(
     input               all_act,
 
     // row matching
-    output reg  [12:0]  row,
+    output reg  [11:0]  row,
     input               match,
 
     // SDRAM interface
@@ -68,11 +68,11 @@ module jtframe_sdram64_bank #(
     // that can be joined together thru an OR operation at a
     // higher level. This makes it possible to short the pins
     // of the SDRAM, as done in the MiSTer 128MB module
-    output reg  [12:0]  sdram_a,        // SDRAM Address bus 13 Bits
+    output reg  [11:0]  sdram_a,        // SDRAM Address bus 12 Bits
     output reg  [ 3:0]  cmd
 );
 
-localparam ROW=13,
+localparam ROW=12,
            COW= AW==22 ? 9 : 10; // 9 for 32MB SDRAM, 10 for 64MB
 
 // states
@@ -214,7 +214,8 @@ always @(*) begin
     cmd = do_prech ? CMD_PRECHARGE : (
           do_act   ? CMD_ACTIVE    : (
           do_read  ? (rd ? CMD_READ : CMD_WRITE ) : CMD_NOP ));
-    sdram_a[12:11] =  addr_row[12:11];
+//  sdram_a[12:11] =  addr_row[12:11];
+    sdram_a[11] =  addr_row[11];
     sdram_a[10:0] = do_act ? addr_row[10:0] :
             { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
 end

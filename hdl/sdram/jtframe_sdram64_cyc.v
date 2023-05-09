@@ -99,7 +99,7 @@ module jtframe_sdram64 #(
     `ifdef VERILATOR // sdram_dq is used as input-only in Verilator sims
     output      [15:0]  sdram_din,      // Data to be stored in SDRAM
     `endif
-    output reg  [12:0]  sdram_a,        // SDRAM Address bus 13 Bits
+    output reg  [11:0]  sdram_a,        // SDRAM Address bus 12 Bits
     output              sdram_dqml,     // SDRAM Low-byte Data Mask
     output              sdram_dqmh,     // SDRAM High-byte Data Mask
     output reg  [ 1:0]  sdram_ba,       // SDRAM Bank Address
@@ -133,7 +133,7 @@ wire        all_act, rfshing, rfsh_br, noreq, help;
 reg         all_dbusy, all_dbusy64;
 reg   [3:0] bg, cmd;
 reg  [14:0] prio_lfsr;
-wire [12:0] bx0_a, bx1_a, bx2_a, bx3_a, init_a, next_a, rfsh_a,
+wire [11:0] bx0_a, bx1_a, bx2_a, bx3_a, init_a, next_a, rfsh_a,
             ba0_row, ba1_row, ba2_row, ba3_row;
 wire [ 1:0] next_ba, prio;
 wire [15:0] din;
@@ -145,7 +145,7 @@ wire          wr_cycle;
 
 // prog signals
 wire        pre_dst, pre_dok, pre_ack, pre_rdy;
-wire [12:0] pre_a;
+wire [11:0] pre_a;
 wire [ 3:0] pre_cmd;
 reg         prog_rst, prog_bg, other_rst, rfsh_rst;
 
@@ -217,7 +217,7 @@ always @(posedge clk) begin
     prog_ack <= pre_ack;
 
     sdram_ba      <= next_ba;
-    sdram_a[10:0] <= next_a[10:0];
+    sdram_a[9:0] <= next_a[9:0];
 
 `ifndef VERILATOR
     dq_pad <= wr_cycle ? (prog_en ? prog_din : din) : 16'hzzzz;
@@ -228,7 +228,7 @@ always @(posedge clk) begin
         else
             sdram_a[12:11] <= wr_cycle ? mask_mux : 2'd0;
     end else begin
-        sdram_a[12:11] <= next_a[12:11];
+        sdram_a[11:10] <= next_a[11:10];
         dqm <= wr_cycle ? mask_mux : 2'd0;
     end
 end

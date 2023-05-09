@@ -28,7 +28,7 @@ module jtframe_sdram64_rfsh #(parameter HF=1, RFSHCNT=9)
     output   reg        rfshing,
     output   reg  [3:0] cmd,
     output   reg        help,
-    output       [12:0] sdram_a
+    output       [11:0] sdram_a
 );
 
 // Frequency limits before getting a tRFC error
@@ -61,7 +61,7 @@ initial begin
 end
 `endif
 
-assign sdram_a = 13'h400;   // used for precharging all banks
+assign sdram_a = 12'h400;   // used for precharging all banks
 
 reg  [CW-1:0] cnt;
 reg [STW-1:0] st;

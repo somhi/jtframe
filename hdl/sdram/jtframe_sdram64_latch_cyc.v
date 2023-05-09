@@ -27,10 +27,10 @@ module jtframe_sdram64_latch #(parameter LATCH=0, AW=22)(
     output reg [AW-1:0] ba1_addr_l,
     output reg [AW-1:0] ba2_addr_l,
     output reg [AW-1:0] ba3_addr_l,
-    input      [  12:0] ba0_row,
-    input      [  12:0] ba1_row,
-    input      [  12:0] ba2_row,
-    input      [  12:0] ba3_row,
+    input      [  11:0] ba0_row,
+    input      [  11:0] ba1_row,
+    input      [  11:0] ba2_row,
+    input      [  11:0] ba3_row,
     input         [3:0] rd,
     input         [3:0] wr,
     input               prog_en,
@@ -43,7 +43,7 @@ module jtframe_sdram64_latch #(parameter LATCH=0, AW=22)(
 );
 
 localparam RMSB = AW==22 ? AW-1 : AW-2,
-           RLSB = RMSB-12;
+           RLSB = RMSB-11;
 
 wire prog_rq = prog_en &(prog_wr | prog_rd);
 
