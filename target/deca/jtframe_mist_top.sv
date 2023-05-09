@@ -69,6 +69,7 @@ module mist_top(
     output          VGA_DE,
     output          VGA_CLK,
 
+    `ifdef DEMISTIFY_DECA
     output          ddram_clk,
     input           ddram_busy,
     output  [7:0]   ddram_burstcnt,
@@ -80,7 +81,8 @@ module mist_top(
     output  [7:0]   ddram_be,
     output          ddram_we,
     output          ddram_burstbegin,
-
+    `endif   
+    
     output          clk_rom,
     output          rst,
     `endif   
