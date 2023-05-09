@@ -59,23 +59,27 @@ assign pll_locked = pll0_lock & pll1_lock & pll2_lock;
 // TODO to be added pll 8 MHz for Turbo Chameleon 64 V1 
 // C10LP-RefKit has a 25Mhz and 12Mhz clock
 
+// // converts 12 to 27MHz
+// pll_27 u_pllatlas( 		
+//     .inclk0  ( clk_ext   ),
+//     .c0	     ( clk27     ),
+//     .locked  ( pll0_lock )
+// );
+
 assign clk27 = clk_ext;
 assign pll0_lock = 1;
 
-/*   BYPASSING u_basepll  if usign jtframe_pll6000
 `JTFRAME_PLL u_basepll(
     .inclk0 ( clk27     ),
     .c0     ( pll_base  ),
     .locked ( pll2_lock )
 );
-*/
-assign pll2_lock = 1;
 
 // clk_rom is used for SDRAM access
 // clk_sys is for video
 // clk96, clk24 and clk6 inputs to the core can be enabled via macros
 `JTFRAME_GAMEPLL u_pll_game (
-    .inclk0 ( clk27       ), //pll_base used without bypass
+    .inclk0 ( pll_base    ),
     .c0     ( clk96       ),
     .c1     ( clk48       ), // 48 MHz
     .c2     ( SDRAM_CLK   ), // 96 or 48 MHz shifted
