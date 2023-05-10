@@ -79,8 +79,8 @@ architecture RTL of jtframe_de10lite_top is
 	signal spi_clk_int : std_logic;
 
 -- PS/2 Keyboard socket - used for second mouse
-	alias ps2_keyboard_clk : std_logic is GPIO(35);-- Dar -- GPIO(10);
-	alias ps2_keyboard_dat : std_logic is GPIO(34);-- Dar -- GPIO(12);
+	alias ps2_keyboard_clk : std_logic is GPIO(10);
+	alias ps2_keyboard_dat : std_logic is GPIO(12);
 
 	signal ps2_keyboard_clk_in : std_logic;
 	signal ps2_keyboard_dat_in : std_logic;
@@ -88,8 +88,8 @@ architecture RTL of jtframe_de10lite_top is
 	signal ps2_keyboard_dat_out : std_logic;
 
 -- PS/2 Mouse
-	signal ps2_mouse_clk : std_logic; -- Dar alias ps2_mouse_clk : std_logic is GPIO(14);
-	signal ps2_mouse_dat : std_logic; -- Dar alias ps2_mouse_dat : std_logic is GPIO(16);
+	alias ps2_mouse_clk : std_logic is GPIO(14);
+	alias ps2_mouse_dat : std_logic is GPIO(16);
 
 	signal ps2_mouse_clk_in: std_logic;
 	signal ps2_mouse_dat_in: std_logic;
@@ -109,8 +109,8 @@ architecture RTL of jtframe_de10lite_top is
 	signal rs232_rxd : std_logic;
 	signal rs232_txd : std_logic;
 
-	alias sigma_l : std_logic is GPIO(1); -- Dar GPIO(18);
-	alias sigma_r : std_logic is GPIO(3); -- Dar GPIO(20);
+	alias sigma_l : std_logic is GPIO(18);
+	alias sigma_r : std_logic is GPIO(20);
 
 -- IO
 	signal joya : std_logic_vector(6 downto 0);
@@ -134,40 +134,18 @@ HEX2<=(others=>'1');
 HEX3<=(others=>'1');
 HEX4<=(others=>'1');
 HEX5<=(others=>'1');
--- Dar
-ARDUINO_IO <= (others => 'Z');
-GPIO(0) <= 'Z';
-GPIO(2) <= 'Z';
-GPIO(17 downto  4) <= (others => 'Z');
-GPIO(33 downto 24) <= (others => 'Z');
 
--- SPI
-
-GPIO(18)<=sd_cs;   -- Dar ARDUINO_IO(10)<=sd_cs;
-GPIO(19)<=sd_mosi; -- Dar ARDUINO_IO(11)<=sd_mosi;
-GPIO(21)<='Z';     -- Dar ARDUINO_IO(12)<='Z';
-sd_miso<=GPIO(21); -- Dar sd_miso<=ARDUINO_IO(12);
-GPIO(20)<=sd_clk;  -- Dar ARDUINO_IO(13)<=sd_clk;
+-- SPI SD card
+ARDUINO_IO(10)<=sd_cs;
+ARDUINO_IO(11)<=sd_mosi;
+ARDUINO_IO(12)<='Z';
+sd_miso<=ARDUINO_IO(12);
+ARDUINO_IO(13)<=sd_clk;
 
 ARDUINO_IO(1) <= uart_txd;
 ARDUINO_IO(0) <= 'Z';
 uart_rxd <= ARDUINO_IO(0);
 
-
--- PCXT serial
---GPIO(22) <= uart_txd;  -- Dar ARDUINO_IO(1) <= uart_txd;
---GPIO(23) <= 'Z';       -- Dar ARDUINO_IO(0) <= 'Z';
---uart_rxd <= GPIO(23);  -- Dar uart_rxd <= ARDUINO_IO(0);
-
--- MCU serial
-GPIO(22) <= rs232_txd;
-GPIO(23) <= 'Z';
-rs232_rxd <= GPIO(23);
-
-
---GPIO(24) <= uart_rts;  -- Dar ARDUINO_IO(3) <= uart_rts;
---GPIO(25) <= 'Z';       -- Dar ARDUINO_IO(2) <= 'Z';
---uart_cts <= GPIO(25);  -- Dar uart_cts <= ARDUINO_IO(2);
 
 -- External devices tied to GPIOs
 
@@ -180,9 +158,9 @@ ps2_keyboard_dat_in<=ps2_keyboard_dat;
 ps2_keyboard_dat <= '0' when ps2_keyboard_dat_out='0' else 'Z';
 ps2_keyboard_clk_in<=ps2_keyboard_clk;
 ps2_keyboard_clk <= '0' when ps2_keyboard_clk_out='0' else 'Z';
-
--- Dar GPIO(0)<=rs232_txd;
--- Dar rs232_rxd<=GPIO(1);
+	
+GPIO(0)<=rs232_txd;
+rs232_rxd<=GPIO(1);
 
 joya<=(others=>'1');
 joyb<=(others=>'1');
