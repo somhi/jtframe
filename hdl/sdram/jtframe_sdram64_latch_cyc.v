@@ -43,7 +43,7 @@ module jtframe_sdram64_latch #(parameter LATCH=0, AW=22)(
 );
 
 localparam RMSB = AW==22 ? AW-1 : AW-2,
-           RLSB = RMSB-11;
+           RLSB = RMSB-12;
 
 wire prog_rq = prog_en &(prog_wr | prog_rd);
 

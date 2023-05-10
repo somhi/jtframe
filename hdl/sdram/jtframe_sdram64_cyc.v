@@ -42,7 +42,7 @@ module jtframe_sdram64 #(
               BA3_AUTOPRECH=0,
 
               MISTER =1,     // shorts dqm to address bus 12/11 signals
-              RFSHCNT=9,     // 8192 every 64ms or 1 every 7.8us ~ 8.2 per line (15kHz)
+              RFSHCNT=9,     // 9  8192 every 64ms or 1 every 7.8us ~ 8.2 per line (15kHz), 7, 4, 12, 15
               BAPRIO =1      // Bank requests are handled with higher priority to bank 0
                              // and lower to to bank 3
 )(

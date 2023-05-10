@@ -73,7 +73,7 @@ module jtframe_sdram64_bank #(
 );
 
 localparam ROW=12,
-           COW= AW==22 ? 9 : 10; // 9 for 32MB SDRAM, 10 for 64MB
+           COW= AW==22 ? 8 : 9; // 8 for 8MB SDRAM, 9 for 32MB
 
 // states
 localparam IDLE    = 0,
@@ -215,9 +215,13 @@ always @(*) begin
           do_act   ? CMD_ACTIVE    : (
           do_read  ? (rd ? CMD_READ : CMD_WRITE ) : CMD_NOP ));
 //  sdram_a[12:11] =  addr_row[12:11];
-    sdram_a[11] =  addr_row[11];
-    sdram_a[10:0] = do_act ? addr_row[10:0] :
-            { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
+    // sdram_a[11:0] = do_act ? addr_row[11:0] :
+    //         { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
+
+    sdram_a[11:0] = do_act ? addr_row[11:0] :
+    { 1'b0, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[AW-2], addr[7:0]};
+
+
 end
 
 always @(posedge clk, posedge rst) begin

@@ -29,7 +29,7 @@ module jtframe_sdram64_init #(parameter
 );
 
 //localparam [13:0] INIT_WAIT = HF ? 14'd10_000 : 14'd5_000; // 100us for 96MHz/48MHz
-localparam [14:0] INIT_WAIT = 15'd20_000; // 200us for W9864G6JT (CYC1000)
+localparam [14:0] INIT_WAIT   = HF ? 15'd20_000 : 15'd10_000; // 200us for 96MHz/48MHz for W9864G6JT (CYC1000)
 
 
 //                             /CS /RAS /CAS /WE
