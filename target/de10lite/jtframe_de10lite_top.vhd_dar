@@ -6,6 +6,8 @@ library work;
 use work.demistify_config_pkg.all;
 
 -------------------------------------------------------------------------
+-- DE10LITE @darfpga hardware top file
+-------------------------------------------------------------------------
 
 entity jtframe_de10lite_top is
 	port
