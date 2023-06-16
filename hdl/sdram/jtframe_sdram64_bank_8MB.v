@@ -72,8 +72,8 @@ module jtframe_sdram64_bank #(
     output reg  [ 3:0]  cmd
 );
 
-//localparam ROW=13,
-//           COW= AW==22 ? 9 : 10; // 9 for 32MB SDRAM, 10 for 64MB
+localparam ROW=13,
+           COW= AW==22 ? 9 : 10; // 9 for 32MB SDRAM, 10 for 64MB
 
 // states
 localparam IDLE    = 0,
@@ -108,7 +108,7 @@ end
 `endif
 */
 reg            actd, prechd;
-wire [   12:0] addr_row;
+wire [ROW-1:0] addr_row;
 reg  [STW-1:0] st, next_st, rot_st;
 reg            last_act;
 wire           rd_wr;
@@ -125,6 +125,7 @@ assign ack      = st[READ],
        dbusy64  = READONLY ? dbusy : |{in_busy64, do_read},
        rdy      = (written && !AUTOPRECH) ? st[READ] : st[RDY],
        addr_row = addr[20:8],
+//     addr_row = AW==22 ? addr[AW-1:AW-ROW] : addr[AW-2:AW-1-ROW],
        rd_wr    = rd | wr,
        idle     = st[0];
 
@@ -217,13 +218,6 @@ always @(*) begin
     // sdram_a[12:11] =  addr_row[12:11];
     // sdram_a[10:0] = do_act ? addr_row[10:0] :
     //         { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
-
-    // sdram_a[12:0] = do_act ? addr_row[12:0] :
-    //         { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[AW-2], addr[7:0]};
-
-    // sdram_a[12:0] = do_act ? addr_row[12:0] :
-    //         { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], 2'b00, addr[7:0]};
-
     sdram_a[12:0] = do_act ? addr_row :
             { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], 2'b00, addr[7:0]};          
 
