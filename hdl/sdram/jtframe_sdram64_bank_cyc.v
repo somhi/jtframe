@@ -57,7 +57,7 @@ module jtframe_sdram64_bank #(
     input               all_act,
 
     // row matching
-    output reg  [11:0]  row,
+    output reg  [12:0]  row,
     input               match,
 
     // SDRAM interface
@@ -68,12 +68,12 @@ module jtframe_sdram64_bank #(
     // that can be joined together thru an OR operation at a
     // higher level. This makes it possible to short the pins
     // of the SDRAM, as done in the MiSTer 128MB module
-    output reg  [11:0]  sdram_a,        // SDRAM Address bus 12 Bits
+    output reg  [12:0]  sdram_a,        // SDRAM Address bus 13 Bits
     output reg  [ 3:0]  cmd
 );
 
-localparam ROW=12,
-           COW= AW==22 ? 8 : 9; // 8 for 8MB SDRAM, 9 for 32MB
+//localparam ROW=13,
+//           COW= AW==22 ? 9 : 10; // 9 for 32MB SDRAM, 10 for 64MB
 
 // states
 localparam IDLE    = 0,
@@ -108,7 +108,7 @@ end
 `endif
 */
 reg            actd, prechd;
-wire [ROW-1:0] addr_row;
+wire [   12:0] addr_row;
 reg  [STW-1:0] st, next_st, rot_st;
 reg            last_act;
 wire           rd_wr;
@@ -124,7 +124,7 @@ assign ack      = st[READ],
        dbusy    = |{in_busy, do_read},
        dbusy64  = READONLY ? dbusy : |{in_busy64, do_read},
        rdy      = (written && !AUTOPRECH) ? st[READ] : st[RDY],
-       addr_row = AW==22 ? addr[AW-1:AW-ROW] : addr[AW-2:AW-1-ROW],
+       addr_row = addr[20:8],
        rd_wr    = rd | wr,
        idle     = st[0];
 
@@ -214,13 +214,18 @@ always @(*) begin
     cmd = do_prech ? CMD_PRECHARGE : (
           do_act   ? CMD_ACTIVE    : (
           do_read  ? (rd ? CMD_READ : CMD_WRITE ) : CMD_NOP ));
-//  sdram_a[12:11] =  addr_row[12:11];
-    // sdram_a[11:0] = do_act ? addr_row[11:0] :
+    // sdram_a[12:11] =  addr_row[12:11];
+    // sdram_a[10:0] = do_act ? addr_row[10:0] :
     //         { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
 
-    sdram_a[11:0] = do_act ? addr_row[11:0] :
-    { 1'b0, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[AW-2], addr[7:0]};
+    // sdram_a[12:0] = do_act ? addr_row[12:0] :
+    //         { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[AW-2], addr[7:0]};
 
+    // sdram_a[12:0] = do_act ? addr_row[12:0] :
+    //         { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], 2'b00, addr[7:0]};
+
+    sdram_a[12:0] = do_act ? addr_row :
+            { 2'b00, do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], 2'b00, addr[7:0]};          
 
 end
 

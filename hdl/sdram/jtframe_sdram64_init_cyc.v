@@ -25,7 +25,7 @@ module jtframe_sdram64_init #(parameter
 
     output   reg        init,
     output   reg  [3:0] cmd,
-    output   reg [11:0] sdram_a
+    output   reg [12:0] sdram_a
 );
 
 //localparam [13:0] INIT_WAIT = HF ? 14'd10_000 : 14'd5_000; // 100us for 96MHz/48MHz
@@ -57,14 +57,14 @@ always @(posedge clk, posedge rst) begin
         init_cmd <= CMD_NOP;
         // SDRAM pins
         cmd      <= CMD_NOP;
-        sdram_a  <= 12'd0;
+        sdram_a  <= 13'd0;
     end else if( init ) begin
         if( |wait_cnt ) begin
             wait_cnt <= wait_cnt-15'd1;
             init_cmd <= CMD_NOP;
             cmd      <= init_cmd;
         end else begin
-            sdram_a  <= 12'd0;
+            sdram_a  <= 13'd0;
             if(!init_st[2]) init_st <= init_st+3'd1;
             case(init_st)
                 3'd0: begin
@@ -82,7 +82,7 @@ always @(posedge clk, posedge rst) begin
                 end
                 3'd3: begin
                     init_cmd <= CMD_LOAD_MODE;
-                    sdram_a  <= {9'b00_1_00_010_0,BURSTLEN==64?3'b010:(BURSTLEN==32?3'b001:3'b000)}; // CAS Latency = 2, burst = 1-4
+                    sdram_a  <= {10'b00_1_00_010_0,BURSTLEN==64?3'b010:(BURSTLEN==32?3'b001:3'b000)}; // CAS Latency = 2, burst = 1-4
                     wait_cnt <= 15'd3;
                 end
                 3'd4: begin
