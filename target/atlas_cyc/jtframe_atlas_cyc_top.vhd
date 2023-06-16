@@ -9,8 +9,8 @@ use work.demistify_config_pkg.all;
 
 entity jtframe_atlas_top is
 	generic (
-		ATLAS_CYC_EAR : natural := 1; -- 0 = JOY SEL pin,	1 = EAR pin,  2 = MIDI_WSBD
-		ATLAS_CYC_VGA : natural := 1; -- 0 = HDMI,  		1 = VGA
+		ATLAS_CYC_EAR : natural := 0; -- 0 = JOY SEL pin,	1 = EAR pin,  2 = MIDI_WSBD
+		ATLAS_CYC_VGA : natural := 0; -- 0 = HDMI,  		1 = VGA
 		ATLAS_CYC_KEYB: natural := 0  -- 0=PS2 NO AT1, 1=PS2 AT1, 2=USB NO AT1, 3=USB AT1, 
 	);
 	port (
@@ -127,28 +127,29 @@ architecture RTL of jtframe_atlas_top is
 	signal joyc : std_logic_vector(7 downto 0);
 	signal joyd : std_logic_vector(7 downto 0);
 
+	signal joy1 : std_logic_vector(5 downto 0);
+	signal joy2 : std_logic_vector(5 downto 0);
+	signal intercept_joy : std_logic_vector(5 downto 0);
+	signal joy_select_o  : std_logic;
+
 	-- DAC AUDIO
 	signal dac_l : signed(15 downto 0);
 	signal dac_r : signed(15 downto 0);
-	--signal dac_l: std_logic_vector(15 downto 0);
-	--signal dac_r: std_logic_vector(15 downto 0);
-	--signal dac_l_s: signed(15 downto 0);
-	--signal dac_r_s: signed(15 downto 0);
 
 	-- I2S 
 	signal i2s_mclk : std_logic;
 
-	-- component audio_top is
-	--	 	port (
-	--	 		clk_50MHz : in std_logic;  -- system clock
-	--	 		dac_MCLK  : out std_logic; -- outputs to PMODI2L DAC
-	--	 		dac_LRCK  : out std_logic;
-	--	 		dac_SCLK  : out std_logic;
-	--	 		dac_SDIN  : out std_logic;
-	--	 		L_data    : in std_logic_vector(15 downto 0); -- LEFT data (15-bit signed)
-	--	 		R_data    : in std_logic_vector(15 downto 0)  -- RIGHT data (15-bit signed) 
-	--	 	);
-	-- end component;	
+	component audio_top is
+		 	port (
+		 		clk_50MHz : in std_logic;  -- system clock
+		 		dac_MCLK  : out std_logic; -- outputs to I2S DAC
+		 		dac_LRCK  : out std_logic;
+		 		dac_SCLK  : out std_logic;
+		 		dac_SDIN  : out std_logic;
+		 		L_data    : in std_logic_vector(15 downto 0); -- LEFT data (15-bit signed)
+		 		R_data    : in std_logic_vector(15 downto 0)  -- RIGHT data (15-bit signed) 
+		 	);
+	end component;	
 
 
 	-- HDMI TDMS signals
@@ -172,7 +173,7 @@ architecture RTL of jtframe_atlas_top is
 	-- VIDEO signals
 	signal vga_clk   : std_logic;
 	signal hdmi_clk  : std_logic;
-	signal vga_blank : std_logic;
+	signal vga_de 	 : std_logic;
 	signal vga_x_r   : std_logic_vector(5 downto 0);
 	signal vga_x_g   : std_logic_vector(5 downto 0);
 	signal vga_x_b   : std_logic_vector(5 downto 0);
@@ -189,7 +190,7 @@ architecture RTL of jtframe_atlas_top is
 			inclk0 : in std_logic;
 			c0 : out std_logic;		--   50 MHz
 			c1 : out std_logic;		--   48 MHz
-		--	c2 : out std_logic;		--   x5
+		    c2 : out std_logic;		--   x5
 		--	c3 : out std_logic;		--	 x
 			locked : out std_logic
 	  );
@@ -219,6 +220,8 @@ architecture RTL of jtframe_atlas_top is
 	signal clk48	    :  std_logic; 
 
 	signal act_led : std_logic;
+
+	signal osd_en   : std_logic;
 
 	-- ATLAS CYC1000 target guest_top template signals
 	signal clock_input 			: std_logic;
@@ -302,7 +305,7 @@ begin
 
 
 	PIN_P11_JOYSEL_0 : if ATLAS_CYC_EAR = 0 generate -- JOY Select Output
-		JOYX_SEL_O   <= '1';
+		-- JOYX_SEL_O   <= '1';
 		JOYX_SEL_EAR_MIDI_DABD <= JOYX_SEL_O;
 		EAR          <= '0';
 	end generate PIN_P11_JOYSEL_0;
@@ -322,22 +325,21 @@ begin
 	joyc <= (others => '1');
 	joyd <= (others => '1');
 
-	-- -- I2S audio
-	-- audio_i2s: audio_top
-	-- 		port map(
-	-- 			clk_50MHz => CLK50M,
-	-- 			dac_MCLK  => I2S_MCLK,
-	-- 			dac_LRCK  => PI_MOSI_I2S_LRCLK,
-	-- 			dac_SCLK  => PI_MISO_I2S_BCLK,
-	-- 			dac_SDIN  => PI_CLK_I2S_DATA,
-	-- 			L_data    => std_logic_vector(dac_l),
-	-- 			R_data    => std_logic_vector(dac_r)
-	--		--	L_data    => std_logic_vector(dac_l_s),
-	--		--	R_data    => std_logic_vector(dac_r_s)
-	-- 		);
-
-	--dac_l_s <= ('0' & dac_l(14 downto 0));
-	--dac_r_s <= ('0' & dac_r(14 downto 0));
+	-- Core direct joystick
+	joy1                <= JOY1_B2_P9 & JOY1_B1_P6 & JOY1_UP & JOY1_DOWN & JOY1_LEFT & JOY1_RIGHT;
+	joy2                <= (others => '1');
+	
+	-- I2S audio
+	audio_i2s: audio_top
+		port map(
+			clk_50MHz => CLK50M,
+			dac_MCLK  => I2S_MCLK,
+			dac_LRCK  => PI_MOSI_I2S_LRCLK,
+			dac_SCLK  => PI_MISO_I2S_BCLK,
+			dac_SDIN  => PI_CLK_I2S_DATA,
+			L_data    => std_logic_vector(dac_l),
+			R_data    => std_logic_vector(dac_r)
+		);
 
 
 	-- BEGIN VGA ATLAS -------------------  
@@ -360,13 +362,13 @@ begin
 	-- END VGA ATLAS -------------------  
 
 
-	-- PLL VIDEO / 50 MHz / 48 USB
-	pllvideo : pll2
+	-- PLL 50 MHz / 48 USB / VIDEO
+	pll_50_48 : pll2
 	port map (
 		inclk0		=> CLK12M,				--      
 		c0			=> CLK50M,				-- 50 MHz
 		c1			=> CLK48M,				-- 48 MHz
---		c2			=> clock_dvi_s,			-- x5	    
+		c2			=> clock_dvi_s,			-- x5	    
 --		c3			=> clock_vga_s,			-- x 	   
 		locked		=> locked
 	);
@@ -376,13 +378,11 @@ begin
 	PINS_HDMI_VGA_2 : if ATLAS_CYC_VGA = 0 generate -- HDMI TDMS
 
 		clock_vga_s <= vga_clk;
-		clock_dvi_s <= hdmi_clk;
+		--clock_dvi_s <= hdmi_clk;
 
 		-- HDMI AUDIO
 		sound_hdmi_l_s <= dac_l;
 		sound_hdmi_r_s <= dac_r;
-		-- sound_hdmi_l_s <= '0' & std_logic_vector(dac_l(15 downto 1));
-		-- sound_hdmi_r_s <= '0' & std_logic_vector(dac_r(15 downto 1));
 		-- sound_hdmi_l_s <= std_logic_vector(dac_l);
 		-- sound_hdmi_r_s <= std_logic_vector(dac_r);
 
@@ -390,6 +390,8 @@ begin
 		-- JUST LEAVE ONE HDMI WRAPPER (1/2/3) UNCOMMENTED                                                  --
 		-- SELECT PROJECT FILES FOR HDMI WRAPPER (1/2/3) AT DeMiSTify/Board/atlas_cyc/atlas_cyc_support.tcl --
 		------------------------------------------------------------------------------------------------------
+
+
 
 		---- BEGIN HDMI 1 NO SOUND (MULTICPM / Next186) 
 
@@ -407,7 +409,7 @@ begin
 				R_I        => vga_x_r & vga_x_r(4 downto 3),
 				G_I        => vga_x_g & vga_x_g(4 downto 3),
 				B_I        => vga_x_b & vga_x_b(4 downto 3),
-				BLANK_I    => vga_blank,
+				BLANK_I    => not vga_de,
 				HSYNC_I    => vga_x_hs,
 				VSYNC_I    => vga_x_vs,
 				TMDS_D0_O  => TMDS(3),
@@ -504,6 +506,18 @@ begin
 	-- END HDMI ATLAS -------------------
 
 
+	--  Joystick intercept signal
+	process(clock_input)
+	begin
+		if (intercept = '1') then
+			intercept_joy <= "111111";
+	 		JOYX_SEL_O    <= '1';
+		else
+			intercept_joy <= "000000";
+			JOYX_SEL_O    <= joy_select_o;
+		end if;
+	end process;
+
 
 
 	guest : component mist_top
@@ -545,11 +559,27 @@ begin
 			VGA_G      => vga_green(7 downto 2),
 			VGA_B      => vga_blue(7 downto 2),
 
+			--HDMI
+			RED_x      => vga_x_r,
+			GREEN_x    => vga_x_g,
+			BLUE_x     => vga_x_b,
+			HS_x       => vga_x_hs,
+			VS_x       => vga_x_vs,
+			VGA_DE     => vga_de,
+			VGA_CLK    => vga_clk,
+
+			--JOYSTICKS
+			JOY1 	   => joy1 or intercept_joy,   -- Block joystick when OSD is active
+			JOY2 	   => joy2 or intercept_joy,   -- Block joystick when OSD is active
+			JOY_SELECT => joy_select_o,
+
 			--AUDIO
-			--DAC_L   => dac_l,
-			--DAC_R   => dac_r,
+			DAC_L   => dac_l,
+			DAC_R   => dac_r,
 			AUDIO_L => sigma_l,
-			AUDIO_R => sigma_r
+			AUDIO_R => sigma_r,
+
+			OSD_EN	=> osd_en
 
 			--PS2
 			-- PS2K_CLK => ps2_keyboard_clk_in or intercept, -- Block keyboard when OSD is active
@@ -601,10 +631,11 @@ begin
 			ps2m_dat_out => ps2_mouse_dat_out,
 
 			-- Buttons
-			buttons => (0 => '1', others => '1'),	-- 0 => OSD_button
+			buttons => (0 => (not osd_en), others => '1'),	-- 0 => OSD_button
 
 			-- Joysticks
 			joy1 => joya,
+			joy2 => joyb,
 
 			-- UART
 			rxd  => rs232_rxd,
